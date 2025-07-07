@@ -1,9 +1,11 @@
 <?php
 /**
  * The main template file for Prospergenics theme
+ * Shows homepage sections on front page, fallback to posts on old-style setups
  */
 get_header(); ?>
 <main id="main" class="site-main">
+<?php if ( is_front_page() ) : // Show custom homepage sections on front page only ?>
     <!-- Hero Section -->
     <section class="hero-section">
         <div class="hero-container">
@@ -114,5 +116,19 @@ get_header(); ?>
             </div>
         </div>
     </section>
+<?php elseif ( have_posts() ) : // Fallback: show posts if not homepage ?>
+    <?php while ( have_posts() ) : the_post(); ?>
+        <?php get_template_part( 'content', get_post_format() ); ?>
+    <?php endwhile; ?>
+    <div class="posts-navigation">
+        <?php the_posts_navigation(); ?>
+    </div>
+<?php else : ?>
+    <section class="blog-section">
+        <div class="section-container">
+            <p><?php esc_html_e('No posts found.', 'prospergenics'); ?></p>
+        </div>
+    </section>
+<?php endif; ?>
 </main>
 <?php get_footer(); ?>
