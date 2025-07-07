@@ -3,9 +3,6 @@
  * Prospergenics Theme Customizer
  */
 
-/**
- * Add postMessage support for site title and description for the Theme Customizer
- */
 function prospergenics_customize_register($wp_customize) {
     $wp_customize->get_setting('blogname')->transport         = 'postMessage';
     $wp_customize->get_setting('blogdescription')->transport  = 'postMessage';
@@ -263,28 +260,183 @@ function prospergenics_customize_register($wp_customize) {
         'section'  => 'prospergenics_footer',
         'type'     => 'textarea',
     ));
+
+    // Homepage Sections Panel
+    $wp_customize->add_panel('prospergenics_homepage_panel', array(
+        'title'       => __('Homepage Sections', 'prospergenics'),
+        'priority'    => 35,
+        'description' => __('Homepage About, Programs, and CTA content', 'prospergenics'),
+    ));
+
+    // About Section
+    $wp_customize->add_section('prospergenics_about_section', array(
+        'title'    => __('About Section', 'prospergenics'),
+        'panel'    => 'prospergenics_homepage_panel',
+        'priority' => 1,
+    ));
+    $wp_customize->add_setting('prospergenics_about_title', array(
+        'default'           => 'About Prospergenics',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_setting('prospergenics_about_text', array(
+        'default'           => 'Prospergenics is a grassroots community where people from all backgrounds come together to learn, grow, and support each other on the journey to prosperity. We believe that prosperity is not reserved for a select few—it\'s something anyone can learn, develop, and share. Powered by an active team in Kenya and the Netherlands, Prospergenics is built on real connection and practical learning. Our members collaborate in real projects, share knowledge, and empower each other. Whether you are starting your career, looking to improve your skills, or want to give back—at Prospergenics, you are not alone.',
+        'sanitize_callback' => 'sanitize_textarea_field',
+    ));
+    $wp_customize->add_control('prospergenics_about_title', array(
+        'label'    => __('About Section Title', 'prospergenics'),
+        'section'  => 'prospergenics_about_section',
+        'type'     => 'text',
+    ));
+    $wp_customize->add_control('prospergenics_about_text', array(
+        'label'    => __('About Section Text', 'prospergenics'),
+        'section'  => 'prospergenics_about_section',
+        'type'     => 'textarea',
+    ));
+    $wp_customize->add_setting('prospergenics_about_image', array(
+        'default'           => '',
+        'sanitize_callback' => 'esc_url_raw',
+    ));
+    $wp_customize->add_control(new WP_Customize_Image_Control($wp_customize, 'prospergenics_about_image', array(
+        'label'    => __('About Section Image', 'prospergenics'),
+        'section'  => 'prospergenics_about_section',
+        'settings' => 'prospergenics_about_image',
+    )));
+
+    // Programs Section
+    $wp_customize->add_section('prospergenics_programs_section', array(
+        'title'    => __('Programs Section', 'prospergenics'),
+        'panel'    => 'prospergenics_homepage_panel',
+        'priority' => 2,
+    ));
+    $wp_customize->add_setting('prospergenics_programs_title', array(
+        'default'           => 'Our Programs',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_setting('prospergenics_programs_desc', array(
+        'default'           => '',
+        'sanitize_callback' => 'sanitize_textarea_field',
+    ));
+    $wp_customize->add_control('prospergenics_programs_title', array(
+        'label'    => __('Programs Section Title', 'prospergenics'),
+        'section'  => 'prospergenics_programs_section',
+        'type'     => 'text',
+    ));
+    $wp_customize->add_control('prospergenics_programs_desc', array(
+        'label'    => __('Programs Section Description', 'prospergenics'),
+        'section'  => 'prospergenics_programs_section',
+        'type'     => 'textarea',
+    ));
+    // Allow editing of each of the three cards (you can increase/decrease number if changed)
+    for ($i = 1; $i <= 3; $i++) {
+        $wp_customize->add_setting("prospergenics_program{$i}_icon", array(
+            'default'           => ($i == 1 ? '💻' : ($i == 2 ? '🌱' : '📈')),
+            'sanitize_callback' => 'sanitize_text_field',
+        ));
+        $wp_customize->add_setting("prospergenics_program{$i}_title", array(
+            'default'           => ($i == 1 ? 'AI & Technology Training' : ($i == 2 ? 'Community Development' : 'Entrepreneurship Support')),
+            'sanitize_callback' => 'sanitize_text_field',
+        ));
+        $wp_customize->add_setting("prospergenics_program{$i}_desc", array(
+            'default'           => ($i == 1 ? 'Learn cutting-edge AI and software development skills that open doors to new opportunities and economic empowerment.' : ($i == 2 ? 'Participate in real projects that create lasting impact in communities while building valuable skills and connections.' : 'Get guidance, resources, and mentorship to turn your ideas into sustainable businesses that benefit your community.')),
+            'sanitize_callback' => 'sanitize_textarea_field',
+        ));
+        $wp_customize->add_setting("prospergenics_program{$i}_link", array(
+            'default'           => '#',
+            'sanitize_callback' => 'esc_url_raw',
+        ));
+        $wp_customize->add_control("prospergenics_program{$i}_icon", array(
+            'label'    => __('Program ' . $i . ' Icon', 'prospergenics'),
+            'section'  => 'prospergenics_programs_section',
+            'type'     => 'text',
+        ));
+        $wp_customize->add_control("prospergenics_program{$i}_title", array(
+            'label'    => __('Program ' . $i . ' Title', 'prospergenics'),
+            'section'  => 'prospergenics_programs_section',
+            'type'     => 'text',
+        ));
+        $wp_customize->add_control("prospergenics_program{$i}_desc", array(
+            'label'    => __('Program ' . $i . ' Description', 'prospergenics'),
+            'section'  => 'prospergenics_programs_section',
+            'type'     => 'textarea',
+        ));
+        $wp_customize->add_control("prospergenics_program{$i}_link", array(
+            'label'    => __('Program ' . $i . ' Link', 'prospergenics'),
+            'section'  => 'prospergenics_programs_section',
+            'type'     => 'url',
+        ));
+    }
+
+    // Final CTA Section
+    $wp_customize->add_section('prospergenics_final_cta_section', array(
+        'title'    => __('Final CTA Section', 'prospergenics'),
+        'panel'    => 'prospergenics_homepage_panel',
+        'priority' => 3,
+    ));
+    $wp_customize->add_setting('prospergenics_final_cta_title', array(
+        'default'           => 'Start Your Journey to Prosperity Today',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_setting('prospergenics_final_cta_text', array(
+        'default'           => 'Join thousands of individuals who are building a better future for themselves and their communities.',
+        'sanitize_callback' => 'sanitize_textarea_field',
+    ));
+    $wp_customize->add_control('prospergenics_final_cta_title', array(
+        'label'    => __('Final CTA Title', 'prospergenics'),
+        'section'  => 'prospergenics_final_cta_section',
+        'type'     => 'text',
+    ));
+    $wp_customize->add_control('prospergenics_final_cta_text', array(
+        'label'    => __('Final CTA Text', 'prospergenics'),
+        'section'  => 'prospergenics_final_cta_section',
+        'type'     => 'textarea',
+    ));
+    $wp_customize->add_setting('prospergenics_final_cta_primary', array(
+        'default'           => 'Join the Community',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_setting('prospergenics_final_cta_primary_link', array(
+        'default'           => '#',
+        'sanitize_callback' => 'esc_url_raw',
+    ));
+    $wp_customize->add_setting('prospergenics_final_cta_secondary', array(
+        'default'           => 'Browse Free Trainings',
+        'sanitize_callback' => 'sanitize_text_field',
+    ));
+    $wp_customize->add_setting('prospergenics_final_cta_secondary_link', array(
+        'default'           => '#',
+        'sanitize_callback' => 'esc_url_raw',
+    ));
+    $wp_customize->add_control('prospergenics_final_cta_primary', array(
+        'label'    => __('Primary CTA Button Text', 'prospergenics'),
+        'section'  => 'prospergenics_final_cta_section',
+        'type'     => 'text',
+    ));
+    $wp_customize->add_control('prospergenics_final_cta_primary_link', array(
+        'label'    => __('Primary CTA Link', 'prospergenics'),
+        'section'  => 'prospergenics_final_cta_section',
+        'type'     => 'url',
+    ));
+    $wp_customize->add_control('prospergenics_final_cta_secondary', array(
+        'label'    => __('Secondary CTA Button Text', 'prospergenics'),
+        'section'  => 'prospergenics_final_cta_section',
+        'type'     => 'text',
+    ));
+    $wp_customize->add_control('prospergenics_final_cta_secondary_link', array(
+        'label'    => __('Secondary CTA Link', 'prospergenics'),
+        'section'  => 'prospergenics_final_cta_section',
+        'type'     => 'url',
+    ));
+
 }
 add_action('customize_register', 'prospergenics_customize_register');
 
-/**
- * Render the site title for the selective refresh partial
- */
 function prospergenics_customize_partial_blogname() {
     bloginfo('name');
 }
-
-/**
- * Render the site tagline for the selective refresh partial
- */
 function prospergenics_customize_partial_blogdescription() {
     bloginfo('description');
 }
-
-/**
- * Binds JS handlers to make Theme Customizer preview reload changes asynchronously
- */
 function prospergenics_customize_preview_js() {
-    // Ensure 'wp-util' and 'jquery' and 'customize-preview' are dependencies
     wp_enqueue_script(
         'prospergenics-customizer',
         get_template_directory_uri() . '/js/customizer.js',
@@ -294,22 +446,16 @@ function prospergenics_customize_preview_js() {
     );
 }
 add_action('customize_preview_init', 'prospergenics_customize_preview_js');
-
-/**
- * Output custom CSS for customizer settings
- */
 function prospergenics_customizer_css() {
     $primary_color = get_theme_mod('prospergenics_primary_color', '#2E8B57');
     $accent_color = get_theme_mod('prospergenics_accent_color', '#FFD700');
     $hero_background = get_theme_mod('prospergenics_hero_background', '');
-
     ?>
     <style type="text/css">
         :root {
             --primary-green: <?php echo esc_attr($primary_color); ?>;
             --accent-gold: <?php echo esc_attr($accent_color); ?>;
         }
-        
         <?php if ($hero_background) : ?>
         .hero-section {
             background-image: linear-gradient(135deg, rgba(46, 139, 87, 0.8) 0%, rgba(30, 95, 63, 0.8) 100%), url(<?php echo esc_url($hero_background); ?>);
@@ -322,4 +468,3 @@ function prospergenics_customizer_css() {
     <?php
 }
 add_action('wp_head', 'prospergenics_customizer_css');
-

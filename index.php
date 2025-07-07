@@ -2,27 +2,20 @@
 /**
  * The main template file for Prospergenics theme
  */
-
 get_header(); ?>
-
 <main id="main" class="site-main">
-    
     <!-- Hero Section -->
     <section class="hero-section">
         <div class="hero-container">
-            <h1 class="hero-title fade-in-up">Building Prosperity Together</h1>
-            <p class="hero-subtitle fade-in-up">Empowering Futures, Cultivating Growth</p>
-            <p class="hero-description fade-in-up">
-                Join our diverse community—where learning, teamwork, and growth lead to real success. 
-                Discover the unique 'genetics' of prosperity and help shape success for yourself and others.
-            </p>
+            <h1 class="hero-title fade-in-up"><?php echo esc_html(get_theme_mod('prospergenics_hero_title', 'Building Prosperity Together')); ?></h1>
+            <p class="hero-subtitle fade-in-up"><?php echo esc_html(get_theme_mod('prospergenics_hero_subtitle', 'Empowering Futures, Cultivating Growth')); ?></p>
+            <p class="hero-description fade-in-up"><?php echo esc_html(get_theme_mod('prospergenics_hero_description', 'Join our diverse community—where learning, teamwork, and growth lead to real success. Discover the unique \'genetics\' of prosperity and help shape success for yourself and others.')); ?></p>
             <div class="cta-container fade-in-up">
-                <a href="#join" class="btn btn-primary">Join the Movement</a>
-                <a href="#programs" class="btn btn-secondary">Explore Our Programs</a>
+                <a href="<?php echo esc_url(get_theme_mod('prospergenics_primary_cta_url', '#join')); ?>" class="btn btn-primary"><?php echo esc_html(get_theme_mod('prospergenics_primary_cta_text', 'Join the Movement')); ?></a>
+                <a href="<?php echo esc_url(get_theme_mod('prospergenics_secondary_cta_url', '#programs')); ?>" class="btn btn-secondary"><?php echo esc_html(get_theme_mod('prospergenics_secondary_cta_text', 'Explore Our Programs')); ?></a>
             </div>
         </div>
     </section>
-
     <!-- Core Values Section -->
     <section class="core-values-section" id="values">
         <div class="section-container">
@@ -55,109 +48,71 @@ get_header(); ?>
             </div>
         </div>
     </section>
-
     <!-- Impact Section -->
     <section class="impact-section" id="impact">
         <div class="section-container">
             <h2 class="section-title">Our Impact</h2>
             <div class="impact-stats">
                 <div class="stat-item">
-                    <span class="stat-number">500+</span>
-                    <span class="stat-label">Individuals Trained</span>
+                    <span class="stat-number"><?php echo esc_html(get_theme_mod('prospergenics_stat1_number', '500+')); ?></span>
+                    <span class="stat-label"><?php echo esc_html(get_theme_mod('prospergenics_stat1_label', 'Individuals Trained')); ?></span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-number">25+</span>
-                    <span class="stat-label">Communities Impacted</span>
+                    <span class="stat-number"><?php echo esc_html(get_theme_mod('prospergenics_stat2_number', '25+')); ?></span>
+                    <span class="stat-label"><?php echo esc_html(get_theme_mod('prospergenics_stat2_label', 'Communities Impacted')); ?></span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-number">100+</span>
-                    <span class="stat-label">Successful Projects</span>
+                    <span class="stat-number"><?php echo esc_html(get_theme_mod('prospergenics_stat3_number', '100+')); ?></span>
+                    <span class="stat-label"><?php echo esc_html(get_theme_mod('prospergenics_stat3_label', 'Successful Projects')); ?></span>
                 </div>
             </div>
         </div>
     </section>
-
     <!-- About Section -->
     <section class="about-section" id="about">
         <div class="section-container">
             <div class="about-content">
                 <div class="about-text">
-                    <h2>About Prospergenics</h2>
-                    <p>
-                        Prospergenics is a grassroots community where people from all backgrounds 
-                        come together to learn, grow, and support each other on the journey to prosperity. 
-                        We believe that prosperity is not reserved for a select few—it's something 
-                        anyone can learn, develop, and share.
-                    </p>
-                    <p>
-                        Powered by an active team in Kenya and the Netherlands, Prospergenics is built 
-                        on real connection and practical learning. Our members collaborate in real projects, 
-                        share knowledge, and empower each other.
-                    </p>
-                    <p>
-                        Whether you are starting your career, looking to improve your skills, or want 
-                        to give back—at Prospergenics, you are not alone.
-                    </p>
+                    <h2><?php echo esc_html(get_theme_mod('prospergenics_about_title', 'About Prospergenics')); ?></h2>
+                    <p><?php echo nl2br(esc_html(get_theme_mod('prospergenics_about_text', 'Prospergenics is a grassroots community where people from all backgrounds come together to learn, grow, and support each other on the journey to prosperity. We believe that prosperity is not reserved for a select few—it\'s something anyone can learn, develop, and share. Powered by an active team in Kenya and the Netherlands, Prospergenics is built on real connection and practical learning. Our members collaborate in real projects, share knowledge, and empower each other. Whether you are starting your career, looking to improve your skills, or want to give back—at Prospergenics, you are not alone.'))); ?></p>
                 </div>
                 <div class="about-image">
-                    <img src="<?php echo get_template_directory_uri(); ?>/images/community-collaboration.jpg" 
-                         alt="Prospergenics community members collaborating" />
+                    <?php if(get_theme_mod('prospergenics_about_image')): ?>
+                        <img src="<?php echo esc_url(get_theme_mod('prospergenics_about_image')); ?>" alt="Prospergenics community members collaborating" />
+                    <?php else: ?>
+                        <img src="<?php echo get_template_directory_uri(); ?>/images/community-collaboration.jpg" alt="Prospergenics community members collaborating" />
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
     </section>
-
     <!-- Programs Section -->
     <section class="core-values-section" id="programs">
         <div class="section-container">
-            <h2 class="section-title">Our Programs</h2>
+            <h2 class="section-title"><?php echo esc_html(get_theme_mod('prospergenics_programs_title', 'Our Programs')); ?></h2>
+            <p><?php echo nl2br(esc_html(get_theme_mod('prospergenics_programs_desc', ''))); ?></p>
             <div class="values-grid">
+                <?php for($i=1;$i<=3;$i++): ?>
                 <div class="value-card">
-                    <div class="value-icon">💻</div>
-                    <h3 class="value-title">AI & Technology Training</h3>
-                    <p class="value-description">
-                        Learn cutting-edge AI and software development skills that open doors 
-                        to new opportunities and economic empowerment.
-                    </p>
-                    <a href="#" class="btn btn-primary" style="margin-top: 1rem;">Learn More</a>
+                    <div class="value-icon"><?php echo esc_html(get_theme_mod("prospergenics_program{$i}_icon", ($i==1?'💻':($i==2?'🌱':'📈')))); ?></div>
+                    <h3 class="value-title"><?php echo esc_html(get_theme_mod("prospergenics_program{$i}_title", ($i==1?'AI & Technology Training':($i==2?'Community Development':'Entrepreneurship Support')))); ?></h3>
+                    <p class="value-description"><?php echo esc_html(get_theme_mod("prospergenics_program{$i}_desc", ($i==1?'Learn cutting-edge AI and software development skills that open doors to new opportunities and economic empowerment.':($i==2?'Participate in real projects that create lasting impact in communities while building valuable skills and connections.':'Get guidance, resources, and mentorship to turn your ideas into sustainable businesses that benefit your community.')))); ?></p>
+                    <a href="<?php echo esc_url(get_theme_mod("prospergenics_program{$i}_link", '#')); ?>" class="btn btn-primary" style="margin-top: 1rem;">Learn More</a>
                 </div>
-                <div class="value-card">
-                    <div class="value-icon">🌱</div>
-                    <h3 class="value-title">Community Development</h3>
-                    <p class="value-description">
-                        Participate in real projects that create lasting impact in communities 
-                        while building valuable skills and connections.
-                    </p>
-                    <a href="#" class="btn btn-primary" style="margin-top: 1rem;">Learn More</a>
-                </div>
-                <div class="value-card">
-                    <div class="value-icon">📈</div>
-                    <h3 class="value-title">Entrepreneurship Support</h3>
-                    <p class="value-description">
-                        Get guidance, resources, and mentorship to turn your ideas into 
-                        sustainable businesses that benefit your community.
-                    </p>
-                    <a href="#" class="btn btn-primary" style="margin-top: 1rem;">Learn More</a>
-                </div>
+                <?php endfor; ?>
             </div>
         </div>
     </section>
-
     <!-- Final CTA Section -->
     <section class="final-cta-section" id="join">
         <div class="section-container">
-            <h2 class="final-cta-title">Start Your Journey to Prosperity Today</h2>
-            <p class="final-cta-description">
-                Join thousands of individuals who are building a better future for themselves and their communities.
-            </p>
+            <h2 class="final-cta-title"><?php echo esc_html(get_theme_mod('prospergenics_final_cta_title', 'Start Your Journey to Prosperity Today')); ?></h2>
+            <p class="final-cta-description"><?php echo nl2br(esc_html(get_theme_mod('prospergenics_final_cta_text', 'Join thousands of individuals who are building a better future for themselves and their communities.'))); ?></p>
             <div class="cta-container">
-                <a href="#" class="btn btn-primary">Join the Community</a>
-                <a href="#" class="btn btn-secondary">Browse Free Trainings</a>
+                <a href="<?php echo esc_url(get_theme_mod('prospergenics_final_cta_primary_link', '#')); ?>" class="btn btn-primary"><?php echo esc_html(get_theme_mod('prospergenics_final_cta_primary', 'Join the Community')); ?></a>
+                <a href="<?php echo esc_url(get_theme_mod('prospergenics_final_cta_secondary_link', '#')); ?>" class="btn btn-secondary"><?php echo esc_html(get_theme_mod('prospergenics_final_cta_secondary', 'Browse Free Trainings')); ?></a>
             </div>
         </div>
     </section>
-
 </main>
-
 <?php get_footer(); ?>
-
