@@ -1,0 +1,40 @@
+/* Prospergenics Block Editor (Gutenberg) Styles */
+
+/* Use custom palette colors from Customizer */
+.editor-styles-wrapper {
+    font-family: 'Inter', Arial, sans-serif;
+    background: #f8fafb;
+}
+
+/* Headings Preview */
+.editor-post-title__block, h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    color: #2E8B57;
+}
+
+/* Button styles preview */
+.wp-block-button__link {
+    background: #FFD700;
+    color: #333;
+    border-radius: 40px;
+    padding: 10px 28px;
+    font-weight: 600;
+}
+
+.wp-block-button__link:hover {
+    background: #2E8B57;
+    color: #fff;
+}
+
+/* Card sample */
+.wp-block-columns, .wp-block-group {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    padding: 2rem;
+}
+
+:root {
+    --primary-green: #2E8B57;
+    --accent-gold: #FFD700;
+}

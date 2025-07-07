@@ -307,11 +307,28 @@ function prospergenics_remove_query_strings($src) {
 add_filter('script_loader_src', 'prospergenics_remove_query_strings', 15, 1);
 add_filter('style_loader_src', 'prospergenics_remove_query_strings', 15, 1);
 
-// Defer parsing of JavaScript
+// Defer parsing of JavaScript (fixed - no more stray quote and defer only if not admin, not core and only scripts that are not excluded)
 function prospergenics_defer_parsing_of_js($url) {
-    if (FALSE === strpos($url, '.js')) return $url;
-    if (strpos($url, 'jquery.js')) return $url;
-    return "$url' defer='defer";
+    if (is_admin()) return $url;
+    if (false === strpos($url, '.js')) return $url;
+    if (strpos($url, 'jquery.js') !== false) return $url;
+    if (strpos($url, 'jquery-migrate') !== false) return $url;
+    if (strpos($url, 'customize-controls') !== false) return $url;
+    if (strpos($url, 'customize-preview') !== false) return $url;
+    if (strpos($url, 'wp-') !== false) return $url;
+    if (strpos($url, 'admin-bar') !== false) return $url;
+    if (strpos($url, 'editor') !== false) return $url;
+    if (strpos($url, 'block') !== false) return $url;
+    if (strpos($url, 'tinymce') !== false) return $url;
+    if (strpos($url, 'load-scripts.php') !== false) return $url;
+    if (strpos($url, 'heartbeat') !== false) return $url;
+    if (strpos($url, 'media') !== false) return $url;
+    if (strpos($url, 'underscore') !== false) return $url;
+    if (strpos($url, 'backbone') !== false) return $url;
+    if (strpos($url, 'wp-util') !== false) return $url;
+    // If it already contains 'defer', don't double apply
+    if (strpos($url, "defer=") !== false) return $url;
+    return str_replace('.js', '.js" defer="defer', $url);
 }
-add_filter('clean_url', 'prospergenics_defer_parsing_of_js', 11, 1);
+add_filter('script_loader_tag', 'prospergenics_defer_parsing_of_js', 11, 1);
 

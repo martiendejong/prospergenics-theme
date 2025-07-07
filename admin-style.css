@@ -1,0 +1,28 @@
+/* Prospergenics Admin Custom Styles */
+body.wp-admin {
+    font-family: 'Inter', Arial, sans-serif;
+}
+
+#adminmenu .wp-has-current-submenu .wp-submenu,
+#adminmenu .wp-menu-arrow,
+#adminmenu .wp-has-current-submenu.open .wp-submenu,
+.wp-core-ui .button-primary {
+    background-color: #2E8B57;
+    color: #fff;
+}
+
+.wp-core-ui .button-primary:hover {
+    background-color: #FFD700;
+    color: #333;
+}
+
+.prospergenics-admin-banner {
+    padding: 16px;
+    background: #FFD700;
+    color: #333;
+    font-weight: 600;
+    border-left: 6px solid #2E8B57;
+    border-radius: 4px;
+    margin-bottom: 16px;
+}
+

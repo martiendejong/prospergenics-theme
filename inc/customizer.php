@@ -284,7 +284,14 @@ function prospergenics_customize_partial_blogdescription() {
  * Binds JS handlers to make Theme Customizer preview reload changes asynchronously
  */
 function prospergenics_customize_preview_js() {
-    wp_enqueue_script('prospergenics-customizer', get_template_directory_uri() . '/js/customizer.js', array('customize-preview'), '1.0.0', true);
+    // Ensure 'wp-util' and 'jquery' and 'customize-preview' are dependencies
+    wp_enqueue_script(
+        'prospergenics-customizer',
+        get_template_directory_uri() . '/js/customizer.js',
+        array('jquery', 'customize-preview', 'wp-util'),
+        '1.0.1',
+        true
+    );
 }
 add_action('customize_preview_init', 'prospergenics_customize_preview_js');
 
