@@ -11,7 +11,7 @@ get_header(); ?>
             <p class="hero-subtitle fade-in-up"><?php echo esc_html(get_theme_mod('prospergenics_hero_subtitle', 'Empowering Futures, Cultivating Growth')); ?></p>
             <p class="hero-description fade-in-up"><?php echo esc_html(get_theme_mod('prospergenics_hero_description', 'Join our diverse community—where learning, teamwork, and growth lead to real success. Discover the unique \'genetics\' of prosperity and help shape success for yourself and others.')); ?></p>
             <div class="cta-container fade-in-up">
-                <a href="<?php echo esc_url(get_theme_mod('prospergenics_primary_cta_url', '#join')); ?>" class="btn btn-primary"><?php echo esc_html(get_theme_mod('prospergenics_primary_cta_text', 'Join the Movement')); ?></a>
+                <a href="#" id="join-movement-btn" class="btn btn-primary"><?php echo esc_html(get_theme_mod('prospergenics_primary_cta_text', 'Join the Movement')); ?></a>
                 <a href="<?php echo esc_url(get_theme_mod('prospergenics_secondary_cta_url', '#programs')); ?>" class="btn btn-secondary"><?php echo esc_html(get_theme_mod('prospergenics_secondary_cta_text', 'Explore Our Programs')); ?></a>
             </div>
         </div>
@@ -115,4 +115,47 @@ get_header(); ?>
         </div>
     </section>
 </main>
+<!-- Contact Form Modal -->
+<div id="contact-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.6);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#fff;padding:2rem;max-width:400px;width:90%;border-radius:8px;position:relative;">
+    <button id="close-contact-modal" style="position:absolute;top:10px;right:10px;font-size:1.2rem;background:none;border:none;cursor:pointer;">&times;</button>
+    <h2>Contact Us</h2>
+    <form id="contact-form" method="post" action="<?php echo esc_url( admin_url('admin-post.php') ); ?>">
+      <input type="hidden" name="action" value="prospergenics_send_contact_form">
+      <?php wp_nonce_field('prospergenics_contact_form'); ?>
+      <div style="margin-bottom:1rem;">
+        <label for="cf-name">Name</label><br>
+        <input type="text" id="cf-name" name="cf_name" required style="width:100%;padding:0.5rem;">
+      </div>
+      <div style="margin-bottom:1rem;">
+        <label for="cf-email">Email</label><br>
+        <input type="email" id="cf-email" name="cf_email" required style="width:100%;padding:0.5rem;">
+      </div>
+      <div style="margin-bottom:1rem;">
+        <label for="cf-message">Message</label><br>
+        <textarea id="cf-message" name="cf_message" required style="width:100%;padding:0.5rem;"></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;">Send</button>
+    </form>
+  </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var modal = document.getElementById('contact-modal');
+  var btn = document.getElementById('join-movement-btn');
+  var closeBtn = document.getElementById('close-contact-modal');
+  btn.addEventListener('click', function(e) {
+    e.preventDefault();
+    modal.style.display = 'flex';
+  });
+  closeBtn.addEventListener('click', function() {
+    modal.style.display = 'none';
+  });
+  window.onclick = function(event) {
+    if (event.target == modal) {
+      modal.style.display = 'none';
+    }
+  }
+});
+</script>
 <?php get_footer(); ?>

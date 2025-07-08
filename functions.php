@@ -332,3 +332,25 @@ function prospergenics_defer_parsing_of_js($url) {
 }
 add_filter('script_loader_tag', 'prospergenics_defer_parsing_of_js', 11, 1);
 
+// Contact form handler
+add_action('admin_post_nopriv_prospergenics_send_contact_form', 'prospergenics_send_contact_form');
+add_action('admin_post_prospergenics_send_contact_form', 'prospergenics_send_contact_form');
+function prospergenics_send_contact_form() {
+    if (!isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], 'prospergenics_contact_form')) {
+        wp_die('Security check failed.');
+    }
+    $name = sanitize_text_field($_POST['cf_name'] ?? '');
+    $email = sanitize_email($_POST['cf_email'] ?? '');
+    $message = sanitize_textarea_field($_POST['cf_message'] ?? '');
+    if (!$name || !$email || !$message) {
+        wp_die('Please fill in all fields.');
+    }
+    $to = get_option('admin_email');
+    $subject = 'New Contact Form Submission';
+    $body = "Name: $name\nEmail: $email\nMessage:\n$message";
+    $headers = ['Reply-To: ' . $email];
+    wp_mail($to, $subject, $body, $headers);
+    wp_redirect(home_url('/?contact=success'));
+    exit;
+}
+
