@@ -370,18 +370,35 @@ add_action('init', 'prospergenics_ensure_contact_table');
 add_action('admin_post_nopriv_prospergenics_send_contact_form', 'prospergenics_send_contact_form');
 add_action('admin_post_prospergenics_send_contact_form', 'prospergenics_send_contact_form');
 function prospergenics_send_contact_form() {
-    if (!isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], 'prospergenics_contact_form')) {
-        wp_die('Security check failed.');
+    // Check if form was submitted
+    if (!isset($_POST['action']) || $_POST['action'] !== 'prospergenics_send_contact_form') {
+        wp_redirect(home_url('/?contact=error&reason=invalid_action'));
+        exit;
     }
     
+    // Verify nonce
+    if (!isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], 'prospergenics_contact_form')) {
+        wp_redirect(home_url('/?contact=error&reason=security_failed'));
+        exit;
+    }
+    
+    // Get and sanitize form data
     $name = sanitize_text_field($_POST['cf_name'] ?? '');
     $email = sanitize_email($_POST['cf_email'] ?? '');
     $phone = sanitize_text_field($_POST['cf_phone'] ?? '');
     $subject = sanitize_text_field($_POST['cf_subject'] ?? '');
     $message = sanitize_textarea_field($_POST['cf_message'] ?? '');
     
-    if (!$name || !$email || !$message) {
-        wp_die('Please fill in all required fields.');
+    // Validate required fields
+    if (empty($name) || empty($email) || empty($message)) {
+        wp_redirect(home_url('/?contact=error&reason=missing_fields'));
+        exit;
+    }
+    
+    // Validate email
+    if (!is_email($email)) {
+        wp_redirect(home_url('/?contact=error&reason=invalid_email'));
+        exit;
     }
     
     // Store in database
@@ -410,7 +427,8 @@ function prospergenics_send_contact_form() {
     );
     
     if ($result === false) {
-        wp_die('Error saving contact form submission.');
+        wp_redirect(home_url('/?contact=error&reason=database_error'));
+        exit;
     }
     
     // Send email notification
@@ -430,8 +448,9 @@ function prospergenics_send_contact_form() {
     $body .= "\nMessage:\n$message";
     
     $headers = ['Reply-To: ' . $email];
-    wp_mail($to, $email_subject, $body, $headers);
+    $email_sent = wp_mail($to, $email_subject, $body, $headers);
     
+    // Redirect with success message
     wp_redirect(home_url('/?contact=success'));
     exit;
 }

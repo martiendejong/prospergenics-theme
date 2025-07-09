@@ -5,18 +5,47 @@
  */
 get_header(); ?>
 
-<?php if (isset($_GET['contact']) && $_GET['contact'] === 'success'): ?>
-    <div id="contact-success" style="position:fixed;top:20px;right:20px;background:#4CAF50;color:white;padding:1rem;border-radius:8px;z-index:10000;box-shadow:0 4px 12px rgba(0,0,0,0.15);">
-        <strong>Success!</strong> Your message has been sent successfully.
-        <button onclick="this.parentElement.style.display='none'" style="background:none;border:none;color:white;margin-left:1rem;cursor:pointer;font-size:1.2rem;">&times;</button>
-    </div>
+<?php if (isset($_GET['contact'])): ?>
+    <?php if ($_GET['contact'] === 'success'): ?>
+        <div id="contact-message" style="position:fixed;top:20px;right:20px;background:#4CAF50;color:white;padding:1rem;border-radius:8px;z-index:10000;box-shadow:0 4px 12px rgba(0,0,0,0.15);max-width:400px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+                <div>
+                    <strong>✅ Success!</strong><br>
+                    Your message has been sent successfully. We'll get back to you soon!
+                </div>
+                <button onclick="this.parentElement.parentElement.style.display='none'" style="background:none;border:none;color:white;margin-left:1rem;cursor:pointer;font-size:1.2rem;padding:5px;">&times;</button>
+            </div>
+        </div>
+    <?php elseif ($_GET['contact'] === 'error'): ?>
+        <?php 
+        $error_reason = $_GET['reason'] ?? 'unknown';
+        $error_messages = [
+            'invalid_action' => 'Invalid form submission.',
+            'security_failed' => 'Security check failed. Please try again.',
+            'missing_fields' => 'Please fill in all required fields.',
+            'invalid_email' => 'Please enter a valid email address.',
+            'database_error' => 'Error saving your message. Please try again.',
+            'unknown' => 'An error occurred. Please try again.'
+        ];
+        $error_message = $error_messages[$error_reason] ?? $error_messages['unknown'];
+        ?>
+        <div id="contact-message" style="position:fixed;top:20px;right:20px;background:#f44336;color:white;padding:1rem;border-radius:8px;z-index:10000;box-shadow:0 4px 12px rgba(0,0,0,0.15);max-width:400px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+                <div>
+                    <strong>❌ Error!</strong><br>
+                    <?php echo esc_html($error_message); ?>
+                </div>
+                <button onclick="this.parentElement.parentElement.style.display='none'" style="background:none;border:none;color:white;margin-left:1rem;cursor:pointer;font-size:1.2rem;padding:5px;">&times;</button>
+            </div>
+        </div>
+    <?php endif; ?>
     <script>
         setTimeout(function() {
-            var successMsg = document.getElementById('contact-success');
-            if (successMsg) {
-                successMsg.style.display = 'none';
+            var message = document.getElementById('contact-message');
+            if (message) {
+                message.style.display = 'none';
             }
-        }, 5000);
+        }, 8000);
     </script>
 <?php endif; ?>
 <main id="main" class="site-main">
@@ -206,11 +235,31 @@ document.addEventListener('DOMContentLoaded', function() {
   // Form submission
   if (contactForm) {
     contactForm.addEventListener('submit', function(e) {
+      // Validate form before submission
+      var name = document.getElementById('cf-name').value.trim();
+      var email = document.getElementById('cf-email').value.trim();
+      var message = document.getElementById('cf-message').value.trim();
+      
+      if (!name || !email || !message) {
+        e.preventDefault();
+        alert('Please fill in all required fields.');
+        return false;
+      }
+      
+      // Basic email validation
+      var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        e.preventDefault();
+        alert('Please enter a valid email address.');
+        return false;
+      }
+      
       // Show loading state
       var submitBtn = contactForm.querySelector('button[type="submit"]');
       var originalText = submitBtn.textContent;
       submitBtn.textContent = 'Sending...';
       submitBtn.disabled = true;
+      submitBtn.style.opacity = '0.7';
       
       // Form will submit normally to WordPress admin-post.php
       // The success redirect will show the success message
