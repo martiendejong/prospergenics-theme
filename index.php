@@ -183,27 +183,29 @@ get_header(); ?>
     <form id="contact-form" method="post" action="<?php echo esc_url( admin_url('admin-post.php') ); ?>">
       <input type="hidden" name="action" value="prospergenics_send_contact_form">
       <?php wp_nonce_field('prospergenics_contact_form'); ?>
-      <div style="margin-bottom:1rem;">
-        <label for="cf-name" style="display:block;margin-bottom:0.3rem;font-weight:600;color:#333;font-size:14px;">Name *</label>
-        <input type="text" id="cf-name" name="cf_name" required style="width:100%;padding:10px;border:2px solid #e0e0e0;border-radius:6px;font-size:14px;transition:border-color 0.3s ease;box-sizing:border-box;">
+      <div class="contact-form-grid">
+        <div class="contact-form-group">
+          <label for="cf-name" style="display:block;margin-bottom:0.3rem;font-weight:600;color:#333;font-size:14px;">Name *</label>
+          <input type="text" id="cf-name" name="cf_name" required style="width:100%;padding:10px;border:2px solid #e0e0e0;border-radius:6px;font-size:14px;transition:border-color 0.3s ease;box-sizing:border-box;">
+        </div>
+        <div class="contact-form-group">
+          <label for="cf-email" style="display:block;margin-bottom:0.3rem;font-weight:600;color:#333;font-size:14px;">Email *</label>
+          <input type="email" id="cf-email" name="cf_email" required style="width:100%;padding:10px;border:2px solid #e0e0e0;border-radius:6px;font-size:14px;transition:border-color 0.3s ease;box-sizing:border-box;">
+        </div>
+        <div class="contact-form-group">
+          <label for="cf-phone" style="display:block;margin-bottom:0.3rem;font-weight:600;color:#333;font-size:14px;">Phone (Optional)</label>
+          <input type="tel" id="cf-phone" name="cf_phone" style="width:100%;padding:10px;border:2px solid #e0e0e0;border-radius:6px;font-size:14px;transition:border-color 0.3s ease;box-sizing:border-box;">
+        </div>
+        <div class="contact-form-group">
+          <label for="cf-subject" style="display:block;margin-bottom:0.3rem;font-weight:600;color:#333;font-size:14px;">Subject (Optional)</label>
+          <input type="text" id="cf-subject" name="cf_subject" style="width:100%;padding:10px;border:2px solid #e0e0e0;border-radius:6px;font-size:14px;transition:border-color 0.3s ease;box-sizing:border-box;">
+        </div>
+        <div class="contact-form-group contact-form-group-full">
+          <label for="cf-message" style="display:block;margin-bottom:0.3rem;font-weight:600;color:#333;font-size:14px;">Message *</label>
+          <textarea id="cf-message" name="cf_message" required style="width:100%;padding:10px;border:2px solid #e0e0e0;border-radius:6px;font-size:14px;transition:border-color 0.3s ease;box-sizing:border-box;height:100px;resize:vertical;font-family:inherit;"></textarea>
+        </div>
       </div>
-      <div style="margin-bottom:1rem;">
-        <label for="cf-email" style="display:block;margin-bottom:0.3rem;font-weight:600;color:#333;font-size:14px;">Email *</label>
-        <input type="email" id="cf-email" name="cf_email" required style="width:100%;padding:10px;border:2px solid #e0e0e0;border-radius:6px;font-size:14px;transition:border-color 0.3s ease;box-sizing:border-box;">
-      </div>
-      <div style="margin-bottom:1rem;">
-        <label for="cf-phone" style="display:block;margin-bottom:0.3rem;font-weight:600;color:#333;font-size:14px;">Phone (Optional)</label>
-        <input type="tel" id="cf-phone" name="cf_phone" style="width:100%;padding:10px;border:2px solid #e0e0e0;border-radius:6px;font-size:14px;transition:border-color 0.3s ease;box-sizing:border-box;">
-      </div>
-      <div style="margin-bottom:1rem;">
-        <label for="cf-subject" style="display:block;margin-bottom:0.3rem;font-weight:600;color:#333;font-size:14px;">Subject (Optional)</label>
-        <input type="text" id="cf-subject" name="cf_subject" style="width:100%;padding:10px;border:2px solid #e0e0e0;border-radius:6px;font-size:14px;transition:border-color 0.3s ease;box-sizing:border-box;">
-      </div>
-      <div style="margin-bottom:1rem;">
-        <label for="cf-message" style="display:block;margin-bottom:0.3rem;font-weight:600;color:#333;font-size:14px;">Message *</label>
-        <textarea id="cf-message" name="cf_message" required style="width:100%;padding:10px;border:2px solid #e0e0e0;border-radius:6px;font-size:14px;transition:border-color 0.3s ease;box-sizing:border-box;height:100px;resize:vertical;font-family:inherit;"></textarea>
-      </div>
-              <button type="submit" class="btn btn-primary" style="width:100%;padding:12px;font-size:14px;font-weight:600;border-radius:6px;border:none;cursor:pointer;transition:all 0.3s ease;">Send Message</button>
+      <button type="submit" class="btn btn-primary contact-form-submit-btn" style="width:100%;padding:12px;font-size:14px;font-weight:600;border-radius:6px;border:none;cursor:pointer;transition:all 0.3s ease;margin-top:0.5rem;">Submit Registration</button>
     </form>
   </div>
 </div>
