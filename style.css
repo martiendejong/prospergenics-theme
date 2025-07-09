@@ -542,3 +542,54 @@ html {
     background: #2E8B57;
     color: #fff;
 }
+
+/* Contact Form Styles */
+#contact-modal {
+    font-family: inherit;
+}
+
+#contact-modal input,
+#contact-modal textarea {
+    cursor: text !important;
+    outline: none;
+}
+
+#contact-modal input:focus,
+#contact-modal textarea:focus {
+    border-color: var(--primary-green) !important;
+    box-shadow: 0 0 0 3px rgba(46, 139, 87, 0.1) !important;
+}
+
+#contact-modal label {
+    cursor: pointer;
+}
+
+#contact-modal button {
+    cursor: pointer !important;
+}
+
+#contact-modal .btn-primary:hover {
+    background-color: var(--accent-orange);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 165, 0, 0.4);
+}
+
+#close-contact-modal:hover {
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+/* Fix for any conflicting cursor styles */
+#contact-modal * {
+    cursor: auto;
+}
+
+#contact-modal input,
+#contact-modal textarea {
+    cursor: text !important;
+}
+
+#contact-modal button,
+#contact-modal .btn {
+    cursor: pointer !important;
+}

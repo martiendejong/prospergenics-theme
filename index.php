@@ -148,33 +148,33 @@ get_header(); ?>
 </main>
 <!-- Contact Form Modal -->
 <div id="contact-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.6);z-index:9999;align-items:center;justify-content:center;">
-  <div style="background:#fff;padding:2rem;max-width:400px;width:90%;border-radius:8px;position:relative;">
-    <button id="close-contact-modal" style="position:absolute;top:10px;right:10px;font-size:1.2rem;background:none;border:none;cursor:pointer;">&times;</button>
-    <h2>Contact Us</h2>
+  <div style="background:#fff;padding:2rem;max-width:500px;width:90%;border-radius:12px;position:relative;box-shadow:0 10px 30px rgba(0,0,0,0.3);">
+    <button id="close-contact-modal" style="position:absolute;top:15px;right:15px;font-size:1.5rem;background:none;border:none;cursor:pointer;color:#666;padding:5px;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;">&times;</button>
+    <h2 style="margin-bottom:1.5rem;color:#2E8B57;font-size:1.8rem;">Contact Us</h2>
     <form id="contact-form" method="post" action="<?php echo esc_url( admin_url('admin-post.php') ); ?>">
       <input type="hidden" name="action" value="prospergenics_send_contact_form">
       <?php wp_nonce_field('prospergenics_contact_form'); ?>
-      <div style="margin-bottom:1rem;">
-        <label for="cf-name">Name *</label><br>
-        <input type="text" id="cf-name" name="cf_name" required style="width:100%;padding:0.5rem;border:1px solid #ddd;border-radius:4px;">
+      <div style="margin-bottom:1.5rem;">
+        <label for="cf-name" style="display:block;margin-bottom:0.5rem;font-weight:600;color:#333;">Name *</label>
+        <input type="text" id="cf-name" name="cf_name" required style="width:100%;padding:12px;border:2px solid #e0e0e0;border-radius:8px;font-size:16px;transition:border-color 0.3s ease;box-sizing:border-box;">
       </div>
-      <div style="margin-bottom:1rem;">
-        <label for="cf-email">Email *</label><br>
-        <input type="email" id="cf-email" name="cf_email" required style="width:100%;padding:0.5rem;border:1px solid #ddd;border-radius:4px;">
+      <div style="margin-bottom:1.5rem;">
+        <label for="cf-email" style="display:block;margin-bottom:0.5rem;font-weight:600;color:#333;">Email *</label>
+        <input type="email" id="cf-email" name="cf_email" required style="width:100%;padding:12px;border:2px solid #e0e0e0;border-radius:8px;font-size:16px;transition:border-color 0.3s ease;box-sizing:border-box;">
       </div>
-      <div style="margin-bottom:1rem;">
-        <label for="cf-phone">Phone (Optional)</label><br>
-        <input type="tel" id="cf-phone" name="cf_phone" style="width:100%;padding:0.5rem;border:1px solid #ddd;border-radius:4px;">
+      <div style="margin-bottom:1.5rem;">
+        <label for="cf-phone" style="display:block;margin-bottom:0.5rem;font-weight:600;color:#333;">Phone (Optional)</label>
+        <input type="tel" id="cf-phone" name="cf_phone" style="width:100%;padding:12px;border:2px solid #e0e0e0;border-radius:8px;font-size:16px;transition:border-color 0.3s ease;box-sizing:border-box;">
       </div>
-      <div style="margin-bottom:1rem;">
-        <label for="cf-subject">Subject (Optional)</label><br>
-        <input type="text" id="cf-subject" name="cf_subject" style="width:100%;padding:0.5rem;border:1px solid #ddd;border-radius:4px;">
+      <div style="margin-bottom:1.5rem;">
+        <label for="cf-subject" style="display:block;margin-bottom:0.5rem;font-weight:600;color:#333;">Subject (Optional)</label>
+        <input type="text" id="cf-subject" name="cf_subject" style="width:100%;padding:12px;border:2px solid #e0e0e0;border-radius:8px;font-size:16px;transition:border-color 0.3s ease;box-sizing:border-box;">
       </div>
-      <div style="margin-bottom:1rem;">
-        <label for="cf-message">Message *</label><br>
-        <textarea id="cf-message" name="cf_message" required style="width:100%;padding:0.5rem;height:100px;border:1px solid #ddd;border-radius:4px;resize:vertical;"></textarea>
+      <div style="margin-bottom:1.5rem;">
+        <label for="cf-message" style="display:block;margin-bottom:0.5rem;font-weight:600;color:#333;">Message *</label>
+        <textarea id="cf-message" name="cf_message" required style="width:100%;padding:12px;border:2px solid #e0e0e0;border-radius:8px;font-size:16px;transition:border-color 0.3s ease;box-sizing:border-box;height:120px;resize:vertical;font-family:inherit;"></textarea>
       </div>
-      <button type="submit" class="btn btn-primary" style="width:100%;">Send Message</button>
+      <button type="submit" class="btn btn-primary" style="width:100%;padding:15px;font-size:16px;font-weight:600;border-radius:8px;border:none;cursor:pointer;transition:all 0.3s ease;">Send Message</button>
     </form>
   </div>
 </div>
@@ -183,18 +183,50 @@ document.addEventListener('DOMContentLoaded', function() {
   var modal = document.getElementById('contact-modal');
   var btn = document.getElementById('join-movement-btn');
   var closeBtn = document.getElementById('close-contact-modal');
+  var contactForm = document.getElementById('contact-form');
+  
+  // Open modal
   btn.addEventListener('click', function(e) {
     e.preventDefault();
     modal.style.display = 'flex';
   });
+  
+  // Close modal
   closeBtn.addEventListener('click', function() {
     modal.style.display = 'none';
   });
+  
+  // Close modal when clicking outside
   window.onclick = function(event) {
     if (event.target == modal) {
       modal.style.display = 'none';
     }
   }
+  
+  // Form submission
+  if (contactForm) {
+    contactForm.addEventListener('submit', function(e) {
+      // Show loading state
+      var submitBtn = contactForm.querySelector('button[type="submit"]');
+      var originalText = submitBtn.textContent;
+      submitBtn.textContent = 'Sending...';
+      submitBtn.disabled = true;
+      
+      // Form will submit normally to WordPress admin-post.php
+      // The success redirect will show the success message
+    });
+  }
+  
+  // Add focus styles for better UX
+  var inputs = modal.querySelectorAll('input, textarea');
+  inputs.forEach(function(input) {
+    input.addEventListener('focus', function() {
+      this.style.borderColor = '#2E8B57';
+    });
+    input.addEventListener('blur', function() {
+      this.style.borderColor = '#e0e0e0';
+    });
+  });
 });
 </script>
 <?php get_footer(); ?>
