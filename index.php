@@ -4,6 +4,21 @@
  * Shows homepage sections on front page, fallback to posts on old-style setups
  */
 get_header(); ?>
+
+<?php if (isset($_GET['contact']) && $_GET['contact'] === 'success'): ?>
+    <div id="contact-success" style="position:fixed;top:20px;right:20px;background:#4CAF50;color:white;padding:1rem;border-radius:8px;z-index:10000;box-shadow:0 4px 12px rgba(0,0,0,0.15);">
+        <strong>Success!</strong> Your message has been sent successfully.
+        <button onclick="this.parentElement.style.display='none'" style="background:none;border:none;color:white;margin-left:1rem;cursor:pointer;font-size:1.2rem;">&times;</button>
+    </div>
+    <script>
+        setTimeout(function() {
+            var successMsg = document.getElementById('contact-success');
+            if (successMsg) {
+                successMsg.style.display = 'none';
+            }
+        }, 5000);
+    </script>
+<?php endif; ?>
 <main id="main" class="site-main">
 <?php if ( is_front_page() ) : // Show custom homepage sections on front page only ?>
     <!-- Hero Section -->
@@ -140,18 +155,26 @@ get_header(); ?>
       <input type="hidden" name="action" value="prospergenics_send_contact_form">
       <?php wp_nonce_field('prospergenics_contact_form'); ?>
       <div style="margin-bottom:1rem;">
-        <label for="cf-name">Name</label><br>
-        <input type="text" id="cf-name" name="cf_name" required style="width:100%;padding:0.5rem;">
+        <label for="cf-name">Name *</label><br>
+        <input type="text" id="cf-name" name="cf_name" required style="width:100%;padding:0.5rem;border:1px solid #ddd;border-radius:4px;">
       </div>
       <div style="margin-bottom:1rem;">
-        <label for="cf-email">Email</label><br>
-        <input type="email" id="cf-email" name="cf_email" required style="width:100%;padding:0.5rem;">
+        <label for="cf-email">Email *</label><br>
+        <input type="email" id="cf-email" name="cf_email" required style="width:100%;padding:0.5rem;border:1px solid #ddd;border-radius:4px;">
       </div>
       <div style="margin-bottom:1rem;">
-        <label for="cf-message">Message</label><br>
-        <textarea id="cf-message" name="cf_message" required style="width:100%;padding:0.5rem;"></textarea>
+        <label for="cf-phone">Phone (Optional)</label><br>
+        <input type="tel" id="cf-phone" name="cf_phone" style="width:100%;padding:0.5rem;border:1px solid #ddd;border-radius:4px;">
       </div>
-      <button type="submit" class="btn btn-primary" style="width:100%;">Send</button>
+      <div style="margin-bottom:1rem;">
+        <label for="cf-subject">Subject (Optional)</label><br>
+        <input type="text" id="cf-subject" name="cf_subject" style="width:100%;padding:0.5rem;border:1px solid #ddd;border-radius:4px;">
+      </div>
+      <div style="margin-bottom:1rem;">
+        <label for="cf-message">Message *</label><br>
+        <textarea id="cf-message" name="cf_message" required style="width:100%;padding:0.5rem;height:100px;border:1px solid #ddd;border-radius:4px;resize:vertical;"></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;">Send Message</button>
     </form>
   </div>
 </div>

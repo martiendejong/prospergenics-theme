@@ -332,6 +332,40 @@ function prospergenics_defer_parsing_of_js($url) {
 }
 add_filter('script_loader_tag', 'prospergenics_defer_parsing_of_js', 11, 1);
 
+// Create contact form submissions table on theme activation
+function prospergenics_create_contact_table() {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'prospergenics_contact_submissions';
+    
+    $charset_collate = $wpdb->get_charset_collate();
+    
+    $sql = "CREATE TABLE $table_name (
+        id mediumint(9) NOT NULL AUTO_INCREMENT,
+        name varchar(100) NOT NULL,
+        email varchar(100) NOT NULL,
+        message text NOT NULL,
+        ip_address varchar(45),
+        user_agent text,
+        created_at datetime DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id)
+    ) $charset_collate;";
+    
+    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+    dbDelta($sql);
+}
+add_action('after_switch_theme', 'prospergenics_create_contact_table');
+
+// Also create table on init if it doesn't exist
+function prospergenics_ensure_contact_table() {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'prospergenics_contact_submissions';
+    
+    if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
+        prospergenics_create_contact_table();
+    }
+}
+add_action('init', 'prospergenics_ensure_contact_table');
+
 // Contact form handler
 add_action('admin_post_nopriv_prospergenics_send_contact_form', 'prospergenics_send_contact_form');
 add_action('admin_post_prospergenics_send_contact_form', 'prospergenics_send_contact_form');
@@ -339,18 +373,145 @@ function prospergenics_send_contact_form() {
     if (!isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], 'prospergenics_contact_form')) {
         wp_die('Security check failed.');
     }
+    
     $name = sanitize_text_field($_POST['cf_name'] ?? '');
     $email = sanitize_email($_POST['cf_email'] ?? '');
+    $phone = sanitize_text_field($_POST['cf_phone'] ?? '');
+    $subject = sanitize_text_field($_POST['cf_subject'] ?? '');
     $message = sanitize_textarea_field($_POST['cf_message'] ?? '');
+    
     if (!$name || !$email || !$message) {
-        wp_die('Please fill in all fields.');
+        wp_die('Please fill in all required fields.');
     }
+    
+    // Store in database
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'prospergenics_contact_submissions';
+    
+    // Prepare the full message with additional fields
+    $full_message = $message;
+    if ($subject) {
+        $full_message = "Subject: $subject\n\n" . $full_message;
+    }
+    if ($phone) {
+        $full_message = $full_message . "\n\nPhone: $phone";
+    }
+    
+    $result = $wpdb->insert(
+        $table_name,
+        array(
+            'name' => $name,
+            'email' => $email,
+            'message' => $full_message,
+            'ip_address' => $_SERVER['REMOTE_ADDR'] ?? '',
+            'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? ''
+        ),
+        array('%s', '%s', '%s', '%s', '%s')
+    );
+    
+    if ($result === false) {
+        wp_die('Error saving contact form submission.');
+    }
+    
+    // Send email notification
     $to = get_option('admin_email');
-    $subject = 'New Contact Form Submission';
-    $body = "Name: $name\nEmail: $email\nMessage:\n$message";
+    $email_subject = 'New Contact Form Submission';
+    if ($subject) {
+        $email_subject .= ' - ' . $subject;
+    }
+    
+    $body = "Name: $name\nEmail: $email\n";
+    if ($phone) {
+        $body .= "Phone: $phone\n";
+    }
+    if ($subject) {
+        $body .= "Subject: $subject\n";
+    }
+    $body .= "\nMessage:\n$message";
+    
     $headers = ['Reply-To: ' . $email];
-    wp_mail($to, $subject, $body, $headers);
+    wp_mail($to, $email_subject, $body, $headers);
+    
     wp_redirect(home_url('/?contact=success'));
     exit;
+}
+
+// Add admin menu for contact submissions
+function prospergenics_contact_admin_menu() {
+    add_menu_page(
+        'Contact Submissions',
+        'Contact Submissions',
+        'manage_options',
+        'prospergenics-contact-submissions',
+        'prospergenics_contact_submissions_page',
+        'dashicons-email-alt',
+        30
+    );
+}
+add_action('admin_menu', 'prospergenics_contact_admin_menu');
+
+// Admin page for viewing contact submissions
+function prospergenics_contact_submissions_page() {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'prospergenics_contact_submissions';
+    
+    // Handle deletion
+    if (isset($_POST['delete_submission']) && isset($_POST['submission_id'])) {
+        $submission_id = intval($_POST['submission_id']);
+        $wpdb->delete($table_name, array('id' => $submission_id), array('%d'));
+        echo '<div class="notice notice-success"><p>Submission deleted successfully.</p></div>';
+    }
+    
+    // Get submissions
+    $submissions = $wpdb->get_results("SELECT * FROM $table_name ORDER BY created_at DESC");
+    
+    ?>
+    <div class="wrap">
+        <h1>Contact Form Submissions</h1>
+        
+        <?php if (empty($submissions)): ?>
+            <p>No contact form submissions yet.</p>
+        <?php else: ?>
+            <table class="wp-list-table widefat fixed striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Message</th>
+                        <th>IP Address</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($submissions as $submission): ?>
+                        <tr>
+                            <td><?php echo esc_html($submission->id); ?></td>
+                            <td><?php echo esc_html($submission->name); ?></td>
+                            <td><?php echo esc_html($submission->email); ?></td>
+                            <td><?php echo esc_html(wp_trim_words($submission->message, 20)); ?></td>
+                            <td><?php echo esc_html($submission->ip_address); ?></td>
+                            <td><?php echo esc_html(date('Y-m-d H:i:s', strtotime($submission->created_at))); ?></td>
+                            <td>
+                                <form method="post" style="display:inline;">
+                                    <input type="hidden" name="submission_id" value="<?php echo esc_attr($submission->id); ?>">
+                                    <button type="submit" name="delete_submission" class="button button-small" onclick="return confirm('Are you sure you want to delete this submission?')">Delete</button>
+                                </form>
+                                <button type="button" class="button button-small" onclick="showMessage('<?php echo esc_js($submission->message); ?>')">View Full Message</button>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
+    </div>
+    
+    <script>
+    function showMessage(message) {
+        alert('Full Message:\n\n' + message);
+    }
+    </script>
+    <?php
 }
 
