@@ -1,0 +1,1 @@
+git archive --format zip --output ../prospergenics-theme.zip master
