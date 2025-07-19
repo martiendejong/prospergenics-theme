@@ -497,6 +497,10 @@ html {
     transform: translateY(-4px) scale(1.02);
     box-shadow: 0 8px 24px rgba(46,139,87,0.11);
 }
+.single-post-thumbnail img 
+{
+    max-height: fit-content !important;
+}
 .blog-post-thumbnail img {
     display: block;
     width: 100%;
