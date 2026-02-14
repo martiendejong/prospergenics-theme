@@ -1,0 +1,1090 @@
+/*
+Theme Name: Prospergenics
+Theme URI: https://prospergenics.com
+Author: Prospergenics Team
+Author URI: https://prospergenics.com
+Description: A modern parallax WordPress theme for Prospergenics - Building Prosperity Together. Features fullscreen hero sections, parallax scrolling, and clean minimal design.
+Version: 1.0.0
+Requires at least: 5.8
+Tested up to: 6.4
+Requires PHP: 7.4
+License: GNU General Public License v2 or later
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: prospergenics
+Tags: one-column, custom-menu, featured-images, parallax, responsive-layout, accessibility-ready, translation-ready
+
+Prospergenics WordPress Theme, Copyright 2026
+Prospergenics is distributed under the terms of the GNU GPL
+*/
+
+/* ==========================================================================
+   CSS RESET & BASE STYLES
+   ========================================================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --color-green: #2E8B57;
+    --color-green-dark: #1e5f3d;
+    --color-green-light: #3da968;
+    --color-terracotta: #b45309;
+    --color-terracotta-dark: #8b3e06;
+    --color-white: #ffffff;
+    --color-gray-light: #f8f9fa;
+    --color-gray-medium: #e9ecef;
+    --color-gray-dark: #495057;
+    --color-black: #212529;
+    --font-primary: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --transition: all 2s ease;
+    --transition-fast: all 0.3s ease;
+
+    /* Shadow elevation system (from martiendejong.nl pattern) */
+    --shadow-natural: 0 6px 20px rgba(0, 0, 0, 0.08);
+    --shadow-elevated: 0 8px 30px rgba(0, 0, 0, 0.12);
+    --shadow-deep: 0 12px 50px rgba(0, 0, 0, 0.15);
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--font-primary);
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--color-gray-dark);
+    background: var(--color-white);
+    overflow-x: hidden;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+a {
+    color: var(--color-green);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+a:hover,
+a:focus {
+    color: var(--color-green-dark);
+    outline: 2px solid var(--color-green);
+    outline-offset: 2px;
+}
+
+/* ==========================================================================
+   HEADER & NAVIGATION
+   ========================================================================== */
+
+@keyframes slideUp {
+    from { transform: translateY(0); }
+    to { transform: translateY(-100%); }
+}
+
+@keyframes slideDown {
+    from { transform: translateY(-100%); }
+    to { transform: translateY(0); }
+}
+
+.site-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    background: rgba(255, 255, 255, 1);
+    backdrop-filter: blur(1px);
+    -webkit-backdrop-filter: blur(1px);
+    box-shadow: var(--shadow-natural);
+    z-index: 1000;
+    transform: translateY(0);
+    transition: background 3s ease, backdrop-filter 3s ease;
+}
+
+.site-header.scrolled {
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(1px);
+    -webkit-backdrop-filter: blur(1px);
+    box-shadow: var(--shadow-elevated);
+}
+
+.site-header.hidden {
+    animation: slideUp 1s ease-out forwards;
+}
+
+.site-header.showing {
+    animation: slideDown 1s ease-out forwards;
+}
+
+.header-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Logo Styles */
+.site-branding {
+    display: flex;
+    align-items: center;
+}
+
+.logo-link {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    text-decoration: none;
+}
+
+.site-logo {
+    height: 60px;
+    width: auto;
+    transition: filter 3s ease, transform 0.3s ease;
+}
+
+.site-header.scrolled .site-logo {
+    filter: brightness(0) invert(1);
+}
+
+.site-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-green);
+    transition: color 3s ease;
+    white-space: nowrap;
+}
+
+.site-header.scrolled .site-name {
+    color: var(--color-white);
+}
+
+.logo-link:hover .site-logo {
+    transform: scale(1.05);
+}
+
+.logo-link:hover .site-name {
+    color: var(--color-green-dark);
+}
+
+.site-header.scrolled .logo-link:hover .site-name {
+    color: var(--color-gray-light);
+}
+
+.logo-link:hover,
+.logo-link:focus {
+    outline: none;
+}
+
+
+.main-navigation ul {
+    list-style: none;
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+}
+
+.main-navigation a {
+    color: var(--color-gray-dark);
+    font-weight: 500;
+    padding: 0.5rem 0;
+    position: relative;
+    transition: color 3s ease;
+}
+
+.site-header.scrolled .main-navigation a {
+    color: var(--color-white);
+}
+
+.main-navigation a::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--color-green);
+    transition: width 0.3s ease, background 3s ease;
+}
+
+.site-header.scrolled .main-navigation a::after {
+    background: var(--color-white);
+}
+
+.main-navigation a:hover::after,
+.main-navigation a:focus::after,
+.main-navigation .current-menu-item a::after {
+    width: 100%;
+}
+
+.main-navigation a:hover,
+.main-navigation a:focus {
+    color: var(--color-green);
+    outline: none;
+}
+
+.site-header.scrolled .main-navigation a:hover,
+.site-header.scrolled .main-navigation a:focus {
+    color: var(--color-gray-light);
+}
+
+.menu-toggle {
+    display: none;
+    background: none;
+    border: 2px solid var(--color-green);
+    color: var(--color-green);
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: color 3s ease, border-color 3s ease, background 0.3s ease;
+}
+
+.site-header.scrolled .menu-toggle {
+    border-color: var(--color-white);
+    color: var(--color-white);
+}
+
+.menu-toggle:hover,
+.menu-toggle:focus {
+    background: var(--color-green);
+    color: var(--color-white);
+}
+
+.site-header.scrolled .menu-toggle:hover,
+.site-header.scrolled .menu-toggle:focus {
+    background: var(--color-white);
+    color: var(--color-gray-dark);
+    border-color: var(--color-white);
+}
+
+/* WhatsApp Contact Icon */
+.whatsapp-contact {
+    display: flex;
+    align-items: center;
+    margin-left: 1.5rem;
+}
+
+.whatsapp-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    background: #25D366;
+    color: var(--color-white);
+    border-radius: 50%;
+    transition: var(--transition-fast);
+    box-shadow: var(--shadow-natural);
+}
+
+.whatsapp-link:hover,
+.whatsapp-link:focus {
+    background: #128C7E;
+    transform: scale(1.1);
+    box-shadow: var(--shadow-elevated);
+    outline: 2px solid #25D366;
+}
+
+.whatsapp-link svg {
+    width: 24px;
+    height: 24px;
+}
+
+/* ==========================================================================
+   PARALLAX SECTIONS
+   ========================================================================== */
+
+.parallax-section {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background-size: cover !important;
+    background-position: center -25% !important;
+    background-attachment: fixed !important;
+    background-repeat: no-repeat !important;
+    margin: 0;
+    padding: 0;
+}
+
+/* Gradient backgrounds as beautiful fallbacks when images don't load */
+.hero-section {
+    background-image: radial-gradient(circle at top right, #3da968, #2E8B57 40%, #1e5f3d);
+    background-position: center -25% !important;
+}
+
+.about-parallax {
+    background-image: linear-gradient(135deg, #b45309 0%, #2E8B57 60%, #1e5f3d 100%);
+}
+
+.programs-parallax {
+    background-image: linear-gradient(120deg, #1e5f3d 0%, #2E8B57 50%, #3da968 100%);
+}
+
+.contact-parallax {
+    background-image: radial-gradient(ellipse at bottom left, #2E8B57, #1e5f3d 60%, #0d2818);
+}
+
+.parallax-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(30, 95, 61, 0.5), rgba(0, 0, 0, 0.6));
+    z-index: 1;
+    transition: var(--transition);
+}
+
+.parallax-section:hover::before {
+    filter: brightness(1.05);
+}
+
+.parallax-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    color: var(--color-white);
+    padding: 2rem;
+    max-width: 900px;
+}
+
+.parallax-section h1,
+.parallax-section h2 {
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 700;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.parallax-section .tagline {
+    font-size: clamp(1.25rem, 3vw, 1.75rem);
+    font-weight: 300;
+    margin-bottom: 1.5rem;
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.parallax-section p {
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    line-height: 1.8;
+    margin-bottom: 2rem;
+}
+
+.cta-button {
+    display: inline-block;
+    padding: 1rem 2.5rem;
+    background: var(--color-green);
+    color: var(--color-white);
+    font-weight: 600;
+    font-size: 1.1rem;
+    border-radius: 50px;
+    transition: var(--transition);
+    border: 2px solid var(--color-green);
+    box-shadow: var(--shadow-natural);
+}
+
+.cta-button:hover,
+.cta-button:focus {
+    background: var(--color-white);
+    color: var(--color-green);
+    transform: scale(1.05);
+    box-shadow: var(--shadow-deep);
+    filter: brightness(1.1);
+}
+
+.cta-button.secondary {
+    background: transparent;
+    border: 2px solid var(--color-white);
+    color: var(--color-white);
+}
+
+.cta-button.secondary:hover,
+.cta-button.secondary:focus {
+    background: var(--color-white);
+    color: var(--color-green);
+}
+
+/* ==========================================================================
+   CONTENT SECTIONS
+   ========================================================================== */
+
+.content-section {
+    padding: 6rem 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.content-section.alt-bg {
+    background: var(--color-gray-light);
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 4rem;
+}
+
+.section-header h2 {
+    font-size: clamp(2rem, 4vw, 3rem);
+    color: var(--color-green);
+    margin-bottom: 1rem;
+    font-weight: 700;
+}
+
+.section-header p {
+    font-size: 1.25rem;
+    color: var(--color-gray-dark);
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Cards Grid */
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 3rem;
+}
+
+.card {
+    background: var(--color-white);
+    padding: 2.5rem;
+    border-radius: 12px;
+    box-shadow: var(--shadow-natural);
+    transition: var(--transition);
+    border-top: 4px solid var(--color-green);
+}
+
+.card:hover {
+    transform: scale(1.03);
+    box-shadow: var(--shadow-elevated);
+    filter: brightness(1.02);
+}
+
+.card h3 {
+    font-size: 1.5rem;
+    color: var(--color-green);
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.card p {
+    color: var(--color-gray-dark);
+    line-height: 1.8;
+}
+
+.card .icon {
+    font-size: 3rem;
+    color: var(--color-terracotta);
+    margin-bottom: 1rem;
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    text-align: center;
+}
+
+.stat-item {
+    padding: 2rem;
+}
+
+.stat-number {
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: var(--color-green);
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 1.1rem;
+    color: var(--color-gray-dark);
+    font-weight: 500;
+}
+
+/* About Section */
+.about-content {
+    max-width: 900px;
+    margin: 0 auto;
+    font-size: 1.125rem;
+    line-height: 1.9;
+    color: var(--color-gray-dark);
+}
+
+.about-content p {
+    margin-bottom: 1.5rem;
+}
+
+/* Programs Grid */
+.programs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2.5rem;
+}
+
+.program-card {
+    background: var(--color-white);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow-natural);
+    transition: var(--transition);
+}
+
+.program-card:hover {
+    transform: scale(1.03) translateY(-4px);
+    box-shadow: var(--shadow-deep);
+    filter: brightness(1.02);
+}
+
+.program-image {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    background: linear-gradient(135deg, var(--color-green), var(--color-terracotta));
+}
+
+.program-content {
+    padding: 2rem;
+}
+
+.program-content h3 {
+    font-size: 1.75rem;
+    color: var(--color-green);
+    margin-bottom: 1rem;
+}
+
+.program-content p {
+    color: var(--color-gray-dark);
+    margin-bottom: 1.5rem;
+    line-height: 1.8;
+}
+
+.learn-more {
+    color: var(--color-terracotta);
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.learn-more:hover,
+.learn-more:focus {
+    color: var(--color-terracotta-dark);
+}
+
+/* ==========================================================================
+   CONTACT FORM
+   ========================================================================== */
+
+.contact-form {
+    max-width: 700px;
+    margin: 3rem auto 0;
+    background: var(--color-white);
+    padding: 3rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--color-gray-dark);
+    font-weight: 500;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 2px solid var(--color-gray-medium);
+    border-radius: 6px;
+    font-family: var(--font-primary);
+    font-size: 1rem;
+    transition: var(--transition);
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--color-green);
+    box-shadow: 0 0 0 3px rgba(46, 139, 87, 0.1);
+}
+
+.form-group textarea {
+    min-height: 150px;
+    resize: vertical;
+}
+
+.submit-button {
+    width: 100%;
+    padding: 1rem 2rem;
+    background: var(--color-green);
+    color: var(--color-white);
+    border: none;
+    border-radius: 6px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.submit-button:hover,
+.submit-button:focus {
+    background: var(--color-green-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(46, 139, 87, 0.3);
+}
+
+/* Contact Form 7 Compatibility */
+.wpcf7-form-control-wrap {
+    display: block;
+}
+
+.wpcf7-not-valid-tip {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+.wpcf7-response-output {
+    margin: 1rem 0;
+    padding: 1rem;
+    border-radius: 6px;
+}
+
+.wpcf7-validation-errors {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.wpcf7-mail-sent-ok {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+/* ==========================================================================
+   FOOTER
+   ========================================================================== */
+
+.site-footer {
+    background: var(--color-green);
+    color: var(--color-white);
+    padding: 4rem 2rem 2rem;
+}
+
+.footer-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 3rem;
+    margin-bottom: 3rem;
+}
+
+.footer-section h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: var(--color-white);
+}
+
+.footer-section p,
+.footer-section a {
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.8;
+}
+
+.footer-section a:hover,
+.footer-section a:focus {
+    color: var(--color-white);
+    outline-color: var(--color-white);
+}
+
+.footer-section ul {
+    list-style: none;
+}
+
+.footer-section ul li {
+    margin-bottom: 0.5rem;
+}
+
+.social-links {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.social-links a {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+
+.social-links a:hover,
+.social-links a:focus {
+    background: var(--color-white);
+    color: var(--color-green);
+}
+
+.footer-bottom {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    text-align: center;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* ==========================================================================
+   BLOG & SINGLE POST STYLES
+   ========================================================================== */
+
+.blog-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 2.5rem;
+}
+
+.post-card {
+    background: var(--color-white);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow-natural);
+    transition: var(--transition);
+}
+
+.post-card:hover {
+    transform: scale(1.03);
+    box-shadow: var(--shadow-elevated);
+    filter: brightness(1.02);
+}
+
+.post-thumbnail {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+}
+
+.post-content {
+    padding: 2rem;
+}
+
+.post-meta {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    color: var(--color-gray-dark);
+}
+
+.post-content h2 {
+    font-size: 1.5rem;
+    color: var(--color-green);
+    margin-bottom: 1rem;
+}
+
+.post-content h2 a {
+    color: inherit;
+}
+
+.post-content h2 a:hover,
+.post-content h2 a:focus {
+    color: var(--color-green-dark);
+}
+
+.post-excerpt {
+    color: var(--color-gray-dark);
+    margin-bottom: 1.5rem;
+    line-height: 1.8;
+}
+
+.read-more {
+    color: var(--color-terracotta);
+    font-weight: 600;
+}
+
+/* Single Post */
+.single-post {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 6rem 2rem;
+}
+
+.post-header {
+    margin-bottom: 3rem;
+}
+
+.post-header h1 {
+    font-size: clamp(2rem, 4vw, 3rem);
+    color: var(--color-green);
+    margin-bottom: 1rem;
+    line-height: 1.3;
+}
+
+.post-body {
+    font-size: 1.125rem;
+    line-height: 1.9;
+    color: var(--color-gray-dark);
+}
+
+.post-body h2,
+.post-body h3 {
+    color: var(--color-green);
+    margin: 2rem 0 1rem;
+}
+
+.post-body p {
+    margin-bottom: 1.5rem;
+}
+
+.post-body ul,
+.post-body ol {
+    margin-bottom: 1.5rem;
+    padding-left: 2rem;
+}
+
+/* Team Section */
+.team-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2.5rem;
+    margin-top: 3rem;
+}
+
+.team-member {
+    text-align: center;
+    transition: var(--transition);
+    max-width: 350px;
+    justify-self: start;
+}
+
+.team-member.card {
+    padding: 4px;
+    padding-bottom: 1.5rem;
+}
+
+.team-photo {
+    width: 100%;
+    height: 280px;
+    background-size: cover;
+    background-position: center;
+    border-radius: 8px 8px 0 0;
+    margin-bottom: 1rem;
+    box-shadow: var(--shadow-natural);
+    transition: var(--transition);
+}
+
+.team-member:hover .team-photo {
+    transform: scale(1.02);
+    box-shadow: var(--shadow-elevated);
+}
+
+.team-member h3 {
+    font-size: 1.4rem;
+    color: var(--color-green);
+    margin-bottom: 0.5rem;
+    padding: 0 0.5rem;
+}
+
+.team-member p {
+    color: var(--color-gray-dark);
+    margin-bottom: 1rem;
+    line-height: 1.6;
+    padding: 0 0.5rem;
+    max-height: calc(1.6em * 4);
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+}
+
+.post-body li {
+    margin-bottom: 0.5rem;
+}
+
+/* ==========================================================================
+   ACCESSIBILITY
+   ========================================================================== */
+
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: var(--color-green);
+    color: var(--color-white);
+    padding: 0.5rem 1rem;
+    z-index: 9999;
+}
+
+.skip-link:focus {
+    top: 0;
+}
+
+.screen-reader-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN
+   ========================================================================== */
+
+@media (max-width: 768px) {
+    .menu-toggle {
+        display: block;
+    }
+
+    .main-navigation {
+        position: fixed;
+        top: 0;
+        right: -100%;
+        width: 80%;
+        max-width: 400px;
+        height: 100vh;
+        background: var(--color-white);
+        box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+        transition: var(--transition);
+        z-index: 999;
+        padding: 6rem 2rem 2rem;
+    }
+
+    .main-navigation.active {
+        right: 0;
+    }
+
+    .main-navigation ul {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0;
+    }
+
+    .main-navigation li {
+        width: 100%;
+        border-bottom: 1px solid var(--color-gray-medium);
+    }
+
+    .main-navigation a {
+        display: block;
+        padding: 1rem 0;
+        width: 100%;
+    }
+
+    .site-logo {
+        height: 45px;
+    }
+
+    .site-name {
+        font-size: 1.25rem;
+    }
+
+    .whatsapp-contact {
+        margin-left: 0.75rem;
+    }
+
+    .whatsapp-link {
+        width: 40px;
+        height: 40px;
+    }
+
+    .whatsapp-link svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .parallax-section {
+        background-attachment: scroll;
+        min-height: 80vh;
+    }
+
+    .cards-grid,
+    .programs-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .footer-content {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .contact-form {
+        padding: 2rem 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-container {
+        padding: 1rem;
+    }
+
+    .content-section {
+        padding: 4rem 1rem;
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+    }
+}
+
+/* ==========================================================================
+   UTILITY CLASSES
+   ========================================================================== */
+
+.text-center {
+    text-align: center;
+}
+
+.mt-1 { margin-top: 1rem; }
+.mt-2 { margin-top: 2rem; }
+.mt-3 { margin-top: 3rem; }
+.mb-1 { margin-bottom: 1rem; }
+.mb-2 { margin-bottom: 2rem; }
+.mb-3 { margin-bottom: 3rem; }
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.hidden {
+    display: none;
+}
+
+.visible {
+    display: block;
+}
