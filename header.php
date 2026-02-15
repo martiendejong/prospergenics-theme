@@ -58,12 +58,11 @@
  */
 function prospergenics_fallback_menu() {
     echo '<ul id="primary-menu" class="menu">';
-    echo '<li class="menu-item"><a href="' . esc_url( home_url( '/' ) ) . '">' . esc_html__( 'Home', 'prospergenics' ) . '</a></li>';
-    echo '<li class="menu-item"><a href="' . esc_url( home_url( '/about' ) ) . '">' . esc_html__( 'About', 'prospergenics' ) . '</a></li>';
-    echo '<li class="menu-item"><a href="' . esc_url( home_url( '/our-team' ) ) . '">' . esc_html__( 'Our Team', 'prospergenics' ) . '</a></li>';
-    echo '<li class="menu-item"><a href="' . esc_url( home_url( '/our-programs' ) ) . '">' . esc_html__( 'Our Programs', 'prospergenics' ) . '</a></li>';
+    echo '<li class="menu-item"><a href="' . esc_url( home_url( '/#about' ) ) . '">' . esc_html__( 'About', 'prospergenics' ) . '</a></li>';
+    echo '<li class="menu-item"><a href="' . esc_url( home_url( '/#team' ) ) . '">' . esc_html__( 'Our Team', 'prospergenics' ) . '</a></li>';
+    echo '<li class="menu-item"><a href="' . esc_url( home_url( '/#programs' ) ) . '">' . esc_html__( 'Our Programs', 'prospergenics' ) . '</a></li>';
     echo '<li class="menu-item"><a href="' . esc_url( home_url( '/blog' ) ) . '">' . esc_html__( 'Blog', 'prospergenics' ) . '</a></li>';
-    echo '<li class="menu-item"><a href="' . esc_url( home_url( '/contact' ) ) . '">' . esc_html__( 'Contact', 'prospergenics' ) . '</a></li>';
+    echo '<li class="menu-item"><a href="' . esc_url( home_url( '/#contact' ) ) . '">' . esc_html__( 'Contact', 'prospergenics' ) . '</a></li>';
     echo '</ul>';
 }
 ?>

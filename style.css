@@ -146,13 +146,15 @@ a:focus {
     text-decoration: none;
 }
 
-.site-logo {
+.site-logo,
+.custom-logo {
     height: 60px;
     width: auto;
     transition: filter 3s ease, transform 0.3s ease;
 }
 
-.site-header.scrolled .site-logo {
+.site-header.scrolled .site-logo,
+.site-header.scrolled .custom-logo {
     filter: brightness(0) invert(1);
 }
 
@@ -168,7 +170,8 @@ a:focus {
     color: var(--color-white);
 }
 
-.logo-link:hover .site-logo {
+.logo-link:hover .site-logo,
+.custom-logo-link:hover .custom-logo {
     transform: scale(1.05);
 }
 
@@ -1111,7 +1114,8 @@ a:focus {
         width: 100%;
     }
 
-    .site-logo {
+    .site-logo,
+    .custom-logo {
         height: 45px;
     }
 
