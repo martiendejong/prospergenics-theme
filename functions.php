@@ -370,6 +370,238 @@ function prospergenics_load_textdomain() {
 add_action( 'after_setup_theme', 'prospergenics_load_textdomain' );
 
 /**
+ * Register Team Member Custom Post Type
+ */
+function prospergenics_register_team_member_cpt() {
+    $labels = array(
+        'name'                  => _x( 'Team Members', 'Post type general name', 'prospergenics' ),
+        'singular_name'         => _x( 'Team Member', 'Post type singular name', 'prospergenics' ),
+        'menu_name'             => _x( 'Team Members', 'Admin Menu text', 'prospergenics' ),
+        'add_new'               => __( 'Add New', 'prospergenics' ),
+        'add_new_item'          => __( 'Add New Team Member', 'prospergenics' ),
+        'new_item'              => __( 'New Team Member', 'prospergenics' ),
+        'edit_item'             => __( 'Edit Team Member', 'prospergenics' ),
+        'view_item'             => __( 'View Team Member', 'prospergenics' ),
+        'all_items'             => __( 'All Team Members', 'prospergenics' ),
+        'search_items'          => __( 'Search Team Members', 'prospergenics' ),
+        'not_found'             => __( 'No team members found.', 'prospergenics' ),
+        'not_found_in_trash'    => __( 'No team members found in Trash.', 'prospergenics' ),
+        'featured_image'        => _x( 'Team Member Photo', 'Overrides the "Featured Image" phrase', 'prospergenics' ),
+        'set_featured_image'    => _x( 'Set member photo', 'Overrides the "Set featured image" phrase', 'prospergenics' ),
+        'remove_featured_image' => _x( 'Remove member photo', 'Overrides the "Remove featured image" phrase', 'prospergenics' ),
+        'use_featured_image'    => _x( 'Use as member photo', 'Overrides the "Use as featured image" phrase', 'prospergenics' ),
+    );
+
+    $args = array(
+        'labels'             => $labels,
+        'public'             => true,
+        'publicly_queryable' => true,
+        'show_ui'            => true,
+        'show_in_menu'       => true,
+        'query_var'          => true,
+        'rewrite'            => array( 'slug' => 'members', 'with_front' => false ),
+        'capability_type'    => 'post',
+        'has_archive'        => true,
+        'hierarchical'       => false,
+        'menu_position'      => 20,
+        'menu_icon'          => 'dashicons-groups',
+        'supports'           => array( 'title', 'editor', 'thumbnail', 'excerpt' ),
+        'show_in_rest'       => true,
+    );
+
+    register_post_type( 'team_member', $args );
+}
+add_action( 'init', 'prospergenics_register_team_member_cpt' );
+
+/**
+ * Register Member Type Taxonomy
+ */
+function prospergenics_register_member_type_taxonomy() {
+    $labels = array(
+        'name'              => _x( 'Member Types', 'taxonomy general name', 'prospergenics' ),
+        'singular_name'     => _x( 'Member Type', 'taxonomy singular name', 'prospergenics' ),
+        'search_items'      => __( 'Search Member Types', 'prospergenics' ),
+        'all_items'         => __( 'All Member Types', 'prospergenics' ),
+        'edit_item'         => __( 'Edit Member Type', 'prospergenics' ),
+        'update_item'       => __( 'Update Member Type', 'prospergenics' ),
+        'add_new_item'      => __( 'Add New Member Type', 'prospergenics' ),
+        'new_item_name'     => __( 'New Member Type Name', 'prospergenics' ),
+        'menu_name'         => __( 'Member Types', 'prospergenics' ),
+    );
+
+    $args = array(
+        'hierarchical'      => true,
+        'labels'            => $labels,
+        'show_ui'           => true,
+        'show_admin_column' => true,
+        'query_var'         => true,
+        'rewrite'           => array( 'slug' => 'member-type' ),
+        'show_in_rest'      => true,
+    );
+
+    register_taxonomy( 'member_type', array( 'team_member' ), $args );
+}
+add_action( 'init', 'prospergenics_register_member_type_taxonomy' );
+
+/**
+ * Register Program Custom Post Type
+ */
+function prospergenics_register_program_cpt() {
+    $labels = array(
+        'name'                  => _x( 'Programs', 'Post type general name', 'prospergenics' ),
+        'singular_name'         => _x( 'Program', 'Post type singular name', 'prospergenics' ),
+        'menu_name'             => _x( 'Programs', 'Admin Menu text', 'prospergenics' ),
+        'add_new'               => __( 'Add New', 'prospergenics' ),
+        'add_new_item'          => __( 'Add New Program', 'prospergenics' ),
+        'new_item'              => __( 'New Program', 'prospergenics' ),
+        'edit_item'             => __( 'Edit Program', 'prospergenics' ),
+        'view_item'             => __( 'View Program', 'prospergenics' ),
+        'all_items'             => __( 'All Programs', 'prospergenics' ),
+        'search_items'          => __( 'Search Programs', 'prospergenics' ),
+        'not_found'             => __( 'No programs found.', 'prospergenics' ),
+        'not_found_in_trash'    => __( 'No programs found in Trash.', 'prospergenics' ),
+        'featured_image'        => _x( 'Program Image', 'Overrides the "Featured Image" phrase', 'prospergenics' ),
+        'set_featured_image'    => _x( 'Set program image', 'Overrides the "Set featured image" phrase', 'prospergenics' ),
+        'remove_featured_image' => _x( 'Remove program image', 'Overrides the "Remove featured image" phrase', 'prospergenics' ),
+        'use_featured_image'    => _x( 'Use as program image', 'Overrides the "Use as featured image" phrase', 'prospergenics' ),
+    );
+
+    $args = array(
+        'labels'             => $labels,
+        'public'             => true,
+        'publicly_queryable' => true,
+        'show_ui'            => true,
+        'show_in_menu'       => true,
+        'query_var'          => true,
+        'rewrite'            => array( 'slug' => 'programs', 'with_front' => false ),
+        'capability_type'    => 'post',
+        'has_archive'        => true,
+        'hierarchical'       => false,
+        'menu_position'      => 21,
+        'menu_icon'          => 'dashicons-welcome-learn-more',
+        'supports'           => array( 'title', 'editor', 'thumbnail' ),
+        'show_in_rest'       => true,
+    );
+
+    register_post_type( 'program', $args );
+}
+add_action( 'init', 'prospergenics_register_program_cpt' );
+
+/**
+ * Add Program Meta Boxes
+ */
+function prospergenics_add_program_meta_boxes() {
+    add_meta_box(
+        'program_buttons',
+        __( 'Program Action Buttons', 'prospergenics' ),
+        'prospergenics_program_buttons_callback',
+        'program',
+        'normal',
+        'high'
+    );
+}
+add_action( 'add_meta_boxes', 'prospergenics_add_program_meta_boxes' );
+
+/**
+ * Program Buttons Meta Box Callback
+ */
+function prospergenics_program_buttons_callback( $post ) {
+    wp_nonce_field( 'prospergenics_save_program_buttons', 'prospergenics_program_buttons_nonce' );
+
+    $button1_text = get_post_meta( $post->ID, '_program_button1_text', true );
+    $button1_url = get_post_meta( $post->ID, '_program_button1_url', true );
+    $button1_style = get_post_meta( $post->ID, '_program_button1_style', true );
+
+    $button2_text = get_post_meta( $post->ID, '_program_button2_text', true );
+    $button2_url = get_post_meta( $post->ID, '_program_button2_url', true );
+    $button2_style = get_post_meta( $post->ID, '_program_button2_style', true );
+
+    ?>
+    <div style="margin-bottom: 20px;">
+        <h4><?php _e( 'Button 1', 'prospergenics' ); ?></h4>
+        <p>
+            <label for="program_button1_text"><?php _e( 'Button Text:', 'prospergenics' ); ?></label><br>
+            <input type="text" id="program_button1_text" name="program_button1_text" value="<?php echo esc_attr( $button1_text ); ?>" style="width: 100%;">
+        </p>
+        <p>
+            <label for="program_button1_url"><?php _e( 'Button URL:', 'prospergenics' ); ?></label><br>
+            <input type="url" id="program_button1_url" name="program_button1_url" value="<?php echo esc_attr( $button1_url ); ?>" style="width: 100%;">
+        </p>
+        <p>
+            <label for="program_button1_style"><?php _e( 'Button Style:', 'prospergenics' ); ?></label><br>
+            <select id="program_button1_style" name="program_button1_style">
+                <option value="primary" <?php selected( $button1_style, 'primary' ); ?>><?php _e( 'Primary (Green)', 'prospergenics' ); ?></option>
+                <option value="secondary" <?php selected( $button1_style, 'secondary' ); ?>><?php _e( 'Secondary (Outline)', 'prospergenics' ); ?></option>
+                <option value="waiting" <?php selected( $button1_style, 'waiting' ); ?>><?php _e( 'Waiting (Terracotta)', 'prospergenics' ); ?></option>
+            </select>
+        </p>
+    </div>
+
+    <div style="margin-bottom: 20px;">
+        <h4><?php _e( 'Button 2 (Optional)', 'prospergenics' ); ?></h4>
+        <p>
+            <label for="program_button2_text"><?php _e( 'Button Text:', 'prospergenics' ); ?></label><br>
+            <input type="text" id="program_button2_text" name="program_button2_text" value="<?php echo esc_attr( $button2_text ); ?>" style="width: 100%;">
+        </p>
+        <p>
+            <label for="program_button2_url"><?php _e( 'Button URL:', 'prospergenics' ); ?></label><br>
+            <input type="url" id="program_button2_url" name="program_button2_url" value="<?php echo esc_attr( $button2_url ); ?>" style="width: 100%;">
+        </p>
+        <p>
+            <label for="program_button2_style"><?php _e( 'Button Style:', 'prospergenics' ); ?></label><br>
+            <select id="program_button2_style" name="program_button2_style">
+                <option value="primary" <?php selected( $button2_style, 'primary' ); ?>><?php _e( 'Primary (Green)', 'prospergenics' ); ?></option>
+                <option value="secondary" <?php selected( $button2_style, 'secondary' ); ?>><?php _e( 'Secondary (Outline)', 'prospergenics' ); ?></option>
+                <option value="waiting" <?php selected( $button2_style, 'waiting' ); ?>><?php _e( 'Waiting (Terracotta)', 'prospergenics' ); ?></option>
+            </select>
+        </p>
+    </div>
+    <?php
+}
+
+/**
+ * Save Program Buttons Meta Data
+ */
+function prospergenics_save_program_buttons( $post_id ) {
+    if ( ! isset( $_POST['prospergenics_program_buttons_nonce'] ) ) {
+        return;
+    }
+
+    if ( ! wp_verify_nonce( $_POST['prospergenics_program_buttons_nonce'], 'prospergenics_save_program_buttons' ) ) {
+        return;
+    }
+
+    if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+        return;
+    }
+
+    if ( ! current_user_can( 'edit_post', $post_id ) ) {
+        return;
+    }
+
+    if ( isset( $_POST['program_button1_text'] ) ) {
+        update_post_meta( $post_id, '_program_button1_text', sanitize_text_field( $_POST['program_button1_text'] ) );
+    }
+    if ( isset( $_POST['program_button1_url'] ) ) {
+        update_post_meta( $post_id, '_program_button1_url', esc_url_raw( $_POST['program_button1_url'] ) );
+    }
+    if ( isset( $_POST['program_button1_style'] ) ) {
+        update_post_meta( $post_id, '_program_button1_style', sanitize_text_field( $_POST['program_button1_style'] ) );
+    }
+
+    if ( isset( $_POST['program_button2_text'] ) ) {
+        update_post_meta( $post_id, '_program_button2_text', sanitize_text_field( $_POST['program_button2_text'] ) );
+    }
+    if ( isset( $_POST['program_button2_url'] ) ) {
+        update_post_meta( $post_id, '_program_button2_url', esc_url_raw( $_POST['program_button2_url'] ) );
+    }
+    if ( isset( $_POST['program_button2_style'] ) ) {
+        update_post_meta( $post_id, '_program_button2_style', sanitize_text_field( $_POST['program_button2_style'] ) );
+    }
+}
+add_action( 'save_post', 'prospergenics_save_program_buttons' );
+
+/**
  * Include Contact Form Handler
  */
 require get_template_directory() . '/inc/contact-form-handler.php';

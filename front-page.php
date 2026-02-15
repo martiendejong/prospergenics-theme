@@ -12,7 +12,7 @@ get_header();
 <main id="main-content" class="site-main" role="main">
 
     <!-- Hero Section -->
-    <section class="parallax-section hero-section" style="background-image: url('<?php echo esc_url( get_theme_mod( 'prospergenics_hero_bg', get_template_directory_uri() . '/images/hero-bg.jpg' ) ); ?>'); background-position: center 10% !important;" aria-label="<?php esc_attr_e( 'Hero Section', 'prospergenics' ); ?>">
+    <section class="parallax-section hero-section" style="background-image: url('<?php echo esc_url( get_theme_mod( 'prospergenics_hero_bg', get_template_directory_uri() . '/images/hero-bg.jpg' ) ); ?>');" aria-label="<?php esc_attr_e( 'Hero Section', 'prospergenics' ); ?>">
         <div class="parallax-content">
             <h1><?php echo esc_html( get_theme_mod( 'prospergenics_hero_headline', __( 'Building Prosperity Together', 'prospergenics' ) ) ); ?></h1>
             <p class="tagline"><?php echo esc_html( get_theme_mod( 'prospergenics_hero_tagline', __( 'Empowering Futures, Cultivating Growth', 'prospergenics' ) ) ); ?></p>
@@ -22,57 +22,85 @@ get_header();
         </div>
     </section>
 
-    <!-- Core Values Section -->
-    <section id="values" class="content-section">
+    <!-- What is Prospergenics Section -->
+    <section id="about-intro" class="content-section">
         <div class="section-header">
-            <h2><?php esc_html_e( 'Our Core Values', 'prospergenics' ); ?></h2>
-            <p><?php esc_html_e( 'The principles that guide everything we do', 'prospergenics' ); ?></p>
+            <h2><?php esc_html_e( 'What is Prospergenics?', 'prospergenics' ); ?></h2>
         </div>
 
-        <div class="cards-grid">
-            <div class="card">
-                <div class="icon" aria-hidden="true">👂</div>
-                <h3><?php esc_html_e( 'We Listen and Act', 'prospergenics' ); ?></h3>
-                <p><?php esc_html_e( 'We respond quickly to member needs, ensuring everyone feels heard and supported in their journey.', 'prospergenics' ); ?></p>
-            </div>
+        <div class="intro-content" style="max-width: 800px; margin: 0 auto; text-align: center; font-size: 1.1rem; line-height: 1.8;">
+            <p><?php esc_html_e( 'Prospergenics is a community where members and coaches support each other to realize their potential and create opportunities together. Participants receive training and guidance in entrepreneurship, enabling them to learn while earning income at the same time.', 'prospergenics' ); ?></p>
 
-            <div class="card">
-                <div class="icon" aria-hidden="true">✓</div>
-                <h3><?php esc_html_e( 'Quality You Can Trust', 'prospergenics' ); ?></h3>
-                <p><?php esc_html_e( 'Practical learning and tangible results that make a real difference in your life and career.', 'prospergenics' ); ?></p>
-            </div>
-
-            <div class="card">
-                <div class="icon" aria-hidden="true">🤝</div>
-                <h3><?php esc_html_e( 'Support in Every Step', 'prospergenics' ); ?></h3>
-                <p><?php esc_html_e( 'Our community has your back, providing guidance, resources, and encouragement throughout your journey.', 'prospergenics' ); ?></p>
-            </div>
+            <p><?php esc_html_e( 'We believe in practical action over theory. Our members develop real skills, build actual businesses, and achieve tangible results through mutual support and experienced mentorship.', 'prospergenics' ); ?></p>
         </div>
     </section>
 
-    <!-- About Section - Parallax -->
-    <section id="about" class="parallax-section about-parallax" style="background-image: url('<?php echo esc_url( get_template_directory_uri() . '/images/about-bg.jpg' ); ?>');" aria-label="<?php esc_attr_e( 'About Us', 'prospergenics' ); ?>">
+    <!-- What We Do Section - Parallax -->
+    <section id="about" class="parallax-section about-parallax" style="background-image: url('<?php echo esc_url( get_template_directory_uri() . '/images/about-bg.jpg' ); ?>');" aria-label="<?php esc_attr_e( 'What We Do', 'prospergenics' ); ?>">
         <div class="parallax-content">
-            <h2><?php esc_html_e( 'Who We Are', 'prospergenics' ); ?></h2>
-            <p class="tagline"><?php esc_html_e( 'A Grassroots Community Building Real Success', 'prospergenics' ); ?></p>
+            <h2><?php esc_html_e( 'What We Do', 'prospergenics' ); ?></h2>
+            <p class="tagline"><?php esc_html_e( 'Practical Programs for Real Impact', 'prospergenics' ); ?></p>
         </div>
     </section>
 
-    <!-- About Content Section -->
+    <!-- Programs Overview Section -->
     <section class="content-section alt-bg">
-        <div class="about-content">
-            <p><?php esc_html_e( 'Prospergenics is a grassroots community of individuals from diverse backgrounds who have come together with a shared vision: to build prosperity through learning, collaboration, and mutual support.', 'prospergenics' ); ?></p>
+        <div class="programs-overview-grid">
+            <?php
+            $programs_query = new WP_Query( array(
+                'post_type' => 'program',
+                'posts_per_page' => -1,
+                'orderby' => 'menu_order',
+                'order' => 'ASC',
+            ) );
 
-            <p><?php esc_html_e( 'We are not a traditional organization with top-down structures. Instead, we are a network of peers who believe in the power of collective growth. Our members come from Kenya, the Netherlands, and beyond, bringing unique perspectives, skills, and experiences to the table.', 'prospergenics' ); ?></p>
+            if ( $programs_query->have_posts() ) :
+                while ( $programs_query->have_posts() ) : $programs_query->the_post();
+                    $thumbnail_url = get_the_post_thumbnail_url( get_the_ID(), 'large' );
+                    $placeholder_style = $thumbnail_url ? "background-image: url('" . esc_url( $thumbnail_url ) . "');" : "background: linear-gradient(135deg, #2E8B57, #3da968);";
 
-            <p><?php esc_html_e( 'What unites us is our commitment to practical action. We focus on tangible outcomes: building AI skills, creating sustainable businesses, and supporting each other through challenges. Every member contributes to our collective knowledge and every success story inspires the next.', 'prospergenics' ); ?></p>
+                    $button1_text = get_post_meta( get_the_ID(), '_program_button1_text', true );
+                    $button1_url = get_post_meta( get_the_ID(), '_program_button1_url', true );
+                    $button1_style = get_post_meta( get_the_ID(), '_program_button1_style', true ) ?: 'primary';
 
-            <p><?php esc_html_e( 'This is not about creating dependency on a single leader or organization. It is about empowering each member to become a leader in their own right, equipped with the tools, knowledge, and confidence to create lasting change in their communities.', 'prospergenics' ); ?></p>
+                    $button2_text = get_post_meta( get_the_ID(), '_program_button2_text', true );
+                    $button2_url = get_post_meta( get_the_ID(), '_program_button2_url', true );
+                    $button2_style = get_post_meta( get_the_ID(), '_program_button2_style', true ) ?: 'secondary';
+                    ?>
+                    <div class="program-overview-card">
+                        <div class="program-overview-image" style="<?php echo $placeholder_style; ?>"></div>
+                        <div class="program-overview-content">
+                            <h3><?php the_title(); ?></h3>
+                            <p><?php echo esc_html( get_the_content() ); ?></p>
+                            <div class="program-overview-actions">
+                                <?php if ( $button1_text && $button1_url ) : ?>
+                                    <a href="<?php echo esc_url( $button1_url ); ?>"
+                                       <?php echo ( strpos( $button1_url, 'http' ) === 0 && strpos( $button1_url, home_url() ) === false ) ? 'target="_blank" rel="noopener noreferrer"' : ''; ?>
+                                       class="program-action-link <?php echo esc_attr( $button1_style ); ?>">
+                                        <?php echo esc_html( $button1_text ); ?> →
+                                    </a>
+                                <?php endif; ?>
+
+                                <?php if ( $button2_text && $button2_url ) : ?>
+                                    <a href="<?php echo esc_url( $button2_url ); ?>"
+                                       <?php echo ( strpos( $button2_url, 'http' ) === 0 && strpos( $button2_url, home_url() ) === false ) ? 'target="_blank" rel="noopener noreferrer"' : ''; ?>
+                                       class="program-action-link <?php echo esc_attr( $button2_style ); ?>">
+                                        <?php echo esc_html( $button2_text ); ?> →
+                                    </a>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                    <?php
+                endwhile;
+                wp_reset_postdata();
+            endif;
+            ?>
         </div>
     </section>
 
     <!-- Team Section -->
-    <section class="content-section">
+    <section id="team" class="content-section">
         <div class="section-header">
             <h2><?php esc_html_e( 'Our Team', 'prospergenics' ); ?></h2>
             <p><?php esc_html_e( 'The core team building Prospergenics together', 'prospergenics' ); ?></p>
@@ -80,23 +108,34 @@ get_header();
 
         <div class="team-grid">
             <?php
-            // Core team 2024-2025: Lessy (first), Frank, Diko, Sandra, Sonia, Timothy, Toperian
-            $core_team = array(18, 17, 19, 16, 37, 38, 41);
-            foreach ($core_team as $member_id) {
-                $post = get_post($member_id);
-                $thumbnail_url = get_the_post_thumbnail_url($member_id, 'medium');
-                if ($post && $thumbnail_url) {
-                    $first_name = explode(' ', $post->post_title)[0];
+            $team_query = new WP_Query( array(
+                'post_type' => 'team_member',
+                'posts_per_page' => -1,
+                'tax_query' => array(
+                    array(
+                        'taxonomy' => 'member_type',
+                        'field' => 'slug',
+                        'terms' => 'team',
+                    ),
+                ),
+            ) );
+
+            if ( $team_query->have_posts() ) :
+                while ( $team_query->have_posts() ) : $team_query->the_post();
+                    $thumbnail_url = get_the_post_thumbnail_url( get_the_ID(), 'medium' );
+                    $first_name = explode( ' ', get_the_title() )[0];
+                    $placeholder_style = $thumbnail_url ? "background-image: url('" . esc_url( $thumbnail_url ) . "');" : "background: linear-gradient(135deg, #2E8B57, #3da968);";
                     ?>
                     <div class="team-member card">
-                        <div class="team-photo" style="background-image: url('<?php echo esc_url($thumbnail_url); ?>');"></div>
-                        <h3><?php echo esc_html($post->post_title); ?></h3>
-                        <p><?php echo esc_html(wp_trim_words($post->post_content, 25)); ?></p>
-                        <a href="<?php echo get_permalink($member_id); ?>" class="learn-more">Meet <?php echo esc_html($first_name); ?> →</a>
+                        <div class="team-photo" style="<?php echo $placeholder_style; ?>"></div>
+                        <h3><?php the_title(); ?></h3>
+                        <p><?php echo esc_html( wp_trim_words( get_the_content(), 25 ) ); ?></p>
+                        <a href="<?php the_permalink(); ?>" class="learn-more">Meet <?php echo esc_html( $first_name ); ?> →</a>
                     </div>
                     <?php
-                }
-            }
+                endwhile;
+                wp_reset_postdata();
+            endif;
             ?>
         </div>
     </section>
@@ -110,22 +149,34 @@ get_header();
 
         <div class="team-grid">
             <?php
-            $coaches = array(20); // Martien
-            foreach ($coaches as $member_id) {
-                $post = get_post($member_id);
-                $thumbnail_url = get_the_post_thumbnail_url($member_id, 'medium');
-                if ($post && $thumbnail_url) {
-                    $first_name = explode(' ', $post->post_title)[0];
+            $coaches_query = new WP_Query( array(
+                'post_type' => 'team_member',
+                'posts_per_page' => -1,
+                'tax_query' => array(
+                    array(
+                        'taxonomy' => 'member_type',
+                        'field' => 'slug',
+                        'terms' => 'coach',
+                    ),
+                ),
+            ) );
+
+            if ( $coaches_query->have_posts() ) :
+                while ( $coaches_query->have_posts() ) : $coaches_query->the_post();
+                    $thumbnail_url = get_the_post_thumbnail_url( get_the_ID(), 'medium' );
+                    $first_name = explode( ' ', get_the_title() )[0];
+                    $placeholder_style = $thumbnail_url ? "background-image: url('" . esc_url( $thumbnail_url ) . "');" : "background: linear-gradient(135deg, #2E8B57, #3da968);";
                     ?>
                     <div class="team-member card">
-                        <div class="team-photo" style="background-image: url('<?php echo esc_url($thumbnail_url); ?>');"></div>
-                        <h3><?php echo esc_html($post->post_title); ?></h3>
-                        <p><?php echo esc_html(wp_trim_words($post->post_content, 25)); ?></p>
-                        <a href="<?php echo get_permalink($member_id); ?>" class="learn-more">Meet <?php echo esc_html($first_name); ?> →</a>
+                        <div class="team-photo" style="<?php echo $placeholder_style; ?>"></div>
+                        <h3><?php the_title(); ?></h3>
+                        <p><?php echo esc_html( wp_trim_words( get_the_content(), 25 ) ); ?></p>
+                        <a href="<?php the_permalink(); ?>" class="learn-more">Meet <?php echo esc_html( $first_name ); ?> →</a>
                     </div>
                     <?php
-                }
-            }
+                endwhile;
+                wp_reset_postdata();
+            endif;
             ?>
         </div>
     </section>
@@ -139,32 +190,40 @@ get_header();
 
         <div class="team-grid">
             <?php
-            // Community members: Farid, Sofy, Natumi, Maxwell, Faith
-            $community_members = array(45, 46, 47, 48, 49);
-            foreach ($community_members as $member_id) {
-                $post = get_post($member_id);
-                $thumbnail_url = get_the_post_thumbnail_url($member_id, 'medium');
-                if ($post && $thumbnail_url) {
-                    $first_name = explode(' ', $post->post_title)[0];
+            $community_query = new WP_Query( array(
+                'post_type' => 'team_member',
+                'posts_per_page' => -1,
+                'tax_query' => array(
+                    array(
+                        'taxonomy' => 'member_type',
+                        'field' => 'slug',
+                        'terms' => 'community',
+                    ),
+                ),
+            ) );
+
+            if ( $community_query->have_posts() ) :
+                while ( $community_query->have_posts() ) : $community_query->the_post();
+                    $thumbnail_url = get_the_post_thumbnail_url( get_the_ID(), 'medium' );
+                    $first_name = explode( ' ', get_the_title() )[0];
+                    $placeholder_style = $thumbnail_url ? "background-image: url('" . esc_url( $thumbnail_url ) . "');" : "background: linear-gradient(135deg, #b45309, #d97706);";
                     ?>
                     <div class="team-member card">
-                        <div class="team-photo" style="background-image: url('<?php echo esc_url($thumbnail_url); ?>');"></div>
-                        <h3><?php echo esc_html($post->post_title); ?></h3>
-                        <p><?php echo esc_html(wp_trim_words($post->post_content, 25)); ?></p>
-                        <a href="<?php echo get_permalink($member_id); ?>" class="learn-more">Meet <?php echo esc_html($first_name); ?> →</a>
+                        <div class="team-photo" style="<?php echo $placeholder_style; ?>"></div>
+                        <h3><?php the_title(); ?></h3>
+                        <p><?php echo esc_html( wp_trim_words( get_the_content(), 25 ) ); ?></p>
+                        <a href="<?php the_permalink(); ?>" class="learn-more">Meet <?php echo esc_html( $first_name ); ?> →</a>
                     </div>
                     <?php
-                }
-            }
-
-            // Show placeholder if no community members yet
-            if (empty($community_members)) {
+                endwhile;
+                wp_reset_postdata();
+            else :
                 ?>
                 <p style="text-align: center; width: 100%; color: #666;">
                     <?php esc_html_e( 'Our community is growing! More members coming soon.', 'prospergenics' ); ?>
                 </p>
                 <?php
-            }
+            endif;
             ?>
         </div>
     </section>
@@ -187,7 +246,7 @@ get_header();
                 <div class="program-content">
                     <h3><?php esc_html_e( 'AI & Technology Training', 'prospergenics' ); ?></h3>
                     <p><?php esc_html_e( 'Master cutting-edge AI tools and technologies through hands-on projects. Learn from real-world applications and build skills that matter in today\'s job market.', 'prospergenics' ); ?></p>
-                    <a href="<?php echo esc_url( home_url( '/programs/ai-training' ) ); ?>" class="learn-more">
+                    <a href="<?php echo esc_url( home_url( '/blog' ) ); ?>" class="learn-more">
                         <?php esc_html_e( 'Learn More', 'prospergenics' ); ?> →
                     </a>
                 </div>
@@ -200,7 +259,7 @@ get_header();
                 <div class="program-content">
                     <h3><?php esc_html_e( 'Community Development', 'prospergenics' ); ?></h3>
                     <p><?php esc_html_e( 'Build strong, sustainable communities through collaborative projects. Learn leadership, project management, and community organizing skills.', 'prospergenics' ); ?></p>
-                    <a href="<?php echo esc_url( home_url( '/programs/community-development' ) ); ?>" class="learn-more">
+                    <a href="<?php echo esc_url( home_url( '/blog' ) ); ?>" class="learn-more">
                         <?php esc_html_e( 'Learn More', 'prospergenics' ); ?> →
                     </a>
                 </div>
@@ -213,7 +272,7 @@ get_header();
                 <div class="program-content">
                     <h3><?php esc_html_e( 'Entrepreneurship Support', 'prospergenics' ); ?></h3>
                     <p><?php esc_html_e( 'Turn your ideas into sustainable businesses. Get mentorship, resources, and a supportive network to help you succeed.', 'prospergenics' ); ?></p>
-                    <a href="<?php echo esc_url( home_url( '/programs/entrepreneurship' ) ); ?>" class="learn-more">
+                    <a href="#contact" class="learn-more">
                         <?php esc_html_e( 'Learn More', 'prospergenics' ); ?> →
                     </a>
                 </div>
@@ -230,18 +289,18 @@ get_header();
 
         <div class="stats-grid">
             <div class="stat-item">
-                <div class="stat-number">100+</div>
-                <div class="stat-label"><?php esc_html_e( 'Active Members', 'prospergenics' ); ?></div>
+                <div class="stat-number">15+</div>
+                <div class="stat-label"><?php esc_html_e( 'Members', 'prospergenics' ); ?></div>
             </div>
 
             <div class="stat-item">
-                <div class="stat-number">6</div>
-                <div class="stat-label"><?php esc_html_e( 'Core Programs', 'prospergenics' ); ?></div>
+                <div class="stat-number">€100,000+</div>
+                <div class="stat-label"><?php esc_html_e( 'Community Wealth Generated', 'prospergenics' ); ?></div>
             </div>
 
             <div class="stat-item">
-                <div class="stat-number">2</div>
-                <div class="stat-label"><?php esc_html_e( 'Countries', 'prospergenics' ); ?></div>
+                <div class="stat-number">25+</div>
+                <div class="stat-label"><?php esc_html_e( 'Trainings Completed', 'prospergenics' ); ?></div>
             </div>
         </div>
     </section>

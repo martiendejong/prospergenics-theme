@@ -4,7 +4,7 @@ Theme URI: https://prospergenics.com
 Author: Prospergenics Team
 Author URI: https://prospergenics.com
 Description: A modern parallax WordPress theme for Prospergenics - Building Prosperity Together. Features fullscreen hero sections, parallax scrolling, and clean minimal design.
-Version: 1.0.0
+Version: 1.0.1
 Requires at least: 5.8
 Tested up to: 6.4
 Requires PHP: 7.4
@@ -85,13 +85,13 @@ a:focus {
    ========================================================================== */
 
 @keyframes slideUp {
-    from { transform: translateY(0); }
-    to { transform: translateY(-100%); }
+    0% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(-100%); opacity: 0; }
 }
 
 @keyframes slideDown {
-    from { transform: translateY(-100%); }
-    to { transform: translateY(0); }
+    0% { transform: translateY(-100%); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
 }
 
 .site-header {
@@ -117,11 +117,11 @@ a:focus {
 }
 
 .site-header.hidden {
-    animation: slideUp 1s ease-out forwards;
+    animation: slideUp 0.8s ease-out forwards;
 }
 
 .site-header.showing {
-    animation: slideDown 1s ease-out forwards;
+    animation: slideDown 0.8s ease-out forwards;
 }
 
 .header-container {
@@ -221,8 +221,7 @@ a:focus {
 }
 
 .main-navigation a:hover::after,
-.main-navigation a:focus::after,
-.main-navigation .current-menu-item a::after {
+.main-navigation a:focus::after {
     width: 100%;
 }
 
@@ -311,7 +310,7 @@ a:focus {
     justify-content: center;
     position: relative;
     background-size: cover !important;
-    background-position: center -25% !important;
+    background-position: center center !important;
     background-attachment: fixed !important;
     background-repeat: no-repeat !important;
     margin: 0;
@@ -321,7 +320,8 @@ a:focus {
 /* Gradient backgrounds as beautiful fallbacks when images don't load */
 .hero-section {
     background-image: radial-gradient(circle at top right, #3da968, #2E8B57 40%, #1e5f3d);
-    background-position: center -25% !important;
+    background-position: center center !important;
+    min-height: 80vh !important;
 }
 
 .about-parallax {
@@ -518,16 +518,117 @@ a:focus {
 }
 
 /* About Section */
-.about-content {
-    max-width: 900px;
+/* Programs Overview Grid */
+.programs-overview-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 3rem;
+    max-width: 1200px;
     margin: 0 auto;
-    font-size: 1.125rem;
-    line-height: 1.9;
-    color: var(--color-gray-dark);
 }
 
-.about-content p {
+.program-overview-card {
+    display: grid;
+    grid-template-columns: 400px 1fr;
+    gap: 3rem;
+    background: var(--color-white);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow-natural);
+    transition: var(--transition);
+}
+
+.program-overview-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-deep);
+}
+
+.program-overview-image {
+    width: 100%;
+    height: 100%;
+    min-height: 300px;
+    background-size: cover;
+    background-position: center;
+}
+
+.program-overview-content {
+    padding: 3rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.program-overview-content h3 {
+    font-size: 2rem;
+    color: var(--color-green);
     margin-bottom: 1.5rem;
+    font-weight: 700;
+}
+
+.program-overview-content p {
+    font-size: 1.125rem;
+    line-height: 1.8;
+    color: var(--color-gray-dark);
+    margin-bottom: 2rem;
+}
+
+.program-overview-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.program-action-link {
+    display: inline-block;
+    padding: 0.875rem 1.75rem;
+    font-weight: 600;
+    font-size: 1rem;
+    border-radius: 50px;
+    transition: var(--transition);
+    text-decoration: none;
+    border: 2px solid;
+}
+
+.program-action-link.primary {
+    background: var(--color-green);
+    color: var(--color-white);
+    border-color: var(--color-green);
+}
+
+.program-action-link.primary:hover,
+.program-action-link.primary:focus {
+    background: var(--color-green-dark);
+    border-color: var(--color-green-dark);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-natural);
+}
+
+.program-action-link.secondary {
+    background: transparent;
+    color: var(--color-green);
+    border-color: var(--color-green);
+}
+
+.program-action-link.secondary:hover,
+.program-action-link.secondary:focus {
+    background: var(--color-green);
+    color: var(--color-white);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-natural);
+}
+
+.program-action-link.waiting {
+    background: var(--color-terracotta);
+    color: var(--color-white);
+    border-color: var(--color-terracotta);
+}
+
+.program-action-link.waiting:hover,
+.program-action-link.waiting:focus {
+    background: #a04308;
+    border-color: #a04308;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-natural);
 }
 
 /* Programs Grid */
@@ -874,7 +975,7 @@ a:focus {
 /* Team Section */
 .team-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: 2.5rem;
     margin-top: 3rem;
 }
@@ -964,6 +1065,12 @@ a:focus {
    RESPONSIVE DESIGN
    ========================================================================== */
 
+@media (max-width: 1200px) and (min-width: 769px) {
+    .team-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 @media (max-width: 768px) {
     .menu-toggle {
         display: block;
@@ -1026,6 +1133,10 @@ a:focus {
         height: 20px;
     }
 
+    .team-grid {
+        grid-template-columns: 1fr;
+    }
+
     .parallax-section {
         background-attachment: scroll;
         min-height: 80vh;
@@ -1034,6 +1145,18 @@ a:focus {
     .cards-grid,
     .programs-grid {
         grid-template-columns: 1fr;
+    }
+
+    .program-overview-card {
+        grid-template-columns: 1fr;
+    }
+
+    .program-overview-image {
+        min-height: 250px;
+    }
+
+    .program-overview-content {
+        padding: 2rem;
     }
 
     .footer-content {
@@ -1081,7 +1204,8 @@ a:focus {
     padding: 0 2rem;
 }
 
-.hidden {
+/* Don't apply display:none to header - it uses animation instead */
+.hidden:not(.site-header) {
     display: none;
 }
 
