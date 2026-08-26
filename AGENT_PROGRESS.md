@@ -21,3 +21,26 @@ Verified: `php -l` clean; live curl of https://prospergenics.com/ now shows
 `<title>Prospergenics | AI &amp; Software Development Coaching Community</title>`;
 /about/ still shows its own unaffected title.
 Left: nothing — live and git are back in sync.
+
+## 2026-08-26 — task 731
+Done: fixed the theme's empty-og:description bug (front-page priority), removed Yoast's Open
+Graph/Twitter presenters via `wpseo_frontend_presenters` (the boolean `wpseo_opengraph`/
+`wpseo_twitter` filters are silently ignored on Yoast 25.4), and live-patched seo-god's
+`class-meta-tags.php` on prospergenics.com to defer to Yoast (mirrors PR #705 on
+martiendejong/seo-god, unmerged, from sibling task 727) — PR #2.
+Verified: live re-fetch of /, /about/, /blog/ each show exactly one og:description/og:type/
+twitter:card set, non-empty everywhere, no PHP warnings/fatals in any response body.
+Standalone test (tests/test-731-og-twitter-tags.php, 8 assertions) passes; `php -l` clean.
+Left: seo-god's live plugin file now differs from the `develop` branch (drift, flagged in the
+PR/ClickUp comment) — should be reconciled once PR #705 merges and the plugin is redeployed.
+
+## 2026-08-26 - task 731 (review session)
+Done: merged master (task 733's title filters) into this branch, then fixed two more og:url/og:title
+defects found on the live site during review: the static posts page (/blog/) was treated as the
+front page (og:url pointed at the homepage), and archives used get_permalink() outside the loop
+(og:url was the first post's URL, og:title carried an escaped <span>). Deployed the merged function
+to prospergenics.com via FTP as a surgical patch (live functions.php carries ~190 lines of
+unmerged drift: the /trainings/ block from task 765 and an SMTP config - left untouched).
+Verified: php -l clean, tests/test-731-og-twitter-tags.php 14/14; live curl of /, /about/, /blog/,
+/category/uncategorized/ each show one consistent OG/Twitter set with correct og:url. PR #2 merged.
+Left: seo-god PR #705 still unmerged - the live seo-god plugin patch on this site stays a stop-gap.
