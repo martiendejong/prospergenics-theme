@@ -602,6 +602,21 @@ function prospergenics_save_program_buttons( $post_id ) {
 add_action( 'save_post', 'prospergenics_save_program_buttons' );
 
 /**
+ * Give the front page a specific, keyword-relevant document title instead of
+ * the generic "Home - Prospergenics" produced by the static Home page title.
+ */
+function prospergenics_front_page_document_title( $title_parts ) {
+    if ( is_front_page() && ! is_paged() ) {
+        return array(
+            'title' => __( 'Prospergenics | AI & Software Development Coaching Community', 'prospergenics' ),
+        );
+    }
+
+    return $title_parts;
+}
+add_filter( 'document_title_parts', 'prospergenics_front_page_document_title' );
+
+/**
  * Include Contact Form Handler
  */
 require get_template_directory() . '/inc/contact-form-handler.php';
