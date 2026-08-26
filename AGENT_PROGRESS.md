@@ -35,3 +35,18 @@ page, add a fallback meta description (Yoast presenter-removal pattern, same
 as task 733/731 since Yoast 25.4 ignores plain filters), and add real Course
 schema for exactly those three, not invented ones.
 Left: implementation + deploy in progress this session.
+
+## 2026-08-26 — task 765 (complete)
+Done: PR #3 (functions.php, +172 lines, additive only). Deployed to the live
+theme via FTP on top of the drifted live functions.php (which already carries
+task 731's uncommitted OG/Twitter fix + a legacy SMTP block) — backed the live
+file up first as functions.php.bak-task765, then merged this addition in
+without touching the existing drift.
+Verified: `php -l` clean; standalone harness 12/12 assertions pass; live curl
+of https://prospergenics.com/trainings/ shows a real `<meta name="description">`,
+a `Course` JSON-LD graph with 3 real entries (Digital Technology, AI and
+Technology Training, Claude Code & Cursor Coaching), and real page content
+where the page used to render empty. Homepage and /about/ unaffected.
+Left: nothing for this task. The broader live/git deploy drift on this repo
+(731's OG/Twitter fix, the legacy SMTP block) is pre-existing and out of
+scope here — flagged again for a future dedicated reconciliation task.
