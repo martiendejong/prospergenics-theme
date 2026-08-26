@@ -21,3 +21,17 @@ Verified: `php -l` clean; live curl of https://prospergenics.com/ now shows
 `<title>Prospergenics | AI &amp; Software Development Coaching Community</title>`;
 /about/ still shows its own unaffected title.
 Left: nothing — live and git are back in sync.
+
+## 2026-08-26 — task 765 (WIP)
+Started: /trainings/ page (WP page id 11, slug "trainings") has no
+`<meta name="description">` and no Course schema, matching the task. Live
+check found the page's own post_content is empty in the DB — the "Cursor,
+Claude Code, React" trainings the task describes don't live on this URL, they
+live on three real, separate, already-published pieces of content: the
+"Digital Technology" program CPT post, the "AI and Technology Training" page,
+and the "Claude Code & Cursor Coaching for Dutch Teams" page (published by
+task 734). Plan: render those three as real cards on the empty /trainings/
+page, add a fallback meta description (Yoast presenter-removal pattern, same
+as task 733/731 since Yoast 25.4 ignores plain filters), and add real Course
+schema for exactly those three, not invented ones.
+Left: implementation + deploy in progress this session.
