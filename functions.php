@@ -67,6 +67,97 @@ function prospergenics_content_width() {
 add_action( 'after_setup_theme', 'prospergenics_content_width', 0 );
 
 /**
+ * Add Open Graph and Twitter Card Meta Tags
+ *
+ * This was added directly on the live site (FTP) on 2026-02-17 without ever being committed to
+ * this repo — reconciled here 2026-08-26 (JengoWork task 731) alongside a real bug fix: a static
+ * front page is also is_singular(), so it always fell into the singular branch below (never the
+ * is_front_page()/is_home() branch), and that branch's fallback — post_excerpt, else 30 trimmed
+ * words of strip_tags(post_content) — is empty for this block-built homepage, so og:description
+ * and twitter:description rendered blank. Front-page detection now runs first, and every branch
+ * falls back to the site tagline if it would otherwise produce an empty description.
+ *
+ * This plugin's page also runs Yoast SEO in parallel, whose own Open Graph/Twitter Card block
+ * disagreed with this one (different og:type, different twitter:card) and had no og:description
+ * of its own either. This theme block is kept as the single source of truth for these tags, and
+ * Yoast's competing output is disabled below via its own documented filters.
+ */
+function prospergenics_add_social_meta_tags() {
+	$site_name        = get_bloginfo( 'name' );
+	$site_description = get_bloginfo( 'description' );
+	$og_image         = get_template_directory_uri() . '/images/social-share.jpg';
+
+	if ( is_front_page() || is_home() ) {
+		$og_title       = $site_name;
+		$og_description = $site_description;
+		$og_type        = 'website';
+		$og_url         = home_url( '/' );
+	} elseif ( is_singular() ) {
+		global $post;
+		$og_title       = get_the_title();
+		$og_description = $post->post_excerpt ? $post->post_excerpt : wp_trim_words( strip_tags( $post->post_content ), 30 );
+		$og_url         = get_permalink();
+		$og_type        = 'website';
+
+		if ( is_single() && has_post_thumbnail() ) {
+			$thumbnail_id = get_post_thumbnail_id();
+			$thumbnail    = wp_get_attachment_image_src( $thumbnail_id, 'full' );
+			if ( $thumbnail ) {
+				$og_image = $thumbnail[0];
+			}
+		}
+
+		if ( is_single() ) {
+			$og_type = 'article';
+		}
+	} elseif ( is_archive() ) {
+		$og_title       = get_the_archive_title();
+		$og_description = get_the_archive_description();
+		$og_type        = 'website';
+		$og_url         = get_permalink();
+	} else {
+		$og_title       = $site_name;
+		$og_description = $site_description;
+		$og_type        = 'website';
+		$og_url         = home_url( '/' );
+	}
+
+	if ( ! $og_description ) {
+		$og_description = $site_description;
+	}
+
+	$og_title       = esc_attr( $og_title );
+	$og_description = esc_attr( $og_description );
+	$og_url         = esc_url( $og_url );
+	$og_image       = esc_url( $og_image );
+
+	echo "\n<!-- Open Graph Meta Tags -->\n";
+	echo '<meta property="og:site_name" content="' . esc_attr( $site_name ) . '">' . "\n";
+	echo '<meta property="og:title" content="' . $og_title . '">' . "\n";
+	echo '<meta property="og:description" content="' . $og_description . '">' . "\n";
+	echo '<meta property="og:type" content="' . $og_type . '">' . "\n";
+	echo '<meta property="og:url" content="' . $og_url . '">' . "\n";
+	echo '<meta property="og:image" content="' . $og_image . '">' . "\n";
+	echo "\n<!-- Twitter Card Meta Tags -->\n";
+	echo '<meta name="twitter:card" content="summary_large_image">' . "\n";
+	echo '<meta name="twitter:title" content="' . $og_title . '">' . "\n";
+	echo '<meta name="twitter:description" content="' . $og_description . '">' . "\n";
+	echo '<meta name="twitter:image" content="' . $og_image . '">' . "\n";
+	echo "\n";
+}
+add_action( 'wp_head', 'prospergenics_add_social_meta_tags', 1 );
+
+/**
+ * This theme owns Open Graph/Twitter Card output (prospergenics_add_social_meta_tags() above).
+ * Yoast SEO was independently rendering its own, disagreeing og:type/twitter:card values with no
+ * og:description at all — disable Yoast's redundant Open Graph and Twitter Card modules via its
+ * own documented filters so only one set of social tags reaches the page. Yoast's title tag,
+ * canonical URL, schema, and sitemap output are untouched.
+ */
+add_filter( 'wpseo_opengraph', '__return_false' );
+add_filter( 'wpseo_twitter', '__return_false' );
+
+/**
  * Enqueue Scripts and Styles
  */
 function prospergenics_scripts() {
