@@ -705,6 +705,37 @@ function prospergenics_save_program_buttons( $post_id ) {
 add_action( 'save_post', 'prospergenics_save_program_buttons' );
 
 /**
+ * Give the front page a specific, keyword-relevant document title instead of
+ * the generic "Home - Prospergenics" produced by the static Home page title.
+ */
+function prospergenics_front_page_document_title( $title_parts ) {
+    if ( is_front_page() && ! is_paged() ) {
+        return array(
+            'title' => __( 'Prospergenics | AI & Software Development Coaching Community', 'prospergenics' ),
+        );
+    }
+
+    return $title_parts;
+}
+add_filter( 'document_title_parts', 'prospergenics_front_page_document_title' );
+
+/**
+ * Yoast SEO (when active, as it is on this site) short-circuits WordPress core's
+ * document_title_parts filter chain via its own pre_get_document_title hook, which
+ * runs earlier in wp_get_document_title() -- so the filter above never fires while
+ * Yoast is active. Override at PHP_INT_MAX priority so this runs after Yoast's own
+ * filter regardless of Yoast's internal priority.
+ */
+function prospergenics_front_page_title_override( $title ) {
+    if ( is_front_page() && ! is_paged() ) {
+        return __( 'Prospergenics | AI & Software Development Coaching Community', 'prospergenics' );
+    }
+
+    return $title;
+}
+add_filter( 'pre_get_document_title', 'prospergenics_front_page_title_override', PHP_INT_MAX );
+
+/**
  * Include Contact Form Handler
  */
 require get_template_directory() . '/inc/contact-form-handler.php';
