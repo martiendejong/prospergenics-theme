@@ -33,3 +33,14 @@ twitter:card set, non-empty everywhere, no PHP warnings/fatals in any response b
 Standalone test (tests/test-731-og-twitter-tags.php, 8 assertions) passes; `php -l` clean.
 Left: seo-god's live plugin file now differs from the `develop` branch (drift, flagged in the
 PR/ClickUp comment) — should be reconciled once PR #705 merges and the plugin is redeployed.
+
+## 2026-08-26 - task 731 (review session)
+Done: merged master (task 733's title filters) into this branch, then fixed two more og:url/og:title
+defects found on the live site during review: the static posts page (/blog/) was treated as the
+front page (og:url pointed at the homepage), and archives used get_permalink() outside the loop
+(og:url was the first post's URL, og:title carried an escaped <span>). Deployed the merged function
+to prospergenics.com via FTP as a surgical patch (live functions.php carries ~190 lines of
+unmerged drift: the /trainings/ block from task 765 and an SMTP config - left untouched).
+Verified: php -l clean, tests/test-731-og-twitter-tags.php 14/14; live curl of /, /about/, /blog/,
+/category/uncategorized/ each show one consistent OG/Twitter set with correct og:url. PR #2 merged.
+Left: seo-god PR #705 still unmerged - the live seo-god plugin patch on this site stays a stop-gap.

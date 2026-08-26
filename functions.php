@@ -87,11 +87,19 @@ function prospergenics_add_social_meta_tags() {
 	$site_description = get_bloginfo( 'description' );
 	$og_image         = get_template_directory_uri() . '/images/social-share.jpg';
 
-	if ( is_front_page() || is_home() ) {
+	if ( is_front_page() ) {
 		$og_title       = $site_name;
 		$og_description = $site_description;
 		$og_type        = 'website';
 		$og_url         = home_url( '/' );
+	} elseif ( is_home() ) {
+		// Static posts page (Settings > Reading, e.g. /blog/): not the front page and not
+		// is_singular() either — describe the assigned page itself, not the homepage.
+		$posts_page_id  = (int) get_option( 'page_for_posts' );
+		$og_title       = $posts_page_id ? get_the_title( $posts_page_id ) : $site_name;
+		$og_description = $posts_page_id ? get_post_field( 'post_excerpt', $posts_page_id ) : '';
+		$og_type        = 'website';
+		$og_url         = $posts_page_id ? get_permalink( $posts_page_id ) : home_url( '/' );
 	} elseif ( is_singular() ) {
 		global $post;
 		$og_title       = get_the_title();
@@ -111,10 +119,14 @@ function prospergenics_add_social_meta_tags() {
 			$og_type = 'article';
 		}
 	} elseif ( is_archive() ) {
-		$og_title       = get_the_archive_title();
-		$og_description = get_the_archive_description();
+		// get_the_archive_title() wraps the term name in a <span> since WP 5.5 — strip it, and
+		// use the archive's own request URL: get_permalink() outside the loop returns the FIRST
+		// POST's permalink (or false), not the archive page.
+		global $wp;
+		$og_title       = wp_strip_all_tags( get_the_archive_title() );
+		$og_description = wp_strip_all_tags( get_the_archive_description() );
 		$og_type        = 'website';
-		$og_url         = get_permalink();
+		$og_url         = ( isset( $wp->request ) && $wp->request !== '' ) ? home_url( '/' . user_trailingslashit( ltrim( $wp->request, '/' ) ) ) : home_url( '/' );
 	} else {
 		$og_title       = $site_name;
 		$og_description = $site_description;

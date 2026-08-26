@@ -28,12 +28,17 @@ function wp_trim_words( $text, $num_words = 55 ) {
 }
 function add_action( ...$args ) {}
 function add_filter( ...$args ) {}
-function get_the_title() { return 'About Us'; }
-function get_permalink() { return 'https://prospergenics.com/about/'; }
+function get_the_title( $id = 0 ) { return $id === 42 ? 'Blog' : 'About Us'; }
+function get_permalink( $id = 0 ) { return $id === 42 ? 'https://prospergenics.com/blog/' : 'https://prospergenics.com/about/'; }
+function get_option( $key, $default = false ) { return $key === 'page_for_posts' ? $GLOBALS['_page_for_posts'] : $default; }
+function get_post_field( $field, $id ) { return ''; }
+function wp_strip_all_tags( $s ) { return trim( strip_tags( (string) $s ) ); }
+function user_trailingslashit( $s ) { return rtrim( (string) $s, '/' ) . '/'; }
+$GLOBALS['_page_for_posts'] = 0;
 function has_post_thumbnail() { return false; }
 function get_post_thumbnail_id() { return 0; }
 function wp_get_attachment_image_src( $id, $size ) { return false; }
-function get_the_archive_title() { return 'Blog'; }
+function get_the_archive_title() { return 'Category: <span>Uncategorized</span>'; }
 function get_the_archive_description() { return ''; }
 
 $GLOBALS['_is_front_page'] = false;
@@ -105,5 +110,32 @@ $output = render( 'prospergenics_add_social_meta_tags' );
 ok( strpos( $output, 'og:description" content="Prospergenics"' ) !== false, 'empty-content page falls back to the tagline, not a blank description' );
 ok( strpos( $output, 'og:type" content="website"' ) !== false, 'og:type is "website" for a plain page' );
 
+echo "
+[Test 4] Static posts page (is_home, not front page, not singular): og:title/og:url describe the posts page itself, not the homepage
+";
+$GLOBALS['_is_front_page'] = false;
+$GLOBALS['_is_home']       = true;
+$GLOBALS['_is_singular']   = false;
+$GLOBALS['_is_single']     = false;
+$GLOBALS['_page_for_posts'] = 42;
+$output = render( 'prospergenics_add_social_meta_tags' );
+ok( strpos( $output, 'og:title" content="Blog"' ) !== false, 'og:title is the posts page title, not the site name' );
+ok( strpos( $output, 'og:url" content="https://prospergenics.com/blog/"' ) !== false, 'og:url is the posts page permalink, not the homepage' );
+ok( strpos( $output, 'og:description" content="Prospergenics"' ) !== false, 'og:description falls back to the tagline when the posts page has no excerpt' );
+$GLOBALS['_is_home'] = false;
+$GLOBALS['_page_for_posts'] = 0;
+
+echo "
+[Test 5] Category archive: og:title has no HTML, og:url is the archive request URL (not the first post's permalink)
+";
+$GLOBALS['_is_singular'] = false;
+$GLOBALS['_is_archive']  = true;
+$wp = new stdClass();
+$wp->request = 'category/uncategorized';
+$output = render( 'prospergenics_add_social_meta_tags' );
+ok( strpos( $output, 'og:title" content="Category: Uncategorized"' ) !== false, 'archive og:title is plain text (the <span> from get_the_archive_title() is stripped)' );
+ok( strpos( $output, 'og:url" content="https://prospergenics.com/category/uncategorized/"' ) !== false, 'archive og:url is the archive URL itself' );
+ok( strpos( $output, 'og:description" content="Prospergenics"' ) !== false, 'empty archive description falls back to the tagline' );
+$GLOBALS['_is_archive'] = false;
 echo "\n" . ( $failures === 0 ? "ALL PASSED\n" : "$failures FAILURE(S)\n" );
 exit( $failures === 0 ? 0 : 1 );
