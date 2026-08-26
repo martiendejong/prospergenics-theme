@@ -150,12 +150,24 @@ add_action( 'wp_head', 'prospergenics_add_social_meta_tags', 1 );
 /**
  * This theme owns Open Graph/Twitter Card output (prospergenics_add_social_meta_tags() above).
  * Yoast SEO was independently rendering its own, disagreeing og:type/twitter:card values with no
- * og:description at all — disable Yoast's redundant Open Graph and Twitter Card modules via its
- * own documented filters so only one set of social tags reaches the page. Yoast's title tag,
- * canonical URL, schema, and sitemap output are untouched.
+ * og:description at all — remove Yoast's Open Graph and Twitter Card presenters so only one set
+ * of social tags reaches the page. Yoast's title tag, canonical URL, schema, and sitemap output
+ * (all unrelated presenter classes) are untouched.
+ *
+ * Yoast SEO 14+ replaced the old wpseo_opengraph/wpseo_twitter boolean filters with a presenter
+ * pipeline (wpseo_frontend_presenters) — those boolean filters are still accepted but silently
+ * ignored on this site's Yoast version (25.4), confirmed live: they did not remove Yoast's block.
  */
-add_filter( 'wpseo_opengraph', '__return_false' );
-add_filter( 'wpseo_twitter', '__return_false' );
+add_filter( 'wpseo_frontend_presenters', 'prospergenics_remove_yoast_social_presenters' );
+function prospergenics_remove_yoast_social_presenters( $presenters ) {
+	foreach ( $presenters as $index => $presenter ) {
+		$class = get_class( $presenter );
+		if ( strpos( $class, 'Presenters\\Open_Graph\\' ) !== false || strpos( $class, 'Presenters\\Twitter\\' ) !== false ) {
+			unset( $presenters[ $index ] );
+		}
+	}
+	return $presenters;
+}
 
 /**
  * Enqueue Scripts and Styles
