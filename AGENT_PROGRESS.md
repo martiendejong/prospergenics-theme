@@ -73,3 +73,18 @@ unmerged drift: the /trainings/ block from task 765 and an SMTP config - left un
 Verified: php -l clean, tests/test-731-og-twitter-tags.php 14/14; live curl of /, /about/, /blog/,
 /category/uncategorized/ each show one consistent OG/Twitter set with correct og:url. PR #2 merged.
 Left: seo-god PR #705 still unmerged - the live seo-god plugin patch on this site stays a stop-gap.
+
+## 2026-08-27 - task 855
+Done: added `prospergenics_legacy_url_redirects()` (template_redirect hook) so /kenya/, a
+pre-restructure page that now 404s, 301-redirects to /about/ (the page with real Kenya
+content) instead of dead-ending. PR #5. Deployed to the live theme via FTP as a surgical
+patch on top of existing drift (task 797's front-page meta description fix + the legacy
+SMTP block, both still unmerged in git) - backed the live file up first as
+functions.php.bak-task855.
+Verified: php -l clean; tests/test-855-legacy-url-redirects.php 11/11; live curl of
+/kenya/ and /kenya both return 301 -> https://prospergenics.com/about/ (200), and
+/trainings/, /martien/, /, /about/ are all unaffected (200). Checked the WP REST API page
+inventory for other silently-dropped legacy URLs - none found beyond /kenya/.
+Left: the pre-existing live/git drift (task 797's meta description fix, the SMTP block) is
+unrelated to this task and stays out of scope, flagged again for a future reconciliation
+task.
