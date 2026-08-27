@@ -923,6 +923,42 @@ function prospergenics_trainings_course_schema() {
 add_action( 'wp_head', 'prospergenics_trainings_course_schema', 25 );
 
 /**
+ * Legacy URL Redirects
+ *
+ * The site was restructured into a single-page homepage (task 733/731/765) and some
+ * pre-restructure standalone pages were deleted from the database without a redirect left
+ * behind, so they now 404 instead of forwarding search engines / AI-answer engines /
+ * existing backlinks to the closest surviving equivalent -- losing whatever citation
+ * equity had accrued at the old URL.
+ *
+ * Task 855: /kenya/ (previously a real published page, confirmed by its old HTTP 403 under
+ * the site's WAF bot-block) now 404s. The About page (/about/) carries the site's actual,
+ * substantive Kenya content -- the "Where is Prospergenics located?" FAQ answer and intro
+ * copy both state the team is based in Kenya and the Netherlands -- so it's a closer match
+ * than a bare homepage bounce. /trainings/ and /martien/, the other legacy URLs named
+ * alongside /kenya/ in this task, both still resolve (200) and need no entry here.
+ *
+ * Add further slugs to $legacy_redirects if a future audit finds more silently-dropped URLs.
+ */
+function prospergenics_legacy_url_redirects() {
+	if ( ! is_404() ) {
+		return;
+	}
+
+	$request_path = trim( (string) parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH ), '/' );
+
+	$legacy_redirects = array(
+		'kenya' => home_url( '/about/' ),
+	);
+
+	if ( isset( $legacy_redirects[ $request_path ] ) ) {
+		wp_safe_redirect( $legacy_redirects[ $request_path ], 301 );
+		exit;
+	}
+}
+add_action( 'template_redirect', 'prospergenics_legacy_url_redirects' );
+
+/**
  * Include Contact Form Handler
  */
 require get_template_directory() . '/inc/contact-form-handler.php';
