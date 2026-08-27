@@ -88,3 +88,12 @@ against `master`.
 Left: deploy to the live theme via FTP is the usual manual step for this repo (no CI/build agent
 here) — not done as part of opening this PR; live `functions.php` still carries the drift noted
 in task 731/765 above (SMTP block etc.), so deploy must be a surgical patch, not a full overwrite.
+
+## 2026-08-28 — task 797 review/verify pass
+Reviewed PR #4 diff independently (scoped to is_front_page(), reuses the 731/765 Yoast-presenter
+pattern, tests pass, no secrets) and re-verified live: curl of https://prospergenics.com/ shows
+exactly one meta name="description", one og:description, one twitter:description, all the real
+160-char copy — no more bare "Prospergenics". /trainings/ still has its own distinct description,
+unaffected. PR #4 is MERGEABLE/CLEAN but attempting `gh pr merge` failed: the CLI's authenticated
+account lacks MergePullRequest permission on this repo. Moved task 797 to acceptance since the
+production fix is already live and verified; a human still needs to click merge on PR #4.
