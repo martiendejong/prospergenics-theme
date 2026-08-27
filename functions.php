@@ -67,6 +67,121 @@ function prospergenics_content_width() {
 add_action( 'after_setup_theme', 'prospergenics_content_width', 0 );
 
 /**
+ * Add Open Graph and Twitter Card Meta Tags
+ *
+ * This was added directly on the live site (FTP) on 2026-02-17 without ever being committed to
+ * this repo — reconciled here 2026-08-26 (JengoWork task 731) alongside a real bug fix: a static
+ * front page is also is_singular(), so it always fell into the singular branch below (never the
+ * is_front_page()/is_home() branch), and that branch's fallback — post_excerpt, else 30 trimmed
+ * words of strip_tags(post_content) — is empty for this block-built homepage, so og:description
+ * and twitter:description rendered blank. Front-page detection now runs first, and every branch
+ * falls back to the site tagline if it would otherwise produce an empty description.
+ *
+ * This plugin's page also runs Yoast SEO in parallel, whose own Open Graph/Twitter Card block
+ * disagreed with this one (different og:type, different twitter:card) and had no og:description
+ * of its own either. This theme block is kept as the single source of truth for these tags, and
+ * Yoast's competing output is disabled below via its own documented filters.
+ */
+function prospergenics_add_social_meta_tags() {
+	$site_name        = get_bloginfo( 'name' );
+	$site_description = get_bloginfo( 'description' );
+	$og_image         = get_template_directory_uri() . '/images/social-share.jpg';
+
+	if ( is_front_page() ) {
+		$og_title       = $site_name;
+		$og_description = $site_description;
+		$og_type        = 'website';
+		$og_url         = home_url( '/' );
+	} elseif ( is_home() ) {
+		// Static posts page (Settings > Reading, e.g. /blog/): not the front page and not
+		// is_singular() either — describe the assigned page itself, not the homepage.
+		$posts_page_id  = (int) get_option( 'page_for_posts' );
+		$og_title       = $posts_page_id ? get_the_title( $posts_page_id ) : $site_name;
+		$og_description = $posts_page_id ? get_post_field( 'post_excerpt', $posts_page_id ) : '';
+		$og_type        = 'website';
+		$og_url         = $posts_page_id ? get_permalink( $posts_page_id ) : home_url( '/' );
+	} elseif ( is_singular() ) {
+		global $post;
+		$og_title       = get_the_title();
+		$og_description = $post->post_excerpt ? $post->post_excerpt : wp_trim_words( strip_tags( $post->post_content ), 30 );
+		$og_url         = get_permalink();
+		$og_type        = 'website';
+
+		if ( is_single() && has_post_thumbnail() ) {
+			$thumbnail_id = get_post_thumbnail_id();
+			$thumbnail    = wp_get_attachment_image_src( $thumbnail_id, 'full' );
+			if ( $thumbnail ) {
+				$og_image = $thumbnail[0];
+			}
+		}
+
+		if ( is_single() ) {
+			$og_type = 'article';
+		}
+	} elseif ( is_archive() ) {
+		// get_the_archive_title() wraps the term name in a <span> since WP 5.5 — strip it, and
+		// use the archive's own request URL: get_permalink() outside the loop returns the FIRST
+		// POST's permalink (or false), not the archive page.
+		global $wp;
+		$og_title       = wp_strip_all_tags( get_the_archive_title() );
+		$og_description = wp_strip_all_tags( get_the_archive_description() );
+		$og_type        = 'website';
+		$og_url         = ( isset( $wp->request ) && $wp->request !== '' ) ? home_url( '/' . user_trailingslashit( ltrim( $wp->request, '/' ) ) ) : home_url( '/' );
+	} else {
+		$og_title       = $site_name;
+		$og_description = $site_description;
+		$og_type        = 'website';
+		$og_url         = home_url( '/' );
+	}
+
+	if ( ! $og_description ) {
+		$og_description = $site_description;
+	}
+
+	$og_title       = esc_attr( $og_title );
+	$og_description = esc_attr( $og_description );
+	$og_url         = esc_url( $og_url );
+	$og_image       = esc_url( $og_image );
+
+	echo "\n<!-- Open Graph Meta Tags -->\n";
+	echo '<meta property="og:site_name" content="' . esc_attr( $site_name ) . '">' . "\n";
+	echo '<meta property="og:title" content="' . $og_title . '">' . "\n";
+	echo '<meta property="og:description" content="' . $og_description . '">' . "\n";
+	echo '<meta property="og:type" content="' . $og_type . '">' . "\n";
+	echo '<meta property="og:url" content="' . $og_url . '">' . "\n";
+	echo '<meta property="og:image" content="' . $og_image . '">' . "\n";
+	echo "\n<!-- Twitter Card Meta Tags -->\n";
+	echo '<meta name="twitter:card" content="summary_large_image">' . "\n";
+	echo '<meta name="twitter:title" content="' . $og_title . '">' . "\n";
+	echo '<meta name="twitter:description" content="' . $og_description . '">' . "\n";
+	echo '<meta name="twitter:image" content="' . $og_image . '">' . "\n";
+	echo "\n";
+}
+add_action( 'wp_head', 'prospergenics_add_social_meta_tags', 1 );
+
+/**
+ * This theme owns Open Graph/Twitter Card output (prospergenics_add_social_meta_tags() above).
+ * Yoast SEO was independently rendering its own, disagreeing og:type/twitter:card values with no
+ * og:description at all — remove Yoast's Open Graph and Twitter Card presenters so only one set
+ * of social tags reaches the page. Yoast's title tag, canonical URL, schema, and sitemap output
+ * (all unrelated presenter classes) are untouched.
+ *
+ * Yoast SEO 14+ replaced the old wpseo_opengraph/wpseo_twitter boolean filters with a presenter
+ * pipeline (wpseo_frontend_presenters) — those boolean filters are still accepted but silently
+ * ignored on this site's Yoast version (25.4), confirmed live: they did not remove Yoast's block.
+ */
+add_filter( 'wpseo_frontend_presenters', 'prospergenics_remove_yoast_social_presenters' );
+function prospergenics_remove_yoast_social_presenters( $presenters ) {
+	foreach ( $presenters as $index => $presenter ) {
+		$class = get_class( $presenter );
+		if ( strpos( $class, 'Presenters\\Open_Graph\\' ) !== false || strpos( $class, 'Presenters\\Twitter\\' ) !== false ) {
+			unset( $presenters[ $index ] );
+		}
+	}
+	return $presenters;
+}
+
+/**
  * Enqueue Scripts and Styles
  */
 function prospergenics_scripts() {
@@ -784,8 +899,11 @@ function prospergenics_trainings_course_schema() {
         $courses[] = array(
             '@type'       => 'Course',
             '@id'         => $permalink . '#course',
-            'name'        => get_the_title( $offering ),
-            'description' => prospergenics_trainings_offering_summary( $offering ),
+            // JSON-LD <script> content isn't HTML-parsed, so entities from get_the_title()
+            // (e.g. "&#038;") or wp_trim_words()'s default "&hellip;" would reach schema
+            // consumers literally instead of as "&"/"…" -- decode before encoding as JSON.
+            'name'        => html_entity_decode( get_the_title( $offering ), ENT_QUOTES, 'UTF-8' ),
+            'description' => html_entity_decode( prospergenics_trainings_offering_summary( $offering ), ENT_QUOTES, 'UTF-8' ),
             'url'         => $permalink,
             'provider'    => array(
                 '@type' => 'Organization',
