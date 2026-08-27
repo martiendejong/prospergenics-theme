@@ -34,6 +34,35 @@ Standalone test (tests/test-731-og-twitter-tags.php, 8 assertions) passes; `php 
 Left: seo-god's live plugin file now differs from the `develop` branch (drift, flagged in the
 PR/ClickUp comment) — should be reconciled once PR #705 merges and the plugin is redeployed.
 
+## 2026-08-26 — task 765 (WIP)
+Started: /trainings/ page (WP page id 11, slug "trainings") has no
+`<meta name="description">` and no Course schema, matching the task. Live
+check found the page's own post_content is empty in the DB — the "Cursor,
+Claude Code, React" trainings the task describes don't live on this URL, they
+live on three real, separate, already-published pieces of content: the
+"Digital Technology" program CPT post, the "AI and Technology Training" page,
+and the "Claude Code & Cursor Coaching for Dutch Teams" page (published by
+task 734). Plan: render those three as real cards on the empty /trainings/
+page, add a fallback meta description (Yoast presenter-removal pattern, same
+as task 733/731 since Yoast 25.4 ignores plain filters), and add real Course
+schema for exactly those three, not invented ones.
+Left: implementation + deploy in progress this session.
+
+## 2026-08-26 — task 765 (complete)
+Done: PR #3 (functions.php, +172 lines, additive only). Deployed to the live
+theme via FTP on top of the drifted live functions.php (which already carries
+task 731's uncommitted OG/Twitter fix + a legacy SMTP block) — backed the live
+file up first as functions.php.bak-task765, then merged this addition in
+without touching the existing drift.
+Verified: `php -l` clean; standalone harness 12/12 assertions pass; live curl
+of https://prospergenics.com/trainings/ shows a real `<meta name="description">`,
+a `Course` JSON-LD graph with 3 real entries (Digital Technology, AI and
+Technology Training, Claude Code & Cursor Coaching), and real page content
+where the page used to render empty. Homepage and /about/ unaffected.
+Left: nothing for this task. The broader live/git deploy drift on this repo
+(731's OG/Twitter fix, the legacy SMTP block) is pre-existing and out of
+scope here — flagged again for a future dedicated reconciliation task.
+
 ## 2026-08-26 - task 731 (review session)
 Done: merged master (task 733's title filters) into this branch, then fixed two more og:url/og:title
 defects found on the live site during review: the static posts page (/blog/) was treated as the

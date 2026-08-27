@@ -748,6 +748,181 @@ function prospergenics_front_page_title_override( $title ) {
 add_filter( 'pre_get_document_title', 'prospergenics_front_page_title_override', PHP_INT_MAX );
 
 /**
+ * Trainings Page (/trainings/): Fallback Content, Meta Description, and Course Schema
+ *
+ * The published /trainings/ page (WP page, slug "trainings") has empty post_content
+ * in the database, so it renders with no meta description and no training/course
+ * structured data even though real training offerings already exist elsewhere on
+ * the site: the "Digital Technology" program, the "AI and Technology Training" page,
+ * and the "Claude Code & Cursor Coaching" page. Surface those real offerings here
+ * instead of inventing new ones.
+ */
+function prospergenics_get_trainings_offerings() {
+    $slugs_to_post_types = array(
+        'digital-technology'          => 'program',
+        'ai-and-technology-training'  => 'page',
+        'claude-code-cursor-coaching' => 'page',
+    );
+
+    $offerings = array();
+    foreach ( $slugs_to_post_types as $slug => $post_type ) {
+        $found = get_posts( array(
+            'name'           => $slug,
+            'post_type'      => $post_type,
+            'post_status'    => 'publish',
+            'posts_per_page' => 1,
+        ) );
+        if ( ! empty( $found ) ) {
+            $offerings[] = $found[0];
+        }
+    }
+
+    return $offerings;
+}
+
+function prospergenics_trainings_offering_summary( $post ) {
+    $summary = $post->post_excerpt;
+    if ( '' === trim( $summary ) ) {
+        $summary = wp_trim_words( wp_strip_all_tags( $post->post_content ), 30 );
+    }
+    return wp_strip_all_tags( $summary );
+}
+
+/**
+ * Render real training offerings as page content when the editor hasn't written any.
+ */
+function prospergenics_trainings_page_content( $content ) {
+    if ( ! is_page( 'trainings' ) || ! in_the_loop() || ! is_main_query() || '' !== trim( $content ) ) {
+        return $content;
+    }
+
+    $offerings = prospergenics_get_trainings_offerings();
+    if ( empty( $offerings ) ) {
+        return $content;
+    }
+
+    ob_start();
+    ?>
+    <div class="programs-overview-grid trainings-page-grid">
+        <?php foreach ( $offerings as $offering ) :
+            $thumbnail_url     = get_the_post_thumbnail_url( $offering->ID, 'large' );
+            $placeholder_style = $thumbnail_url ? "background-image: url('" . esc_url( $thumbnail_url ) . "');" : 'background: linear-gradient(135deg, #2E8B57, #3da968);';
+            ?>
+            <div class="program-overview-card">
+                <div class="program-overview-image" style="<?php echo esc_attr( $placeholder_style ); ?>"></div>
+                <div class="program-overview-content">
+                    <h3><?php echo esc_html( get_the_title( $offering ) ); ?></h3>
+                    <p><?php echo esc_html( prospergenics_trainings_offering_summary( $offering ) ); ?></p>
+                    <div class="program-overview-actions">
+                        <a href="<?php echo esc_url( get_permalink( $offering ) ); ?>" class="program-action-link primary">
+                            <?php esc_html_e( 'Learn More', 'prospergenics' ); ?> &rarr;
+                        </a>
+                    </div>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    </div>
+    <?php
+    return ob_get_clean();
+}
+add_filter( 'the_content', 'prospergenics_trainings_page_content' );
+
+/**
+ * Yoast SEO's own frontend presenters print an empty description line for this page
+ * (nothing to derive one from). Remove Yoast's Meta_Description_Presenter for this
+ * page specifically via the wpseo_frontend_presenters filter -- Yoast 25.4 (active on
+ * this site) ignores the older wpseo_metadesc filter here, but presenter removal is
+ * confirmed working against this exact Yoast version (used live for the OG/Twitter
+ * presenters on task 731) -- and print our own fallback description instead.
+ */
+function prospergenics_trainings_remove_yoast_description_presenter( $presenters ) {
+    if ( ! is_page( 'trainings' ) ) {
+        return $presenters;
+    }
+
+    foreach ( $presenters as $index => $presenter ) {
+        if ( false !== strpos( get_class( $presenter ), 'Meta_Description_Presenter' ) ) {
+            unset( $presenters[ $index ] );
+        }
+    }
+
+    return $presenters;
+}
+add_filter( 'wpseo_frontend_presenters', 'prospergenics_trainings_remove_yoast_description_presenter' );
+
+function prospergenics_trainings_meta_description_text() {
+    $offerings = prospergenics_get_trainings_offerings();
+    if ( empty( $offerings ) ) {
+        return '';
+    }
+
+    $names = wp_list_pluck( $offerings, 'post_title' );
+
+    return sprintf(
+        /* translators: %s: comma-separated list of training/course names */
+        __( 'Explore Prospergenics training programs, including %s - hands-on courses that build real digital and technology skills.', 'prospergenics' ),
+        implode( ', ', $names )
+    );
+}
+
+function prospergenics_trainings_output_meta_description() {
+    if ( ! is_page( 'trainings' ) ) {
+        return;
+    }
+
+    $description = prospergenics_trainings_meta_description_text();
+    if ( '' === $description ) {
+        return;
+    }
+
+    echo '<meta name="description" content="' . esc_attr( $description ) . '" />' . "\n";
+}
+add_action( 'wp_head', 'prospergenics_trainings_output_meta_description', 1 );
+
+/**
+ * Course structured data for each real training offering, so AI tools and search
+ * engines can cite specific course offerings instead of just the generic WebPage.
+ */
+function prospergenics_trainings_course_schema() {
+    if ( ! is_page( 'trainings' ) ) {
+        return;
+    }
+
+    $offerings = prospergenics_get_trainings_offerings();
+    if ( empty( $offerings ) ) {
+        return;
+    }
+
+    $courses = array();
+    foreach ( $offerings as $offering ) {
+        $permalink = get_permalink( $offering );
+        $courses[] = array(
+            '@type'       => 'Course',
+            '@id'         => $permalink . '#course',
+            // JSON-LD <script> content isn't HTML-parsed, so entities from get_the_title()
+            // (e.g. "&#038;") or wp_trim_words()'s default "&hellip;" would reach schema
+            // consumers literally instead of as "&"/"…" -- decode before encoding as JSON.
+            'name'        => html_entity_decode( get_the_title( $offering ), ENT_QUOTES, 'UTF-8' ),
+            'description' => html_entity_decode( prospergenics_trainings_offering_summary( $offering ), ENT_QUOTES, 'UTF-8' ),
+            'url'         => $permalink,
+            'provider'    => array(
+                '@type' => 'Organization',
+                'name'  => get_bloginfo( 'name' ),
+                'url'   => home_url( '/' ),
+            ),
+        );
+    }
+
+    $schema = array(
+        '@context' => 'https://schema.org',
+        '@graph'   => $courses,
+    );
+
+    echo "\n" . '<script type="application/ld+json" class="prospergenics-trainings-course-schema">' . wp_json_encode( $schema ) . '</script>' . "\n";
+}
+add_action( 'wp_head', 'prospergenics_trainings_course_schema', 25 );
+
+/**
  * Include Contact Form Handler
  */
 require get_template_directory() . '/inc/contact-form-handler.php';
