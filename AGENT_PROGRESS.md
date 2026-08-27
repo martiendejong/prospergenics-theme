@@ -73,3 +73,18 @@ unmerged drift: the /trainings/ block from task 765 and an SMTP config - left un
 Verified: php -l clean, tests/test-731-og-twitter-tags.php 14/14; live curl of /, /about/, /blog/,
 /category/uncategorized/ each show one consistent OG/Twitter set with correct og:url. PR #2 merged.
 Left: seo-god PR #705 still unmerged - the live seo-god plugin patch on this site stays a stop-gap.
+
+## 2026-08-27 — task 797
+Done: front page had zero `<meta name="description">` at all (Yoast never renders one when its
+own per-page SEO field is empty) and og:description/twitter:description were just the bare
+tagline "Prospergenics". Added `prospergenics_front_page_meta_description_text()` (real ~160-char
+copy, grounded in the site's own About-page FAQ content re: NL/Kenya teams), wired it into the
+existing front-page branch of `prospergenics_add_social_meta_tags()`, and added a new
+Yoast-presenter-removal + `wp_head` pair (same pattern as task 765's /trainings/ fix) to print a
+real `<meta name="description">` on the front page only.
+Verified: `php -l` clean; `tests/test-731-og-twitter-tags.php` 12/12 (Test 1 updated for the new
+front-page copy) and new `tests/test-797-front-page-meta-description.php` 7/7 pass. PR opened
+against `master`.
+Left: deploy to the live theme via FTP is the usual manual step for this repo (no CI/build agent
+here) — not done as part of opening this PR; live `functions.php` still carries the drift noted
+in task 731/765 above (SMTP block etc.), so deploy must be a surgical patch, not a full overwrite.

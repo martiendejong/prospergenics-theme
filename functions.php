@@ -67,6 +67,19 @@ function prospergenics_content_width() {
 add_action( 'after_setup_theme', 'prospergenics_content_width', 0 );
 
 /**
+ * Task 797: the site tagline (Settings > General) is literally the bare word
+ * "Prospergenics", so falling back to get_bloginfo('description') on the front page
+ * produced an og:description/twitter:description that was just the brand name, and
+ * WordPress core/Yoast never printed a <meta name="description"> for the front page
+ * at all (Yoast only renders one when its own per-page SEO field is filled in, which
+ * it isn't here). This is the single real description for the homepage, reused by
+ * both the OG/Twitter block below and the meta-description output further down.
+ */
+function prospergenics_front_page_meta_description_text() {
+	return __( 'Prospergenics is a grassroots AI and software development coaching community in the Netherlands and Kenya, building real-world skills through hands-on projects.', 'prospergenics' );
+}
+
+/**
  * Add Open Graph and Twitter Card Meta Tags
  *
  * This was added directly on the live site (FTP) on 2026-02-17 without ever being committed to
@@ -89,7 +102,7 @@ function prospergenics_add_social_meta_tags() {
 
 	if ( is_front_page() ) {
 		$og_title       = $site_name;
-		$og_description = $site_description;
+		$og_description = prospergenics_front_page_meta_description_text();
 		$og_type        = 'website';
 		$og_url         = home_url( '/' );
 	} elseif ( is_home() ) {
@@ -180,6 +193,38 @@ function prospergenics_remove_yoast_social_presenters( $presenters ) {
 	}
 	return $presenters;
 }
+
+/**
+ * Task 797: the front page has no <meta name="description"> at all — Yoast's own
+ * per-page SEO description field is empty, and Yoast only prints the tag when it has
+ * real content, so nothing ever renders one. Remove Yoast's Meta_Description_Presenter
+ * for the front page specifically (same wpseo_frontend_presenters approach already
+ * confirmed working against this site's Yoast 25.4 for the OG/Twitter presenters above
+ * and for /trainings/ in task 765) and print our own real description instead.
+ */
+add_filter( 'wpseo_frontend_presenters', 'prospergenics_front_page_remove_yoast_description_presenter' );
+function prospergenics_front_page_remove_yoast_description_presenter( $presenters ) {
+	if ( ! is_front_page() ) {
+		return $presenters;
+	}
+
+	foreach ( $presenters as $index => $presenter ) {
+		if ( false !== strpos( get_class( $presenter ), 'Meta_Description_Presenter' ) ) {
+			unset( $presenters[ $index ] );
+		}
+	}
+
+	return $presenters;
+}
+
+function prospergenics_front_page_output_meta_description() {
+	if ( ! is_front_page() ) {
+		return;
+	}
+
+	echo '<meta name="description" content="' . esc_attr( prospergenics_front_page_meta_description_text() ) . '" />' . "\n";
+}
+add_action( 'wp_head', 'prospergenics_front_page_output_meta_description', 1 );
 
 /**
  * Enqueue Scripts and Styles

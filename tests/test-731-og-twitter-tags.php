@@ -54,6 +54,13 @@ function is_archive() { return $GLOBALS['_is_archive']; }
 
 // ─────────────────── extract the real function from functions.php ────────
 $source = file_get_contents( dirname( __DIR__ ) . '/functions.php' );
+if ( ! preg_match( '/(function prospergenics_front_page_meta_description_text\(\)\s*\{.*?\r?\n\})\r?\n/s', $source, $md ) ) {
+	fwrite( STDERR, "FAIL: could not locate prospergenics_front_page_meta_description_text() in functions.php\n" );
+	exit( 1 );
+}
+function __( $text, $domain = 'default' ) { return $text; }
+eval( $md[1] );
+
 if ( ! preg_match( '/(function prospergenics_add_social_meta_tags\(\)\s*\{.*?\r?\n\})\r?\nadd_action\( \'wp_head\'/s', $source, $m ) ) {
 	fwrite( STDERR, "FAIL: could not locate prospergenics_add_social_meta_tags() in functions.php\n" );
 	exit( 1 );
@@ -81,13 +88,13 @@ function render( $callback ) {
 	return ob_get_clean();
 }
 
-echo "[Test 1] Front page that is ALSO is_singular() with empty post content: og:description is the tagline, og:type is website, one consistent twitter:card\n";
+echo "[Test 1] Front page that is ALSO is_singular() with empty post content: og:description is the real front-page description (task 797), og:type is website, one consistent twitter:card\n";
 $GLOBALS['_is_front_page'] = true;
 $GLOBALS['_is_singular']   = true; // static front page: both true at once, same as live
 global $post;
 $post = new StubPost();
 $output = render( 'prospergenics_add_social_meta_tags' );
-ok( strpos( $output, 'og:description" content="Prospergenics"' ) !== false, 'og:description falls back to the site tagline instead of rendering empty' );
+ok( strpos( $output, 'og:description" content="' . esc_attr( prospergenics_front_page_meta_description_text() ) . '"' ) !== false, 'og:description is the real front-page description, not the bare "Prospergenics" tagline' );
 ok( strpos( $output, 'og:type" content="website"' ) !== false, 'og:type is "website" on the front page' );
 ok( substr_count( $output, 'twitter:card' ) === 1, 'exactly one twitter:card tag is emitted' );
 ok( strpos( $output, 'twitter:card" content="summary_large_image"' ) !== false, 'twitter:card is summary_large_image' );
