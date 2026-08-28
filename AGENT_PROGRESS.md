@@ -88,3 +88,19 @@ inventory for other silently-dropped legacy URLs - none found beyond /kenya/.
 Left: the pre-existing live/git drift (task 797's meta description fix, the SMTP block) is
 unrelated to this task and stays out of scope, flagged again for a future reconciliation
 task.
+
+## 2026-08-29 - task 930
+Done: added a Dutch translation of "Claude Code & Cursor Coaching for Dutch Teams" as a new
+WP page (id 794, slug claude-code-cursor-coaching-nl, created via the REST API), plus
+`prospergenics_output_hreflang_tags()` (reciprocal hreflang between the two pages, x-default
+always English), a `language_attributes` override so the Dutch page reports lang="nl-NL",
+and a real meta description for it (Yoast presenter removed, same pattern as tasks 797/765).
+PR #6. Deployed functions.php to the live theme via FTP as a surgical patch on top of
+existing drift (797's front-page fix, 765's /trainings/ block, 855's redirect, the legacy
+SMTP block - all untouched, backed up first as functions.php.bak-task930).
+Verified: `php -l` clean; `tests/test-930-hreflang-dutch-landing-page.php` 22/22, existing
+suites (731, 855) still pass unchanged. Live curl of both pages shows the correct reciprocal
+hreflang set and lang override; /about/ and the homepage are unaffected.
+Left: nothing for this task. The pre-existing live/git drift (SMTP block, task 797's PR #4
+still unmerged in git) is unrelated and stays out of scope, flagged again for a future
+reconciliation task.

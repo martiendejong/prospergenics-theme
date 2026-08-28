@@ -959,6 +959,114 @@ function prospergenics_legacy_url_redirects() {
 add_action( 'template_redirect', 'prospergenics_legacy_url_redirects' );
 
 /**
+ * Task 930: the site is English-only (lang="en-US" everywhere, zero hreflang tags) despite
+ * Prospergenics running AI/dev coaching in both the Netherlands and Kenya -- Dutch-phrased
+ * training queries had no Dutch-language page to match against. This adds ONE additive Dutch
+ * landing page (a translation of "Claude Code & Cursor Coaching for Dutch Teams", the training
+ * offering most directly aimed at a Dutch audience) plus reciprocal hreflang between it and its
+ * English original. English stays the default (x-default) given the Kenya audience -- this is
+ * not a full-site translation.
+ *
+ * Add further slug pairs here if more pages get a Dutch counterpart later.
+ */
+function prospergenics_hreflang_pairs() {
+	return array(
+		'claude-code-cursor-coaching'    => array( 'lang' => 'en', 'partner_slug' => 'claude-code-cursor-coaching-nl' ),
+		'claude-code-cursor-coaching-nl' => array( 'lang' => 'nl', 'partner_slug' => 'claude-code-cursor-coaching' ),
+	);
+}
+
+function prospergenics_output_hreflang_tags() {
+	if ( ! is_page() ) {
+		return;
+	}
+
+	$current = get_queried_object();
+	if ( ! ( $current instanceof WP_Post ) ) {
+		return;
+	}
+
+	$pairs = prospergenics_hreflang_pairs();
+	$slug  = $current->post_name;
+
+	if ( ! isset( $pairs[ $slug ] ) ) {
+		return;
+	}
+
+	$partner_slug = $pairs[ $slug ]['partner_slug'];
+	$partner_page = get_page_by_path( $partner_slug );
+
+	// The partner translation may not exist yet (e.g. this pair was just added and only one
+	// side has been created in WP so far) -- fail quiet rather than link to a 404.
+	if ( ! $partner_page ) {
+		return;
+	}
+
+	$own_lang     = $pairs[ $slug ]['lang'];
+	$partner_lang = $pairs[ $partner_slug ]['lang'];
+	$own_url      = get_permalink( $current );
+	$partner_url  = get_permalink( $partner_page );
+	$english_url  = ( 'en' === $own_lang ) ? $own_url : $partner_url;
+
+	echo "\n<!-- hreflang alternates (task 930) -->\n";
+	echo '<link rel="alternate" hreflang="' . esc_attr( $own_lang ) . '" href="' . esc_url( $own_url ) . '" />' . "\n";
+	echo '<link rel="alternate" hreflang="' . esc_attr( $partner_lang ) . '" href="' . esc_url( $partner_url ) . '" />' . "\n";
+	echo '<link rel="alternate" hreflang="x-default" href="' . esc_url( $english_url ) . '" />' . "\n";
+}
+add_action( 'wp_head', 'prospergenics_output_hreflang_tags', 1 );
+
+/**
+ * The Dutch landing page's own <html lang="..."> must read "nl-NL", not the site-wide "en-US"
+ * that get_language_attributes() otherwise emits for every page (Settings > General site
+ * language is English). Scoped to this one page only -- no other page's lang attribute changes.
+ */
+function prospergenics_dutch_page_language_attributes( $output, $doctype ) {
+	if ( ! is_page( 'claude-code-cursor-coaching-nl' ) ) {
+		return $output;
+	}
+
+	if ( preg_match( '/lang="[^"]*"/', $output ) ) {
+		return preg_replace( '/lang="[^"]*"/', 'lang="nl-NL"', $output, 1 );
+	}
+
+	return trim( $output . ' lang="nl-NL"' );
+}
+add_filter( 'language_attributes', 'prospergenics_dutch_page_language_attributes', 10, 2 );
+
+/**
+ * The Dutch landing page needs its own real meta description (same gap as the front page/
+ * /trainings/ before tasks 797/765 -- Yoast only prints one when its own per-page SEO field is
+ * filled in, which it isn't for a page created via the REST API without setting that field).
+ */
+function prospergenics_nl_landing_meta_description_text() {
+	return __( 'Praktijkgerichte coaching in Claude Code en Cursor voor Nederlandse ontwikkelteams, gegeven door Prospergenics-oprichter Martien de Jong. Op locatie of op afstand, op jullie eigen codebase.', 'prospergenics' );
+}
+
+function prospergenics_nl_landing_remove_yoast_description_presenter( $presenters ) {
+	if ( ! is_page( 'claude-code-cursor-coaching-nl' ) ) {
+		return $presenters;
+	}
+
+	foreach ( $presenters as $index => $presenter ) {
+		if ( false !== strpos( get_class( $presenter ), 'Meta_Description_Presenter' ) ) {
+			unset( $presenters[ $index ] );
+		}
+	}
+
+	return $presenters;
+}
+add_filter( 'wpseo_frontend_presenters', 'prospergenics_nl_landing_remove_yoast_description_presenter' );
+
+function prospergenics_nl_landing_output_meta_description() {
+	if ( ! is_page( 'claude-code-cursor-coaching-nl' ) ) {
+		return;
+	}
+
+	echo '<meta name="description" content="' . esc_attr( prospergenics_nl_landing_meta_description_text() ) . '" />' . "\n";
+}
+add_action( 'wp_head', 'prospergenics_nl_landing_output_meta_description', 1 );
+
+/**
  * Include Contact Form Handler
  */
 require get_template_directory() . '/inc/contact-form-handler.php';
