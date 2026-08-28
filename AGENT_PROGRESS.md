@@ -88,3 +88,11 @@ inventory for other silently-dropped legacy URLs - none found beyond /kenya/.
 Left: the pre-existing live/git drift (task 797's meta description fix, the SMTP block) is
 unrelated to this task and stays out of scope, flagged again for a future reconciliation
 task.
+
+## 2026-08-29 - task 930 (WIP)
+Started: site is English-only (lang="en-US", zero hreflang) despite serving NL+Kenya
+audiences. Plan: add ONE new Dutch WP page (translation of "Claude Code & Cursor Coaching
+for Dutch Teams", slug claude-code-cursor-coaching-nl) via the WP REST API, plus reciprocal
+hreflang tags, a lang="nl-NL" override, and a real meta description for that page, all in
+functions.php (additive, no other page touched).
+Left: implementation + live deploy in progress this session.
