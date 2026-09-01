@@ -1067,6 +1067,21 @@ function prospergenics_nl_landing_output_meta_description() {
 add_action( 'wp_head', 'prospergenics_nl_landing_output_meta_description', 1 );
 
 /**
+ * Task 1122: the SEO God plugin's homepage Speakable schema (SpeakableSpecification)
+ * always includes the FAQ answers on its own; register the "What is Prospergenics?"
+ * intro summary (front-page.php, #about-intro) as the second speakable section so AI
+ * answer engines have a concise, quotable overview of the site alongside the FAQ.
+ */
+function prospergenics_speakable_selectors( $selectors ) {
+	if ( is_front_page() ) {
+		$selectors[] = '#about-intro .intro-content';
+	}
+
+	return $selectors;
+}
+add_filter( 'seo_god_schema_speakable_selectors', 'prospergenics_speakable_selectors' );
+
+/**
  * Include Contact Form Handler
  */
 require get_template_directory() . '/inc/contact-form-handler.php';
