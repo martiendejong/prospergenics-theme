@@ -1,5 +1,17 @@
 # Agent Progress
 
+## 2026-09-01 — task 1122 (fix/1122-speakable-schema)
+Done: registered `prospergenics_speakable_selectors()` on the
+`seo_god_schema_speakable_selectors` filter (companion PR in martiendejong/seo-god,
+#811) to add `#about-intro .intro-content` (the "What is Prospergenics?" summary) as a
+speakable selector on the front page. The plugin's own FAQ answer selector is preserved
+untouched — the filter only appends.
+Verified: `php -l` clean; standalone PHP harness (extracts the real function from
+functions.php) — 5/5 assertions pass; full existing test suite (4 files) still green.
+Left: deploying the merged functions.php to the live site is the usual manual FTP step
+for this repo — needs the companion seo-god plugin PR #811 to also be deployed for
+`speakable` to actually appear live (this filter is a no-op until that hook fires).
+
 ## 2026-08-26 — task 733
 Done: front page `<title>` rewritten from generic "Home - Prospergenics" to
 "Prospergenics | AI & Software Development Coaching Community" via a
