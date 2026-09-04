@@ -14,15 +14,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Build the security.txt body per RFC 9116 (Contact + Expires are required fields).
  *
- * Contact reuses the same admin_email the contact form already sends to (see
- * inc/contact-form-handler.php), so it stays accurate without a second hardcoded
- * address that can drift out of sync.
+ * Contact reuses the same address the contact form already sends to (see
+ * inc/contact-form-handler.php: get_theme_mod('prospergenics_email', get_option('admin_email'))),
+ * so it stays accurate without a second hardcoded address that can drift out of sync -- including
+ * if a site admin ever sets a dedicated contact email via the Customizer.
  *
  * @return string
  */
 function prospergenics_security_txt_content() {
     $expires = gmdate( 'Y-m-d\TH:i:s\Z', strtotime( '+1 year' ) );
-    $contact = get_option( 'admin_email' );
+    $contact = get_theme_mod( 'prospergenics_email', get_option( 'admin_email' ) );
 
     $lines = array(
         "Contact: mailto:{$contact}",

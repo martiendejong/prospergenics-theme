@@ -16,8 +16,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 	define( 'ABSPATH', __DIR__ );
 }
 $GLOBALS['_admin_email'] = 'admin@prospergenics.com';
+$GLOBALS['_theme_mods']  = array();
 function get_option( $key, $default = false ) {
 	return $key === 'admin_email' ? $GLOBALS['_admin_email'] : $default;
+}
+function get_theme_mod( $key, $default = false ) {
+	return array_key_exists( $key, $GLOBALS['_theme_mods'] ) ? $GLOBALS['_theme_mods'][ $key ] : $default;
 }
 function add_action( ...$args ) {}
 
@@ -62,6 +66,12 @@ ok( strpos( $body, 'Preferred-Languages: en' ) !== false, 'Preferred-Languages i
 ok( strpos( $body, 'Canonical: https://prospergenics.com/.well-known/security.txt' ) !== false, 'Canonical points at the well-known path' );
 preg_match( '/^Expires: (\S+)$/m', $body, $em );
 ok( strtotime( $em[1] ) > time() + ( 300 * 86400 ), 'Expires is comfortably in the future (>300 days out)' );
+
+echo "\n[Test 1b] Contact tracks a Customizer-configured address, same precedence as the contact form\n";
+$GLOBALS['_theme_mods']['prospergenics_email'] = 'hello@prospergenics.com';
+$body_with_override = prospergenics_security_txt_content();
+ok( strpos( $body_with_override, 'Contact: mailto:hello@prospergenics.com' ) !== false, 'Contact prefers the prospergenics_email theme_mod when set, matching inc/contact-form-handler.php' );
+unset( $GLOBALS['_theme_mods']['prospergenics_email'] );
 
 echo "\n[Test 2] request-matching only intercepts the two security.txt paths (exit() observed via a child process)\n";
 function serves_security_txt( $uri ) {
