@@ -116,3 +116,17 @@ hreflang set and lang override; /about/ and the homepage are unaffected.
 Left: nothing for this task. The pre-existing live/git drift (SMTP block, task 797's PR #4
 still unmerged in git) is unrelated and stays out of scope, flagged again for a future
 reconciliation task.
+
+## 2026-09-04 — task 1438
+Done: added RFC 9116 `/.well-known/security.txt` (+ `/security.txt` fallback) via
+`inc/security-txt.php`, hooked on `init`. Contact reuses `get_option('admin_email')`
+(same address the contact form already sends to) instead of a second hardcoded
+address that could drift. PR opens against `master`.
+Verified: `php -l` clean; new standalone test `tests/test-1438-security-txt.php`
+(11/11 assertions) plus the pre-existing `tests/test-731-og-twitter-tags.php`
+(regression check) both pass.
+Left: live FTP deploy not done this session (this repo has known live/git drift —
+see the entries above — so a full-file FTP push risks clobbering unmerged live
+patches; the safer path is the usual human-reviewed deploy step once this PR
+merges). Companion PRs for martiendejong-wp-theme and artrevisionist-wp-theme
+cover the other 2 sites in this same task.
