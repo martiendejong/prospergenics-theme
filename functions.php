@@ -1085,3 +1085,8 @@ add_filter( 'seo_god_schema_speakable_selectors', 'prospergenics_speakable_selec
  * Include Contact Form Handler
  */
 require get_template_directory() . '/inc/contact-form-handler.php';
+
+/**
+ * Include RFC 9116 security.txt handler (2026-09-04, JengoWork task 1438)
+ */
+require get_template_directory() . '/inc/security-txt.php';
