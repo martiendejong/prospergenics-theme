@@ -130,3 +130,26 @@ see the entries above — so a full-file FTP push risks clobbering unmerged live
 patches; the safer path is the usual human-reviewed deploy step once this PR
 merges). Companion PRs for martiendejong-wp-theme and artrevisionist-wp-theme
 cover the other 2 sites in this same task.
+
+## 2026-09-06 — task 1669
+Done: added `inc/security-headers.php` (`send_headers` hook) sending
+Strict-Transport-Security (this is the one site of the 4 with NO HSTS at
+all), X-Content-Type-Options, X-Frame-Options and a baseline
+Content-Security-Policy. Companion PRs cover seo-god, martiendejong-wp-theme
+and artrevisionist-wp-theme.
+Verified: `php -l` clean; new `tests/test-1669-security-headers.php`
+(10/10 assertions: all 4 headers on a plain HTTPS request, HSTS correctly
+skipped over plain HTTP, no headers at all under `is_admin()` or
+`headers_sent()`) plus all 5 pre-existing test files in `tests/` still pass.
+Deployed live via FTP surgical patch (fetched the live `functions.php`
+first — confirmed the same known drift as task 1438's entry above, still
+including this repo's pre-731 front-page description block and a live-only
+hardcoded SMTP credential block; both left untouched, patched only this
+task's own addition onto the actual live file, backed up first as
+`functions.php.bak-task1669`). Live re-check: `curl -D -` on
+`https://prospergenics.com/` now shows all 4 headers with the exact values
+above; `/`, `/trainings/` spot-checked 200 OK with no PHP fatal/parse errors.
+Left: nothing outstanding for this task's scope. The pre-existing live/git
+drift (front-page description, SMTP block, undeployed security-txt) is
+unchanged by this task — see task 1438's entry above.
+ClickUp: https://tasks.prospergenics.com/board/TH4kxW4hX0/task/n9f4fpAwcP
