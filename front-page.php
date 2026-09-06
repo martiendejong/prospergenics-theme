@@ -14,11 +14,11 @@ get_header();
     <!-- Hero Section -->
     <section class="parallax-section hero-section" style="background-image: url('<?php echo esc_url( get_theme_mod( 'prospergenics_hero_bg', get_template_directory_uri() . '/images/hero-bg.jpg' ) ); ?>');" aria-label="<?php esc_attr_e( 'Hero Section', 'prospergenics' ); ?>">
         <div class="parallax-content">
-            <h1><?php echo esc_html( get_theme_mod( 'prospergenics_hero_headline', __( 'Building Prosperity Together', 'prospergenics' ) ) ); ?></h1>
-            <p class="tagline"><?php echo esc_html( get_theme_mod( 'prospergenics_hero_tagline', __( 'Empowering Futures, Cultivating Growth', 'prospergenics' ) ) ); ?></p>
-            <p><?php echo esc_html( get_theme_mod( 'prospergenics_hero_description', __( 'Join our diverse community where learning, teamwork, and growth lead to real success.', 'prospergenics' ) ) ); ?></p>
-            <a href="#about" class="cta-button"><?php esc_html_e( 'Learn More', 'prospergenics' ); ?></a>
-            <a href="#contact" class="cta-button secondary"><?php esc_html_e( 'Get Involved', 'prospergenics' ); ?></a>
+            <h1><?php echo esc_html( get_theme_mod( 'prospergenics_hero_headline', __( 'Your Done-For-You Agentic AI Team', 'prospergenics' ) ) ); ?></h1>
+            <p class="tagline"><?php echo esc_html( get_theme_mod( 'prospergenics_hero_tagline', __( 'Custom AI Agents, Built and Run by a Netherlands + Kenya Team', 'prospergenics' ) ) ); ?></p>
+            <p><?php echo esc_html( get_theme_mod( 'prospergenics_hero_description', __( 'We design, build, and operate AI agents for your business - from first workflow to production - so you get the results without hiring an in-house AI team.', 'prospergenics' ) ) ); ?></p>
+            <a href="#about" class="cta-button"><?php esc_html_e( 'See What We Build', 'prospergenics' ); ?></a>
+            <a href="#contact" class="cta-button secondary"><?php esc_html_e( 'Talk to Our Team', 'prospergenics' ); ?></a>
         </div>
     </section>
 
@@ -29,9 +29,9 @@ get_header();
         </div>
 
         <div class="intro-content" style="max-width: 800px; margin: 0 auto; text-align: center; font-size: 1.1rem; line-height: 1.8;">
-            <p><?php esc_html_e( 'Prospergenics is a community where members and coaches support each other to realize their potential and create opportunities together. Participants receive training and guidance in entrepreneurship, enabling them to learn while earning income at the same time.', 'prospergenics' ); ?></p>
+            <p><?php esc_html_e( 'Prospergenics is a done-for-you agentic AI team. We design, build, and operate custom AI agents for businesses - our Netherlands-based strategists and Kenya-based engineering team work together to ship production AI systems, not courses or theory.', 'prospergenics' ); ?></p>
 
-            <p><?php esc_html_e( 'We believe in practical action over theory. Our members develop real skills, build actual businesses, and achieve tangible results through mutual support and experienced mentorship.', 'prospergenics' ); ?></p>
+            <p><?php esc_html_e( 'We handle the full lifecycle: identifying the automation opportunities worth building, shipping the agents that deliver them, and operating those agents afterwards - so you get the results without hiring or training an internal AI team.', 'prospergenics' ); ?></p>
         </div>
     </section>
 
@@ -39,7 +39,7 @@ get_header();
     <section id="about" class="parallax-section about-parallax" style="background-image: url('<?php echo esc_url( get_template_directory_uri() . '/images/about-bg.jpg' ); ?>');" aria-label="<?php esc_attr_e( 'What We Do', 'prospergenics' ); ?>">
         <div class="parallax-content">
             <h2><?php esc_html_e( 'What We Do', 'prospergenics' ); ?></h2>
-            <p class="tagline"><?php esc_html_e( 'Practical Programs for Real Impact', 'prospergenics' ); ?></p>
+            <p class="tagline"><?php esc_html_e( 'Done-For-You AI Agents, Delivered by Our NL + Kenya Team', 'prospergenics' ); ?></p>
         </div>
     </section>
 
@@ -103,7 +103,7 @@ get_header();
     <section id="team" class="content-section">
         <div class="section-header">
             <h2><?php esc_html_e( 'Our Team', 'prospergenics' ); ?></h2>
-            <p><?php esc_html_e( 'The core team building Prospergenics together', 'prospergenics' ); ?></p>
+            <p><?php esc_html_e( 'The strategists and engineers building your AI agents', 'prospergenics' ); ?></p>
         </div>
 
         <div class="team-grid">
@@ -232,7 +232,7 @@ get_header();
     <section id="programs" class="parallax-section programs-parallax" style="background-image: url('<?php echo esc_url( get_template_directory_uri() . '/images/programs-bg.jpg' ); ?>');" aria-label="<?php esc_attr_e( 'Our Programs', 'prospergenics' ); ?>">
         <div class="parallax-content">
             <h2><?php esc_html_e( 'Our Programs', 'prospergenics' ); ?></h2>
-            <p class="tagline"><?php esc_html_e( 'Practical Learning for Real-World Impact', 'prospergenics' ); ?></p>
+            <p class="tagline"><?php esc_html_e( 'Practical AI Agents for Real Business Impact', 'prospergenics' ); ?></p>
         </div>
     </section>
 
@@ -244,8 +244,8 @@ get_header();
                     <!-- Placeholder for program image -->
                 </div>
                 <div class="program-content">
-                    <h3><?php esc_html_e( 'AI & Technology Training', 'prospergenics' ); ?></h3>
-                    <p><?php esc_html_e( 'Master cutting-edge AI tools and technologies through hands-on projects. Learn from real-world applications and build skills that matter in today\'s job market.', 'prospergenics' ); ?></p>
+                    <h3><?php esc_html_e( 'Agentic AI Implementation', 'prospergenics' ); ?></h3>
+                    <p><?php esc_html_e( 'We design and deploy custom AI agents that automate real workflows in your business - from first pilot to production, fully done-for-you.', 'prospergenics' ); ?></p>
                     <a href="<?php echo esc_url( home_url( '/blog' ) ); ?>" class="learn-more">
                         <?php esc_html_e( 'Learn More', 'prospergenics' ); ?> →
                     </a>
@@ -257,8 +257,8 @@ get_header();
                     <!-- Placeholder for program image -->
                 </div>
                 <div class="program-content">
-                    <h3><?php esc_html_e( 'Community Development', 'prospergenics' ); ?></h3>
-                    <p><?php esc_html_e( 'Build strong, sustainable communities through collaborative projects. Learn leadership, project management, and community organizing skills.', 'prospergenics' ); ?></p>
+                    <h3><?php esc_html_e( 'Nearshore AI Engineering (NL + Kenya)', 'prospergenics' ); ?></h3>
+                    <p><?php esc_html_e( 'Our Netherlands-led strategy team and Kenya-based engineering team combine to deliver AI agents fast, at nearshore-friendly rates, without compromising quality.', 'prospergenics' ); ?></p>
                     <a href="<?php echo esc_url( home_url( '/blog' ) ); ?>" class="learn-more">
                         <?php esc_html_e( 'Learn More', 'prospergenics' ); ?> →
                     </a>
@@ -270,8 +270,8 @@ get_header();
                     <!-- Placeholder for program image -->
                 </div>
                 <div class="program-content">
-                    <h3><?php esc_html_e( 'Entrepreneurship Support', 'prospergenics' ); ?></h3>
-                    <p><?php esc_html_e( 'Turn your ideas into sustainable businesses. Get mentorship, resources, and a supportive network to help you succeed.', 'prospergenics' ); ?></p>
+                    <h3><?php esc_html_e( 'Ongoing AI Operations', 'prospergenics' ); ?></h3>
+                    <p><?php esc_html_e( 'We do not just ship and leave. We monitor, maintain, and improve your AI agents so they keep delivering value as your business evolves.', 'prospergenics' ); ?></p>
                     <a href="#contact" class="learn-more">
                         <?php esc_html_e( 'Learn More', 'prospergenics' ); ?> →
                     </a>
@@ -308,8 +308,8 @@ get_header();
     <!-- Contact Section - Parallax -->
     <section id="contact" class="parallax-section contact-parallax" style="background-image: url('<?php echo esc_url( get_template_directory_uri() . '/images/contact-bg.jpg' ); ?>');" aria-label="<?php esc_attr_e( 'Contact Us', 'prospergenics' ); ?>">
         <div class="parallax-content">
-            <h2><?php esc_html_e( 'Get Involved', 'prospergenics' ); ?></h2>
-            <p class="tagline"><?php esc_html_e( 'Join our community and start your journey today', 'prospergenics' ); ?></p>
+            <h2><?php esc_html_e( 'Let\'s Build Your AI Team', 'prospergenics' ); ?></h2>
+            <p class="tagline"><?php esc_html_e( 'Talk to us about what agentic AI could automate in your business', 'prospergenics' ); ?></p>
         </div>
     </section>
 

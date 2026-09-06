@@ -923,6 +923,43 @@ function prospergenics_trainings_course_schema() {
 add_action( 'wp_head', 'prospergenics_trainings_course_schema', 25 );
 
 /**
+ * Front-page Organization schema (JengoWork task 2929).
+ *
+ * The theme had no explicit Organization description in structured data before this - Yoast's own
+ * Organization graph is admin-configured (not theme code, not in this repo) and carries no
+ * description either. A trycited AI-visibility check (2026-09-06, 0/10 citations) found AI tools
+ * read the site as an "AI/software development coaching community" and compared it against
+ * freeCodeCamp/Coursera/edX - a category this site cannot realistically win. This declares the
+ * actual positioning explicitly (a done-for-you agentic AI implementation team for businesses, not
+ * a coding-education community) so AI crawlers and citation tools get an unambiguous signal.
+ */
+function prospergenics_organization_schema() {
+    if ( ! is_front_page() ) {
+        return;
+    }
+
+    $schema = array(
+        '@context'    => 'https://schema.org',
+        '@type'       => 'Organization',
+        '@id'         => home_url( '/' ) . '#organization',
+        'name'        => get_bloginfo( 'name' ),
+        'url'         => home_url( '/' ),
+        'description' => __( 'Prospergenics is a done-for-you agentic AI implementation team. We design, build, and operate custom AI agents for businesses, delivered by a Netherlands-based strategy team and a Kenya-based engineering team.', 'prospergenics' ),
+        'slogan'      => __( 'Your Done-For-You Agentic AI Team', 'prospergenics' ),
+        'knowsAbout'  => array(
+            'Agentic AI',
+            'AI agent implementation',
+            'Business process automation',
+            'AI operations and maintenance',
+        ),
+        'areaServed'  => array( 'Netherlands', 'Kenya' ),
+    );
+
+    echo "\n" . '<script type="application/ld+json" class="prospergenics-organization-schema">' . wp_json_encode( $schema ) . '</script>' . "\n";
+}
+add_action( 'wp_head', 'prospergenics_organization_schema', 24 );
+
+/**
  * Legacy URL Redirects
  *
  * The site was restructured into a single-page homepage (task 733/731/765) and some
