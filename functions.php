@@ -1090,3 +1090,9 @@ require get_template_directory() . '/inc/contact-form-handler.php';
  * Include RFC 9116 security.txt handler (2026-09-04, JengoWork task 1438)
  */
 require get_template_directory() . '/inc/security-txt.php';
+
+/**
+ * Include baseline security response headers: HSTS/CSP/X-Frame-Options/
+ * X-Content-Type-Options (2026-09-06, JengoWork task 1669)
+ */
+require get_template_directory() . '/inc/security-headers.php';
