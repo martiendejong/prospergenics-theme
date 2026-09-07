@@ -84,6 +84,10 @@
                 <?php bloginfo( 'name' ); ?>
             </a>.
             <?php esc_html_e( 'All rights reserved.', 'prospergenics' ); ?>
+            |
+            <a href="<?php echo esc_url( home_url( '/privacy-policy/' ) ); ?>"><?php esc_html_e( 'Privacy Policy', 'prospergenics' ); ?></a>
+            |
+            <a href="<?php echo esc_url( home_url( '/cookie-policy/' ) ); ?>"><?php esc_html_e( 'Cookie Policy', 'prospergenics' ); ?></a>
         </p>
     </div>
 </footer>
@@ -99,6 +103,7 @@
 function prospergenics_footer_fallback_menu() {
     echo '<ul id="footer-menu" class="menu">';
     echo '<li class="menu-item"><a href="' . esc_url( home_url( '/privacy-policy' ) ) . '">' . esc_html__( 'Privacy Policy', 'prospergenics' ) . '</a></li>';
+    echo '<li class="menu-item"><a href="' . esc_url( home_url( '/cookie-policy' ) ) . '">' . esc_html__( 'Cookie Policy', 'prospergenics' ) . '</a></li>';
     echo '<li class="menu-item"><a href="' . esc_url( home_url( '/terms' ) ) . '">' . esc_html__( 'Terms of Service', 'prospergenics' ) . '</a></li>';
     echo '</ul>';
 }
