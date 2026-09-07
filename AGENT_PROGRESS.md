@@ -219,3 +219,29 @@ broader live/git drift on this repo (front-page description block, SMTP
 block, live footer.php's structural divergence from git) is pre-existing,
 unrelated to this task, and stays out of scope — flagged again for a future
 dedicated reconciliation task.
+
+## 2026-09-07 — task 2929 (review session, merge + deploy)
+Done: Martien confirmed the new direction ("yes make it go live"). Merged
+`master` into the PR branch (only conflict: AGENT_PROGRESS.md, pure append —
+resolved by keeping both entries; `functions.php` auto-merged cleanly against
+sibling task 2942's unrelated addition), re-ran all 8 test files + `php -l`
+on the merged head, then merged PR #10 (squash) via the martiendejong GH
+account. FTP-deployed to prospergenics.com: `front-page.php` had zero live
+drift (confirmed byte-identical to the pre-PR repo copy modulo CRLF) so was
+replaced whole; `functions.php` has known pre-existing drift (task 797's
+front-page description block, a legacy SMTP block, task 2942's trainings-copy
+change not yet deployed) so only the new `prospergenics_organization_schema()`
+function + its `add_action` were surgically inserted, preserving the drift —
+backed up first as `functions.php.bak-task2929` / `front-page.php.bak-task2929`.
+Verified: `php -l` clean on both live files after patch; live curl of
+`https://prospergenics.com/` shows the new H1 ("Your Done-For-You Agentic AI
+Team"), the new intro/program-card/contact copy, and exactly one
+`prospergenics-organization-schema` JSON-LD block with the new description/
+slogan/knowsAbout/areaServed; `/`, `/about/`, `/trainings/`, `/blog/` all
+still 200 with no PHP fatal/warning output.
+Left: nothing for this task's own scope. Still open (noted in the PR/prior
+entry): WP-admin-configured Yoast Organization description + site tagline,
+and the "Coaches"/"Community" section headings + bios — DB content, not in
+this repo, need a separate coordinated update to match the new positioning.
+A re-check of the trycited category-detection scan (this task's own
+Acceptatie) is outside this session's tooling and should follow separately.
