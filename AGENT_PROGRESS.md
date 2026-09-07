@@ -245,3 +245,24 @@ and the "Coaches"/"Community" section headings + bios — DB content, not in
 this repo, need a separate coordinated update to match the new positioning.
 A re-check of the trycited category-detection scan (this task's own
 Acceptatie) is outside this session's tooling and should follow separately.
+
+## 2026-09-07 — task 2366
+Done: confirmed via the WP REST API that homepage (id 423), /about/ (352),
+and /trainings/ (11) all had a stale `modified_gmt` (Jul/Oct 2025) that
+exactly matched the live WebPage JSON-LD `dateModified` — not a Yoast bug,
+just `post_modified` never advancing because the SEO fixes that shipped to
+these pages (Course schema, meta description, header/WAF rollout) were all
+code-level changes, never a wp-admin edit. Added
+`scripts/bump-modified-date.py` (re-saves a page's own `content.raw` via
+the REST API, which WordPress accepts as a real edit) and
+`docs/SEO-OPS.md` documenting the step, linked from README.md, for future
+code-level SEO fixes to use. Ran the script live against all 3 pages.
+Verified: `GET /wp-json/wp/v2/pages/{id}` now shows a fresh `modified_gmt`
+for all 3 (2026-09-07T14:29:2x-31), each page's raw content byte-identical
+before/after, and a fresh curl of `/`, `/about/`, `/trainings/` shows the
+WebPage JSON-LD `dateModified` matching the new `modified_gmt` exactly on
+all 3.
+Gotcha found and documented: the site's Cloudflare WAF (tasks 1668/1669)
+403s any REST call using the default `python-requests` User-Agent —
+`scripts/bump-modified-date.py` sends a browser-style UA to work around it.
+Left: nothing for this task's own scope.

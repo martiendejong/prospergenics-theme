@@ -125,6 +125,14 @@ The theme uses system fonts for optimal performance:
 - Focus indicators on all interactive elements
 - Skip to content link
 
+## SEO Operations
+
+Shipping a code-level SEO fix (schema, meta description, headers) to a page
+without a wp-admin content edit? See `docs/SEO-OPS.md` — WordPress's
+`post_modified` (and the WebPage `dateModified` schema derived from it)
+needs a separate bump or it silently goes stale even though the page's real
+SEO signal improved.
+
 ## Credits
 
 - **Design**: Prospergenics Team
