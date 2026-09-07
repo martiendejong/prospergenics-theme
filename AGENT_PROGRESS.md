@@ -153,3 +153,23 @@ Left: nothing outstanding for this task's scope. The pre-existing live/git
 drift (front-page description, SMTP block, undeployed security-txt) is
 unchanged by this task — see task 1438's entry above.
 ClickUp: https://tasks.prospergenics.com/board/TH4kxW4hX0/task/n9f4fpAwcP
+
+## 2026-09-07 — task 2942 (WIP)
+Started: PageReady scan flagged AVG-deelscore 40/100 (no privacy statement at
+all) and a truncated meta description. Confirmed live: /trainings/'s meta
+description is 210 chars (over Google's ~160 truncation point) because
+`prospergenics_trainings_meta_description_text()` concatenates every
+offering's title unconditionally; footer's "Privacy Policy"/"Terms of
+Service" links are dead `href="#"` anchors (live footer.php has drifted far
+from this repo's tracked footer.php — a different, older markup entirely,
+confirmed via curl); no /privacy-policy/ or /cookie-policy/ page exists
+(both 404). Site homepage is actually WP page id 423 (Colibri page builder),
+set via `page_on_front` — functions.php hooks still apply site-wide
+regardless.
+Plan: cap the trainings description at a safe budget so it can never exceed
+155 chars again regardless of offering count/title length; add real Privacy
+Policy + Cookie Policy pages via the WP REST API (same convention task 734
+used — content pages aren't created through this git repo); link both from
+footer.php (repo) and surgically patch the live, drifted footer.php the same
+way every prior task here has surgically patched live functions.php.
+Left: implementation in progress this session.
