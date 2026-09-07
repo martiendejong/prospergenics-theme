@@ -173,3 +173,31 @@ used — content pages aren't created through this git repo); link both from
 footer.php (repo) and surgically patch the live, drifted footer.php the same
 way every prior task here has surgically patched live functions.php.
 Left: implementation in progress this session.
+
+## 2026-09-07 — task 2942 (complete)
+Done: PR #11. Created `/privacy-policy/` (id 795) and `/cookie-policy/` (id
+796) live via the WP REST API, grounded in the site's actual data practices
+(contact form fields, no analytics/tracking cookies anywhere on the site).
+Rewrote `prospergenics_trainings_meta_description_text()` to build the
+offering list within a fixed character budget instead of concatenating
+unconditionally. Linked both new pages from `footer.php`. Deployed live via
+two minimal FTP patches (not full-file overwrites) on top of the actual live
+files, backed up first as `functions.php.bak-task2942` /
+`footer.php.bak-task2942` — the trainings function itself was undrifted
+(patched cleanly), the live `footer.php` is a structurally different,
+older template than this repo's version, so only its one dead-link line was
+touched.
+Verified: `php -l` clean; new `tests/test-2942-meta-description-length.php`
+6/6, all 6 pre-existing test files still pass. Live: `/trainings/` meta
+description now 134 chars (was 210); `/privacy-policy/` and `/cookie-policy/`
+both 200 with real content; footer on `/` and `/about/` shows working links
+to both; `/`, `/about/`, `/trainings/`, `/blog/` all still 200, no PHP
+errors.
+Left: the WhatsApp number on this site is a +254 (Kenya) number, flagged by
+the same PageReady scan as worth an explicit international-positioning note
+for NL trust — that was NOT part of this task's Acceptatie list, so left
+untouched; a separate task should decide the copy change if wanted. The
+broader live/git drift on this repo (front-page description block, SMTP
+block, live footer.php's structural divergence from git) is pre-existing,
+unrelated to this task, and stays out of scope — flagged again for a future
+dedicated reconciliation task.
