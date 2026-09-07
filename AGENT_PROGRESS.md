@@ -154,6 +154,24 @@ drift (front-page description, SMTP block, undeployed security-txt) is
 unchanged by this task — see task 1438's entry above.
 ClickUp: https://tasks.prospergenics.com/board/TH4kxW4hX0/task/n9f4fpAwcP
 
+## 2026-09-07 — task 2929
+Done: PR #10 (front-page.php + functions.php + new test). Reframed homepage
+hero/intro/"What We Do"/program-card/contact copy from an individual-learner
+coaching-community pitch to a done-for-you agentic AI implementation team
+pitch (NL strategy + Kenya engineering), grounded in the real Kenya team
+already documented in `update-team-profiles.php`. Added a new front-page-only
+`prospergenics_organization_schema()` JSON-LD block stating this positioning
+explicitly (no Organization schema existed in theme code before).
+Verified: `php -l` clean; new `tests/test-2929-organization-schema.php`
+(9/9 assertions) plus all 6 pre-existing test files still pass.
+Left: this task's own description requires Martien to confirm the new
+direction before it goes live — NOT deployed, NOT merged. PR left open with
+the reasoning documented; task routed to `needs input`. Once confirmed:
+merge, FTP-deploy (per this repo's usual pattern, watch for existing live/git
+drift noted above), and separately align the WP-admin-configured fields
+(Yoast Organization description, site tagline) and the "Coaches"/"Community"
+section headings + bios to match — those are DB content, not in this repo.
+
 ## 2026-09-07 — task 2942 (WIP)
 Started: PageReady scan flagged AVG-deelscore 40/100 (no privacy statement at
 all) and a truncated meta description. Confirmed live: /trainings/'s meta
