@@ -856,13 +856,34 @@ function prospergenics_trainings_meta_description_text() {
         return '';
     }
 
-    $names = wp_list_pluck( $offerings, 'post_title' );
+    $names    = wp_list_pluck( $offerings, 'post_title' );
+    $prefix   = __( 'Explore Prospergenics training programs: ', 'prospergenics' );
+    $suffix   = __( ' - hands-on courses that build real digital and technology skills.', 'prospergenics' );
+    $and_more = __( ' and more', 'prospergenics' );
 
-    return sprintf(
-        /* translators: %s: comma-separated list of training/course names */
-        __( 'Explore Prospergenics training programs, including %s - hands-on courses that build real digital and technology skills.', 'prospergenics' ),
-        implode( ', ', $names )
-    );
+    // Google truncates meta descriptions past ~155-160 characters; the prior version
+    // concatenated every offering name unconditionally and overflowed to 210 chars as
+    // soon as a 3rd offering with a longish title existed. Build the name list up to a
+    // fixed budget instead, so this stays under the limit regardless of how many
+    // offerings exist or how long their titles are. The budget reserves room for
+    // "$and_more" up front so appending it afterward can never push past the cap.
+    $hard_cap = 155;
+    $budget   = $hard_cap - strlen( $prefix ) - strlen( $suffix ) - strlen( $and_more );
+    $list     = '';
+    $used     = 0;
+    foreach ( $names as $name ) {
+        $piece = ( 0 === $used ) ? $name : ', ' . $name;
+        if ( strlen( $list . $piece ) > $budget ) {
+            break;
+        }
+        $list .= $piece;
+        $used++;
+    }
+    if ( $used < count( $names ) ) {
+        $list .= $and_more;
+    }
+
+    return $prefix . $list . $suffix;
 }
 
 function prospergenics_trainings_output_meta_description() {
