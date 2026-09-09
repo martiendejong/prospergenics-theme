@@ -981,6 +981,38 @@ function prospergenics_organization_schema() {
 add_action( 'wp_head', 'prospergenics_organization_schema', 24 );
 
 /**
+ * Task 940: real quotes from Prospergenics team members about what it's like to work
+ * here (comment on task 940, supplied by Martien). These are employee/team-culture
+ * testimonials, not reviews of Prospergenics' service by a client or trainee -- the
+ * identical content already went live on martiendejong.nl (task 925/PR #865) under the
+ * same policy: render as plain visible content on the homepage only, with NO Review or
+ * AggregateRating JSON-LD. Tagging an insider "why I like working here" quote as a
+ * schema.org Review would misrepresent it as independent customer social proof, which
+ * risks a Google manual action for spammy structured markup. Real client/trainee review
+ * schema (the literal ask in task 940's title) stays open until genuine customer
+ * reviews exist to back it.
+ */
+function prospergenics_get_team_story_quotes() {
+    return array(
+        array(
+            'author' => 'Sandra',
+            'role'   => __( 'Prospergenics, developer', 'prospergenics' ),
+            'quote'  => __( 'I work at Prospergenics as a developer. The systems we build are really used, so everything I learn is immediately tested in practice. We discuss what needs to happen, divide the work and carry responsibility for the result. You learn far more from shipping a real feature than from any exercise.', 'prospergenics' ),
+        ),
+        array(
+            'author' => 'Lessy',
+            'role'   => __( 'Prospergenics, QA', 'prospergenics' ),
+            'quote'  => __( 'My work at Prospergenics is quality assurance: I test what we build before users see it. That means thinking about what can go wrong, documenting it and working with the developers until it is fixed. Testing real products has taught me to look at software in a completely different way.', 'prospergenics' ),
+        ),
+        array(
+            'author' => 'Frank',
+            'role'   => __( 'Prospergenics, developer', 'prospergenics' ),
+            'quote'  => __( 'Prospergenics gives me the chance to work with technology and AI on projects with a real purpose. We solve real problems, try new tools and learn from each other. That builds not just technical skills, but the confidence to take on bigger tasks independently.', 'prospergenics' ),
+        ),
+    );
+}
+
+/**
  * Legacy URL Redirects
  *
  * The site was restructured into a single-page homepage (task 733/731/765) and some
