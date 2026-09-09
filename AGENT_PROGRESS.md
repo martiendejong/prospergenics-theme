@@ -245,3 +245,26 @@ and the "Coaches"/"Community" section headings + bios — DB content, not in
 this repo, need a separate coordinated update to match the new positioning.
 A re-check of the trycited category-detection scan (this task's own
 Acceptatie) is outside this session's tooling and should follow separately.
+
+## 2026-09-09 — task 940 (complete)
+Done: PR #13. Added a "Team Story" homepage section (front-page.php, between
+Team and Coaches) rendering the 3 real Prospergenics quotes Martien supplied
+(Sandra/Lessy/Frank) via a new `prospergenics_get_team_story_quotes()`
+getter, styled with new `.team-story-*` CSS reusing the existing
+`.cards-grid`/`.card` base. Per established policy from the identical
+sibling case on martiendejong.nl (task 925/PR #865, same 3 quotes): these
+are employee/team-culture testimonials, not customer reviews of
+Prospergenics' service, so they render as plain visible content only — no
+Review/AggregateRating JSON-LD, since tagging them as Review schema would
+misrepresent an insider quote as independent social proof (Google spam-
+schema risk). Genuine client/trainee review schema (task 940's literal ask)
+stays open pending real customer reviews.
+Verified: `php -l` clean on both changed files; new
+`tests/test-940-team-story-quotes.php` (11 assertions, including a
+"no Review/AggregateRating @type anywhere" grep) plus all 8 pre-existing
+test files pass, 9/9 test files green.
+Left: this PR is not deployed live — deploy is a separate FTP step per this
+repo's usual pattern (see task 2929/2942 entries above), left for the
+review/merge pass. Genuine client/trainee Review/AggregateRating schema
+remains a real open gap until Martien or someone else supplies actual
+customer reviews.
