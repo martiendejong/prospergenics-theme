@@ -245,3 +245,15 @@ and the "Coaches"/"Community" section headings + bios — DB content, not in
 this repo, need a separate coordinated update to match the new positioning.
 A re-check of the trycited category-detection scan (this task's own
 Acceptatie) is outside this session's tooling and should follow separately.
+
+## 2026-09-09 — task 940 (WIP)
+Started: plan is a "Team Story" testimonials section on the homepage using
+the 3 real Prospergenics quotes Martien supplied (Sandra/Lessy/Frank,
+comment on task 940). Per established policy from the identical sibling
+case on martiendejong.nl (task 925/PR #865, same 3 quotes): these are
+employee/team-culture testimonials, not customer reviews of Prospergenics'
+service, so they render as plain visible content only — no Review/
+AggregateRating JSON-LD, since tagging them as Review schema would
+misrepresent an insider quote as independent social proof (Google spam-
+schema risk). Genuine client/trainee review schema stays open pending real
+customer reviews.
