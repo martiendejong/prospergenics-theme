@@ -280,3 +280,21 @@ extraction pattern matching test-2929) — 26/26 assertions pass; full
 existing suite (9 files) still green, no regressions.
 Left: deploying the merged functions.php to the live site is the usual
 manual FTP step for this repo.
+
+## 2026-09-10 — task 3085 (review session, merge + deploy)
+Done: reviewed PR #15 (WhatsApp community copy + contactPoint on both
+Organization JSON-LD blocks). PR was CONFLICTING against master (task
+3068's Person-schema block landed at the same functions.php insertion
+point) - merged master into the branch, combined both non-overlapping
+additions, re-ran the full 8-file test suite green, pushed, merged
+squash. Deployed live via a surgical FTP patch (fetched the live
+functions.php/front-page.php - which do not yet carry task 3068's
+Person-schema, confirming that task's own "not deployed yet" note - and
+inserted only this task's two blocks, not a full-file overwrite) after
+backing up the live originals.
+Verified live: curl shows "Join our community via WhatsApp" as visible
+copy, zero "discord" matches, and both Organization JSON-LD blocks now
+carry a valid contactPoint (parsed with `python -m json.tool` equivalent)
+while logo/sameAs from task 964 are byte-identical to before.
+Left: task 3068's own live FTP deploy is still outstanding (unrelated to
+this task, not touched here).
