@@ -36,7 +36,7 @@ get_header();
             <p style="margin-top: 24px;">
                 <?php esc_html_e( 'Join our community via', 'prospergenics' ); ?>
                 <a href="https://wa.me/254741619743" rel="noopener noreferrer" style="color: #25D366; font-weight: 600;"><?php esc_html_e( 'WhatsApp', 'prospergenics' ); ?></a>
-                <?php esc_html_e( '— connect with our team and other businesses working with AI agents.', 'prospergenics' ); ?>
+                <?php esc_html_e( '- connect with our team and other businesses working with AI agents.', 'prospergenics' ); ?>
             </p>
         </div>
     </section>
