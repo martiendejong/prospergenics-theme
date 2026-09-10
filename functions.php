@@ -931,6 +931,7 @@ function prospergenics_trainings_course_schema() {
                 'name'  => get_bloginfo( 'name' ),
                 'url'   => home_url( '/' ),
             ),
+            'author'      => prospergenics_martien_person_node(),
         );
     }
 
@@ -979,6 +980,54 @@ function prospergenics_organization_schema() {
     echo "\n" . '<script type="application/ld+json" class="prospergenics-organization-schema">' . wp_json_encode( $schema ) . '</script>' . "\n";
 }
 add_action( 'wp_head', 'prospergenics_organization_schema', 24 );
+
+/**
+ * The reusable Person node for Martien de Jong (JengoWork task 3068). Referenced both
+ * standalone on his bio pages (prospergenics_martien_person_schema()) and nested as the
+ * `author` on each Course entry in prospergenics_trainings_course_schema(), so both surfaces
+ * point at the exact same identity instead of drifting apart.
+ */
+function prospergenics_martien_person_node() {
+    return array(
+        '@type'    => 'Person',
+        '@id'      => home_url( '/members/martien-de-jong/' ) . '#person',
+        'name'     => 'Martien de Jong',
+        'url'      => home_url( '/members/martien-de-jong/' ),
+        'jobTitle' => 'Founder',
+    );
+}
+
+/**
+ * True only on Martien de Jong's own bio surfaces: the /about/ and /martien/ pages, and his
+ * team_member CPT singular page (/members/martien-de-jong/).
+ */
+function prospergenics_is_martien_bio_page() {
+    if ( is_page( 'about' ) || is_page( 'martien' ) ) {
+        return true;
+    }
+
+    if ( is_singular( 'team_member' ) && 'martien-de-jong' === get_post_field( 'post_name', get_queried_object_id() ) ) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * Person structured data for Martien de Jong (JengoWork task 3068). Prior to this, he only
+ * appeared in JSON-LD via Organization.sameAs on the homepage - never as a first-class content
+ * author, a known E-E-A-T/AI-citation gap. Emitted on his bio pages only.
+ */
+function prospergenics_martien_person_schema() {
+    if ( ! prospergenics_is_martien_bio_page() ) {
+        return;
+    }
+
+    $schema = array_merge( array( '@context' => 'https://schema.org' ), prospergenics_martien_person_node() );
+
+    echo "\n" . '<script type="application/ld+json" class="prospergenics-person-schema">' . wp_json_encode( $schema ) . '</script>' . "\n";
+}
+add_action( 'wp_head', 'prospergenics_martien_person_schema', 26 );
 
 /**
  * Legacy URL Redirects
