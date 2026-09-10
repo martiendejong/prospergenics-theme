@@ -975,11 +975,35 @@ function prospergenics_organization_schema() {
             'AI operations and maintenance',
         ),
         'areaServed'  => array( 'Netherlands', 'Kenya' ),
+        'contactPoint' => array(
+            '@type'       => 'ContactPoint',
+            'contactType' => 'community',
+            'url'         => 'https://wa.me/254741619743',
+            'name'        => 'Prospergenics WhatsApp community',
+        ),
     );
 
     echo "\n" . '<script type="application/ld+json" class="prospergenics-organization-schema">' . wp_json_encode( $schema ) . '</script>' . "\n";
 }
 add_action( 'wp_head', 'prospergenics_organization_schema', 24 );
+
+/**
+ * Add contactPoint to Yoast SEO's Organization schema graph (task 3085).
+ *
+ * Yoast's yoast-schema-graph block already carries the site's sameAs and logo
+ * (added by tasks 797/954) but has no UI field for contactPoint. Adding it here
+ * via the wpseo_schema_organization filter tells AI answer engines that the real
+ * community channel is WhatsApp, preventing hallucinated "Prospera Discord" citations.
+ */
+add_filter( 'wpseo_schema_organization', function( $data ) {
+    $data['contactPoint'] = array(
+        '@type'       => 'ContactPoint',
+        'contactType' => 'community',
+        'url'         => 'https://wa.me/254741619743',
+        'name'        => 'Prospergenics WhatsApp community',
+    );
+    return $data;
+}, 11 );
 
 /**
  * The reusable Person node for Martien de Jong (JengoWork task 3068). Referenced both
