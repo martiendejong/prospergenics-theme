@@ -266,3 +266,11 @@ Gotcha found and documented: the site's Cloudflare WAF (tasks 1668/1669)
 403s any REST call using the default `python-requests` User-Agent —
 `scripts/bump-modified-date.py` sends a browser-style UA to work around it.
 Left: nothing for this task's own scope.
+
+## 2026-09-10 — task 3068 (fix/3068-person-schema)
+Plan: add a reusable Person JSON-LD node for Martien de Jong, emit it via
+wp_head on /about/, /martien/, and the martien-de-jong team_member page
+(reusing the existing is_page()/is_singular() guard pattern), and reference
+the same Person as `author` on each Course entry in
+prospergenics_trainings_course_schema(). New test:
+tests/test-3068-person-schema.php, mirroring test-2929-organization-schema.php.
