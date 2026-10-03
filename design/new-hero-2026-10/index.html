@@ -56,7 +56,7 @@
   .hero { position: relative; max-width: 1500px; margin: 0 auto; padding: 0 clamp(24px, 5vw, 72px); }
 
   /* TOP half: message (left, on paper) + team photo fading in from ~30% */
-  .hero-top { position: relative; min-height: 470px; display: flex; align-items: flex-start; padding-top: 74px; }
+  .hero-top { position: relative; min-height: 520px; display: flex; align-items: flex-start; padding-top: 74px; }
   .hero-top-photo {
     position: absolute; top: 34px; bottom: 0; left: 50%; width: 100vw; transform: translateX(-50%);
     z-index: 0; pointer-events: none;
@@ -80,9 +80,9 @@
   /* paper halo behind the text: opaque-ish in the middle, fully transparent toward the edges,
      so the full-width team photo stays visible around it but the copy stays readable */
   .copy::before {
-    content: ""; position: absolute; z-index: -1; inset: -48px -110px -72px -320px; pointer-events: none;
+    content: ""; position: absolute; z-index: -1; inset: -48px -110px -280px -320px; pointer-events: none;
     background: radial-gradient(ellipse 56% 86% at 58% 48%,
-      rgba(244,250,246,.97) 0%, rgba(244,250,246,.92) 44%, rgba(244,250,246,.55) 68%, rgba(244,250,246,0) 86%);
+      rgba(244,250,246,.97) 0%, rgba(244,250,246,.80) 34%, rgba(244,250,246,.75) 50%, rgba(244,250,246,0) 70%);
   }
   .eyebrow {
     display: inline-flex; align-items: center; gap: 10px;
@@ -298,7 +298,7 @@
   .card:hover::before { transform: scaleX(1); }
 
   /* ───────────────  INTERACTIVE 4-SLIDE SHOWCASE  ─────────────── */
-  .showcase { display: flex; align-items: stretch; gap: 20px; margin-top: 38px; width: 100%; max-width: 548px; height: 332px; }
+  .showcase { display: flex; align-items: stretch; gap: 20px; margin-top: 38px; width: 100%; max-width: 598px; height: 332px; }
   /* left menu: transparent, sits on the hero bg */
   .showcase-menu { width: 174px; flex: none; display: flex; flex-direction: column; justify-content: center; gap: 7px; }
   .sc-tab {
@@ -321,14 +321,14 @@
   }
   /* dark caption band with a slanted top edge (higher on the left) */
   .sc-caption {
-    position: absolute; left: 0; right: 0; bottom: 0; height: 52%; z-index: 2;
+    position: absolute; left: 0; right: 0; bottom: 0; height: 37%; z-index: 2;
     background: linear-gradient(183deg, rgba(8,26,17,0) 0%, rgba(8,26,17,.58) 32%, rgba(8,26,17,.95) 72%);
-    clip-path: polygon(0 10%, 100% 34%, 100% 100%, 0 100%);
+    clip-path: polygon(0 10%, 100% 24%, 100% 100%, 0 100%);
     display: flex; flex-direction: column; justify-content: flex-end; padding: 0 56px 22px 28px;
   }
   .sc-caption h3 { font-family:'Sora',sans-serif; font-weight:700; font-size: 20px; color:#fff; line-height:1.1; letter-spacing:-.015em; margin-bottom: 7px; }
   .sc-caption p { font-size: 12px; line-height:1.4; color: rgba(255,255,255,.85); max-width: 30ch; }
-  .sc-go { position:absolute; right: 22px; bottom: 22px; z-index:3; width: 40px; height:40px; border-radius:50%; border:1.5px solid rgba(255,255,255,.7); color:#fff; display:grid; place-items:center; font-size:17px; transition: all .2s var(--ease); }
+  .sc-go { position:absolute; right: 22px; bottom: 22px; z-index:3; margin-right: 20px; width: 40px; height:40px; border-radius:50%; border:1.5px solid rgba(255,255,255,.7); color:#fff; display:grid; place-items:center; font-size:17px; transition: all .2s var(--ease); }
   .showcase-panel:hover .sc-go { background:#fff; color: var(--green-900); border-color:#fff; }
   @media (max-width: 620px){
     .showcase { flex-direction: column; height: auto; max-width: 100%; gap: 10px; }
@@ -401,7 +401,7 @@
     <div class="hero-bottom">
       <div class="showcase reveal d3">
         <div class="showcase-menu">
-          <button class="sc-tab active" data-i="0"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg><span>People</span><span class="arr">→</span></button>
+          <button class="sc-tab active" data-i="0"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg><span>Experts</span><span class="arr">→</span></button>
           <button class="sc-tab" data-i="1"><svg viewBox="0 0 24 24"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg><span>Services</span><span class="arr">→</span></button>
           <button class="sc-tab" data-i="2"><svg viewBox="0 0 24 24"><path d="M13 13v8h8v-8h-8zM3 21h8v-8H3v8zM3 3v8h8V3H3zm13.66-1.31L11 7.34 16.66 13l5.66-5.66-5.66-5.65z"/></svg><span>Tools</span><span class="arr">→</span></button>
           <button class="sc-tab" data-i="3"><svg viewBox="0 0 24 24"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zm0 13L4.21 11.78 12 7.56l7.79 4.22L12 16zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/></svg><span>Learn</span><span class="arr">→</span></button>
@@ -448,9 +448,9 @@
 
   <script>
     const SLIDES = [
-      { t:"Find people who create value.", d:"Discover developers, designers, entrepreneurs, researchers and more.", img:"assets/sjoerd-wide.png",          pos:"center 28%", href:"/people" },
+      { t:"Find experts who create value.", d:"Discover developers, designers, entrepreneurs, researchers and more.", img:"assets/sjoerd-wide.png",          pos:"center 45%", href:"/experts" },
       { t:"Services that grow your business.", d:"AI, automation and software — delivered by our team.",               img:"assets/maxwell-300x300.png",     pos:"center 30%", href:"/services" },
-      { t:"Tools that expand what you can do.", d:"A curated directory of AI tools and what each one is good for.",     img:"assets/faith-nkumun-300x300.png", pos:"center 30%", href:"/tools" },
+      { t:"Expand your capacity", d:"A curated directory of online tools that make your life easier.",                 img:"assets/faith-nkumun-300x300.png", pos:"center 30%", href:"/tools" },
       { t:"Learn and get certified.", d:"Turn knowledge into provable, useful skills.",                                img:"assets/sandra.png",              pos:"center 32%", href:"/learn" },
     ];
     const panel = document.getElementById('scPanel');

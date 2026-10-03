@@ -2,6 +2,9 @@
 
 Static design prototype for the redesigned homepage hero. Open `index.html` in a browser.
 
+**Live preview:** https://test.prospergenics.com
+Redeploy after changes with: `python deploy-to-test.py` (see that file for requirements).
+
 ## Concept
 Two messages, two levels (per the strategy discussion):
 1. **Hero (top):** "Create value." + subline, over a full-width team photo that fades in
