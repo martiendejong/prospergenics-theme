@@ -511,18 +511,13 @@
     });
     show(0); restart();
 
-    // Parallax: element drifts down + background shifts toward top-of-image so faces stay visible
+    // Parallax: set top = scrollY * 0.5 + 34px so the element moves at half scroll speed
     (function(){
       const photo = document.querySelector('.hero-top-photo');
       if (!photo || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
       let ticking = false;
       function update() {
-        const sy = window.scrollY;
-        // 1) move the whole element down — keeps it in the viewport longer
-        photo.style.transform = 'translateX(-50%) translateY(' + (sy * 0.4) + 'px)';
-        // 2) shift the background image toward the top of the photo (toward 0%)
-        //    so that as the element is clipped from above, faces stay in the visible portion
-        photo.style.backgroundPositionY = Math.max(0, 12 - sy * 0.04) + '%';
+        photo.style.top = (window.scrollY * 0.5 + 34) + 'px';
         ticking = false;
       }
       window.addEventListener('scroll', function() {
