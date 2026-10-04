@@ -67,7 +67,7 @@
             mask-image: linear-gradient(to bottom, transparent 0%, #000 14%, #000 84%, transparent 100%);
   }
   /* BOTTOM half: slider on a plain (paper) background */
-  .hero-bottom { position: relative; z-index: 5; padding: 30px 0 72px; }
+  .hero-bottom { position: relative; z-index: 5; padding: 30px 0 72px; display: flex; align-items: center; gap: clamp(40px, 6vw, 80px); }
 
   @media (max-width: 980px){
     .hero { padding: 0 20px; }
@@ -308,14 +308,16 @@
   .card::before { content:""; position:absolute; inset:auto 0 0 0; height:3px; background: linear-gradient(90deg,var(--green-600),var(--green-300)); transform: scaleX(0); transform-origin:left; transition: transform .3s var(--ease); }
   .card:hover::before { transform: scaleX(1); }
 
-  .nudge {
-    margin-top: 42px; text-align: center;
-    font-family: 'Sora', sans-serif; font-weight: 500; font-size: 18px; line-height: 1.55;
-    color: var(--green-700);
+  .hero-bottom-cta {
+    flex: 1;
+    font-family: 'Sora', sans-serif; font-weight: 500;
+    font-size: clamp(20px, 2.4vw, 28px); line-height: 1.45;
+    color: var(--green-900);
   }
+  @media (max-width: 980px) { .hero-bottom-cta { display: none; } }
 
   /* ───────────────  INTERACTIVE 4-SLIDE SHOWCASE  ─────────────── */
-  .showcase { display: flex; align-items: stretch; gap: 20px; margin-top: 38px; width: 100%; max-width: 598px; height: 332px; }
+  .showcase { display: flex; align-items: stretch; gap: 20px; flex: none; width: 598px; height: 332px; }
   /* left menu: transparent, sits on the hero bg */
   .showcase-menu { width: 174px; flex: none; display: flex; flex-direction: column; justify-content: center; gap: 7px; }
   .sc-tab {
@@ -434,6 +436,7 @@
           <span class="sc-go">→</span>
         </a>
       </div>
+      <div class="hero-bottom-cta reveal d4">Not sure where to start? Tell us what you want to achieve. We'll help you find the next step.</div>
     </div>
   </section>
 
@@ -450,7 +453,6 @@
       <article class="card reveal d4"><div class="k">👥</div><h3>People</h3><p>Connect capability with demand — experts available for work.</p><div class="tag">Directory</div></article>
       <article class="card reveal d5"><div class="k">⚡</div><h3>Jengo</h3><p>Multiply what a person or team can actually build.</p><div class="tag">Technology</div></article>
     </div>
-    <p class="nudge">Not sure where to start? Tell us what you want to achieve. We'll help you find the next step.</p>
   </section>
 
   <!-- Floating chat launcher: ProsperGenics coach (CoachOS tenant) + WhatsApp to Sandra -->
