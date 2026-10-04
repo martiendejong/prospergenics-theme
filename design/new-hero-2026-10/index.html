@@ -63,8 +63,8 @@
     background: url('assets/hero-top.png') center 12% / cover no-repeat;
     opacity: .97;
     /* full screen width; soft fade at top + bottom into the paper */
-    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 14%, #000 84%, transparent 100%);
-            mask-image: linear-gradient(to bottom, transparent 0%, #000 14%, #000 84%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.05) 5%, rgba(0, 0, 0, 0.2) 10%, rgba(0, 0, 0, 0.5) 15%, #000 20%, #000 80%, rgba(0, 0, 0, 0.8) 85%, rgba(0, 0, 0, 0.4) 90%, rgba(0, 0, 0, 0.1) 95%, transparent 100%);
+            mask-image: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.05) 5%, rgba(0, 0, 0, 0.2) 10%, rgba(0, 0, 0, 0.5) 15%, #000 20%, #000 80%, rgba(0, 0, 0, 0.8) 85%, rgba(0, 0, 0, 0.4) 90%, rgba(0, 0, 0, 0.1) 95%, transparent 100%);
   }
   /* BOTTOM half: slider on a plain (paper) background */
   .hero-bottom { position: relative; z-index: 5; padding: 30px 0 72px; display: flex; align-items: center; gap: clamp(40px, 6vw, 80px); }
