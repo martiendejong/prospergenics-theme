@@ -60,7 +60,7 @@
   .hero-top-photo {
     position: absolute; top: 34px; bottom: 0; left: 50%; width: 100vw; transform: translateX(-50%);
     z-index: 0; pointer-events: none;
-    background: url('assets/hero-top.jpg') center 12% / cover no-repeat;
+    background: url('assets/hero-top.png') center 12% / cover no-repeat;
     opacity: .97;
     /* full screen width; soft fade at top + bottom into the paper */
     -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 14%, #000 84%, transparent 100%);
@@ -308,12 +308,18 @@
   .card::before { content:""; position:absolute; inset:auto 0 0 0; height:3px; background: linear-gradient(90deg,var(--green-600),var(--green-300)); transform: scaleX(0); transform-origin:left; transition: transform .3s var(--ease); }
   .card:hover::before { transform: scaleX(1); }
 
-  .hero-bottom-cta {
-    flex: 1;
-    font-family: 'Sora', sans-serif; font-weight: 500;
-    font-size: clamp(20px, 2.4vw, 28px); line-height: 1.45;
-    color: var(--green-900);
+  .hero-bottom-cta { flex: 1; }
+  .hbc-head {
+    font-family: 'Sora', sans-serif; font-weight: 800;
+    font-size: clamp(36px, 4vw, 56px); line-height: 1.0; letter-spacing: -.03em;
+    color: var(--ink); margin-bottom: 16px;
   }
+  .hbc-head .accent {
+    display: block;
+    background: linear-gradient(100deg, var(--green-700) 0%, var(--green-500) 55%, var(--green-300) 100%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .hbc-body { font-size: 16px; line-height: 1.6; color: var(--muted); }
   @media (max-width: 980px) { .hero-bottom-cta { display: none; } }
 
   /* ───────────────  INTERACTIVE 4-SLIDE SHOWCASE  ─────────────── */
@@ -436,7 +442,10 @@
           <span class="sc-go">→</span>
         </a>
       </div>
-      <div class="hero-bottom-cta reveal d4">Not sure where to start? Tell us what you want to achieve. We'll help you find the next step.</div>
+      <div class="hero-bottom-cta reveal d4">
+        <p class="hbc-head">Not sure where <span class="accent">to start?</span></p>
+        <p class="hbc-body">Tell us what you want to achieve. We'll help you find the next step.</p>
+      </div>
     </div>
   </section>
 
