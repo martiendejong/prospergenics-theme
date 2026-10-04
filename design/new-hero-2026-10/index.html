@@ -407,6 +407,11 @@
   .wa-btn svg { width: 30px; height: 30px; fill: #fff; }
   @media (max-width: 560px){ .launcher { right: 18px; bottom: 18px; gap: 8px; } .launcher-orb { width: 144px; height: 124px; } .launcher-bubble { display: none; } .wa-btn { width: 46px; height: 46px; } .wa-btn svg { width: 25px; height: 25px; } }
 
+  /* subtle double text-shadow on key text */
+  h1.reveal, .sub.reveal, .hbc-head, .sc-caption h3, .sc-caption p {
+    text-shadow: -1px 2px 0 rgba(0,0,0,.05), 1px 2px 0 rgba(0,0,0,.05);
+  }
+
   /* entrance animations */
   .reveal { opacity: 0; transform: translateY(22px); animation: rise .9s var(--ease) forwards; }
   .d1{animation-delay:.05s} .d2{animation-delay:.15s} .d3{animation-delay:.28s} .d4{animation-delay:.4s} .d5{animation-delay:.52s}
