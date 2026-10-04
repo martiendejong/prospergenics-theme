@@ -505,6 +505,20 @@
       t.addEventListener('mouseenter', ()=>{ show(i); restart(); });
     });
     show(0); restart();
+
+    // Parallax: hero-top-photo drifts at 30 % of scroll speed
+    (function(){
+      const photo = document.querySelector('.hero-top-photo');
+      if (!photo || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      let ticking = false;
+      function update() {
+        photo.style.transform = 'translateX(-50%) translateY(' + (window.scrollY * 0.3) + 'px)';
+        ticking = false;
+      }
+      window.addEventListener('scroll', function() {
+        if (!ticking) { requestAnimationFrame(update); ticking = true; }
+      }, { passive: true });
+    })();
   </script>
 
 </body>
