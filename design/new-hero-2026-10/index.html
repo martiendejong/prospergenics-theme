@@ -306,18 +306,21 @@
     padding-bottom: .06em;
   }
   .proof-copy p { margin-top: 22px; font-size: clamp(16.5px, 1.5vw, 19px); line-height: 1.65; color: var(--muted); max-width: 46ch; }
-  /* same parallelogram cut as the showcase slider panels, a touch larger */
-  .proof-visual {
-    position: relative; overflow: hidden; background: var(--green-900); aspect-ratio: 5 / 4;
+  /* layout box only; the reveal animation owns this element's transform */
+  .proof-visual { position: relative; aspect-ratio: 5 / 4; }
+  /* .pv-scale carries the whole skewed panel (same parallelogram cut as the
+     showcase slider, a touch larger) AND the scroll-driven scale, so the cut
+     scales along with the picture */
+  .proof-visual .pv-scale {
+    width: 100%; height: 100%; transform-origin: center; transform: scale(0.8);
     clip-path: polygon(34px 0, 100% 0, calc(100% - 34px) 100%, 0 100%);
+    background: var(--green-900); overflow: hidden;
   }
-  /* the clip stays on .proof-visual; the scroll-driven scale lives on .pv-scale
-     (separate element because the reveal animation owns .proof-visual's transform) */
-  .proof-visual .pv-scale { width: 100%; height: 100%; transform-origin: center; }
   .proof-visual img { width: 100%; height: 100%; object-fit: cover; display: block; }
   @media (max-width: 980px){
     .proof-intro { grid-template-columns: 1fr; gap: 26px; }
-    .proof-visual { aspect-ratio: 16 / 10; clip-path: polygon(20px 0, 100% 0, calc(100% - 20px) 100%, 0 100%); }
+    .proof-visual { aspect-ratio: 16 / 10; }
+    .proof-visual .pv-scale { clip-path: polygon(20px 0, 100% 0, calc(100% - 20px) 100%, 0 100%); }
   }
   .proof-more { margin-top: 26px; }
   .proof-more a { font-family:'Sora',sans-serif; font-weight:600; font-size:15px; color: var(--green-700); text-decoration: none; }
@@ -452,7 +455,7 @@
   .reveal { opacity: 0; transform: translateY(22px); animation: rise .9s var(--ease) forwards; }
   .d1{animation-delay:.05s} .d2{animation-delay:.15s} .d3{animation-delay:.28s} .d4{animation-delay:.4s} .d5{animation-delay:.52s}
   @keyframes rise { to { opacity:1; transform:none; } }
-  @media (prefers-reduced-motion: reduce){ *{ animation:none !important; } .reveal{ opacity:1; transform:none; } }
+  @media (prefers-reduced-motion: reduce){ *{ animation:none !important; } .reveal{ opacity:1; transform:none; } .proof-visual .pv-scale{ transform:none; } }
 </style>
 </head>
 <body>
