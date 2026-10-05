@@ -298,3 +298,11 @@ carry a valid contactPoint (parsed with `python -m json.tool` equivalent)
 while logo/sameAs from task 964 are byte-identical to before.
 Left: task 3068's own live FTP deploy is still outstanding (unrelated to
 this task, not touched here).
+
+## 2026-10-05 — task 4895 (feature/4895-about-page) — IN PROGRESS
+Done: nothing shipped yet; session started. Plan: static About page at
+design/new-hero-2026-10/about/index.html in the new-hero visual language,
+deployed to test.prospergenics.com/about/ (base = design/new-hero-2026-10,
+the only branch holding the new visual language; repo has no develop).
+Verified: not verified yet.
+Left: everything; this entry is rewritten when the work is complete.
