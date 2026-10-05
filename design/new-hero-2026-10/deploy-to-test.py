@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 """
+SUPERSEDED 2026-10-05: test.prospergenics.com now runs WordPress
+(IIS site points at C:/stores/prospergenics-wp). Use deploy-wp-theme-to-test.py
+instead; this script still uploads to the old static folder
+C:/stores/prospergenics-test, which is kept but no longer served.
+
 Redeploy this hero preview to https://test.prospergenics.com (one command).
 
     python deploy-to-test.py
