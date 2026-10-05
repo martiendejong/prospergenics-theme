@@ -85,6 +85,7 @@
               mask-image: linear-gradient(to bottom, #000 84%, transparent 100%);
     }
     .hero-bottom { padding: 20px; }
+    .proof-visual .pv-scale { transform: none; }   /* scroll effects are desktop-only for now */
   }
 
   /* ---- LEFT: the message ---- */
@@ -564,8 +565,17 @@
       const alchemyVisual = document.querySelector('.proof-visual');
       const alchemyScale = document.querySelector('.proof-visual .pv-scale');
       if (!photo || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      // scroll effects are desktop-only for now; clear anything set when crossing the breakpoint
+      const mobile = window.matchMedia('(max-width: 980px)');
+      function clearEffects() {
+        photo.style.top = ''; photo.style.bottom = '';
+        if (showcasePanel) { showcasePanel.style.marginTop = ''; showcasePanel.style.marginBottom = ''; showcasePanel.style.marginLeft = ''; showcasePanel.style.marginRight = ''; showcasePanel.style.transform = ''; }
+        if (alchemyScale) { alchemyScale.style.transform = ''; }
+      }
+      mobile.addEventListener('change', function (e) { if (e.matches) { clearEffects(); } else { update(); } });
       let ticking = false;
       function update() {
+        if (mobile.matches) { clearEffects(); ticking = false; return; }
         const y = window.scrollY;
         photo.style.top = (y * 0.5 + 34) + 'px';
         // bottom edge slides from 0 to -100px over the first 500px of scroll
