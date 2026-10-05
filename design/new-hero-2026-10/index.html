@@ -555,12 +555,21 @@
     // Parallax: set top = scrollY * 0.5 + 34px so the element moves at half scroll speed
     (function(){
       const photo = document.querySelector('.hero-top-photo');
+      const showcasePanel = document.querySelector('.showcase-panel');
       if (!photo || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
       let ticking = false;
       function update() {
-        photo.style.top = (window.scrollY * 0.5 + 34) + 'px';
+        const y = window.scrollY;
+        photo.style.top = (y * 0.5 + 34) + 'px';
         // bottom edge slides from 0 to -100px over the first 500px of scroll
-        photo.style.bottom = (Math.min(window.scrollY, 500) / 500 * -100) + 'px';
+        photo.style.bottom = (Math.min(y, 500) / 500 * -100) + 'px';
+        // showcase panel bulge: ramps up over the first 250px of scroll, back to normal at 500px
+        if (showcasePanel) {
+          const t = Math.max(0, y <= 250 ? y / 250 : 2 - y / 250);
+          showcasePanel.style.marginTop = (20 * t) + 'px';
+          showcasePanel.style.marginBottom = (-20 * t) + 'px';
+          showcasePanel.style.transform = 'scale(' + (1 + 0.05 * t) + ')';
+        }
         ticking = false;
       }
       window.addEventListener('scroll', function() {
