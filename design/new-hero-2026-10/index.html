@@ -311,6 +311,9 @@
   .card .tag { margin-top: 14px; font-size: 11.5px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color: var(--green-600); }
   .card::before { content:""; position:absolute; inset:auto 0 0 0; height:3px; background: linear-gradient(90deg,var(--green-600),var(--green-300)); transform: scaleX(0); transform-origin:left; transition: transform .3s var(--ease); }
   .card:hover::before { transform: scaleX(1); }
+  .cards.three { grid-template-columns: repeat(3, 1fr); }
+  .cards.three .card p { font-size: 14.5px; }
+  @media (max-width: 1100px){ .cards.three { grid-template-columns: 1fr; } }
 
   .hero-bottom-cta { flex: 1; }
   .hbc-head {
@@ -461,20 +464,18 @@
     </div>
   </section>
 
-  <!-- SECOND MESSAGE · see how value gets created (concrete, not categories) -->
-  <section class="proof" id="proof">
+  <!-- SECOND MESSAGE · who we are (summary of the About page) -->
+  <section class="proof" id="about">
     <div class="proof-head">
-      <h2>See how value gets created.</h2>
-      <p>Not a theory. Real mechanisms, already running — each one turns what people have into something worth more.</p>
+      <h2>We are exploring how value is created.</h2>
+      <p>ProsperGenics is a community of people who want to create value — for themselves, for others, and for the communities around them.</p>
     </div>
-    <div class="cards">
-      <article class="card reveal d1"><div class="k">🌍</div><h3>Karibu Mara</h3><p>Give local businesses access to customers and visitors.</p><div class="tag">Platform · live</div></article>
-      <article class="card reveal d2"><div class="k">🧰</div><h3>AI Tools</h3><p>Find and understand the systems that expand what you can do.</p><div class="tag">Directory</div></article>
-      <article class="card reveal d3"><div class="k">🎓</div><h3>Training</h3><p>Turn knowledge into useful, certified skills you can prove.</p><div class="tag">Learn · certify</div></article>
-      <article class="card reveal d4"><div class="k">👥</div><h3>People</h3><p>Connect capability with demand — experts available for work.</p><div class="tag">Directory</div></article>
-      <article class="card reveal d5"><div class="k">⚡</div><h3>Jengo</h3><p>Multiply what a person or team can actually build.</p><div class="tag">Technology</div></article>
+    <div class="cards three">
+      <article class="card reveal d1"><div class="k">🔬</div><h3>We learn by doing</h3><p>Our laboratory is the real world: real projects, real customers, real consequences. Some experiments succeed, others don't — both teach us something.</p><div class="tag">Learn · build · measure</div></article>
+      <article class="card reveal d2"><div class="k">🌱</div><h3>Empowerment is the goal</h3><p>Value is more than money. We want people to become more capable, not more dependent on us — technology is a tool, not the purpose.</p><div class="tag">Capability first</div></article>
+      <article class="card reveal d3"><div class="k">🤝</div><h3>Different places, shared learning</h3><p>Grown from collaboration between Kenya and the Netherlands — very different contexts that challenge our assumptions.</p><div class="tag">Kenya ↔ Netherlands</div></article>
     </div>
-    <p class="proof-more"><a href="about/">Why we do this: about ProsperGenics →</a></p>
+    <p class="proof-more"><a href="about/">We don't have a finished formula — we are searching for one. Read the full story →</a></p>
   </section>
 
   <!-- Floating chat launcher: ProsperGenics coach (CoachOS tenant) + WhatsApp to Sandra -->

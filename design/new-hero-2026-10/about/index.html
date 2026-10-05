@@ -100,17 +100,7 @@
     font-family: 'Sora', sans-serif; font-weight: 500;
     font-size: clamp(19px, 2.3vw, 26px); line-height: 1.38; color: var(--green-900);
   }
-  .hero-photo {
-    position: relative; z-index: 1; margin-top: clamp(34px, 5vw, 64px);
-    max-width: 1500px; margin-left: auto; margin-right: auto; padding: 0 var(--gutter);
-  }
-  .hero-photo .frame { position: relative; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); aspect-ratio: 4032 / 1376; background: var(--green-900); }
-  .hero-photo img { width: 100%; height: 100%; object-fit: cover; object-position: center 12%; }
-  .hero-photo .frame::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(11,32,22,.28), transparent 38%); pointer-events: none; }
-  @media (max-width: 700px){
-    .hero-photo .frame { aspect-ratio: 16 / 10; border-radius: 20px; }
-    .hero-photo img { object-position: 38% 12%; }
-  }
+  .hero { padding-bottom: clamp(10px, 2vw, 24px); }
 
   /* ─────────────  SECTIONS  ───────────── */
   .block { position: relative; padding: clamp(56px, 8vw, 112px) 0 0; }
@@ -164,20 +154,16 @@
   .genetics p b { color: var(--green-300); font-family: 'Sora', sans-serif; font-weight: 700; }
   @media (max-width: 560px){ .genetics { grid-template-columns: 1fr; gap: 14px; } }
 
-  /* slanted photo panel (same cut as the homepage showcase) */
-  .panel {
-    position: relative; overflow: hidden; background: var(--green-900);
-    clip-path: polygon(34px 0, 100% 0, calc(100% - 34px) 100%, 0 100%);
-    aspect-ratio: 5 / 4; box-shadow: var(--shadow);
+  /* Kenya ⇄ Netherlands exchange card (text-based; photos live on the homepage) */
+  .exchange {
+    background: var(--white); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: clamp(28px, 4vw, 48px); box-shadow: var(--shadow); text-align: center;
+    max-width: 460px; margin: 0 auto; position: relative; overflow: hidden;
   }
-  .panel img { width: 100%; height: 100%; object-fit: cover; }
-  .panel.tall { aspect-ratio: 4 / 5; max-width: 460px; margin-left: auto; margin-right: auto; width: 100%; }
-  .panel .cap {
-    position: absolute; left: 0; right: 0; bottom: 0; padding: 70px 56px 22px 34px; z-index: 2;
-    background: linear-gradient(183deg, rgba(8,26,17,0) 0%, rgba(8,26,17,.62) 45%, rgba(8,26,17,.95) 100%);
-    font-family: 'Sora', sans-serif; font-weight: 700; font-size: 17px; line-height: 1.2; color: #fff;
-  }
-  @media (max-width: 560px){ .panel { clip-path: polygon(20px 0, 100% 0, calc(100% - 20px) 100%, 0 100%); } .panel .cap { padding: 60px 40px 18px 24px; font-size: 15px; } }
+  .exchange::before { content:""; position:absolute; inset: 0 0 auto 0; height: 5px; background: linear-gradient(90deg, var(--green-600), var(--green-300)); }
+  .exchange .pair { display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; font-family:'Sora',sans-serif; font-weight:800; font-size: clamp(20px, 2.4vw, 27px); letter-spacing: -.02em; color: var(--green-900); }
+  .exchange .pair .sw { color: var(--green-500); font-size: clamp(24px, 2.8vw, 34px); font-weight: 600; }
+  .exchange p { margin-top: 16px; color: var(--muted); font-size: 15px; line-height: 1.6; }
 
   /* the learning cycle */
   .cycle-wrap { margin-top: clamp(44px, 6vw, 72px); }
@@ -278,10 +264,6 @@
   .card .tag { margin-top: 14px; font-size: 11.5px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color: var(--green-600); }
   .card::before { content:""; position:absolute; inset:auto 0 0 0; height:3px; background: linear-gradient(90deg,var(--green-600),var(--green-300)); transform: scaleX(0); transform-origin:left; transition: transform .3s var(--ease); }
   .card:hover::before { transform: scaleX(1); }
-  .practice-link { margin-top: 26px; }
-  .practice-link a { font-family:'Sora',sans-serif; font-weight:600; font-size:15px; color: var(--green-700); text-decoration: none; }
-  .practice-link a:hover { text-decoration: underline; }
-
   /* footer */
   footer { border-top: 1px solid var(--line); padding: 28px 0 40px; }
   footer .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: 14px; color: var(--muted); }
@@ -321,9 +303,6 @@
         <h1 class="reveal d2">We are exploring <span class="accent">how value is created.</span></h1>
         <p class="lede reveal d3">ProsperGenics is a community of people who want to create value — for themselves, for others, and for the communities around them.</p>
       </div>
-      <div class="hero-photo reveal d3">
-        <div class="frame"><img src="../assets/hero-top.jpg" alt="The ProsperGenics team, smiling together in their olive-green ProsperGenics shirts" width="4032" height="1376" /></div>
-      </div>
     </section>
 
     <!-- THE QUESTION -->
@@ -354,18 +333,13 @@
     <!-- WE LEARN BY DOING -->
     <section class="block" id="learn-by-doing">
       <div class="wrap">
-        <div class="split flip">
-          <div class="rv">
-            <div class="panel"><img src="../assets/programs-bg.jpg" alt="A ProsperGenics team member laughing while carefully playing a game of stacking blocks" loading="lazy" style="object-position:center 38%" /><div class="cap">Our laboratory is the real world.</div></div>
-          </div>
-          <div class="prose rv">
-            <h2>We learn by doing</h2>
-            <p>ProsperGenics is not only a research project. <strong>Our laboratory is the real world.</strong></p>
-            <p>We build businesses and technology. We work with entrepreneurs and communities. We teach and learn new skills. We connect people who can help each other. We experiment with AI and new ways of working. And we work on real projects with real customers, opportunities and consequences.</p>
-            <p>Some of those experiments succeed. Others don’t.</p>
-            <p class="punch soft">Both teach us something.</p>
-            <p>We try to capture those lessons, turn them into shared knowledge, and use what we learn to make the next project better.</p>
-          </div>
+        <div class="prose rv">
+          <h2>We learn by doing</h2>
+          <p>ProsperGenics is not only a research project. <strong>Our laboratory is the real world.</strong></p>
+          <p>We build businesses and technology. We work with entrepreneurs and communities. We teach and learn new skills. We connect people who can help each other. We experiment with AI and new ways of working. And we work on real projects with real customers, opportunities and consequences.</p>
+          <p>Some of those experiments succeed. Others don’t.</p>
+          <p class="punch soft">Both teach us something.</p>
+          <p>We try to capture those lessons, turn them into shared knowledge, and use what we learn to make the next project better.</p>
         </div>
         <div class="cycle-wrap rv">
           <p class="cycle-intro">That creates a continuous cycle:</p>
@@ -411,7 +385,10 @@
       <div class="wrap">
         <div class="split flip">
           <div class="rv">
-            <div class="panel tall"><img src="../assets/contact-bg.jpg" alt="Two ProsperGenics team members smiling in front of a carved wooden screen" loading="lazy" style="object-position:center 30%" /></div>
+            <div class="exchange" aria-hidden="true">
+              <div class="pair"><span class="place">🇰🇪 Kenya</span><span class="sw">⇄</span><span class="place">🇳🇱 Netherlands</span></div>
+              <p>Different experiences, skills, cultures and opportunities — one shared search for how value is created.</p>
+            </div>
           </div>
           <div class="prose rv">
             <h2>Different people. Different places. Shared learning.</h2>
@@ -439,14 +416,14 @@
           <p class="big">It is a community <span class="accent">searching for one.</span></p>
           <p class="believe">And we believe the best way to understand how value is created is to keep creating it — <b>together.</b></p>
           <div class="actions">
-            <a class="btn btn-primary" href="../#proof">See value being created <span class="arrow">→</span></a>
+            <a class="btn btn-primary" href="#practice">See where we practise it <span class="arrow">→</span></a>
             <a class="btn btn-ghost" href="../">Back to home</a>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- WHERE THE LEARNING HAPPENS: real projects (same cards as the homepage) -->
+    <!-- WHERE THE LEARNING HAPPENS: the real projects -->
     <section class="block practice" id="practice">
       <div class="wrap">
         <div class="practice-head rv">
@@ -460,7 +437,6 @@
           <article class="card rv"><div class="k" aria-hidden="true">👥</div><h3>People</h3><p>Connect capability with demand — experts available for work.</p><div class="tag">Directory</div></article>
           <article class="card rv"><div class="k" aria-hidden="true">⚡</div><h3>Jengo</h3><p>Multiply what a person or team can actually build.</p><div class="tag">Technology</div></article>
         </div>
-        <p class="practice-link rv"><a href="../#proof">See them on the homepage →</a></p>
       </div>
     </section>
   </main>
