@@ -11,8 +11,8 @@ What it does:
   - the IIS site "test.prospergenics.com" + Let's Encrypt cert + Cloudflare DNS
     were created once on 2026-10-04 and stay in place; this only refreshes files.
 
-Requirements: the Jengo vault helper vault-api.py (prod SSH password, project 6 /
-credential 7) and paramiko. The helper is looked up at $PG_VAULT_API, then
+Requirements: the Jengo vault helper vault-api.py (prod SSH password, project 32 /
+credential 142, fallback project 6 / credential 7) and paramiko. The helper is looked up at $PG_VAULT_API, then
 E:/projects/jengo/... (Martien's machine), then C:/projects/jengo/... (dev/orchestration
 host). No secrets are stored in this repo.
 """
@@ -30,18 +30,37 @@ ASSETS_DIR = os.path.join(HERE, "assets")
 PAGES = [("about/index.html", "about/index.html")]
 
 
-def prod_password():
-    out = subprocess.run([sys.executable, VAULT, "credential", "6", "7",
+# (vault project, credential) holding the prod Administrator SSH login. 32/142 is the
+# deploy-agent copy (kept current for unattended agents); 6/7 is the gated original.
+CREDENTIALS = [("32", "142"), ("6", "7")]
+
+
+def vault_password(project, cred):
+    out = subprocess.run([sys.executable, VAULT, "credential", project, cred,
                           "--reason", "Redeploy prospergenics hero preview to test.prospergenics.com"],
                          capture_output=True, text=True, cwd=os.path.dirname(VAULT)).stdout
-    return json.loads(re.search(r"\{.*\}", out, re.S).group())["password"]
+    m = re.search(r"\{.*\}", out, re.S)
+    return json.loads(m.group()).get("password") if m else None
+
+
+def connect():
+    import paramiko
+    for project, cred in CREDENTIALS:
+        password = vault_password(project, cred)
+        if not password:
+            continue
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        try:
+            ssh.connect(HOST, username=USER, password=password, timeout=20)
+            return ssh
+        except paramiko.AuthenticationException:
+            print("vault %s/%s: authentication failed, trying next" % (project, cred))
+    sys.exit("no vault credential could log in to " + HOST)
 
 
 def main():
-    import paramiko
-    ssh = paramiko.SSHClient()
-    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh.connect(HOST, username=USER, password=prod_password(), timeout=20)
+    ssh = connect()
     sftp = ssh.open_sftp()
     for d in (REMOTE, REMOTE + "/assets", REMOTE + "/about"):
         try: sftp.mkdir(d)

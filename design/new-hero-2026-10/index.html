@@ -295,6 +295,7 @@
   .proof-more { margin-top: 26px; }
   .proof-more a { font-family:'Sora',sans-serif; font-weight:600; font-size:15px; color: var(--green-700); text-decoration: none; }
   .proof-more a:hover { text-decoration: underline; }
+  @media (max-width: 560px){ .proof-more { margin-bottom: 64px; } }   /* keep the link clear of the fixed chat launcher */
   .cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
   @media (max-width: 1100px){ .cards { grid-template-columns: repeat(2,1fr); } }
   @media (max-width: 560px){ .cards { grid-template-columns: 1fr; } }
@@ -378,6 +379,8 @@
     position: absolute; right: 12px; top: 8px; width: 15px; height: 15px; border-radius: 50%;
     background: var(--green-500); border: 2.5px solid #fff; animation: pulse 2s infinite;
   }
+  /* the photo is scaled 2.5x inside a clipped circle and the decorative rings drift (spin keyframes carry a translate); their boxes would otherwise swallow taps around the launcher - taps fall through to the button instead */
+  .launcher-orb .l-photo, .launcher-orb .l-ring { pointer-events: none; }
   @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(52,199,89,.55);} 70%{box-shadow:0 0 0 13px rgba(52,199,89,0);} 100%{box-shadow:0 0 0 0 rgba(52,199,89,0);} }
   .launcher-bubble {
     position: absolute; right: 272px; bottom: 60px; white-space: nowrap;
