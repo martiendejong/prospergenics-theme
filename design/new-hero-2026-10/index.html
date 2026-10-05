@@ -563,9 +563,9 @@
         photo.style.top = (y * 0.5 + 34) + 'px';
         // bottom edge slides from 0 to -100px over the first 500px of scroll
         photo.style.bottom = (Math.min(y, 500) / 500 * -100) + 'px';
-        // showcase panel bulge: ramps up over the first 250px of scroll, back to normal at 500px
+        // showcase panel bulge: ramps up over the first 250px of scroll and stays; eases back only when scrolling up
         if (showcasePanel) {
-          const t = Math.max(0, y <= 250 ? y / 250 : 2 - y / 250);
+          const t = Math.min(y / 250, 1);
           showcasePanel.style.marginTop = (20 * t) + 'px';
           showcasePanel.style.marginBottom = (-20 * t) + 'px';
           showcasePanel.style.transform = 'scale(' + (1 + 0.05 * t) + ')';
