@@ -306,18 +306,15 @@
     padding-bottom: .06em;
   }
   .proof-copy p { margin-top: 22px; font-size: clamp(16.5px, 1.5vw, 19px); line-height: 1.65; color: var(--muted); max-width: 46ch; }
-  .proof-visual { position: relative; border-radius: var(--radius); overflow: hidden; aspect-ratio: 5 / 4; box-shadow: var(--shadow); }
-  .proof-visual img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .proof-visual .ph {
-    position: absolute; inset: 0; border-radius: var(--radius);
-    border: 1.5px dashed rgba(26,122,70,.45); background: linear-gradient(160deg, var(--paper-2), rgba(217,245,227,.5));
-    display: grid; place-items: center; align-content: center; text-align: center; gap: 6px;
-    font-family:'Sora',sans-serif; font-weight:600; font-size: 16px; color: var(--green-700);
+  /* same parallelogram cut as the showcase slider panels, a touch larger */
+  .proof-visual {
+    position: relative; overflow: hidden; background: var(--green-900); aspect-ratio: 5 / 4;
+    clip-path: polygon(34px 0, 100% 0, calc(100% - 34px) 100%, 0 100%);
   }
-  .proof-visual .ph span { display: block; font-weight: 400; font-size: 12.5px; color: var(--muted); }
+  .proof-visual img { width: 100%; height: 100%; object-fit: cover; display: block; }
   @media (max-width: 980px){
     .proof-intro { grid-template-columns: 1fr; gap: 26px; }
-    .proof-visual { aspect-ratio: 16 / 10; }
+    .proof-visual { aspect-ratio: 16 / 10; clip-path: polygon(20px 0, 100% 0, calc(100% - 20px) 100%, 0 100%); }
   }
   .proof-more { margin-top: 26px; }
   .proof-more a { font-family:'Sora',sans-serif; font-weight:600; font-size:15px; color: var(--green-700); text-decoration: none; }
