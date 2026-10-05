@@ -21,8 +21,20 @@ tenant** chat, with a WhatsApp-to-Sandra button beside it.
 - Sandra's WhatsApp number (placeholder `wa.me/254XXXXXXXXX`).
 - Wire the chat launcher to the CoachOS `prospergenics` tenant (JengoWork task 4819).
 - Port to the WordPress theme (`front-page.php` / template part + enqueued CSS/JS).
+- About page (task 4895) is at `/about/` on the test site; the same copy still has to be
+  ported to the live WordPress About page after Martien's review (production is not touched).
+
+## About page (`about/index.html`, task 4895)
+Canonical identity: ProsperGenics is a **community researching and practising value creation**
+— it does *not* claim a finished/proven formula. Copy = the approved draft from task 4895
+(source of truth: Jengo Knowledge project `prospergenics`: `prospergenics-identity-value-creation-2026-10-05.md`,
+`projectprofiel.md`, `website-redesign-value-creation-canonical-brief.md`). Same tokens/fonts/
+components as `index.html`; self-contained like the homepage, shares `../assets/`. Marked
+`noindex` because it is a test page. Links back to the homepage "proof" section (`../#proof`).
 
 ## Files
 - `index.html` — self-contained (inline CSS + JS).
-- `assets/` — logo, team photo (`hero-bg.jpg` source, `hero-top.jpg` cropped band) and the
-  per-slide photos (Sjoerd, Maxwell, Faith, Sandra, and the Lessy+Diko launcher photo).
+- `about/index.html` — the English About page, self-contained, served at `/about/`.
+- `assets/` — logo (`logo.png`, cropped from the theme logo), team photo (`hero-bg.jpg` source,
+  `hero-top.jpg` cropped band) and the per-slide photos (Sjoerd, Maxwell, Faith, Sandra, and the
+  Lessy+Diko launcher photo).
