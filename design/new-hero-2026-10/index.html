@@ -289,9 +289,36 @@
     max-width: 1500px; margin: 0 auto;
     padding: 20px clamp(24px, 5vw, 72px) 90px;
   }
-  .proof-head { display:flex; align-items:flex-end; justify-content:space-between; gap:24px; flex-wrap:wrap; margin-bottom: 30px; }
-  .proof-head h2 { font-family:'Sora',sans-serif; font-weight:700; font-size: clamp(26px,3.4vw,40px); letter-spacing:-.02em; color:var(--ink); }
-  .proof-head p { color: var(--muted); font-size: 15.5px; max-width: 40ch; }
+  /* intro: "alchemy of prosperity" text left, picture right */
+  .proof-intro {
+    display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
+    gap: clamp(32px, 6vw, 80px); align-items: center; margin-bottom: clamp(40px, 5vw, 64px);
+  }
+  .proof-copy h2.alchemy {
+    font-family:'Sora',sans-serif; font-weight:800;
+    font-size: clamp(38px, 4.6vw, 66px); line-height: 1.0; letter-spacing: -.03em; color: var(--ink);
+    max-width: 13ch;
+  }
+  .proof-copy h2.alchemy .accent {
+    display: block;
+    background: linear-gradient(100deg, var(--green-700) 0%, var(--green-500) 55%, var(--green-300) 100%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    padding-bottom: .06em;
+  }
+  .proof-copy p { margin-top: 22px; font-size: clamp(16.5px, 1.5vw, 19px); line-height: 1.65; color: var(--muted); max-width: 46ch; }
+  .proof-visual { position: relative; border-radius: var(--radius); overflow: hidden; aspect-ratio: 5 / 4; }
+  .proof-visual img { width: 100%; height: 100%; object-fit: cover; display: block; box-shadow: var(--shadow); }
+  .proof-visual .ph {
+    position: absolute; inset: 0; border-radius: var(--radius);
+    border: 1.5px dashed rgba(26,122,70,.45); background: linear-gradient(160deg, var(--paper-2), rgba(217,245,227,.5));
+    display: grid; place-items: center; align-content: center; text-align: center; gap: 6px;
+    font-family:'Sora',sans-serif; font-weight:600; font-size: 16px; color: var(--green-700);
+  }
+  .proof-visual .ph span { display: block; font-weight: 400; font-size: 12.5px; color: var(--muted); }
+  @media (max-width: 980px){
+    .proof-intro { grid-template-columns: 1fr; gap: 26px; }
+    .proof-visual { aspect-ratio: 16 / 10; }
+  }
   .proof-more { margin-top: 26px; }
   .proof-more a { font-family:'Sora',sans-serif; font-weight:600; font-size:15px; color: var(--green-700); text-decoration: none; }
   .proof-more a:hover { text-decoration: underline; }
@@ -466,9 +493,15 @@
 
   <!-- SECOND MESSAGE · who we are (summary of the About page) -->
   <section class="proof" id="about">
-    <div class="proof-head">
-      <h2>We are exploring how value is created.</h2>
-      <p>ProsperGenics is a community of people who want to create value — for themselves, for others, and for the communities around them.</p>
+    <div class="proof-intro">
+      <div class="proof-copy reveal d1">
+        <h2 class="alchemy">Discover the&nbsp;alchemy <span class="accent">of prosperity</span></h2>
+        <p>ProsperGenics is a community of people who want to create value for themselves, for others, and for the communities around them.</p>
+      </div>
+      <div class="proof-visual reveal d2">
+        <!-- drop the chosen photo here: <img src="assets/....jpg" alt="" /> -->
+        <div class="ph">Picture coming soon<span>swap this placeholder for the chosen image</span></div>
+      </div>
     </div>
     <div class="cards three">
       <article class="card reveal d1"><div class="k">🔬</div><h3>We learn by doing</h3><p>Our laboratory is the real world: real projects, real customers, real consequences. Some experiments succeed, others don't — both teach us something.</p><div class="tag">Learn · build · measure</div></article>
