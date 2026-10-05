@@ -298,3 +298,16 @@ carry a valid contactPoint (parsed with `python -m json.tool` equivalent)
 while logo/sameAs from task 964 are byte-identical to before.
 Left: task 3068's own live FTP deploy is still outstanding (unrelated to
 this task, not touched here).
+
+## 2026-10-05 — task 4895 (feature/4895-about-page, PR #16 into design/new-hero-2026-10)
+Done: English About page (design/new-hero-2026-10/about/index.html) with the
+approved copy, deployed to https://test.prospergenics.com/about/. Plus a
+homepage link, assets/logo.png, deploy-to-test.py uploading about/ (vault
+32/142 first; 6/7 no longer authenticates) and a pointer-events fix so the
+launcher no longer swallows taps near the new link on mobile.
+Verified: all 47 approved sentences found in the live page text; Playwright on
+the live URL at 1440/820/390 px: no console errors, no overflow, no broken
+images; homepage slides + launcher still work; link About<->home works.
+Left: Martien's review; port the copy to the live WordPress About page only
+after approval (production not touched). Knowledge docs 554/154/526 could not
+be opened here (JK MCP needs OAuth) - copy taken from the approved draft.
