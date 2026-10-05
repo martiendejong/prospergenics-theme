@@ -552,6 +552,7 @@
     (function(){
       const photo = document.querySelector('.hero-top-photo');
       const showcasePanel = document.querySelector('.showcase-panel');
+      const alchemyVisual = document.querySelector('.proof-visual');
       if (!photo || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
       let ticking = false;
       function update() {
@@ -568,8 +569,16 @@
           showcasePanel.style.marginRight = (-30 * t) + 'px';
           showcasePanel.style.transform = 'scale(' + (1 + 0.07 * t) + ')';
         }
+        // alchemy picture: enters the viewport at 0.8, grows to full size as it scrolls up
+        if (alchemyVisual) {
+          const vh = window.innerHeight;
+          const top = alchemyVisual.getBoundingClientRect().top;
+          const a = Math.min(1, Math.max(0, (vh - top) / (vh * 0.6)));
+          alchemyVisual.style.transform = 'scale(' + (0.8 + 0.2 * a) + ')';
+        }
         ticking = false;
       }
+      update();
       window.addEventListener('scroll', function() {
         if (!ticking) { requestAnimationFrame(update); ticking = true; }
       }, { passive: true });
