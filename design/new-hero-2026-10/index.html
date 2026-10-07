@@ -404,7 +404,12 @@
   .flow:hover .flow-track { animation-play-state: paused; }
   @keyframes flow-ltr { from { transform: translateX(-50%); } to { transform: translateX(0); } }
   .flow-set { display: flex; }
-  .flow-card { position: relative; flex: none; width: 294px; margin-right: 62px; padding-top: 14px; }
+  /* portrait left, text right; the empty 1fr edge rows centre the text block vertically */
+  .flow-card {
+    position: relative; flex: none; width: 432px; margin-right: 56px;
+    display: grid; grid-template-columns: 170px minmax(0, 1fr); grid-template-rows: 1fr auto auto auto 1fr;
+    column-gap: 20px;
+  }
   /* gentle bob: whole sine periods so each loop ends at its start; 7/9/11 share no factor with
      each other or with the 64s stream and 19s lens morph, so the combination never settles.
      Cycle of 3 must divide the cards-per-set count, or the duplicate set breaks the seam. */
@@ -416,9 +421,11 @@
      portrait's slanted cut, outset ~14px); one full lap per cycle so the loop is seamless,
      and 23s is co-prime with every other cycle on this strip */
   .fc-ring {
-    position: absolute; width: 44px; height: 44px; border-radius: 50%; z-index: 2;
+    position: absolute; width: 40px; height: 40px; border-radius: 50%; z-index: -1;
     border: 2px dashed rgba(26,122,70,.55); pointer-events: none;
-    offset-path: path('M 30 0 L 216 0 L 174 286 L -14 286 Z');
+    /* elliptical orbit around the portrait's centre (85,110): it emerges beside the picture
+       and dips underneath it (z-index -1) at the top and bottom of the lap */
+    offset-path: path('M -30 110 C -30 64.7 21.5 28 85 28 C 148.5 28 200 64.7 200 110 C 200 155.3 148.5 192 85 192 C 21.5 192 -30 155.3 -30 110 Z');
     animation: fc-orbit 23s linear infinite;
   }
   @keyframes fc-orbit { from { offset-distance: 0%; } to { offset-distance: 100%; } }
@@ -429,14 +436,14 @@
   @supports not (offset-path: path('M 0 0 L 1 1')) { .fc-ring { display: none; } }
   /* portrait: straight rectangle with the same slanted cut as the showcase panels */
   .fc-portrait {
-    position: relative; display: block; width: 202px; height: 258px; margin-bottom: 18px;
-    overflow: hidden; clip-path: polygon(22px 0, 100% 0, calc(100% - 22px) 100%, 0 100%);
+    grid-column: 1; grid-row: 1 / -1; position: relative; display: block; width: 170px; height: 220px;
+    overflow: hidden; clip-path: polygon(19px 0, 100% 0, calc(100% - 19px) 100%, 0 100%);
     background: linear-gradient(165deg, var(--green-100), var(--paper-2) 70%);
   }
   .fc-portrait img { width: 100%; height: 100%; object-fit: cover; }
-  .fc-name { font-family:'Sora',sans-serif; font-weight: 800; font-size: 17.5px; color: var(--green-900); line-height: 1.2; }
-  .fc-role { font-size: 13px; color: var(--muted); margin: 4px 0 10px; }
-  .fc-quote { font-size: 14px; line-height: 1.6; color: var(--ink); }
+  .fc-name { grid-column: 2; grid-row: 2; font-family:'Sora',sans-serif; font-weight: 800; font-size: 17.5px; color: var(--green-900); line-height: 1.2; }
+  .fc-role { grid-column: 2; grid-row: 3; font-size: 13px; color: var(--muted); margin: 4px 0 10px; }
+  .fc-quote { grid-column: 2; grid-row: 4; font-size: 14px; line-height: 1.6; color: var(--ink); }
   /* the alchemy lens: a morphing blob (same primitive as the chat launcher) parked mid-stream.
      The track is slightly desaturated and the lens re-saturates whatever flows through it, so
      every voice "comes to life" as it passes the centre - value creation, literally. */
@@ -452,9 +459,10 @@
   /* no backdrop-filter support -> don't leave the whole stream dull */
   @supports not ((backdrop-filter: saturate(1)) or (-webkit-backdrop-filter: saturate(1))) { .flow-track { filter: none; } }
   @media (max-width: 640px){
-    .flow-card { width: 236px; margin-right: 40px; }
-    .fc-portrait { width: 168px; height: 216px; clip-path: polygon(18px 0, 100% 0, calc(100% - 18px) 100%, 0 100%); }
-    .fc-ring { width: 36px; height: 36px; offset-path: path('M 26 0 L 180 0 L 150 242 L -12 242 Z'); }
+    .flow-card { width: 352px; margin-right: 40px; grid-template-columns: 140px minmax(0, 1fr); column-gap: 16px; }
+    .fc-portrait { width: 140px; height: 184px; clip-path: polygon(16px 0, 100% 0, calc(100% - 16px) 100%, 0 100%); }
+    .fc-ring { width: 32px; height: 32px; offset-path: path('M -25 92 C -25 54.4 17.5 24 70 24 C 122.5 24 165 54.4 165 92 C 165 129.6 122.5 160 70 160 C 17.5 160 -25 129.6 -25 92 Z'); }
+    .fc-quote { font-size: 13px; }
     .flow-lens { width: 78vw; }
   }
 
