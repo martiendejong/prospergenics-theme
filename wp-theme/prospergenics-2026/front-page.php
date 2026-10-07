@@ -407,8 +407,8 @@
   .flow-set { display: flex; }
   /* portrait left, text right; the empty 1fr edge rows centre the text block vertically */
   .flow-card {
-    position: relative; flex: none; width: 456px; margin-right: 56px;
-    display: grid; grid-template-columns: 192px minmax(0, 1fr); grid-template-rows: 1fr auto auto auto 1fr;
+    position: relative; flex: none; width: 480px; margin-right: 56px;
+    display: grid; grid-template-columns: 216px minmax(0, 1fr); grid-template-rows: 1fr auto auto auto 1fr;
     column-gap: 20px;
   }
   /* gentle bob: whole sine periods so each loop ends at its start; 7/9/11 share no factor with
@@ -426,7 +426,7 @@
     border: 2px dashed rgba(26,122,70,.55); pointer-events: none;
     /* elliptical orbit around the portrait's centre (85,110): it emerges beside the picture
        and dips underneath it (z-index -1) at the top and bottom of the lap */
-    offset-path: path('M -30 110 C -30 64.7 26.4 28 96 28 C 165.6 28 222 64.7 222 110 C 222 155.3 165.6 192 96 192 C 26.4 192 -30 155.3 -30 110 Z');
+    offset-path: path('M -30 110 C -30 64.7 31.8 28 108 28 C 184.2 28 246 64.7 246 110 C 246 155.3 184.2 192 108 192 C 31.8 192 -30 155.3 -30 110 Z');
     animation: fc-orbit 23s linear infinite;
   }
   @keyframes fc-orbit { from { offset-distance: 0%; } to { offset-distance: 100%; } }
@@ -437,7 +437,7 @@
   @supports not (offset-path: path('M 0 0 L 1 1')) { .fc-ring { display: none; } }
   /* portrait: straight rectangle with the same slanted cut as the showcase panels */
   .fc-portrait {
-    grid-column: 1; grid-row: 1 / -1; position: relative; display: block; width: 192px; height: 220px;
+    grid-column: 1; grid-row: 1 / -1; position: relative; display: block; width: 216px; height: 220px;
     overflow: hidden; clip-path: polygon(19px 0, 100% 0, calc(100% - 19px) 100%, 0 100%);
     background: linear-gradient(165deg, var(--green-100), var(--paper-2) 70%);
   }
@@ -465,10 +465,10 @@
   /* no backdrop-filter support -> don't leave the whole stream dull */
   @supports not ((backdrop-filter: saturate(1)) or (-webkit-backdrop-filter: saturate(1))) { .flow-track { filter: none; } }
   @media (max-width: 640px){
-    .flow-card { width: 368px; margin-right: 40px; grid-template-columns: 156px minmax(0, 1fr); column-gap: 16px; }
-    .fc-portrait { width: 156px; height: 184px; clip-path: polygon(16px 0, 100% 0, calc(100% - 16px) 100%, 0 100%); }
+    .flow-card { width: 384px; margin-right: 40px; grid-template-columns: 172px minmax(0, 1fr); column-gap: 16px; }
+    .fc-portrait { width: 172px; height: 184px; clip-path: polygon(16px 0, 100% 0, calc(100% - 16px) 100%, 0 100%); }
     .fc-portrait.fc-initial { font-size: 48px; }
-    .fc-ring { width: 32px; height: 32px; offset-path: path('M -26 92 C -26 54.4 20.6 24 78 24 C 135.4 24 182 54.4 182 92 C 182 129.6 135.4 160 78 160 C 20.6 160 -26 129.6 -26 92 Z'); }
+    .fc-ring { width: 32px; height: 32px; offset-path: path('M -24 92 C -24 54.4 25.2 24 86 24 C 146.8 24 196 54.4 196 92 C 196 129.6 146.8 160 86 160 C 25.2 160 -24 129.6 -24 92 Z'); }
     .fc-quote { font-size: 13px; }
     .flow-lens { width: 78vw; }
   }
