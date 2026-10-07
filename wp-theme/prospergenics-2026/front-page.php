@@ -602,6 +602,7 @@
           <button class="sc-tab" data-i="1"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg><span>Members</span><span class="arr">→</span></button>
           <button class="sc-tab" data-i="2"><svg viewBox="0 0 24 24"><path d="M13 13v8h8v-8h-8zM3 21h8v-8H3v8zM3 3v8h8V3H3zm13.66-1.31L11 7.34 16.66 13l5.66-5.66-5.66-5.65z"/></svg><span>Tools</span><span class="arr">→</span></button>
           <button class="sc-tab" data-i="3"><svg viewBox="0 0 24 24"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg><span>Services</span><span class="arr">→</span></button>
+          <button class="sc-tab" data-i="4"><svg viewBox="0 0 24 24"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg><span>Partners</span><span class="arr">→</span></button>
         </div>
         <a class="showcase-panel" id="scPanel" href="/courses">
           <div class="sc-caption">
@@ -901,6 +902,7 @@
       { t:"Find value-creators", d:"Meet engineers, designers, researchers and entrepreneurs.", img:"<?php echo esc_url( get_template_directory_uri() ); ?>/assets/sjoerd-wide.png",          pos:"80% 45%",    href:"/members" },
       { t:"Expand your capacity", d:"A curated directory of online tools that make your life easier.",               img:"<?php echo esc_url( get_template_directory_uri() ); ?>/assets/programs-bg.jpg",         pos:"center 45%", href:"/tools" },
       { t:"Maximize your value", d:"Lets build and optimize your processes together.",                              img:"<?php echo esc_url( get_template_directory_uri() ); ?>/assets/maximize.png",             pos:"center 32%", href:"/services" },
+      { t:"Our partners", d:"The companies and organisations we create value with.",                               img:"<?php echo esc_url( get_template_directory_uri() ); ?>/assets/value.png",                pos:"center 55%", href:"/partners" },
     ];
     const panel = document.getElementById('scPanel');
     const title = document.getElementById('scTitle');
