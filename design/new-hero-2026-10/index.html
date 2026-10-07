@@ -542,6 +542,12 @@
     position: absolute; right: 12px; top: 8px; width: 15px; height: 15px; border-radius: 50%;
     background: var(--green-500); border: 2.5px solid #fff; animation: pulse 2s infinite;
   }
+  /* the CoachOS panel defaults to bottom:88px (embed.js inline CSS) which half-covers the orb;
+     lift it above the launcher (30px bottom + 186px orb + 20px gap) and shorten it to fit.
+     On small screens the orb is smaller and space is scarce, so keep the widget's own layout. */
+  @media (min-width: 561px){
+    .co-embed-panel { bottom: 236px !important; height: min(560px, calc(100vh - 268px)) !important; }
+  }
   /* the photo is scaled 2.5x inside a clipped circle and the decorative rings orbit around the launcher; their boxes would otherwise swallow taps around the launcher - taps fall through to the button instead */
   .launcher-orb .l-photo, .launcher-orb .l-ring { pointer-events: none; }
   @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(52,199,89,.55);} 70%{box-shadow:0 0 0 13px rgba(52,199,89,0);} 100%{box-shadow:0 0 0 0 rgba(52,199,89,0);} }
@@ -560,7 +566,7 @@
   }
   .wa-btn:hover { transform: scale(1.09); }
   .wa-btn svg { width: 30px; height: 30px; fill: #fff; }
-  @media (max-width: 560px){ .launcher { right: 18px; bottom: 18px; gap: 8px; } .launcher-orb { width: 144px; height: 124px; } .launcher-bubble { display: none; } .wa-btn { width: 46px; height: 46px; } .wa-btn svg { width: 25px; height: 25px; } }
+  @media (max-width: 560px){ .launcher { right: 18px; bottom: 18px; gap: 8px; } .launcher-orb { width: 144px; height: 124px; } .launcher-bubble { display: none; } .wa-btn { width: 46px; height: 46px; margin-top: 72px; } .wa-btn svg { width: 25px; height: 25px; } }
 
   /* subtle double text-shadow on key text */
   h1.reveal, .sub.reveal, .hbc-head, .sc-caption h3, .sc-caption p {
