@@ -932,6 +932,7 @@
       const alchemyScale = document.querySelector('.proof-visual .pv-scale');
       const voicesSec = document.querySelector('.voices');
       const alchemistPics = document.querySelectorAll('.fc-portrait img');
+      const alchemistFlow = document.querySelector('.voices .flow');
       if (!photo || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
       // scroll effects are desktop-only for now; clear anything set when crossing the breakpoint
       const mobile = window.matchMedia('(max-width: 980px)');
@@ -940,6 +941,7 @@
         if (showcasePanel) { showcasePanel.style.marginTop = ''; showcasePanel.style.marginBottom = ''; showcasePanel.style.marginLeft = ''; showcasePanel.style.marginRight = ''; showcasePanel.style.transform = ''; }
         if (alchemyScale) { alchemyScale.style.transform = ''; }
         alchemistPics.forEach(function (im) { im.style.transform = ''; });
+        if (alchemistFlow) { alchemistFlow.style.transform = ''; }
       }
       mobile.addEventListener('change', function (e) { if (e.matches) { clearEffects(); } else { update(); } });
       let ticking = false;
@@ -975,6 +977,9 @@
           const v = Math.min(1, Math.max(0, (vh2 - vtop) / (vh2 * 0.85)));
           const vs = 'scale(' + (1 + 0.1 * v) + ')';
           alchemistPics.forEach(function (im) { im.style.transform = vs; });
+          // the whole team banner (cards + lens) grows to 1.2 on the same curve; the scale sits
+          // on .flow as ONE transform so the duplicated marquee sets keep lining up seamlessly
+          if (alchemistFlow) { alchemistFlow.style.transform = 'scale(' + (1 + 0.2 * v) + ')'; }
         }
         ticking = false;
       }
