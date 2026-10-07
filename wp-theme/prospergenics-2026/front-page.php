@@ -401,18 +401,18 @@
   }
   /* the stream runs left-to-right and loops seamlessly: the card set is rendered twice and the
      track slides exactly one set-width (-50% -> 0), so the last frame equals the first */
-  .flow-track { display: flex; width: max-content; animation: flow-ltr 64s linear infinite; filter: saturate(.4); }
+  .flow-track { display: flex; width: max-content; animation: flow-ltr 127s linear infinite; filter: saturate(.4); }
   .flow:hover .flow-track { animation-play-state: paused; }
   @keyframes flow-ltr { from { transform: translateX(-50%); } to { transform: translateX(0); } }
   .flow-set { display: flex; }
   /* portrait left, text right; the empty 1fr edge rows centre the text block vertically */
   .flow-card {
-    position: relative; flex: none; width: 432px; margin-right: 56px;
-    display: grid; grid-template-columns: 170px minmax(0, 1fr); grid-template-rows: 1fr auto auto auto 1fr;
+    position: relative; flex: none; width: 456px; margin-right: 56px;
+    display: grid; grid-template-columns: 192px minmax(0, 1fr); grid-template-rows: 1fr auto auto auto 1fr;
     column-gap: 20px;
   }
   /* gentle bob: whole sine periods so each loop ends at its start; 7/9/11 share no factor with
-     each other or with the 64s stream and 19s lens morph, so the combination never settles.
+     each other or with the 127s stream and 19s lens morph, so the combination never settles.
      Cycle of 3 must divide the cards-per-set count, or the duplicate set breaks the seam. */
   @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
   .flow-set .flow-card:nth-child(3n+1) { animation: bob 7s ease-in-out infinite; }
@@ -426,7 +426,7 @@
     border: 2px dashed rgba(26,122,70,.55); pointer-events: none;
     /* elliptical orbit around the portrait's centre (85,110): it emerges beside the picture
        and dips underneath it (z-index -1) at the top and bottom of the lap */
-    offset-path: path('M -30 110 C -30 64.7 21.5 28 85 28 C 148.5 28 200 64.7 200 110 C 200 155.3 148.5 192 85 192 C 21.5 192 -30 155.3 -30 110 Z');
+    offset-path: path('M -30 110 C -30 64.7 26.4 28 96 28 C 165.6 28 222 64.7 222 110 C 222 155.3 165.6 192 96 192 C 26.4 192 -30 155.3 -30 110 Z');
     animation: fc-orbit 23s linear infinite;
   }
   @keyframes fc-orbit { from { offset-distance: 0%; } to { offset-distance: 100%; } }
@@ -437,11 +437,16 @@
   @supports not (offset-path: path('M 0 0 L 1 1')) { .fc-ring { display: none; } }
   /* portrait: straight rectangle with the same slanted cut as the showcase panels */
   .fc-portrait {
-    grid-column: 1; grid-row: 1 / -1; position: relative; display: block; width: 170px; height: 220px;
+    grid-column: 1; grid-row: 1 / -1; position: relative; display: block; width: 192px; height: 220px;
     overflow: hidden; clip-path: polygon(19px 0, 100% 0, calc(100% - 19px) 100%, 0 100%);
     background: linear-gradient(165deg, var(--green-100), var(--paper-2) 70%);
   }
   .fc-portrait img { width: 100%; height: 100%; object-fit: cover; }
+  /* no photo yet: initial on a brand gradient, swap for a real portrait later */
+  .fc-portrait.fc-initial {
+    display: grid; place-items: center; font-family:'Sora',sans-serif; font-weight: 800;
+    font-size: 58px; color: #fff; background: linear-gradient(150deg, var(--green-600), var(--green-300));
+  }
   .fc-name { grid-column: 2; grid-row: 2; font-family:'Sora',sans-serif; font-weight: 800; font-size: 17.5px; color: var(--green-900); line-height: 1.2; }
   .fc-role { grid-column: 2; grid-row: 3; font-size: 13px; color: var(--muted); margin: 4px 0 10px; }
   .fc-quote { grid-column: 2; grid-row: 4; font-size: 14px; line-height: 1.6; color: var(--ink); }
@@ -460,9 +465,10 @@
   /* no backdrop-filter support -> don't leave the whole stream dull */
   @supports not ((backdrop-filter: saturate(1)) or (-webkit-backdrop-filter: saturate(1))) { .flow-track { filter: none; } }
   @media (max-width: 640px){
-    .flow-card { width: 352px; margin-right: 40px; grid-template-columns: 140px minmax(0, 1fr); column-gap: 16px; }
-    .fc-portrait { width: 140px; height: 184px; clip-path: polygon(16px 0, 100% 0, calc(100% - 16px) 100%, 0 100%); }
-    .fc-ring { width: 32px; height: 32px; offset-path: path('M -25 92 C -25 54.4 17.5 24 70 24 C 122.5 24 165 54.4 165 92 C 165 129.6 122.5 160 70 160 C 17.5 160 -25 129.6 -25 92 Z'); }
+    .flow-card { width: 368px; margin-right: 40px; grid-template-columns: 156px minmax(0, 1fr); column-gap: 16px; }
+    .fc-portrait { width: 156px; height: 184px; clip-path: polygon(16px 0, 100% 0, calc(100% - 16px) 100%, 0 100%); }
+    .fc-portrait.fc-initial { font-size: 48px; }
+    .fc-ring { width: 32px; height: 32px; offset-path: path('M -26 92 C -26 54.4 20.6 24 78 24 C 135.4 24 182 54.4 182 92 C 182 129.6 135.4 160 78 160 C 20.6 160 -26 129.6 -26 92 Z'); }
     .fc-quote { font-size: 13px; }
     .flow-lens { width: 78vw; }
   }
@@ -674,6 +680,48 @@
             <div class="fc-role">Community member</div>
             <p class="fc-quote">"We work on real products with real customers. You grow faster here than in any classroom."</p>
           </article>
+          <article class="flow-card">
+            <span class="fc-ring" aria-hidden="true"></span>
+            <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/lessy_profile-300x300.png" alt="Lessy" style="object-position: center 25%" /></span>
+            <div class="fc-name">Lessy</div>
+            <div class="fc-role">Software Developer</div>
+            <p class="fc-quote">"Every task I pick up teaches me something I can use in the next one. We build, we learn, we build again."</p>
+          </article>
+          <article class="flow-card">
+            <span class="fc-ring" aria-hidden="true"></span>
+            <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/frank_profile-300x300.png" alt="Frank" style="object-position: center 25%" /></span>
+            <div class="fc-name">Frank</div>
+            <div class="fc-role">Software Developer</div>
+            <p class="fc-quote">"Working here means real responsibility from day one. You don't watch, you ship."</p>
+          </article>
+          <article class="flow-card">
+            <span class="fc-ring" aria-hidden="true"></span>
+            <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/sofy-300x300.png" alt="Sophy Nashipae de Jong" style="object-position: center 20%" /></span>
+            <div class="fc-name">Sophy Nashipae de Jong</div>
+            <div class="fc-role">Community member</div>
+            <p class="fc-quote">"I practise my Dutch with our own coach app. Learning works better when it feels personal."</p>
+          </article>
+          <article class="flow-card">
+            <span class="fc-ring" aria-hidden="true"></span>
+            <span class="fc-portrait fc-initial" aria-hidden="true">M</span>
+            <div class="fc-name">Mayiani Nanana Mpoe</div>
+            <div class="fc-role">Community member</div>
+            <p class="fc-quote">"Value creation is not abstract here. You see it change daily life around you."</p>
+          </article>
+          <article class="flow-card">
+            <span class="fc-ring" aria-hidden="true"></span>
+            <span class="fc-portrait fc-initial" aria-hidden="true">L</span>
+            <div class="fc-name">Lou Marten</div>
+            <div class="fc-role">Community member</div>
+            <p class="fc-quote">"Good ideas are everywhere. What makes the difference is a community that helps you build them."</p>
+          </article>
+          <article class="flow-card">
+            <span class="fc-ring" aria-hidden="true"></span>
+            <span class="fc-portrait fc-initial" aria-hidden="true">N</span>
+            <div class="fc-name">Natumi</div>
+            <div class="fc-role">Community member</div>
+            <p class="fc-quote">"I started by asking questions. Now people come to ask me."</p>
+          </article>
         </div>
         <div class="flow-set" aria-hidden="true">
           <article class="flow-card">
@@ -717,6 +765,48 @@
             <div class="fc-name">Maxwell</div>
             <div class="fc-role">Community member</div>
             <p class="fc-quote">"We work on real products with real customers. You grow faster here than in any classroom."</p>
+          </article>
+          <article class="flow-card">
+            <span class="fc-ring"></span>
+            <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/lessy_profile-300x300.png" alt="" style="object-position: center 25%" /></span>
+            <div class="fc-name">Lessy</div>
+            <div class="fc-role">Software Developer</div>
+            <p class="fc-quote">"Every task I pick up teaches me something I can use in the next one. We build, we learn, we build again."</p>
+          </article>
+          <article class="flow-card">
+            <span class="fc-ring"></span>
+            <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/frank_profile-300x300.png" alt="" style="object-position: center 25%" /></span>
+            <div class="fc-name">Frank</div>
+            <div class="fc-role">Software Developer</div>
+            <p class="fc-quote">"Working here means real responsibility from day one. You don't watch, you ship."</p>
+          </article>
+          <article class="flow-card">
+            <span class="fc-ring"></span>
+            <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/sofy-300x300.png" alt="" style="object-position: center 20%" /></span>
+            <div class="fc-name">Sophy Nashipae de Jong</div>
+            <div class="fc-role">Community member</div>
+            <p class="fc-quote">"I practise my Dutch with our own coach app. Learning works better when it feels personal."</p>
+          </article>
+          <article class="flow-card">
+            <span class="fc-ring"></span>
+            <span class="fc-portrait fc-initial">M</span>
+            <div class="fc-name">Mayiani Nanana Mpoe</div>
+            <div class="fc-role">Community member</div>
+            <p class="fc-quote">"Value creation is not abstract here. You see it change daily life around you."</p>
+          </article>
+          <article class="flow-card">
+            <span class="fc-ring"></span>
+            <span class="fc-portrait fc-initial">L</span>
+            <div class="fc-name">Lou Marten</div>
+            <div class="fc-role">Community member</div>
+            <p class="fc-quote">"Good ideas are everywhere. What makes the difference is a community that helps you build them."</p>
+          </article>
+          <article class="flow-card">
+            <span class="fc-ring"></span>
+            <span class="fc-portrait fc-initial">N</span>
+            <div class="fc-name">Natumi</div>
+            <div class="fc-role">Community member</div>
+            <p class="fc-quote">"I started by asking questions. Now people come to ask me."</p>
           </article>
         </div>
       </div>
@@ -860,12 +950,13 @@
           const a = Math.min(1, Math.max(0, (vh * 0.9 - top) / (vh * 0.55)));
           alchemyScale.style.transform = 'scale(' + (0.8 + 0.2 * a) + ')';
         }
-        // alchemist portraits zoom from 1 to 1.1 while the voices strip scrolls into view
+        // alchemist portraits zoom from 1 to 1.1 while the voices strip scrolls into view;
+        // the growth spans ~85% of a viewport height of scrolling so it reads as scroll-driven
         // (the img scales inside the clipped portrait, so the slanted cut stays put)
         if (voicesSec && alchemistPics.length) {
           const vh2 = window.innerHeight;
           const vtop = voicesSec.getBoundingClientRect().top;
-          const v = Math.min(1, Math.max(0, (vh2 * 0.9 - vtop) / (vh2 * 0.55)));
+          const v = Math.min(1, Math.max(0, (vh2 - vtop) / (vh2 * 0.85)));
           const vs = 'scale(' + (1 + 0.1 * v) + ')';
           alchemistPics.forEach(function (im) { im.style.transform = vs; });
         }
