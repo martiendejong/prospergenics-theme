@@ -493,23 +493,24 @@
     padding: 6px 11px; border-radius: 999px;
   }
   .pc-tag.live::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--green-500); margin-right: 7px; }
+  /* the strips scale as one block from the top edge, so they grow downward into the
+     section's bottom padding instead of over the heading above */
+  .pstrips { transform-origin: 50% 0; }
   .pc-caption {
-    position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; height: 46%;
-    display: flex; flex-direction: column; justify-content: flex-end; padding: 0 46px 20px 28px;
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; height: 52%;
+    display: flex; flex-direction: column; justify-content: flex-end; padding: 0 44px 20px 28px;
     background: linear-gradient(183deg, rgba(8,26,17,0) 0%, rgba(8,26,17,.55) 30%, rgba(8,26,17,.95) 75%);
     clip-path: polygon(0 12%, 100% 26%, 100% 100%, 0 100%);
   }
-  .pc-caption h3 { font-family:'Sora',sans-serif; font-weight: 700; font-size: 19px; color: #fff; letter-spacing: -.015em; }
+  /* no project names (Martien 07-10): only the short description, large enough to fill the block */
   .pc-caption p {
-    margin-top: 6px; font-size: 12.5px; line-height: 1.45; color: rgba(255,255,255,.85); max-width: 34ch;
-    opacity: 0; transform: translateY(6px); transition: opacity .45s var(--ease) .12s, transform .45s var(--ease) .12s;
+    font-family:'Sora',sans-serif; font-weight: 600; font-size: 16.5px; line-height: 1.35;
+    color: #fff; letter-spacing: -.01em; max-width: 30ch;
   }
-  .pcard:hover .pc-caption p, .pcard:focus-visible .pc-caption p { opacity: 1; transform: none; }
   @media (max-width: 760px){
     .pstrip { flex-direction: column; height: auto; }
     .pcard { flex: none; height: 190px; clip-path: polygon(18px 0, 100% 0, calc(100% - 18px) 100%, 0 100%); }
     .pcard + .pcard { margin-left: 0; margin-top: 14px; }
-    .pc-caption p { opacity: 1; transform: none; }
   }
 
   /* ───────────────  FLOATING CHAT LAUNCHER (bottom-right)  ─────────────── */
@@ -642,7 +643,7 @@
       <h2>Meet the <span class="accent">alchemists</span></h2>
       <p>The people who turn skills, ideas and opportunities into real value.</p>
     </div>
-    <div class="flow">
+    <div class="flow" data-scroll-scale="1.2">
       <div class="flow-track">
         <div class="flow-set">
           <article class="flow-card">
@@ -827,50 +828,52 @@
       <h2>Where we <span class="accent">create value</span></h2>
       <p>Our research runs inside real projects, with real customers and real consequences. A few of the places where we practise it.</p>
     </div>
-    <div class="pstrip">
-      <a class="pcard" href="#" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/bugatti-insights.jpg')">
-        <span class="pc-tag">Provenance</span>
-        <div class="pc-caption"><h3>Bugatti Insights</h3><p>Provenance research and collection insights for historic automobiles.</p></div>
-      </a>
-      <a class="pcard" href="https://artrevisionist.com" target="_blank" rel="noopener" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/artrevisionist.jpg'); background-position: 28% 35%">
-        <span class="pc-tag live">Art research · live</span>
-        <div class="pc-caption"><h3>Art Revisionist</h3><p>Correcting historical art attributions with evidence anyone can verify.</p></div>
-      </a>
-      <a class="pcard" href="#" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/living-provenance.jpg')">
-        <span class="pc-tag">Concept</span>
-        <div class="pc-caption"><h3>Living Provenance Gallery</h3><p>The interactive automotive vault: a museum case you can talk to, powered by Bugatti Insights.</p></div>
-      </a>
-      <!-- production portofgiethoorn.com is still "coming soon"; swap the link when it goes live -->
-      <a class="pcard" href="https://test.portofgiethoorn.com" target="_blank" rel="noopener" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/pog.jpg'); background-position: center 30%">
-        <span class="pc-tag">Tourism</span>
-        <div class="pc-caption"><h3>Port of Giethoorn</h3><p>Discover Giethoorn over the water: experiences, local businesses and the Village Passport.</p></div>
-      </a>
-      <a class="pcard" href="https://karibumara.com" target="_blank" rel="noopener" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/karibumara.jpg')">
-        <span class="pc-tag live">Tourism · live</span>
-        <div class="pc-caption"><h3>Karibu Mara</h3><p>Safaris, lodges and Maasai culture: giving Mara businesses direct access to visitors.</p></div>
-      </a>
-    </div>
-    <div class="pstrip">
-      <a class="pcard" href="#" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/seomagic.png')">
-        <span class="pc-tag">AI · SEO</span>
-        <div class="pc-caption"><h3>SEO God</h3><p>AI-powered SEO automation: analyze, optimize and generate content that ranks.</p></div>
-      </a>
-      <a class="pcard" href="#" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/jengo-telefoon-chat.png'); background-color: var(--paper-2)">
-        <span class="pc-tag">Jengo tool</span>
-        <div class="pc-caption"><h3>Jengo Mail</h3><p>Email that keeps up with you: AI triage, drafts and follow-ups.</p></div>
-      </a>
-      <a class="pcard" href="#" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/jengo-task-outcomes.png')">
-        <span class="pc-tag">Jengo tool</span>
-        <div class="pc-caption"><h3>Jengo Work</h3><p>Task boards where AI agents pick up work, build and deliver.</p></div>
-      </a>
-      <a class="pcard" href="#" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/maximize.png'); background-position: center 25%">
-        <span class="pc-tag">Jengo tool</span>
-        <div class="pc-caption"><h3>Jengo Meet</h3><p>Meetings. Notes. Action. Memory. Every meeting becomes knowledge.</p></div>
-      </a>
-      <a class="pcard" href="#" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/jengo-werkplek-duo.png'); background-color: #101826">
-        <span class="pc-tag">Education</span>
-        <div class="pc-caption"><h3>Inburgering Tool</h3><p>An AI language coach for Dutch integration: speaking, writing and KNM practice.</p></div>
-      </a>
+    <div class="pstrips" data-scroll-scale="1.2">
+      <div class="pstrip">
+        <a class="pcard" href="#" aria-label="Bugatti Insights" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/bugatti-insights.jpg')">
+          <span class="pc-tag">Provenance</span>
+          <div class="pc-caption"><p>Provenance research and collection insights for historic automobiles.</p></div>
+        </a>
+        <a class="pcard" href="https://artrevisionist.com" target="_blank" rel="noopener" aria-label="Art Revisionist" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/artrevisionist.jpg'); background-position: 28% 35%">
+          <span class="pc-tag live">Art research · live</span>
+          <div class="pc-caption"><p>Correcting historical art attributions with evidence anyone can verify.</p></div>
+        </a>
+        <a class="pcard" href="#" aria-label="Living Provenance Gallery" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/living-provenance.jpg')">
+          <span class="pc-tag">Concept</span>
+          <div class="pc-caption"><p>The interactive automotive vault: a museum case you can talk to.</p></div>
+        </a>
+        <!-- production portofgiethoorn.com is still "coming soon"; swap the link when it goes live -->
+        <a class="pcard" href="https://test.portofgiethoorn.com" target="_blank" rel="noopener" aria-label="Port of Giethoorn" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/pog.jpg'); background-position: center 30%">
+          <span class="pc-tag">Tourism</span>
+          <div class="pc-caption"><p>Discover Giethoorn over the water: experiences, local businesses and the Village Passport.</p></div>
+        </a>
+        <a class="pcard" href="https://karibumara.com" target="_blank" rel="noopener" aria-label="Karibu Mara" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/karibumara.jpg')">
+          <span class="pc-tag live">Tourism · live</span>
+          <div class="pc-caption"><p>Safaris, lodges and Maasai culture: giving Mara businesses direct access to visitors.</p></div>
+        </a>
+      </div>
+      <div class="pstrip">
+        <a class="pcard" href="#" aria-label="SEO God" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/seomagic.png')">
+          <span class="pc-tag">AI · SEO</span>
+          <div class="pc-caption"><p>AI-powered SEO automation: analyze, optimize and generate content that ranks.</p></div>
+        </a>
+        <a class="pcard" href="#" aria-label="Jengo Mail" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/jengo-telefoon-chat.png'); background-color: var(--paper-2)">
+          <span class="pc-tag">Jengo tool</span>
+          <div class="pc-caption"><p>Email that keeps up with you: AI triage, drafts and follow-ups.</p></div>
+        </a>
+        <a class="pcard" href="#" aria-label="Jengo Work" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/jengo-task-outcomes.png')">
+          <span class="pc-tag">Jengo tool</span>
+          <div class="pc-caption"><p>Task boards where AI agents pick up work, build and deliver.</p></div>
+        </a>
+        <a class="pcard" href="#" aria-label="Jengo Meet" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/maximize.png'); background-position: center 25%">
+          <span class="pc-tag">Jengo tool</span>
+          <div class="pc-caption"><p>Meetings. Notes. Action. Memory. Every meeting becomes knowledge.</p></div>
+        </a>
+        <a class="pcard" href="#" aria-label="Inburgering Tool" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/jengo-werkplek-duo.png'); background-color: #101826">
+          <span class="pc-tag">Education</span>
+          <div class="pc-caption"><p>An AI language coach for Dutch integration: speaking, writing and KNM practice.</p></div>
+        </a>
+      </div>
     </div>
   </section>
 
@@ -932,7 +935,12 @@
       const alchemyScale = document.querySelector('.proof-visual .pv-scale');
       const voicesSec = document.querySelector('.voices');
       const alchemistPics = document.querySelectorAll('.fc-portrait img');
-      const alchemistFlow = document.querySelector('.voices .flow');
+      // Generic scroll-zoom (house rule since 07-10): give any element data-scroll-scale="1.2"
+      // and it grows from 1 to that factor while its parent section scrolls into view.
+      // Every new homepage section gets this attribute on its main visual block.
+      const scrollScaled = Array.prototype.map.call(document.querySelectorAll('[data-scroll-scale]'), function (el) {
+        return { el: el, target: parseFloat(el.getAttribute('data-scroll-scale')) || 1.2, anchor: el.closest('section') || el };
+      });
       if (!photo || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
       // scroll effects are desktop-only for now; clear anything set when crossing the breakpoint
       const mobile = window.matchMedia('(max-width: 980px)');
@@ -941,7 +949,7 @@
         if (showcasePanel) { showcasePanel.style.marginTop = ''; showcasePanel.style.marginBottom = ''; showcasePanel.style.marginLeft = ''; showcasePanel.style.marginRight = ''; showcasePanel.style.transform = ''; }
         if (alchemyScale) { alchemyScale.style.transform = ''; }
         alchemistPics.forEach(function (im) { im.style.transform = ''; });
-        if (alchemistFlow) { alchemistFlow.style.transform = ''; }
+        scrollScaled.forEach(function (it) { it.el.style.transform = ''; });
       }
       mobile.addEventListener('change', function (e) { if (e.matches) { clearEffects(); } else { update(); } });
       let ticking = false;
@@ -977,9 +985,16 @@
           const v = Math.min(1, Math.max(0, (vh2 - vtop) / (vh2 * 0.85)));
           const vs = 'scale(' + (1 + 0.1 * v) + ')';
           alchemistPics.forEach(function (im) { im.style.transform = vs; });
-          // the whole team banner (cards + lens) grows to 1.2 on the same curve; the scale sits
-          // on .flow as ONE transform so the duplicated marquee sets keep lining up seamlessly
-          if (alchemistFlow) { alchemistFlow.style.transform = 'scale(' + (1 + 0.2 * v) + ')'; }
+        }
+        // generic scroll-zoom for every [data-scroll-scale] block (team banner, project strips, ...);
+        // one transform per block keeps composites like the duplicated marquee sets seamless
+        if (scrollScaled.length) {
+          const vh3 = window.innerHeight;
+          scrollScaled.forEach(function (it) {
+            const st = it.anchor.getBoundingClientRect().top;
+            const sp = Math.min(1, Math.max(0, (vh3 - st) / (vh3 * 0.85)));
+            it.el.style.transform = 'scale(' + (1 + (it.target - 1) * sp) + ')';
+          });
         }
         ticking = false;
       }
