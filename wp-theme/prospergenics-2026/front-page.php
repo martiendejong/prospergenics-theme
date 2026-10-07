@@ -71,20 +71,21 @@
   .hero-bottom { position: relative; z-index: 5; padding: 30px 0 72px; display: flex; align-items: center; gap: clamp(40px, 6vw, 80px); }
 
   @media (max-width: 980px){
-    .hero { padding: 0 20px; }
-    .hero-top { display: flex; flex-direction: column; min-height: 0; padding-top: 80px; }
-    .copy { order: 1; position: relative; z-index: 2; max-width: 100%; }
+    .hero { padding: 0; }
+    /* column-reverse + order values: full-bleed photo on top, headline below it */
+    .hero-top { display: flex; flex-direction: column-reverse; min-height: 0; padding-top: 0; }
+    .copy { order: 1; position: relative; z-index: 2; max-width: 100%; padding: 20px; }
     .copy::before { display: none; }            /* text is on clean bg on mobile; no halo needed */
     h1 { font-size: clamp(46px, 15vw, 72px); }
     .sub { font-size: clamp(17px, 4.6vw, 21px); max-width: 100%; margin-top: 18px; }
     .hero-top-photo {
-      order: 2; position: relative; left: auto; right: auto; margin: 22px 0 0; transform: none;
-      width: 100%; height: 232px; border-radius: 18px; opacity: 1;
+      order: 2; position: relative; left: auto; right: auto; top: 0; margin: 0; transform: none;
+      width: 100vw; height: 232px; border-radius: 0; opacity: 1;
       background-position: center 16%;
       -webkit-mask-image: linear-gradient(to bottom, #000 84%, transparent 100%);
               mask-image: linear-gradient(to bottom, #000 84%, transparent 100%);
     }
-    .hero-bottom { padding: 26px 0 60px; }
+    .hero-bottom { padding: 20px; }
   }
 
   /* ---- LEFT: the message ---- */
@@ -307,39 +308,23 @@
     padding-bottom: .06em;
   }
   .proof-copy p { margin-top: 22px; font-size: clamp(16.5px, 1.5vw, 19px); line-height: 1.65; color: var(--muted); max-width: 46ch; }
-  /* same parallelogram cut as the showcase slider panels, a touch larger */
-  .proof-visual {
-    position: relative; overflow: hidden; background: var(--green-900); aspect-ratio: 5 / 4;
+  /* layout box only; the reveal animation owns this element's transform */
+  .proof-visual { position: relative; aspect-ratio: 5 / 4; }
+  /* .pv-scale carries the whole skewed panel (same parallelogram cut as the
+     showcase slider, a touch larger) AND the scroll-driven scale, so the cut
+     scales along with the picture */
+  .proof-visual .pv-scale {
+    width: 100%; height: 100%; transform-origin: center; transform: scale(0.8);
     clip-path: polygon(34px 0, 100% 0, calc(100% - 34px) 100%, 0 100%);
+    background: var(--green-900); overflow: hidden;
   }
   .proof-visual img { width: 100%; height: 100%; object-fit: cover; display: block; }
   @media (max-width: 980px){
     .proof-intro { grid-template-columns: 1fr; gap: 26px; }
-    .proof-visual { aspect-ratio: 16 / 10; clip-path: polygon(20px 0, 100% 0, calc(100% - 20px) 100%, 0 100%); }
+    .proof-visual { aspect-ratio: 16 / 10; }
+    /* scroll effects are desktop-only for now */
+    .proof-visual .pv-scale { clip-path: polygon(20px 0, 100% 0, calc(100% - 20px) 100%, 0 100%); transform: none; }
   }
-  .proof-more { margin-top: 26px; }
-  .proof-more a { font-family:'Sora',sans-serif; font-weight:600; font-size:15px; color: var(--green-700); text-decoration: none; }
-  .proof-more a:hover { text-decoration: underline; }
-  @media (max-width: 560px){ .proof-more { margin-bottom: 64px; } }   /* keep the link clear of the fixed chat launcher */
-  .cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
-  @media (max-width: 1100px){ .cards { grid-template-columns: repeat(2,1fr); } }
-  @media (max-width: 560px){ .cards { grid-template-columns: 1fr; } }
-  .card {
-    position: relative; overflow: hidden;
-    background: var(--white); border: 1px solid var(--line); border-radius: 20px;
-    padding: 22px 20px 24px; transition: transform .25s var(--ease), box-shadow .25s var(--ease), border-color .25s;
-  }
-  .card:hover { transform: translateY(-6px); box-shadow: var(--shadow); border-color: transparent; }
-  .card .k { width: 42px; height: 42px; border-radius: 12px; display:grid; place-items:center; font-size:20px; background: var(--green-100); margin-bottom: 16px; }
-  .card h3 { font-family:'Sora',sans-serif; font-weight:700; font-size:17px; color:var(--green-900); margin-bottom: 7px; }
-  .card p { font-size: 13.5px; line-height: 1.5; color: var(--muted); }
-  .card .tag { margin-top: 14px; font-size: 11.5px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color: var(--green-600); }
-  .card::before { content:""; position:absolute; inset:auto 0 0 0; height:3px; background: linear-gradient(90deg,var(--green-600),var(--green-300)); transform: scaleX(0); transform-origin:left; transition: transform .3s var(--ease); }
-  .card:hover::before { transform: scaleX(1); }
-  .cards.three { grid-template-columns: repeat(3, 1fr); }
-  .cards.three .card p { font-size: 14.5px; }
-  @media (max-width: 1100px){ .cards.three { grid-template-columns: 1fr; } }
-
   .hero-bottom-cta { flex: 1; }
   .hbc-head {
     font-family: 'Sora', sans-serif; font-weight: 800;
@@ -388,7 +373,7 @@
   .sc-go { position:absolute; right: 22px; bottom: 22px; z-index:3; margin-right: 20px; width: 40px; height:40px; border-radius:50%; border:1.5px solid rgba(255,255,255,.7); color:#fff; display:grid; place-items:center; font-size:17px; transition: all .2s var(--ease); }
   .showcase-panel:hover .sc-go { background:#fff; color: var(--green-900); border-color:#fff; }
   @media (max-width: 620px){
-    .showcase { flex-direction: column; height: auto; max-width: 100%; gap: 14px; margin-top: 30px; }
+    .showcase { flex-direction: column; height: auto; max-width: 100%; gap: 14px; }
     .showcase-menu { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .sc-tab { justify-content: flex-start; white-space: nowrap; font-size: 14px; padding: 12px 14px; }
     .sc-tab .arr { display: none; }
@@ -405,8 +390,15 @@
     transition: transform .2s var(--ease);
   }
   .launcher-orb:hover { transform: translateY(-3px) scale(1.02); }
-  .launcher-orb .l-ring { position: absolute; inset: -5px; border-radius: 50%; border: 2.5px dashed rgba(26,122,70,.6); animation: spin 16s linear infinite; }
-  .launcher-orb .l-ring.l-ring2 { inset: -1px; border-style: solid; border-color: rgba(52,199,89,.38); animation: spin 26s linear infinite reverse; }
+  /* rings orbit the button on a small circle while spinning; one cycle ends exactly at its
+     start (whole turns only) so the loop is seamless, and 17s/26s are co-prime so the two
+     rings' combined pattern takes ~7.4 min to realign */
+  .launcher-orb .l-ring { position: absolute; inset: -5px; border-radius: 50%; border: 2.5px dashed rgba(26,122,70,.6); animation: ring-orbit 17s linear infinite; }
+  .launcher-orb .l-ring.l-ring2 { inset: -1px; border-style: solid; border-color: rgba(52,199,89,.38); animation: ring-orbit 26s linear infinite reverse; }
+  @keyframes ring-orbit {
+    from { transform: rotate(0turn) translateX(8px) rotate(0turn); }
+    to   { transform: rotate(1turn) translateX(8px) rotate(1turn); }
+  }
   .launcher-orb .l-blob {
     position: absolute; inset: 0; border-radius: 46% 54% 55% 45% / 52% 46% 56% 48%;
     background: radial-gradient(130% 120% at 30% 20%, var(--green-300), var(--green-500) 45%, var(--green-700));
@@ -421,7 +413,7 @@
     position: absolute; right: 12px; top: 8px; width: 15px; height: 15px; border-radius: 50%;
     background: var(--green-500); border: 2.5px solid #fff; animation: pulse 2s infinite;
   }
-  /* the photo is scaled 2.5x inside a clipped circle and the decorative rings drift (spin keyframes carry a translate); their boxes would otherwise swallow taps around the launcher - taps fall through to the button instead */
+  /* the photo is scaled 2.5x inside a clipped circle and the decorative rings orbit around the launcher; their boxes would otherwise swallow taps around the launcher - taps fall through to the button instead */
   .launcher-orb .l-photo, .launcher-orb .l-ring { pointer-events: none; }
   @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(52,199,89,.55);} 70%{box-shadow:0 0 0 13px rgba(52,199,89,0);} 100%{box-shadow:0 0 0 0 rgba(52,199,89,0);} }
   .launcher-bubble {
@@ -450,7 +442,7 @@
   .reveal { opacity: 0; transform: translateY(22px); animation: rise .9s var(--ease) forwards; }
   .d1{animation-delay:.05s} .d2{animation-delay:.15s} .d3{animation-delay:.28s} .d4{animation-delay:.4s} .d5{animation-delay:.52s}
   @keyframes rise { to { opacity:1; transform:none; } }
-  @media (prefers-reduced-motion: reduce){ *{ animation:none !important; } .reveal{ opacity:1; transform:none; } }
+  @media (prefers-reduced-motion: reduce){ *{ animation:none !important; } .reveal{ opacity:1; transform:none; } .proof-visual .pv-scale{ transform:none; } }
 </style>
 <?php wp_head(); ?>
 </head>
@@ -498,15 +490,11 @@
         <p>ProsperGenics is a community of people who want to create value for themselves, for others, and for the communities around them.</p>
       </div>
       <div class="proof-visual reveal d2">
-        <img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/value.png" alt="A chef's hands presenting a beautifully plated dish in a warm restaurant kitchen" style="object-position: center 60%" />
+        <div class="pv-scale">
+          <img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/value.png" alt="A chef's hands presenting a beautifully plated dish in a warm restaurant kitchen" style="object-position: center 60%" />
+        </div>
       </div>
     </div>
-    <div class="cards three">
-      <article class="card reveal d1"><div class="k">🔬</div><h3>We learn by doing</h3><p>Our laboratory is the real world: real projects, real customers, real consequences. Some experiments succeed, others don't — both teach us something.</p><div class="tag">Learn · build · measure</div></article>
-      <article class="card reveal d2"><div class="k">🌱</div><h3>Empowerment is the goal</h3><p>Value is more than money. We want people to become more capable, not more dependent on us — technology is a tool, not the purpose.</p><div class="tag">Capability first</div></article>
-      <article class="card reveal d3"><div class="k">🤝</div><h3>Different places, shared learning</h3><p>Grown from collaboration between Kenya and the Netherlands — very different contexts that challenge our assumptions.</p><div class="tag">Kenya ↔ Netherlands</div></article>
-    </div>
-    <p class="proof-more"><a href="<?php echo esc_url( home_url( '/' ) ); ?>about/">We don't have a finished formula — we are searching for one. Read the full story →</a></p>
   </section>
 
   <!-- Floating chat launcher: ProsperGenics coach (CoachOS tenant) + WhatsApp to Sandra -->
@@ -554,9 +542,20 @@
     (function(){
       const photo = document.querySelector('.hero-top-photo');
       const showcasePanel = document.querySelector('.showcase-panel');
+      const alchemyVisual = document.querySelector('.proof-visual');
+      const alchemyScale = document.querySelector('.proof-visual .pv-scale');
       if (!photo || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      // scroll effects are desktop-only for now; clear anything set when crossing the breakpoint
+      const mobile = window.matchMedia('(max-width: 980px)');
+      function clearEffects() {
+        photo.style.top = ''; photo.style.bottom = '';
+        if (showcasePanel) { showcasePanel.style.marginTop = ''; showcasePanel.style.marginBottom = ''; showcasePanel.style.marginLeft = ''; showcasePanel.style.marginRight = ''; showcasePanel.style.transform = ''; }
+        if (alchemyScale) { alchemyScale.style.transform = ''; }
+      }
+      mobile.addEventListener('change', function (e) { if (e.matches) { clearEffects(); } else { update(); } });
       let ticking = false;
       function update() {
+        if (mobile.matches) { clearEffects(); ticking = false; return; }
         const y = window.scrollY;
         photo.style.top = (y * 0.5 + 34) + 'px';
         // bottom edge slides from 0 to -100px over the first 500px of scroll
@@ -570,8 +569,17 @@
           showcasePanel.style.marginRight = (-30 * t) + 'px';
           showcasePanel.style.transform = 'scale(' + (1 + 0.07 * t) + ')';
         }
+        // alchemy picture: 0.8 while entering at the bottom of the viewport,
+        // grows to full size while visibly scrolling up (done at ~35% viewport height)
+        if (alchemyVisual && alchemyScale) {
+          const vh = window.innerHeight;
+          const top = alchemyVisual.getBoundingClientRect().top;
+          const a = Math.min(1, Math.max(0, (vh * 0.9 - top) / (vh * 0.55)));
+          alchemyScale.style.transform = 'scale(' + (0.8 + 0.2 * a) + ')';
+        }
         ticking = false;
       }
+      update();
       window.addEventListener('scroll', function() {
         if (!ticking) { requestAnimationFrame(update); ticking = true; }
       }, { passive: true });

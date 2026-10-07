@@ -389,8 +389,15 @@
     transition: transform .2s var(--ease);
   }
   .launcher-orb:hover { transform: translateY(-3px) scale(1.02); }
-  .launcher-orb .l-ring { position: absolute; inset: -5px; border-radius: 50%; border: 2.5px dashed rgba(26,122,70,.6); animation: spin 16s linear infinite; }
-  .launcher-orb .l-ring.l-ring2 { inset: -1px; border-style: solid; border-color: rgba(52,199,89,.38); animation: spin 26s linear infinite reverse; }
+  /* rings orbit the button on a small circle while spinning; one cycle ends exactly at its
+     start (whole turns only) so the loop is seamless, and 17s/26s are co-prime so the two
+     rings' combined pattern takes ~7.4 min to realign */
+  .launcher-orb .l-ring { position: absolute; inset: -5px; border-radius: 50%; border: 2.5px dashed rgba(26,122,70,.6); animation: ring-orbit 17s linear infinite; }
+  .launcher-orb .l-ring.l-ring2 { inset: -1px; border-style: solid; border-color: rgba(52,199,89,.38); animation: ring-orbit 26s linear infinite reverse; }
+  @keyframes ring-orbit {
+    from { transform: rotate(0turn) translateX(8px) rotate(0turn); }
+    to   { transform: rotate(1turn) translateX(8px) rotate(1turn); }
+  }
   .launcher-orb .l-blob {
     position: absolute; inset: 0; border-radius: 46% 54% 55% 45% / 52% 46% 56% 48%;
     background: radial-gradient(130% 120% at 30% 20%, var(--green-300), var(--green-500) 45%, var(--green-700));
@@ -405,7 +412,7 @@
     position: absolute; right: 12px; top: 8px; width: 15px; height: 15px; border-radius: 50%;
     background: var(--green-500); border: 2.5px solid #fff; animation: pulse 2s infinite;
   }
-  /* the photo is scaled 2.5x inside a clipped circle and the decorative rings drift (spin keyframes carry a translate); their boxes would otherwise swallow taps around the launcher - taps fall through to the button instead */
+  /* the photo is scaled 2.5x inside a clipped circle and the decorative rings orbit around the launcher; their boxes would otherwise swallow taps around the launcher - taps fall through to the button instead */
   .launcher-orb .l-photo, .launcher-orb .l-ring { pointer-events: none; }
   @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(52,199,89,.55);} 70%{box-shadow:0 0 0 13px rgba(52,199,89,0);} 100%{box-shadow:0 0 0 0 rgba(52,199,89,0);} }
   .launcher-bubble {
