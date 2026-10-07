@@ -404,10 +404,7 @@
   .flow:hover .flow-track { animation-play-state: paused; }
   @keyframes flow-ltr { from { transform: translateX(-50%); } to { transform: translateX(0); } }
   .flow-set { display: flex; }
-  .flow-card {
-    flex: none; width: 330px; margin-right: 22px; background: #fff; border: 1px solid var(--line);
-    border-radius: 18px; padding: 20px 22px 22px; box-shadow: 0 18px 34px -24px rgba(11,32,22,.35);
-  }
+  .flow-card { position: relative; flex: none; width: 294px; margin-right: 62px; padding-top: 14px; }
   /* gentle bob: whole sine periods so each loop ends at its start; 7/9/11 share no factor with
      each other or with the 64s stream and 19s lens morph, so the combination never settles.
      Cycle of 3 must divide the cards-per-set count, or the duplicate set breaks the seam. */
@@ -415,17 +412,21 @@
   .flow-set .flow-card:nth-child(3n+1) { animation: bob 7s ease-in-out infinite; }
   .flow-set .flow-card:nth-child(3n+2) { animation: bob 9s ease-in-out infinite; }
   .flow-set .flow-card:nth-child(3n)   { animation: bob 11s ease-in-out infinite; }
-  .fc-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
-  .fc-avatar {
-    position: relative; width: 46px; height: 46px; flex: none; border-radius: 50%; overflow: hidden;
-    background: linear-gradient(135deg, var(--green-600), var(--green-300)); display: grid; place-items: center;
-    font-family:'Sora',sans-serif; font-weight: 800; font-size: 17px; color: #fff;
+  /* standing portrait in an arch; a dashed growth-ring drifts behind the head (ring-orbit's
+     whole turns keep it seamless; 23s is co-prime with every other cycle on this strip) */
+  .fc-ring {
+    position: absolute; top: -16px; left: -14px; width: 230px; height: 230px; border-radius: 50%;
+    border: 2px dashed rgba(26,122,70,.45); animation: ring-orbit 23s linear infinite;
   }
-  .fc-avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-  .fc-name { font-family:'Sora',sans-serif; font-weight: 700; font-size: 14.5px; color: var(--green-900); line-height: 1.2; }
-  .fc-role { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .fc-stars { color: #fbbc04; font-size: 13.5px; letter-spacing: 2.5px; margin-bottom: 8px; }
-  .fc-quote { font-size: 13.5px; line-height: 1.55; color: var(--ink); }
+  .fc-portrait {
+    position: relative; display: block; width: 202px; height: 258px; margin-bottom: 18px;
+    border-radius: 999px 999px 26px 26px; overflow: hidden;
+    background: linear-gradient(165deg, var(--green-100), var(--paper-2) 70%);
+  }
+  .fc-portrait img { width: 100%; height: 100%; object-fit: cover; }
+  .fc-name { font-family:'Sora',sans-serif; font-weight: 800; font-size: 17.5px; color: var(--green-900); line-height: 1.2; }
+  .fc-role { font-size: 13px; color: var(--muted); margin: 4px 0 10px; }
+  .fc-quote { font-size: 14px; line-height: 1.6; color: var(--ink); }
   /* the alchemy lens: a morphing blob (same primitive as the chat launcher) parked mid-stream.
      The track is slightly desaturated and the lens re-saturates whatever flows through it, so
      every voice "comes to life" as it passes the centre - value creation, literally. */
@@ -440,7 +441,12 @@
   }
   /* no backdrop-filter support -> don't leave the whole stream dull */
   @supports not ((backdrop-filter: saturate(1)) or (-webkit-backdrop-filter: saturate(1))) { .flow-track { filter: none; } }
-  @media (max-width: 640px){ .flow-card { width: 272px; margin-right: 16px; } .flow-lens { width: 78vw; } }
+  @media (max-width: 640px){
+    .flow-card { width: 236px; margin-right: 40px; }
+    .fc-portrait { width: 168px; height: 216px; }
+    .fc-ring { width: 192px; height: 192px; top: -12px; left: -12px; }
+    .flow-lens { width: 78vw; }
+  }
 
   /* ───────────────  PROJECT SHOWCASES · expanding strip  ─────────────── */
   .projects { max-width: 1500px; margin: 0 auto; padding: clamp(28px, 3.6vw, 52px) clamp(24px, 5vw, 72px) 110px; }
@@ -599,109 +605,97 @@
        .flow-set a multiple of 3 (see the bob keyframes note in the CSS). -->
   <section class="voices" id="voices">
     <div class="voices-head">
-      <h2>Voices from <span class="accent">the community</span></h2>
-      <p>The people who learn, build and create value with ProsperGenics.</p>
+      <h2>Meet the <span class="accent">alchemists</span></h2>
+      <p>The people who turn skills, ideas and opportunities into real value.</p>
     </div>
     <div class="flow">
       <div class="flow-track">
         <div class="flow-set">
           <article class="flow-card">
-            <div class="fc-top">
-              <span class="fc-avatar"><img src="assets/faith-nkumun-300x300.png" alt="" /></span>
-              <div><div class="fc-name">Faith Nkumun</div><div class="fc-role">Community member · Kenya</div></div>
-            </div>
-            <div class="fc-stars" aria-hidden="true">★★★★★</div>
-            <p class="fc-quote">"I joined to learn digital skills. Now I help run real projects and teach others what I've learned."</p>
+            <span class="fc-ring" aria-hidden="true"></span>
+            <span class="fc-portrait"><img src="assets/martien.jpg" alt="Martien de Jong" style="object-position: 45% 25%" /></span>
+            <div class="fc-name">Martien de Jong</div>
+            <div class="fc-role">Software Developer, Founder</div>
+            <p class="fc-quote">"Kenya and the Netherlands think differently about value. Combining both is our biggest strength."</p>
           </article>
           <article class="flow-card">
-            <div class="fc-top">
-              <span class="fc-avatar"><img src="assets/maxwell-300x300.png" alt="" /></span>
-              <div><div class="fc-name">Maxwell</div><div class="fc-role">Community member · Kenya</div></div>
-            </div>
-            <div class="fc-stars" aria-hidden="true">★★★★★</div>
-            <p class="fc-quote">"We work on real products with real customers. You grow faster here than in any classroom."</p>
-          </article>
-          <article class="flow-card">
-            <div class="fc-top">
-              <span class="fc-avatar">S</span>
-              <div><div class="fc-name">Sandra</div><div class="fc-role">Team · Kenya</div></div>
-            </div>
-            <div class="fc-stars" aria-hidden="true">★★★★★</div>
+            <span class="fc-ring" aria-hidden="true"></span>
+            <span class="fc-portrait"><img src="assets/sandra_profile-300x300.png" alt="Simitia Mpoe" style="object-position: center 25%" /></span>
+            <div class="fc-name">Simitia Mpoe</div>
+            <div class="fc-role">Software Developer, Entrepreneur</div>
             <p class="fc-quote">"ProsperGenics connects people who want to build something with the people who can help them do it."</p>
           </article>
           <article class="flow-card">
-            <div class="fc-top">
-              <span class="fc-avatar">L</span>
-              <div><div class="fc-name">Lessy</div><div class="fc-role">Team · Kenya</div></div>
-            </div>
-            <div class="fc-stars" aria-hidden="true">★★★★★</div>
-            <p class="fc-quote">"Every project teaches us something new about creating value, and we get to apply it the next day."</p>
-          </article>
-          <article class="flow-card">
-            <div class="fc-top">
-              <span class="fc-avatar">D</span>
-              <div><div class="fc-name">Diko</div><div class="fc-role">Team · Kenya</div></div>
-            </div>
-            <div class="fc-stars" aria-hidden="true">★★★★★</div>
+            <span class="fc-ring" aria-hidden="true"></span>
+            <span class="fc-portrait"><img src="assets/diko_profile-300x300.png" alt="Diko Mohamed" style="object-position: center 30%" /></span>
+            <div class="fc-name">Diko Mohamed</div>
+            <div class="fc-role">Software Developer, Entrepreneur</div>
             <p class="fc-quote">"What I like most: nobody waits for permission. You see an opportunity, you build it."</p>
           </article>
           <article class="flow-card">
-            <div class="fc-top">
-              <span class="fc-avatar">M</span>
-              <div><div class="fc-name">Martien</div><div class="fc-role">Team · Netherlands</div></div>
-            </div>
-            <div class="fc-stars" aria-hidden="true">★★★★★</div>
-            <p class="fc-quote">"Kenya and the Netherlands think differently about value. Combining both is our biggest strength."</p>
+            <span class="fc-ring" aria-hidden="true"></span>
+            <span class="fc-portrait"><img src="assets/sjoerd-wide.png" alt="Sjoerd Schepman" style="object-position: 50% 15%" /></span>
+            <div class="fc-name">Sjoerd Schepman</div>
+            <div class="fc-role">Curator Perridon Holdings</div>
+            <p class="fc-quote">"I've seen this team turn an idea into a working product in weeks. That pace is rare."</p>
+          </article>
+          <article class="flow-card">
+            <span class="fc-ring" aria-hidden="true"></span>
+            <span class="fc-portrait"><img src="assets/faith-nkumun-300x300.png" alt="Faith Nkumun" style="object-position: center 20%" /></span>
+            <div class="fc-name">Faith Nkumun</div>
+            <div class="fc-role">Community member</div>
+            <p class="fc-quote">"I joined to learn digital skills. Now I help run real projects and teach others what I've learned."</p>
+          </article>
+          <article class="flow-card">
+            <span class="fc-ring" aria-hidden="true"></span>
+            <span class="fc-portrait"><img src="assets/maxwell-300x300.png" alt="Maxwell" style="object-position: center 20%" /></span>
+            <div class="fc-name">Maxwell</div>
+            <div class="fc-role">Community member</div>
+            <p class="fc-quote">"We work on real products with real customers. You grow faster here than in any classroom."</p>
           </article>
         </div>
         <div class="flow-set" aria-hidden="true">
           <article class="flow-card">
-            <div class="fc-top">
-              <span class="fc-avatar"><img src="assets/faith-nkumun-300x300.png" alt="" /></span>
-              <div><div class="fc-name">Faith Nkumun</div><div class="fc-role">Community member · Kenya</div></div>
-            </div>
-            <div class="fc-stars">★★★★★</div>
-            <p class="fc-quote">"I joined to learn digital skills. Now I help run real projects and teach others what I've learned."</p>
+            <span class="fc-ring"></span>
+            <span class="fc-portrait"><img src="assets/martien.jpg" alt="" style="object-position: 45% 25%" /></span>
+            <div class="fc-name">Martien de Jong</div>
+            <div class="fc-role">Software Developer, Founder</div>
+            <p class="fc-quote">"Kenya and the Netherlands think differently about value. Combining both is our biggest strength."</p>
           </article>
           <article class="flow-card">
-            <div class="fc-top">
-              <span class="fc-avatar"><img src="assets/maxwell-300x300.png" alt="" /></span>
-              <div><div class="fc-name">Maxwell</div><div class="fc-role">Community member · Kenya</div></div>
-            </div>
-            <div class="fc-stars">★★★★★</div>
-            <p class="fc-quote">"We work on real products with real customers. You grow faster here than in any classroom."</p>
-          </article>
-          <article class="flow-card">
-            <div class="fc-top">
-              <span class="fc-avatar">S</span>
-              <div><div class="fc-name">Sandra</div><div class="fc-role">Team · Kenya</div></div>
-            </div>
-            <div class="fc-stars">★★★★★</div>
+            <span class="fc-ring"></span>
+            <span class="fc-portrait"><img src="assets/sandra_profile-300x300.png" alt="" style="object-position: center 25%" /></span>
+            <div class="fc-name">Simitia Mpoe</div>
+            <div class="fc-role">Software Developer, Entrepreneur</div>
             <p class="fc-quote">"ProsperGenics connects people who want to build something with the people who can help them do it."</p>
           </article>
           <article class="flow-card">
-            <div class="fc-top">
-              <span class="fc-avatar">L</span>
-              <div><div class="fc-name">Lessy</div><div class="fc-role">Team · Kenya</div></div>
-            </div>
-            <div class="fc-stars">★★★★★</div>
-            <p class="fc-quote">"Every project teaches us something new about creating value, and we get to apply it the next day."</p>
-          </article>
-          <article class="flow-card">
-            <div class="fc-top">
-              <span class="fc-avatar">D</span>
-              <div><div class="fc-name">Diko</div><div class="fc-role">Team · Kenya</div></div>
-            </div>
-            <div class="fc-stars">★★★★★</div>
+            <span class="fc-ring"></span>
+            <span class="fc-portrait"><img src="assets/diko_profile-300x300.png" alt="" style="object-position: center 30%" /></span>
+            <div class="fc-name">Diko Mohamed</div>
+            <div class="fc-role">Software Developer, Entrepreneur</div>
             <p class="fc-quote">"What I like most: nobody waits for permission. You see an opportunity, you build it."</p>
           </article>
           <article class="flow-card">
-            <div class="fc-top">
-              <span class="fc-avatar">M</span>
-              <div><div class="fc-name">Martien</div><div class="fc-role">Team · Netherlands</div></div>
-            </div>
-            <div class="fc-stars">★★★★★</div>
-            <p class="fc-quote">"Kenya and the Netherlands think differently about value. Combining both is our biggest strength."</p>
+            <span class="fc-ring"></span>
+            <span class="fc-portrait"><img src="assets/sjoerd-wide.png" alt="" style="object-position: 50% 15%" /></span>
+            <div class="fc-name">Sjoerd Schepman</div>
+            <div class="fc-role">Curator Perridon Holdings</div>
+            <p class="fc-quote">"I've seen this team turn an idea into a working product in weeks. That pace is rare."</p>
+          </article>
+          <article class="flow-card">
+            <span class="fc-ring"></span>
+            <span class="fc-portrait"><img src="assets/faith-nkumun-300x300.png" alt="" style="object-position: center 20%" /></span>
+            <div class="fc-name">Faith Nkumun</div>
+            <div class="fc-role">Community member</div>
+            <p class="fc-quote">"I joined to learn digital skills. Now I help run real projects and teach others what I've learned."</p>
+          </article>
+          <article class="flow-card">
+            <span class="fc-ring"></span>
+            <span class="fc-portrait"><img src="assets/maxwell-300x300.png" alt="" style="object-position: center 20%" /></span>
+            <div class="fc-name">Maxwell</div>
+            <div class="fc-role">Community member</div>
+            <p class="fc-quote">"We work on real products with real customers. You grow faster here than in any classroom."</p>
           </article>
         </div>
       </div>
@@ -709,28 +703,33 @@
     </div>
   </section>
 
-  <!-- PROJECT SHOWCASES · Karibu Mara is live (real screenshot); the others are placeholders -->
+  <!-- PROJECT SHOWCASES · screenshots are real where the product is publicly reachable -->
   <section class="projects" id="projects">
     <div class="projects-head">
       <h2>Where we <span class="accent">create value</span></h2>
       <p>Our research runs inside real projects, with real customers and real consequences. A few of the places where we practise it.</p>
     </div>
     <div class="pstrip">
+      <a class="pcard" href="#" style="background-image:url('assets/bugatti-insights.jpg')">
+        <span class="pc-tag">Provenance</span>
+        <div class="pc-caption"><h3>Bugatti Insights</h3><p>Provenance research and collection insights for historic automobiles.</p></div>
+      </a>
+      <!-- production portofgiethoorn.com is still "coming soon"; swap the link when it goes live -->
+      <a class="pcard" href="https://test.portofgiethoorn.com" target="_blank" rel="noopener" style="background-image:url('assets/pog.jpg'); background-position: center 30%">
+        <span class="pc-tag">Tourism</span>
+        <div class="pc-caption"><h3>Port of Giethoorn</h3><p>Discover Giethoorn over the water: experiences, local businesses and the Village Passport.</p></div>
+      </a>
       <a class="pcard" href="https://karibumara.com" target="_blank" rel="noopener" style="background-image:url('assets/karibumara.jpg')">
-        <span class="pc-tag live">Platform · live</span>
+        <span class="pc-tag live">Tourism · live</span>
         <div class="pc-caption"><h3>Karibu Mara</h3><p>Safaris, lodges and Maasai culture: giving Mara businesses direct access to visitors.</p></div>
       </a>
-      <a class="pcard" href="#" style="background-image:url('assets/programs-bg.jpg')">
+      <a class="pcard" href="#" style="background-image:url('assets/seomagic.png')">
+        <span class="pc-tag">AI · SEO</span>
+        <div class="pc-caption"><h3>SEO God</h3><p>AI-powered SEO automation: analyze, optimize and generate content that ranks.</p></div>
+      </a>
+      <a class="pcard" href="#" style="background-image:url('assets/jengo-werkplek-duo.png')">
         <span class="pc-tag">Technology</span>
-        <div class="pc-caption"><h3>Jengo</h3><p>AI that multiplies what a person or a team can actually build.</p></div>
-      </a>
-      <a class="pcard" href="/courses" style="background-image:url('assets/sandra.png')">
-        <span class="pc-tag">Learn · certify</span>
-        <div class="pc-caption"><h3>Training</h3><p>Turn knowledge into useful, certified skills you can prove.</p></div>
-      </a>
-      <a class="pcard" href="/tools" style="background-image:url('assets/maximize.png')">
-        <span class="pc-tag">Directory</span>
-        <div class="pc-caption"><h3>AI Tools</h3><p>Find and understand the systems that expand what you can do.</p></div>
+        <div class="pc-caption"><h3>Jengo Suite</h3><p>Mail, Work, Knowledge and Meet: the AI tools we run every project on.</p></div>
       </a>
     </div>
   </section>
