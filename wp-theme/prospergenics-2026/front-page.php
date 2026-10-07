@@ -413,15 +413,25 @@
   .flow-set .flow-card:nth-child(3n+1) { animation: bob 7s ease-in-out infinite; }
   .flow-set .flow-card:nth-child(3n+2) { animation: bob 9s ease-in-out infinite; }
   .flow-set .flow-card:nth-child(3n)   { animation: bob 11s ease-in-out infinite; }
-  /* standing portrait in an arch; a dashed growth-ring drifts behind the head (ring-orbit's
-     whole turns keep it seamless; 23s is co-prime with every other cycle on this strip) */
+  /* a small dashed circle patrols the outline of the whole portrait (the path mirrors the
+     portrait's slanted cut, outset ~14px); one full lap per cycle so the loop is seamless,
+     and 23s is co-prime with every other cycle on this strip */
   .fc-ring {
-    position: absolute; top: -16px; left: -14px; width: 230px; height: 230px; border-radius: 50%;
-    border: 2px dashed rgba(26,122,70,.45); animation: ring-orbit 23s linear infinite;
+    position: absolute; width: 44px; height: 44px; border-radius: 50%; z-index: 2;
+    border: 2px dashed rgba(26,122,70,.55); pointer-events: none;
+    offset-path: path('M 30 0 L 216 0 L 174 286 L -14 286 Z');
+    animation: fc-orbit 23s linear infinite;
   }
+  @keyframes fc-orbit { from { offset-distance: 0%; } to { offset-distance: 100%; } }
+  /* spread the patrol phases so neighbours are never at the same spot on their lap
+     (cycle of 3 like the bob animations, so the duplicate set stays in sync) */
+  .flow-set .flow-card:nth-child(3n+2) .fc-ring { animation-delay: -7.67s; }
+  .flow-set .flow-card:nth-child(3n)   .fc-ring { animation-delay: -15.33s; }
+  @supports not (offset-path: path('M 0 0 L 1 1')) { .fc-ring { display: none; } }
+  /* portrait: straight rectangle with the same slanted cut as the showcase panels */
   .fc-portrait {
     position: relative; display: block; width: 202px; height: 258px; margin-bottom: 18px;
-    border-radius: 999px 999px 26px 26px; overflow: hidden;
+    overflow: hidden; clip-path: polygon(22px 0, 100% 0, calc(100% - 22px) 100%, 0 100%);
     background: linear-gradient(165deg, var(--green-100), var(--paper-2) 70%);
   }
   .fc-portrait img { width: 100%; height: 100%; object-fit: cover; }
@@ -444,8 +454,8 @@
   @supports not ((backdrop-filter: saturate(1)) or (-webkit-backdrop-filter: saturate(1))) { .flow-track { filter: none; } }
   @media (max-width: 640px){
     .flow-card { width: 236px; margin-right: 40px; }
-    .fc-portrait { width: 168px; height: 216px; }
-    .fc-ring { width: 192px; height: 192px; top: -12px; left: -12px; }
+    .fc-portrait { width: 168px; height: 216px; clip-path: polygon(18px 0, 100% 0, calc(100% - 18px) 100%, 0 100%); }
+    .fc-ring { width: 36px; height: 36px; offset-path: path('M 26 0 L 180 0 L 150 242 L -12 242 Z'); }
     .flow-lens { width: 78vw; }
   }
 
