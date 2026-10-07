@@ -469,7 +469,8 @@
 
   /* ───────────────  PROJECT SHOWCASES · expanding strip  ─────────────── */
   .projects { max-width: 1500px; margin: 0 auto; padding: clamp(28px, 3.6vw, 52px) clamp(24px, 5vw, 72px) 110px; }
-  .pstrip { display: flex; margin-top: 34px; height: 400px; }
+  .pstrip { display: flex; margin-top: 34px; height: 340px; }
+  .pstrip + .pstrip { margin-top: 16px; }
   .pcard {
     position: relative; flex: 1; min-width: 0; display: block; overflow: hidden; text-decoration: none;
     background-color: var(--green-900); background-size: cover; background-position: center;
@@ -734,6 +735,14 @@
         <span class="pc-tag">Provenance</span>
         <div class="pc-caption"><h3>Bugatti Insights</h3><p>Provenance research and collection insights for historic automobiles.</p></div>
       </a>
+      <a class="pcard" href="https://artrevisionist.com" target="_blank" rel="noopener" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/artrevisionist.jpg'); background-position: 28% 35%">
+        <span class="pc-tag live">Art research · live</span>
+        <div class="pc-caption"><h3>Art Revisionist</h3><p>Correcting historical art attributions with evidence anyone can verify.</p></div>
+      </a>
+      <a class="pcard" href="#" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/living-provenance.jpg')">
+        <span class="pc-tag">Concept</span>
+        <div class="pc-caption"><h3>Living Provenance Gallery</h3><p>The interactive automotive vault: a museum case you can talk to, powered by Bugatti Insights.</p></div>
+      </a>
       <!-- production portofgiethoorn.com is still "coming soon"; swap the link when it goes live -->
       <a class="pcard" href="https://test.portofgiethoorn.com" target="_blank" rel="noopener" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/pog.jpg'); background-position: center 30%">
         <span class="pc-tag">Tourism</span>
@@ -743,13 +752,27 @@
         <span class="pc-tag live">Tourism · live</span>
         <div class="pc-caption"><h3>Karibu Mara</h3><p>Safaris, lodges and Maasai culture: giving Mara businesses direct access to visitors.</p></div>
       </a>
+    </div>
+    <div class="pstrip">
       <a class="pcard" href="#" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/seomagic.png')">
         <span class="pc-tag">AI · SEO</span>
         <div class="pc-caption"><h3>SEO God</h3><p>AI-powered SEO automation: analyze, optimize and generate content that ranks.</p></div>
       </a>
-      <a class="pcard" href="#" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/jengo-werkplek-duo.png')">
-        <span class="pc-tag">Technology</span>
-        <div class="pc-caption"><h3>Jengo Suite</h3><p>Mail, Work, Knowledge and Meet: the AI tools we run every project on.</p></div>
+      <a class="pcard" href="#" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/jengo-telefoon-chat.png'); background-color: var(--paper-2)">
+        <span class="pc-tag">Jengo tool</span>
+        <div class="pc-caption"><h3>Jengo Mail</h3><p>Email that keeps up with you: AI triage, drafts and follow-ups.</p></div>
+      </a>
+      <a class="pcard" href="#" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/jengo-task-outcomes.png')">
+        <span class="pc-tag">Jengo tool</span>
+        <div class="pc-caption"><h3>Jengo Work</h3><p>Task boards where AI agents pick up work, build and deliver.</p></div>
+      </a>
+      <a class="pcard" href="#" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/maximize.png'); background-position: center 25%">
+        <span class="pc-tag">Jengo tool</span>
+        <div class="pc-caption"><h3>Jengo Meet</h3><p>Meetings. Notes. Action. Memory. Every meeting becomes knowledge.</p></div>
+      </a>
+      <a class="pcard" href="#" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/jengo-werkplek-duo.png'); background-color: #101826">
+        <span class="pc-tag">Education</span>
+        <div class="pc-caption"><h3>Inburgering Tool</h3><p>An AI language coach for Dutch integration: speaking, writing and KNM practice.</p></div>
       </a>
     </div>
   </section>
@@ -801,6 +824,8 @@
       const showcasePanel = document.querySelector('.showcase-panel');
       const alchemyVisual = document.querySelector('.proof-visual');
       const alchemyScale = document.querySelector('.proof-visual .pv-scale');
+      const voicesSec = document.querySelector('.voices');
+      const alchemistPics = document.querySelectorAll('.fc-portrait img');
       if (!photo || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
       // scroll effects are desktop-only for now; clear anything set when crossing the breakpoint
       const mobile = window.matchMedia('(max-width: 980px)');
@@ -808,6 +833,7 @@
         photo.style.top = ''; photo.style.bottom = '';
         if (showcasePanel) { showcasePanel.style.marginTop = ''; showcasePanel.style.marginBottom = ''; showcasePanel.style.marginLeft = ''; showcasePanel.style.marginRight = ''; showcasePanel.style.transform = ''; }
         if (alchemyScale) { alchemyScale.style.transform = ''; }
+        alchemistPics.forEach(function (im) { im.style.transform = ''; });
       }
       mobile.addEventListener('change', function (e) { if (e.matches) { clearEffects(); } else { update(); } });
       let ticking = false;
@@ -833,6 +859,15 @@
           const top = alchemyVisual.getBoundingClientRect().top;
           const a = Math.min(1, Math.max(0, (vh * 0.9 - top) / (vh * 0.55)));
           alchemyScale.style.transform = 'scale(' + (0.8 + 0.2 * a) + ')';
+        }
+        // alchemist portraits zoom from 1 to 1.1 while the voices strip scrolls into view
+        // (the img scales inside the clipped portrait, so the slanted cut stays put)
+        if (voicesSec && alchemistPics.length) {
+          const vh2 = window.innerHeight;
+          const vtop = voicesSec.getBoundingClientRect().top;
+          const v = Math.min(1, Math.max(0, (vh2 * 0.9 - vtop) / (vh2 * 0.55)));
+          const vs = 'scale(' + (1 + 0.1 * v) + ')';
+          alchemistPics.forEach(function (im) { im.style.transform = vs; });
         }
         ticking = false;
       }
