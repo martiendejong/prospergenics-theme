@@ -949,7 +949,7 @@
         </a>
         <a class="pcard" href="/courses" aria-label="AI trainings" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/sandra.png'); background-position: 60% 20%">
           <span class="pc-tag">AI trainings</span>
-          <div class="pc-caption"><p>Practical AI training and certification for people and teams.</p></div>
+          <div class="pc-caption"><p>AI training and certification.</p></div>
         </a>
         <a class="pcard" href="/citizenship" aria-label="Citizenship courses" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/jengo-werkplek-duo.png'); background-color: #101826">
           <span class="pc-tag">Citizenship courses</span>
