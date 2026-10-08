@@ -87,9 +87,13 @@ def validate(cfg: dict) -> list[str]:
             problems.append(f"vertalingen.{lang}.assistantIntro is empty")
     for lang in talen:
         ui = cfg.get("uiTeksten", {}).get(lang, {})
-        for key in ("chat_suggestie_1", "chat_disclaimer"):
-            if not str(ui.get(key, "")).strip():
-                problems.append(f"uiTeksten.{lang}.{key} is empty")
+        # chat_disclaimer mag bewust leeg zijn ("": verbergt de regel in de chat — Martien
+        # 08-10: clutter); hij moet alleen als sleutel AANWEZIG zijn, anders valt de widget
+        # terug op de platform-standaardtekst.
+        if "chat_disclaimer" not in ui:
+            problems.append(f"uiTeksten.{lang}.chat_disclaimer ontbreekt (leeg mag, afwezig niet)")
+        if not str(ui.get("chat_suggestie_1", "")).strip():
+            problems.append(f"uiTeksten.{lang}.chat_suggestie_1 is empty")
     return problems
 
 
