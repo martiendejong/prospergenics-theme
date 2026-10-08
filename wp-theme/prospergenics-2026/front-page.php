@@ -523,6 +523,28 @@
     .pcard + .pcard { margin-left: 0; margin-top: 14px; }
   }
 
+  /* ───────────────  PARTNERS · slanted chips  ─────────────── */
+  .plist { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 34px; transform-origin: 50% 0; }
+  .partner {
+    position: relative; display: block; text-decoration: none;
+    padding: 18px 34px 20px 30px; background: #fff; border: 1px solid var(--line);
+    transform: skewX(-5deg); transition: transform .2s var(--ease), box-shadow .2s var(--ease), border-color .2s;
+  }
+  .partner:hover { transform: skewX(-5deg) translateY(-4px); box-shadow: var(--shadow); border-color: transparent; }
+  .pr-in { display: block; transform: skewX(5deg); }
+  .pr-in strong { display: block; font-family:'Sora',sans-serif; font-weight: 700; font-size: 17px; color: var(--green-900); }
+  .pr-what { display: block; font-size: 13px; color: var(--muted); margin-top: 3px; }
+  .pr-domain { display: block; font-family:'Sora',sans-serif; font-weight: 600; font-size: 13px; color: var(--green-700); margin-top: 8px; }
+  .partner.pending { background: var(--paper-2); cursor: default; }
+  .partner.pending .pr-domain { color: var(--muted); }
+  .pr-tag {
+    position: absolute; top: -9px; right: 12px; transform: skewX(5deg);
+    font-family:'Sora',sans-serif; font-weight: 700; font-size: 10px; letter-spacing: .08em; text-transform: uppercase;
+    background: var(--green-100); color: var(--green-700); border: 1px solid rgba(34,166,90,.25);
+    padding: 3px 9px; border-radius: 999px;
+  }
+  @media (max-width: 640px){ .partner { flex: 1 1 100%; } }
+
   /* ───────────────  FLOATING CHAT LAUNCHER (bottom-right)  ─────────────── */
   .launcher { position: fixed; right: 30px; bottom: 30px; z-index: 60; display: flex; align-items: flex-end; gap: 12px; }
   .launcher-orb {
@@ -884,6 +906,42 @@
           <div class="pc-caption"><p>An AI language coach for Dutch integration: speaking, writing and KNM practice.</p></div>
         </a>
       </div>
+    </div>
+  </section>
+
+  <!-- PARTNERS · mirrors the Partners slide in the hero; /partners becomes the full
+       filterable list page (see docs/listing-pages-architecture.md) -->
+  <section class="projects" id="partners">
+    <div class="projects-head">
+      <h2>Our <span class="accent">partners</span></h2>
+      <p>The companies and organisations we create value with.</p>
+    </div>
+    <div class="plist" data-scroll-scale="1.2">
+      <a class="partner" href="https://martiendejong.nl" target="_blank" rel="noopener">
+        <span class="pr-in"><strong>Martien de Jong</strong><span class="pr-what">Software development</span><span class="pr-domain">martiendejong.nl</span></span>
+      </a>
+      <a class="partner" href="https://bugattiinsights.com" target="_blank" rel="noopener">
+        <span class="pr-in"><strong>Bugatti Insights</strong><span class="pr-what">Automotive provenance research</span><span class="pr-domain">bugattiinsights.com</span></span>
+      </a>
+      <a class="partner" href="https://artrevisionist.com" target="_blank" rel="noopener">
+        <span class="pr-in"><strong>Art Revisionist</strong><span class="pr-what">Historical art attribution research</span><span class="pr-domain">artrevisionist.com</span></span>
+      </a>
+      <span class="partner pending">
+        <span class="pr-tag">Pending</span>
+        <span class="pr-in"><strong>Eblossm</strong><span class="pr-what">Partnership in progress</span><span class="pr-domain">coming soon</span></span>
+      </span>
+      <span class="partner pending">
+        <span class="pr-tag">Pending</span>
+        <span class="pr-in"><strong>Port of Giethoorn</strong><span class="pr-what">Village tourism platform</span><span class="pr-domain">portofgiethoorn.com</span></span>
+      </span>
+      <span class="partner pending">
+        <span class="pr-tag">Pending</span>
+        <span class="pr-in"><strong>De Dames van De Jonge</strong><span class="pr-what">Boat rental · Giethoorn</span><span class="pr-domain">coming soon</span></span>
+      </span>
+      <span class="partner pending">
+        <span class="pr-tag">Pending</span>
+        <span class="pr-in"><strong>AgentX</strong><span class="pr-what">Partnership in progress</span><span class="pr-domain">coming soon</span></span>
+      </span>
     </div>
   </section>
 
