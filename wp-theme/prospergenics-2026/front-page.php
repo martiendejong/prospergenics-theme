@@ -921,56 +921,58 @@
     </div>
   </section>
 
-  <!-- PROJECT SHOWCASES · screenshots are real where the product is publicly reachable -->
+  <!-- TOOLS · the systems we built ourselves and use daily; most prestigious first.
+       Target pages (/jengo demo-request, /courses, /citizenship) are part of the
+       listing-pages plan (docs/listing-pages-architecture.md). -->
   <section class="projects" id="projects">
     <div class="projects-head">
-      <h2>Where we <span class="accent">create value</span></h2>
-      <p>Our research runs inside real projects, with real customers and real consequences. A few of the places where we practise it.</p>
+      <h2>Tools we use, <span class="accent">built ourselves</span></h2>
+      <p>The systems behind our daily work. We use them, we build them, we offer them.</p>
     </div>
     <div class="pstrips" data-scroll-scale="1.2">
       <div class="pstrip">
-        <a class="pcard" href="#" aria-label="Bugatti Insights" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/bugatti-insights.jpg')">
-          <span class="pc-tag">Provenance</span>
-          <div class="pc-caption"><p>Provenance research and collection insights for historic automobiles.</p></div>
+        <a class="pcard" href="/jengo" aria-label="Jengo" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/jengo-task-outcomes.png')">
+          <span class="pc-tag">Jengo</span>
+          <div class="pc-caption"><p>A knowledge system that massively extends what an AI worker can do. Request a demo.</p></div>
         </a>
-        <a class="pcard" href="https://artrevisionist.com" target="_blank" rel="noopener" aria-label="Art Revisionist" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/artrevisionist.jpg'); background-position: 28% 35%">
-          <span class="pc-tag live">Art research · live</span>
-          <div class="pc-caption"><p>Correcting historical art attributions with evidence anyone can verify.</p></div>
+        <a class="pcard" href="/courses" aria-label="AI trainings" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/sandra.png'); background-position: 60% 20%">
+          <span class="pc-tag">AI trainings</span>
+          <div class="pc-caption"><p>Practical AI training and certification for people and teams.</p></div>
         </a>
-        <a class="pcard" href="#" aria-label="Living Provenance Gallery" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/living-provenance.jpg')">
-          <span class="pc-tag">Concept</span>
-          <div class="pc-caption"><p>The interactive automotive vault: a museum case you can talk to.</p></div>
-        </a>
-        <!-- production portofgiethoorn.com is still "coming soon"; swap the link when it goes live -->
-        <a class="pcard" href="https://test.portofgiethoorn.com" target="_blank" rel="noopener" aria-label="Port of Giethoorn" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/pog.jpg'); background-position: center 30%">
-          <span class="pc-tag">Tourism</span>
-          <div class="pc-caption"><p>Discover Giethoorn over the water: experiences, local businesses and the Village Passport.</p></div>
-        </a>
-        <a class="pcard" href="https://karibumara.com" target="_blank" rel="noopener" aria-label="Karibu Mara" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/karibumara.jpg')">
-          <span class="pc-tag live">Tourism · live</span>
-          <div class="pc-caption"><p>Safaris, lodges and Maasai culture: giving Mara businesses direct access to visitors.</p></div>
+        <a class="pcard" href="/citizenship" aria-label="Citizenship courses" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/jengo-werkplek-duo.png'); background-color: #101826">
+          <span class="pc-tag">Citizenship courses</span>
+          <div class="pc-caption"><p>An AI language coach for Dutch citizenship: speaking, writing and KNM practice.</p></div>
         </a>
       </div>
+    </div>
+  </section>
+
+  <!-- SERVICES · what we do for clients; each card leads to a showcase page with the
+       real projects as examples (CoachOS: POG dorpsgids, citizenship, Karibu Mara;
+       research: Art Revisionist; provenance: Bugatti Insights; online presence:
+       SEO God, Port of Giethoorn, Art Revisionist). -->
+  <section class="projects" id="services">
+    <div class="projects-head">
+      <h2>Our <span class="accent">services</span></h2>
+      <p>What we do for organisations, powered by the systems above.</p>
+    </div>
+    <div class="pstrips" data-scroll-scale="1.2">
       <div class="pstrip">
-        <a class="pcard" href="#" aria-label="SEO God" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/seomagic.png')">
-          <span class="pc-tag">AI · SEO</span>
-          <div class="pc-caption"><p>AI-powered SEO automation: analyze, optimize and generate content that ranks.</p></div>
+        <a class="pcard" href="/services/coachos" aria-label="CoachOS platform" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/jengo-telefoon-chat.png'); background-color: var(--paper-2)">
+          <span class="pc-tag">CoachOS</span>
+          <div class="pc-caption"><p>AI chat, courses and avatar videos for your organisation, on your own platform.</p></div>
         </a>
-        <a class="pcard" href="#" aria-label="Jengo Mail" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/jengo-telefoon-chat.png'); background-color: var(--paper-2)">
-          <span class="pc-tag">Jengo tool</span>
-          <div class="pc-caption"><p>Email that keeps up with you: AI triage, drafts and follow-ups.</p></div>
+        <a class="pcard" href="/services/research" aria-label="Research and investigation" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/artrevisionist.jpg'); background-position: 28% 35%">
+          <span class="pc-tag">Research &amp; investigation</span>
+          <div class="pc-caption"><p>Deep research that corrects the record, with evidence anyone can verify.</p></div>
         </a>
-        <a class="pcard" href="#" aria-label="Jengo Work" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/jengo-task-outcomes.png')">
-          <span class="pc-tag">Jengo tool</span>
-          <div class="pc-caption"><p>Task boards where AI agents pick up work, build and deliver.</p></div>
+        <a class="pcard" href="/services/provenance" aria-label="Provenance" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/bugatti-insights.jpg')">
+          <span class="pc-tag">Provenance</span>
+          <div class="pc-caption"><p>Provenance systems that give objects a verifiable history.</p></div>
         </a>
-        <a class="pcard" href="#" aria-label="Jengo Meet" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/maximize.png'); background-position: center 25%">
-          <span class="pc-tag">Jengo tool</span>
-          <div class="pc-caption"><p>Meetings. Notes. Action. Memory. Every meeting becomes knowledge.</p></div>
-        </a>
-        <a class="pcard" href="#" aria-label="Inburgering Tool" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/jengo-werkplek-duo.png'); background-color: #101826">
-          <span class="pc-tag">Education</span>
-          <div class="pc-caption"><p>An AI language coach for Dutch integration: speaking, writing and KNM practice.</p></div>
+        <a class="pcard" href="/services/online-presence" aria-label="Online presence" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/seomagic.png')">
+          <span class="pc-tag">Online presence</span>
+          <div class="pc-caption"><p>Websites, SEO, AI-optimisation and social media promotion that get you found.</p></div>
         </a>
       </div>
     </div>
