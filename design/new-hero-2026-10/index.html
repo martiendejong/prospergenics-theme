@@ -422,16 +422,19 @@
   .flow-set .flow-card:nth-child(3n+1) { animation: bob 7s ease-in-out infinite; }
   .flow-set .flow-card:nth-child(3n+2) { animation: bob 9s ease-in-out infinite; }
   .flow-set .flow-card:nth-child(3n)   { animation: bob 11s ease-in-out infinite; }
-  /* a small dashed circle patrols the outline of the whole portrait (the path mirrors the
-     portrait's slanted cut, outset ~14px); one full lap per cycle so the loop is seamless,
-     and 23s is co-prime with every other cycle on this strip */
+  /* a small triangle (third brand primitive) darts criss-cross behind the portrait;
+     one full lap per cycle so the loop is seamless, and 29s is co-prime with every
+     other cycle on this strip */
   .fc-ring {
-    position: absolute; width: 40px; height: 40px; border-radius: 50%; z-index: -1;
-    border: 2px dashed rgba(26,122,70,.55); pointer-events: none;
-    /* elliptical orbit around the portrait's centre (85,110): it emerges beside the picture
-       and dips underneath it (z-index -1) at the top and bottom of the lap */
-    offset-path: path('M -30 110 C -30 64.7 31.8 28 108 28 C 184.2 28 246 64.7 246 110 C 246 155.3 184.2 192 108 192 C 31.8 192 -30 155.3 -30 110 Z');
-    animation: fc-orbit 23s linear infinite;
+    position: absolute; width: 22px; height: 20px; z-index: -1;
+    background: var(--green-600); opacity: .55;
+    clip-path: polygon(50% 0, 100% 100%, 0 100%);
+    pointer-events: none;
+    /* criss-cross lap behind the portrait (z-index -1): a closed zigzag so the loop stays
+       seamless; offset-rotate keeps the triangle's apex pointing along the travel direction */
+    offset-path: path('M -24 20 L 240 75 L -24 130 L 240 185 L 108 232 L -24 185 L 240 130 L -24 75 L 108 12 Z');
+    offset-rotate: auto 90deg;
+    animation: fc-orbit 29s linear infinite;
   }
   @keyframes fc-orbit { from { offset-distance: 0%; } to { offset-distance: 100%; } }
   /* spread the patrol phases so neighbours are never at the same spot on their lap
@@ -474,7 +477,7 @@
     .flow-card { width: 384px; margin-right: 40px; grid-template-columns: 172px minmax(0, 1fr); column-gap: 16px; }
     .fc-portrait { width: 172px; height: 184px; clip-path: polygon(16px 0, 100% 0, calc(100% - 16px) 100%, 0 100%); }
     .fc-portrait.fc-initial { font-size: 48px; }
-    .fc-ring { width: 32px; height: 32px; offset-path: path('M -24 92 C -24 54.4 25.2 24 86 24 C 146.8 24 196 54.4 196 92 C 196 129.6 146.8 160 86 160 C 25.2 160 -24 129.6 -24 92 Z'); }
+    .fc-ring { width: 18px; height: 16px; offset-path: path('M -20 15 L 192 60 L -20 105 L 192 150 L 86 190 L -20 150 L 192 105 L -20 60 L 86 10 Z'); }
     .fc-quote { font-size: 13px; }
     .flow-lens { width: 56vw; height: 256px; }
   }
