@@ -313,11 +313,23 @@
      showcase slider, a touch larger) AND the scroll-driven scale, so the cut
      scales along with the picture */
   .proof-visual .pv-scale {
-    width: 100%; height: 100%; transform-origin: center; transform: scale(0.8);
+    position: relative; display: block; width: 100%; height: 100%; transform-origin: center; transform: scale(0.8);
     clip-path: polygon(34px 0, 100% 0, calc(100% - 34px) 100%, 0 100%);
-    background: var(--green-900); overflow: hidden;
+    background: var(--green-900); overflow: hidden; text-decoration: none;
   }
-  .proof-visual img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .proof-visual img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .5s var(--ease); }
+  .pv-link:hover img { transform: scale(1.06); }
+  /* half-transparent caption band, same slanted treatment as the showcase slider captions */
+  .pv-caption {
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; height: 32%;
+    display: flex; align-items: flex-end; padding: 0 30px 20px 28px;
+    background: linear-gradient(183deg, rgba(8,26,17,0) 0%, rgba(8,26,17,.55) 35%, rgba(8,26,17,.92) 80%);
+    clip-path: polygon(0 18%, 100% 34%, 100% 100%, 0 100%);
+    font-family:'Sora',sans-serif; font-weight: 700; font-size: clamp(17px, 1.6vw, 22px);
+    color: #fff; letter-spacing: -.015em;
+  }
+  .pv-caption .arrow { margin-left: 10px; transition: transform .25s var(--ease); }
+  .pv-link:hover .pv-caption .arrow { transform: translateX(6px); }
   @media (max-width: 980px){
     .proof-intro { grid-template-columns: 1fr; gap: 26px; }
     .proof-visual { aspect-ratio: 16 / 10; }
@@ -724,9 +736,10 @@
         <p>ProsperGenics is a community of people who want to create value for themselves, for others, and for the communities around them.</p>
       </div>
       <div class="proof-visual reveal d2">
-        <div class="pv-scale">
-          <img src="assets/value.png" alt="A chef's hands presenting a beautifully plated dish in a warm restaurant kitchen" style="object-position: center 60%" />
-        </div>
+        <a class="pv-scale pv-link" href="/courses">
+          <img src="assets/discover-alchemy.png" alt="A ProsperGenics community session - browse the course material" />
+          <span class="pv-caption">Browse Course Material <span class="arrow">&rarr;</span></span>
+        </a>
       </div>
     </div>
   </section>
