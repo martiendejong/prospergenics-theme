@@ -386,6 +386,8 @@
   /* bottom padding reserves room for the 1.2 scroll-zoom (origin top, box grows downward)
      so the banner heading below never collides with the scaled test panel */
   .vtest { max-width: 1500px; margin: 0 auto; padding: clamp(28px, 3.6vw, 52px) clamp(24px, 5vw, 72px) clamp(40px, 8vw, 130px); }
+  .vtest .projects-head { text-align: center; }
+  .vtest .projects-head p { margin-left: auto; margin-right: auto; }
   .vtest-box {
     margin-top: 34px; transform-origin: 50% 0;
     background: #fff; border: 1px solid var(--line); transform: skewX(-3deg);
