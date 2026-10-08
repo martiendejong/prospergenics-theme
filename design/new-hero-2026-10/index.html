@@ -1176,8 +1176,13 @@
       // runs, default 0.85 - smaller = finished at a lower scroll position).
       // Every new homepage section gets this attribute on its main visual block.
       const scrollScaled = Array.prototype.map.call(document.querySelectorAll('[data-scroll-scale]'), function (el) {
+        // keep any CSS transform the element already has (e.g. the test panel's skew):
+        // the inline scroll-zoom transform would otherwise replace it, which un-skews the
+        // box while its counter-skewed content keeps leaning - instant accidental italics
+        const basis = getComputedStyle(el).transform;
         return {
           el: el,
+          base: (basis && basis !== 'none') ? basis + ' ' : '',
           target: parseFloat(el.getAttribute('data-scroll-scale')) || 1.2,
           from: parseFloat(el.getAttribute('data-scroll-scale-from')) || 1,
           window: parseFloat(el.getAttribute('data-scroll-scale-window')) || 0.85,
@@ -1236,7 +1241,7 @@
           scrollScaled.forEach(function (it) {
             const st = it.anchor.getBoundingClientRect().top;
             const sp = Math.min(1, Math.max(0, (vh3 - st) / (vh3 * it.window)));
-            it.el.style.transform = 'scale(' + (it.from + (it.target - it.from) * sp) + ')';
+            it.el.style.transform = it.base + 'scale(' + (it.from + (it.target - it.from) * sp) + ')';
           });
         }
         ticking = false;
