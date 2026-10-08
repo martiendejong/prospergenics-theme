@@ -381,6 +381,50 @@
     .sc-caption h3 { font-size: 20px; }
   }
 
+  /* ───────────────  VALUE TEST · "How valuable are you?"  ─────────────── */
+  .vtest { max-width: 1500px; margin: 0 auto; padding: clamp(28px, 3.6vw, 52px) clamp(24px, 5vw, 72px) clamp(20px, 2.6vw, 36px); }
+  .vtest-box {
+    margin-top: 34px; transform-origin: 50% 0;
+    background: #fff; border: 1px solid var(--line); transform: skewX(-3deg);
+    box-shadow: 0 30px 70px -50px rgba(11,32,22,.45);
+  }
+  .vtest-in { display: block; transform: skewX(3deg); padding: clamp(28px, 4vw, 56px) clamp(24px, 5vw, 72px); }
+  .vt-progress { display: flex; gap: 8px; margin-bottom: 22px; }
+  .vt-dot { width: 34px; height: 5px; background: var(--green-100); transition: background .3s; }
+  .vt-dot.done { background: var(--green-500); }
+  .vt-question { font-family:'Sora',sans-serif; font-weight: 800; font-size: clamp(22px, 2.6vw, 36px); line-height: 1.15; letter-spacing: -.02em; color: var(--ink); max-width: 28ch; }
+  .vt-answer {
+    margin-top: 22px; width: 100%; min-height: 110px; resize: vertical;
+    font-family: 'Inter', system-ui, sans-serif; font-size: 16.5px; line-height: 1.6; color: var(--ink);
+    padding: 16px 18px; background: var(--paper); border: 1.5px solid var(--line); border-radius: 0;
+    outline: none; transition: border-color .2s;
+  }
+  .vt-answer:focus { border-color: var(--green-600); }
+  .vt-nav { margin-top: 22px; display: flex; align-items: center; gap: 14px; }
+  .vt-back { background: none; border: none; cursor: pointer; font-family:'Sora',sans-serif; font-weight: 600; font-size: 14px; color: var(--muted); padding: 10px 0; }
+  .vt-back:hover { color: var(--green-700); }
+  .vt-hint { margin-left: auto; font-size: 13px; color: var(--muted); }
+  .vt-busy { display: flex; align-items: center; gap: 16px; padding: 26px 0 10px; font-family:'Sora',sans-serif; font-weight: 600; font-size: 17px; color: var(--green-900); }
+  .vt-busy .l-blob { position: relative; inset: auto; width: 46px; height: 46px; flex: none; animation: morph 4s var(--ease) infinite; }
+  .vt-profile {
+    font-family:'Sora',sans-serif; font-weight: 800; font-size: clamp(34px, 4vw, 58px); line-height: 1.02; letter-spacing: -.03em;
+    background: linear-gradient(100deg, var(--green-700) 0%, var(--green-500) 55%, var(--green-300) 100%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    padding-bottom: .08em;
+  }
+  .vt-result-text { margin-top: 14px; font-size: clamp(16.5px, 1.5vw, 19px); line-height: 1.65; color: var(--ink); max-width: 62ch; }
+  .vt-cta { margin-top: 26px; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+  .vt-cta .btn-primary {
+    display: inline-flex; align-items: center; gap: 10px; text-decoration: none;
+    font-family:'Sora',sans-serif; font-weight: 600; font-size: 16px; padding: 16px 26px; border-radius: 999px;
+    color: #fff; background: linear-gradient(100deg, var(--green-700), var(--green-600));
+    box-shadow: 0 14px 30px -12px var(--green-600); transition: transform .2s var(--ease);
+  }
+  .vt-cta .btn-primary:hover { transform: translateY(-2px); }
+  .vt-cta-note { font-size: 14.5px; color: var(--muted); max-width: 40ch; }
+  .vt-error { margin-top: 16px; font-size: 14px; color: #a33; }
+  @media (max-width: 640px){ .vtest-box, .vt-in { transform: none; } .vtest-in { transform: none; padding: 24px 18px; } }
+
   /* ───────────────  COMMUNITY VOICES · flowing review banner  ─────────────── */
   .voices { position: relative; padding: clamp(10px, 1.6vw, 22px) 0 clamp(20px, 2.6vw, 34px); overflow: hidden; }
   .voices-head { max-width: 1500px; margin: 0 auto; padding: 0 clamp(24px, 5vw, 72px); }
@@ -422,16 +466,16 @@
   .flow-set .flow-card:nth-child(3n+1) { animation: bob 7s ease-in-out infinite; }
   .flow-set .flow-card:nth-child(3n+2) { animation: bob 9s ease-in-out infinite; }
   .flow-set .flow-card:nth-child(3n)   { animation: bob 11s ease-in-out infinite; }
-  /* a small triangle (third brand primitive) darts criss-cross behind the portrait;
-     one full lap per cycle so the loop is seamless, and 29s is co-prime with every
-     other cycle on this strip */
+  /* a dashed-outline triforce (one triangle built from four, each the size of the old
+     single triangle, so the whole is twice as wide and tall) darts criss-cross behind
+     the portrait; one full lap per cycle so the loop is seamless, and 29s is co-prime
+     with every other cycle on this strip */
   .fc-ring {
-    position: absolute; width: 22px; height: 20px; z-index: -1;
-    background: var(--green-600); opacity: .55;
-    clip-path: polygon(50% 0, 100% 100%, 0 100%);
+    position: absolute; width: 44px; height: 40px; z-index: -1;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 40' fill='none' stroke='%231a7a46' stroke-opacity='.6' stroke-width='1.5' stroke-dasharray='3 3'%3E%3Cpath d='M22 1 L43 39 L1 39 Z'/%3E%3Cpath d='M11.5 20 L32.5 20 L22 39 Z'/%3E%3C/svg%3E") center / contain no-repeat;
     pointer-events: none;
     /* criss-cross lap behind the portrait (z-index -1): a closed zigzag so the loop stays
-       seamless; offset-rotate keeps the triangle's apex pointing along the travel direction */
+       seamless; offset-rotate keeps the triforce's apex pointing along the travel direction */
     offset-path: path('M -24 20 L 240 75 L -24 130 L 240 185 L 108 232 L -24 185 L 240 130 L -24 75 L 108 12 Z');
     offset-rotate: auto 90deg;
     animation: fc-orbit 29s linear infinite;
@@ -477,7 +521,7 @@
     .flow-card { width: 384px; margin-right: 40px; grid-template-columns: 172px minmax(0, 1fr); column-gap: 16px; }
     .fc-portrait { width: 172px; height: 184px; clip-path: polygon(16px 0, 100% 0, calc(100% - 16px) 100%, 0 100%); }
     .fc-portrait.fc-initial { font-size: 48px; }
-    .fc-ring { width: 18px; height: 16px; offset-path: path('M -20 15 L 192 60 L -20 105 L 192 150 L 86 190 L -20 150 L 192 105 L -20 60 L 86 10 Z'); }
+    .fc-ring { width: 36px; height: 33px; offset-path: path('M -20 15 L 192 60 L -20 105 L 192 150 L 86 190 L -20 150 L 192 105 L -20 60 L 86 10 Z'); }
     .fc-quote { font-size: 13px; }
     .flow-lens { width: 56vw; height: 256px; }
   }
@@ -661,6 +705,29 @@
         <div class="pv-scale">
           <img src="assets/value.png" alt="A chef's hands presenting a beautifully plated dish in a warm restaurant kitchen" style="object-position: center 60%" />
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VALUE TEST · five open questions, analysed by the CoachOS 'value-test' context on the
+       prospergenics tenant (coaching.martiendejong.nl); everyone comes out valuable, each in
+       their own way. Result ends with a CTA to the courses signup. -->
+  <section class="vtest" id="value-test">
+    <div class="projects-head">
+      <h2>How valuable <span class="accent">are you?</span></h2>
+      <p>Five honest questions, one slightly unfair conclusion: you are valuable. Take the test and find out where your value lies.</p>
+    </div>
+    <div class="vtest-box" data-scroll-scale="1.2" data-scroll-scale-window="0.65">
+      <div class="vtest-in" id="vtStage">
+        <div class="vt-progress" id="vtProgress" aria-hidden="true"></div>
+        <div class="vt-question" id="vtQuestion"></div>
+        <textarea class="vt-answer" id="vtAnswer" rows="4" placeholder="Just write what comes up - there are no wrong answers."></textarea>
+        <div class="vt-nav">
+          <button class="vt-back" id="vtBack" type="button" style="visibility:hidden">&larr; Back</button>
+          <button class="btn btn-primary" id="vtNext" type="button">Next <span class="arrow">&rarr;</span></button>
+          <span class="vt-hint" id="vtHint"></span>
+        </div>
+        <div class="vt-error" id="vtError" style="display:none"></div>
       </div>
     </div>
   </section>
@@ -911,8 +978,8 @@
        filterable list page (see docs/listing-pages-architecture.md) -->
   <section class="projects" id="partners">
     <div class="projects-head">
-      <h2>Our <span class="accent">partners</span></h2>
-      <p>The companies and organisations we create value with.</p>
+      <h2>Initiatives by <span class="accent">our members</span></h2>
+      <p>Companies and organisations our members built and run.</p>
     </div>
     <div class="plist" data-scroll-scale="1.2">
       <a class="partner" href="https://martiendejong.nl" target="_blank" rel="noopener">
@@ -992,6 +1059,93 @@
       t.addEventListener('mouseenter', ()=>{ show(i); restart(); });
     });
     show(0); restart();
+
+    // ── Value test: five open questions, analysed by CoachOS (tenant prospergenics,
+    //    context value-test). The answer format is fixed by the context prompt:
+    //    first line = profile name, blank line, then the explanation.
+    (function () {
+      const QUESTIONS = [
+        "What could you talk about for hours without getting tired?",
+        "What do people around you keep asking your help with?",
+        "What did you recently make, fix or organise that you were quietly proud of?",
+        "If money did not matter for a year, how would you spend your days?",
+        "What about the world annoys you so much that you would love to change it?"
+      ];
+      const API = "https://coaching.martiendejong.nl/coaching/api/chat";
+      const stage = document.getElementById('vtStage');
+      const progress = document.getElementById('vtProgress');
+      const questionEl = document.getElementById('vtQuestion');
+      const answerEl = document.getElementById('vtAnswer');
+      const backBtn = document.getElementById('vtBack');
+      const nextBtn = document.getElementById('vtNext');
+      const hintEl = document.getElementById('vtHint');
+      const errorEl = document.getElementById('vtError');
+      if (!stage) return;
+      const answers = QUESTIONS.map(function () { return ''; });
+      let step = 0;
+
+      QUESTIONS.forEach(function () {
+        const d = document.createElement('span');
+        d.className = 'vt-dot';
+        progress.appendChild(d);
+      });
+
+      function render() {
+        const dots = progress.children;
+        for (let i = 0; i < dots.length; i++) dots[i].classList.toggle('done', i <= step);
+        questionEl.textContent = (step + 1) + '. ' + QUESTIONS[step];
+        answerEl.value = answers[step];
+        backBtn.style.visibility = step === 0 ? 'hidden' : 'visible';
+        nextBtn.innerHTML = step === QUESTIONS.length - 1 ? 'Reveal my value <span class="arrow">&rarr;</span>' : 'Next <span class="arrow">&rarr;</span>';
+        hintEl.textContent = (step + 1) + ' / ' + QUESTIONS.length;
+        answerEl.focus({ preventScroll: true });
+      }
+
+      backBtn.addEventListener('click', function () {
+        answers[step] = answerEl.value;
+        if (step > 0) { step--; render(); }
+      });
+
+      nextBtn.addEventListener('click', function () {
+        answers[step] = answerEl.value;
+        if (step < QUESTIONS.length - 1) { step++; render(); return; }
+        finish();
+      });
+
+      function finish() {
+        const compiled = "My answers to the value test:\n" + QUESTIONS.map(function (q, i) {
+          return (i + 1) + '. ' + q + '\n- ' + (answers[i].trim() || '(no answer)');
+        }).join('\n');
+        stage.innerHTML = '<div class="vt-busy"><span class="l-blob"></span>The alchemists are weighing your answers&hellip;</div>';
+        fetch(API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Tenant': 'prospergenics' },
+          body: JSON.stringify({ berichten: [{ rol: 'gebruiker', tekst: compiled }], contextSlug: 'value-test' })
+        }).then(function (r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.json();
+        }).then(function (data) {
+          const text = (data && data.tekst) ? data.tekst.trim() : '';
+          const br = text.indexOf('\n');
+          const profile = br > 0 ? text.slice(0, br).trim() : 'The Alchemist';
+          const rest = br > 0 ? text.slice(br).trim() : text;
+          stage.innerHTML =
+            '<div class="vt-profile"></div>' +
+            '<div class="vt-result-text"></div>' +
+            '<div class="vt-cta">' +
+            '  <a class="btn-primary" href="/courses">Start developing your value <span class="arrow">&rarr;</span></a>' +
+            '  <span class="vt-cta-note">Your value is real. Our courses help you turn it into skills, income and impact - sign up and start today.</span>' +
+            '</div>';
+          stage.querySelector('.vt-profile').textContent = profile;
+          stage.querySelector('.vt-result-text').textContent = rest;
+        }).catch(function () {
+          stage.innerHTML = '<div class="vt-result-text">The alchemists are momentarily overwhelmed. Give it another try in a minute.</div>' +
+            '<div class="vt-cta"><a class="btn-primary" href="/courses">Explore the courses <span class="arrow">&rarr;</span></a></div>';
+        });
+      }
+
+      render();
+    })();
 
     // Parallax: set top = scrollY * 0.5 + 34px so the element moves at half scroll speed
     (function(){
