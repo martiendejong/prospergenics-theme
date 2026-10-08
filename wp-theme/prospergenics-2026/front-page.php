@@ -289,12 +289,12 @@
   .proof {
     position: relative; z-index: 5;
     max-width: 1500px; margin: 0 auto;
-    padding: 20px clamp(24px, 5vw, 72px) 90px;
+    padding: 20px clamp(24px, 5vw, 72px) clamp(16px, 2.4vw, 32px);
   }
   /* intro: "alchemy of prosperity" text left, picture right */
   .proof-intro {
     display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
-    gap: clamp(32px, 6vw, 80px); align-items: center; margin-bottom: clamp(40px, 5vw, 64px);
+    gap: clamp(32px, 6vw, 80px); align-items: center;
   }
   .proof-copy h2.alchemy {
     font-family:'Sora',sans-serif; font-weight:800;
@@ -383,19 +383,24 @@
   }
 
   /* ───────────────  COMMUNITY VOICES · flowing review banner  ─────────────── */
-  .voices { position: relative; padding: clamp(26px, 3.4vw, 46px) 0 clamp(20px, 2.6vw, 34px); overflow: hidden; }
+  .voices { position: relative; padding: clamp(10px, 1.6vw, 22px) 0 clamp(20px, 2.6vw, 34px); overflow: hidden; }
   .voices-head { max-width: 1500px; margin: 0 auto; padding: 0 clamp(24px, 5vw, 72px); }
+  /* same typography as the alchemy heading and the "Not sure where to start?" block */
   .voices-head h2, .projects-head h2 {
-    font-family:'Sora',sans-serif; font-weight:800; font-size: clamp(28px, 3.1vw, 44px);
-    line-height: 1.05; letter-spacing: -.025em; color: var(--ink);
+    font-family:'Sora',sans-serif; font-weight:800; font-size: clamp(38px, 4.6vw, 66px);
+    line-height: 1.0; letter-spacing: -.03em; color: var(--ink);
   }
   .voices-head h2 .accent, .projects-head h2 .accent {
+    display: block;
     background: linear-gradient(100deg, var(--green-700) 0%, var(--green-500) 55%, var(--green-300) 100%);
     -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    padding-bottom: .06em;
   }
-  .voices-head p, .projects-head p { margin-top: 10px; font-size: clamp(15px, 1.3vw, 17px); line-height: 1.6; color: var(--muted); max-width: 62ch; }
+  .voices-head p, .projects-head p { margin-top: 22px; font-size: clamp(16.5px, 1.5vw, 19px); line-height: 1.65; color: var(--muted); max-width: 46ch; }
   .flow {
-    position: relative; margin-top: 28px; padding: 16px 0 24px;
+    /* vertical padding gives the lens (taller than the cards) room to stay fully visible,
+       also while the whole strip scroll-zooms to 1.2 */
+    position: relative; margin-top: 28px; padding: 56px 0 64px;
     -webkit-mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent);
             mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent);
   }
@@ -450,14 +455,16 @@
   .fc-name { grid-column: 2; grid-row: 2; font-family:'Sora',sans-serif; font-weight: 800; font-size: 17.5px; color: var(--green-900); line-height: 1.2; }
   .fc-role { grid-column: 2; grid-row: 3; font-size: 13px; color: var(--muted); margin: 4px 0 10px; }
   .fc-quote { grid-column: 2; grid-row: 4; font-size: 14px; line-height: 1.6; color: var(--ink); }
-  /* the alchemy lens: a morphing blob (same primitive as the chat launcher) parked mid-stream.
+  /* the alchemy lens: same slanted-rectangle form as the portraits (skew keeps the dashed
+     border, clip-path would not), a bit bigger than a portrait and fully visible mid-stream.
      The track is slightly desaturated and the lens re-saturates whatever flows through it, so
      every voice "comes to life" as it passes the centre - value creation, literally. */
   .flow-lens {
-    position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
-    width: min(430px, 72vw); height: 104%; pointer-events: none; z-index: 3;
+    position: absolute; left: 50%; top: 50%;
+    width: min(280px, 72vw); height: 300px;
+    transform: translate(-50%,-50%) skewX(-5deg);
+    pointer-events: none; z-index: 3;
     border: 2px dashed rgba(26,122,70,.38);
-    border-radius: 46% 54% 55% 45% / 52% 46% 56% 48%; animation: morph 19s var(--ease) infinite;
     -webkit-backdrop-filter: saturate(2.6) brightness(1.02);
             backdrop-filter: saturate(2.6) brightness(1.02);
     box-shadow: 0 30px 70px -45px rgba(26,122,70,.5);
@@ -470,7 +477,7 @@
     .fc-portrait.fc-initial { font-size: 48px; }
     .fc-ring { width: 32px; height: 32px; offset-path: path('M -24 92 C -24 54.4 25.2 24 86 24 C 146.8 24 196 54.4 196 92 C 196 129.6 146.8 160 86 160 C 25.2 160 -24 129.6 -24 92 Z'); }
     .fc-quote { font-size: 13px; }
-    .flow-lens { width: 78vw; }
+    .flow-lens { width: 56vw; height: 256px; }
   }
 
   /* ───────────────  PROJECT SHOWCASES · expanding strip  ─────────────── */
