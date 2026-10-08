@@ -953,7 +953,7 @@
         </a>
         <a class="pcard" href="/citizenship" aria-label="Citizenship courses" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/jengo-werkplek-duo.png'); background-color: #101826">
           <span class="pc-tag">Citizenship courses</span>
-          <div class="pc-caption"><p>An AI language coach for Dutch citizenship: speaking, writing and KNM practice.</p></div>
+          <div class="pc-caption"><p>Dutch citizenship and language courses.</p></div>
         </a>
       </div>
     </div>
