@@ -479,26 +479,23 @@
   .flow-set .flow-card:nth-child(3n+1) { animation: bob 7s ease-in-out infinite; }
   .flow-set .flow-card:nth-child(3n+2) { animation: bob 9s ease-in-out infinite; }
   .flow-set .flow-card:nth-child(3n)   { animation: bob 11s ease-in-out infinite; }
-  /* a dashed-outline triforce (one triangle built from four, each the size of the old
-     single triangle, so the whole is twice as wide and tall) darts criss-cross behind
-     the portrait; one full lap per cycle so the loop is seamless, and 29s is co-prime
-     with every other cycle on this strip */
-  .fc-ring {
-    position: absolute; width: 44px; height: 40px; z-index: -1;
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 40' fill='none' stroke='%231a7a46' stroke-opacity='.6' stroke-width='1.5' stroke-dasharray='3 3'%3E%3Cpath d='M22 1 L43 39 L1 39 Z'/%3E%3Cpath d='M11.5 20 L32.5 20 L22 39 Z'/%3E%3C/svg%3E") center / contain no-repeat;
-    pointer-events: none;
-    /* criss-cross lap behind the portrait (z-index -1): a closed zigzag so the loop stays
-       seamless; offset-rotate keeps the triforce's apex pointing along the travel direction */
-    offset-path: path('M -24 20 L 240 75 L -24 130 L 240 185 L 108 232 L -24 185 L 240 130 L -24 75 L 108 12 Z');
-    offset-rotate: auto 90deg;
-    animation: fc-orbit 29s linear infinite;
+  /* the per-member triangles are retired in favour of two banner-wide triforces */
+  .fc-ring { display: none; }
+  /* two dashed-outline triforces weave back and forth across the WHOLE banner:
+     the outer element pendulums horizontally (ease-in-out, alternate), the inner one
+     drifts vertically on its own period and spins slowly. All durations are prime and
+     pairwise different, so the weave pattern never settles into a visible repeat. */
+  .flow-tri { position: absolute; top: 0; bottom: 0; left: 0; width: 52px; pointer-events: none; animation: tri-x 41s ease-in-out infinite alternate; }
+  .flow-tri span {
+    position: absolute; left: 0; width: 52px; height: 48px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 40' fill='none' stroke='%231a7a46' stroke-opacity='.55' stroke-width='1.5' stroke-dasharray='3 3'%3E%3Cpath d='M22 1 L43 39 L1 39 Z'/%3E%3Cpath d='M11.5 20 L32.5 20 L22 39 Z'/%3E%3C/svg%3E") center / contain no-repeat;
+    animation: tri-y 13s ease-in-out infinite alternate, tri-spin 29s linear infinite;
   }
-  @keyframes fc-orbit { from { offset-distance: 0%; } to { offset-distance: 100%; } }
-  /* spread the patrol phases so neighbours are never at the same spot on their lap
-     (cycle of 3 like the bob animations, so the duplicate set stays in sync) */
-  .flow-set .flow-card:nth-child(3n+2) .fc-ring { animation-delay: -7.67s; }
-  .flow-set .flow-card:nth-child(3n)   .fc-ring { animation-delay: -15.33s; }
-  @supports not (offset-path: path('M 0 0 L 1 1')) { .fc-ring { display: none; } }
+  .flow-tri2 { width: 40px; animation-duration: 53s; animation-direction: alternate-reverse; }
+  .flow-tri2 span { width: 40px; height: 37px; animation-duration: 17s, 31s; animation-direction: alternate-reverse, reverse; }
+  @keyframes tri-x { from { left: -60px; } to { left: 100%; } }
+  @keyframes tri-y { from { top: 4%; } to { top: 82%; } }
+  @keyframes tri-spin { to { transform: rotate(360deg); } }
   /* portrait: straight rectangle with the same slanted cut as the showcase panels */
   .fc-portrait {
     grid-column: 1; grid-row: 1 / -1; position: relative; display: block; width: 216px; height: 220px;
@@ -534,7 +531,10 @@
     .flow-card { width: 384px; margin-right: 40px; grid-template-columns: 172px minmax(0, 1fr); column-gap: 16px; }
     .fc-portrait { width: 172px; height: 184px; clip-path: polygon(16px 0, 100% 0, calc(100% - 16px) 100%, 0 100%); }
     .fc-portrait.fc-initial { font-size: 48px; }
-    .fc-ring { width: 36px; height: 33px; offset-path: path('M -20 15 L 192 60 L -20 105 L 192 150 L 86 190 L -20 150 L 192 105 L -20 60 L 86 10 Z'); }
+    .flow-tri { width: 38px; }
+    .flow-tri span { width: 38px; height: 35px; }
+    .flow-tri2 { width: 30px; }
+    .flow-tri2 span { width: 30px; height: 28px; }
     .fc-quote { font-size: 13px; }
     .flow-lens { width: 56vw; height: 256px; }
   }
@@ -755,6 +755,8 @@
       <p>The people who turn skills, ideas and opportunities into real value.</p>
     </div>
     <div class="flow" data-scroll-scale="1.3" data-scroll-scale-from="0.8" data-scroll-scale-window="0.65">
+      <div class="flow-tri" aria-hidden="true"><span></span></div>
+      <div class="flow-tri flow-tri2" aria-hidden="true"><span></span></div>
       <div class="flow-track">
         <div class="flow-set">
           <article class="flow-card">
@@ -1201,7 +1203,17 @@
         alchemistPics.forEach(function (im) { im.style.transform = ''; });
         scrollScaled.forEach(function (it) { it.el.style.transform = ''; });
       }
-      mobile.addEventListener('change', function (e) { if (e.matches) { clearEffects(); } else { update(); } });
+      // the base transforms differ per breakpoint (the test panel's skew is off on mobile):
+      // re-read them with the inline transform cleared whenever we cross back to desktop,
+      // otherwise a page loaded at mobile width keeps base '' and the zoom strips the skew
+      function recaptureBases() {
+        scrollScaled.forEach(function (it) {
+          it.el.style.transform = '';
+          const t = getComputedStyle(it.el).transform;
+          it.base = (t && t !== 'none') ? t + ' ' : '';
+        });
+      }
+      mobile.addEventListener('change', function (e) { if (e.matches) { clearEffects(); } else { recaptureBases(); update(); } });
       let ticking = false;
       function update() {
         if (mobile.matches) { clearEffects(); ticking = false; return; }
