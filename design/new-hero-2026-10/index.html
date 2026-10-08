@@ -382,7 +382,9 @@
   }
 
   /* ───────────────  VALUE TEST · "How valuable are you?"  ─────────────── */
-  .vtest { max-width: 1500px; margin: 0 auto; padding: clamp(28px, 3.6vw, 52px) clamp(24px, 5vw, 72px) clamp(20px, 2.6vw, 36px); }
+  /* bottom padding reserves room for the 1.2 scroll-zoom (origin top, box grows downward)
+     so the banner heading below never collides with the scaled test panel */
+  .vtest { max-width: 1500px; margin: 0 auto; padding: clamp(28px, 3.6vw, 52px) clamp(24px, 5vw, 72px) clamp(40px, 8vw, 130px); }
   .vtest-box {
     margin-top: 34px; transform-origin: 50% 0;
     background: #fff; border: 1px solid var(--line); transform: skewX(-3deg);
@@ -393,13 +395,19 @@
   .vt-dot { width: 34px; height: 5px; background: var(--green-100); transition: background .3s; }
   .vt-dot.done { background: var(--green-500); }
   .vt-question { font-family:'Sora',sans-serif; font-weight: 800; font-size: clamp(22px, 2.6vw, 36px); line-height: 1.15; letter-spacing: -.02em; color: var(--ink); max-width: 28ch; }
-  .vt-answer {
-    margin-top: 22px; width: 100%; min-height: 110px; resize: vertical;
-    font-family: 'Inter', system-ui, sans-serif; font-size: 16.5px; line-height: 1.6; color: var(--ink);
-    padding: 16px 18px; background: var(--paper); border: 1.5px solid var(--line); border-radius: 0;
-    outline: none; transition: border-color .2s;
+  /* the field BOX is skewed like the panel, but the typed text stays straight: the wrapper
+     carries the skew + styling, the textarea inside is counter-skewed and invisible */
+  .vt-field {
+    margin-top: 22px; transform: skewX(-3deg);
+    background: var(--paper); border: 1.5px solid var(--line); transition: border-color .2s;
   }
-  .vt-answer:focus { border-color: var(--green-600); }
+  .vt-field:focus-within { border-color: var(--green-600); }
+  .vt-answer {
+    display: block; transform: skewX(3deg);
+    width: calc(100% - 12px); margin: 0 auto; min-height: 110px; resize: vertical;
+    font-family: 'Inter', system-ui, sans-serif; font-size: 16.5px; line-height: 1.6; color: var(--ink);
+    padding: 16px 18px; background: transparent; border: none; border-radius: 0; outline: none;
+  }
   .vt-nav { margin-top: 22px; display: flex; align-items: center; gap: 14px; }
   .vt-back { background: none; border: none; cursor: pointer; font-family:'Sora',sans-serif; font-weight: 600; font-size: 14px; color: var(--muted); padding: 10px 0; }
   .vt-back:hover { color: var(--green-700); }
@@ -423,7 +431,11 @@
   .vt-cta .btn-primary:hover { transform: translateY(-2px); }
   .vt-cta-note { font-size: 14.5px; color: var(--muted); max-width: 40ch; }
   .vt-error { margin-top: 16px; font-size: 14px; color: #a33; }
-  @media (max-width: 640px){ .vtest-box, .vt-in { transform: none; } .vtest-in { transform: none; padding: 24px 18px; } }
+  @media (max-width: 640px){
+    .vtest-box, .vtest-in, .vt-field, .vt-answer { transform: none; }
+    .vtest-in { padding: 24px 18px; }
+    .vt-answer { width: 100%; }
+  }
 
   /* ───────────────  COMMUNITY VOICES · flowing review banner  ─────────────── */
   .voices { position: relative; padding: clamp(10px, 1.6vw, 22px) 0 clamp(20px, 2.6vw, 34px); overflow: hidden; }
@@ -715,13 +727,13 @@
   <section class="vtest" id="value-test">
     <div class="projects-head">
       <h2>How valuable <span class="accent">are you?</span></h2>
-      <p>Five honest questions, one slightly unfair conclusion: you are valuable. Take the test and find out where your value lies.</p>
+      <p>Five honest questions. Take the test and find out where your value lies.</p>
     </div>
     <div class="vtest-box" data-scroll-scale="1.2" data-scroll-scale-window="0.65">
       <div class="vtest-in" id="vtStage">
         <div class="vt-progress" id="vtProgress" aria-hidden="true"></div>
         <div class="vt-question" id="vtQuestion"></div>
-        <textarea class="vt-answer" id="vtAnswer" rows="4" placeholder="Just write what comes up - there are no wrong answers."></textarea>
+        <div class="vt-field"><textarea class="vt-answer" id="vtAnswer" rows="4" placeholder="Just write what comes up - there are no wrong answers."></textarea></div>
         <div class="vt-nav">
           <button class="vt-back" id="vtBack" type="button" style="visibility:hidden">&larr; Back</button>
           <button class="btn btn-primary" id="vtNext" type="button">Next <span class="arrow">&rarr;</span></button>
