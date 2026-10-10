@@ -52,3 +52,11 @@ volwaardige pagina. De slider-links zijn de canonieke ingangen:
 - 08-10: partnersectie op de homepage live (Martien de Jong, Bugatti Insights,
   Art Revisionist actief; Eblossm, Port of Giethoorn, De Dames van De Jonge, AgentX
   als pending). Lijstpagina's en answer pages: nog niet gestart.
+- 10-10: alle zes lijstpagina's live op test (/courses /members /tools /services
+  /partners /vacancies) — NIET via WP CPT's maar via het jengo-listings systeem
+  (repo martiendejong/jengo-listings: statische datasets + FastAPI + WP-plugin).
+  Members/tools/services/partners delen één generiek directory-templatepaar;
+  per collectie een config-JSON + dataset, deploy via deploy_collections.py.
+  De homepage-secties staan nog hardcoded in de design-bron (zelfde inhoud).
+  Answer pages (programmatic SEO): nog niet gestart — de combo-page-infra in
+  jengo-listings is hiervoor het startpunt.
