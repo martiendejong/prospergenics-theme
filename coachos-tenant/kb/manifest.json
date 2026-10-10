@@ -1,0 +1,14 @@
+{
+  "generated": "2026-10-10",
+  "tenant": "prospergenics",
+  "chunks": [
+    {
+      "title": "ProsperGenics Course Catalog",
+      "file": "00-course-catalog.md"
+    },
+    {
+      "title": "AI Software Lifecycle — Complete Course Guide",
+      "file": "ai-lifecycle-course.md"
+    }
+  ]
+}
