@@ -246,6 +246,59 @@ this repo, need a separate coordinated update to match the new positioning.
 A re-check of the trycited category-detection scan (this task's own
 Acceptatie) is outside this session's tooling and should follow separately.
 
+## 2026-09-07 — task 2366
+Done: confirmed via the WP REST API that homepage (id 423), /about/ (352),
+and /trainings/ (11) all had a stale `modified_gmt` (Jul/Oct 2025) that
+exactly matched the live WebPage JSON-LD `dateModified` — not a Yoast bug,
+just `post_modified` never advancing because the SEO fixes that shipped to
+these pages (Course schema, meta description, header/WAF rollout) were all
+code-level changes, never a wp-admin edit. Added
+`scripts/bump-modified-date.py` (re-saves a page's own `content.raw` via
+the REST API, which WordPress accepts as a real edit) and
+`docs/SEO-OPS.md` documenting the step, linked from README.md, for future
+code-level SEO fixes to use. Ran the script live against all 3 pages.
+Verified: `GET /wp-json/wp/v2/pages/{id}` now shows a fresh `modified_gmt`
+for all 3 (2026-09-07T14:29:2x-31), each page's raw content byte-identical
+before/after, and a fresh curl of `/`, `/about/`, `/trainings/` shows the
+WebPage JSON-LD `dateModified` matching the new `modified_gmt` exactly on
+all 3.
+Gotcha found and documented: the site's Cloudflare WAF (tasks 1668/1669)
+403s any REST call using the default `python-requests` User-Agent —
+`scripts/bump-modified-date.py` sends a browser-style UA to work around it.
+Left: nothing for this task's own scope.
+
+## 2026-09-10 — task 3068 (fix/3068-person-schema, PR #14)
+Done: added prospergenics_martien_person_node() (reusable Person node: name,
+url = home_url('/members/martien-de-jong/'), jobTitle "Founder"), emitted
+standalone via wp_head on /about/, /martien/, and the martien-de-jong
+team_member singular page (prospergenics_martien_person_schema(), guarded
+by prospergenics_is_martien_bio_page() using the existing is_page()/
+is_singular() pattern), and referenced the same Person as `author` on each
+Course entry in prospergenics_trainings_course_schema().
+Verified: `php -l` clean; new tests/test-3068-person-schema.php (function-
+extraction pattern matching test-2929) — 26/26 assertions pass; full
+existing suite (9 files) still green, no regressions.
+Left: deploying the merged functions.php to the live site is the usual
+manual FTP step for this repo.
+
+## 2026-09-10 — task 3085 (review session, merge + deploy)
+Done: reviewed PR #15 (WhatsApp community copy + contactPoint on both
+Organization JSON-LD blocks). PR was CONFLICTING against master (task
+3068's Person-schema block landed at the same functions.php insertion
+point) - merged master into the branch, combined both non-overlapping
+additions, re-ran the full 8-file test suite green, pushed, merged
+squash. Deployed live via a surgical FTP patch (fetched the live
+functions.php/front-page.php - which do not yet carry task 3068's
+Person-schema, confirming that task's own "not deployed yet" note - and
+inserted only this task's two blocks, not a full-file overwrite) after
+backing up the live originals.
+Verified live: curl shows "Join our community via WhatsApp" as visible
+copy, zero "discord" matches, and both Organization JSON-LD blocks now
+carry a valid contactPoint (parsed with `python -m json.tool` equivalent)
+while logo/sameAs from task 964 are byte-identical to before.
+Left: task 3068's own live FTP deploy is still outstanding (unrelated to
+this task, not touched here).
+
 ## 2026-09-09 — task 940 (complete)
 Done: PR #13. Added a "Team Story" homepage section (front-page.php, between
 Team and Coaches) rendering the 3 real Prospergenics quotes Martien supplied

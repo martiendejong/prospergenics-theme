@@ -32,6 +32,12 @@ get_header();
             <p><?php esc_html_e( 'Prospergenics is a done-for-you agentic AI team. We design, build, and operate custom AI agents for businesses - our Netherlands-based strategists and Kenya-based engineering team work together to ship production AI systems, not courses or theory.', 'prospergenics' ); ?></p>
 
             <p><?php esc_html_e( 'We handle the full lifecycle: identifying the automation opportunities worth building, shipping the agents that deliver them, and operating those agents afterwards - so you get the results without hiring or training an internal AI team.', 'prospergenics' ); ?></p>
+
+            <p style="margin-top: 24px;">
+                <?php esc_html_e( 'Join our community via', 'prospergenics' ); ?>
+                <a href="https://wa.me/254741619743" rel="noopener noreferrer" style="color: #25D366; font-weight: 600;"><?php esc_html_e( 'WhatsApp', 'prospergenics' ); ?></a>
+                <?php esc_html_e( '- connect with our team and other businesses working with AI agents.', 'prospergenics' ); ?>
+            </p>
         </div>
     </section>
 
