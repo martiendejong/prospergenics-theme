@@ -343,3 +343,55 @@ dead `.team-story-quote blockquote` selector (now `.team-story-quote p`) and add
 Verified: php -l clean, 10/10 test files pass (new assertion fails on the old markup); live check after
 the hotfix deploy is recorded on the task.
 Left: Review/AggregateRating schema stays on task 951 (someday) until real third-party reviews exist.
+
+## 2026-10-18 — contact form blackhole + form/comment spam (Martien assignment)
+Done: diagnosed against the live sites, then fixed in code. Root cause of "everything
+gets lost in a blackhole": Contact Form 7 is NOT installed on production (only plugin on
+the front end is seo-god), so the site runs the theme's own fallback form — and that
+handler's entire storage strategy was a single wp_mail() call. No DB row, no log, no
+retry: a delivery failure or a spam-filtered notification lost the enquiry with no trace.
+Spam protection was a nonce, which stops no bot. Comments are open site-wide with the
+same absence of protection; the REST API reports exactly 1 approved comment, so the
+"thousands of comments" are an unmoderated queue.
+
+New: inc/spam-protection.php (honeypot, salt-signed timing token, link-stuffing check,
+per-IP rate limit, optional Akismet pickup — shared by both forms),
+inc/contact-messages-store.php (private pg_contact_msg post type; stores every
+submission BEFORE mail is attempted), inc/contact-messages-admin.php (list table with
+sender/reply-link/delivery status/spam reason + a red notice when a notification fails),
+inc/comment-spam-protection.php (same checks on comments, comments closed on pages).
+Rewritten: inc/contact-form-handler.php — validate → classify → store → mail, recording
+the delivery outcome via wp_mail_failed. front-page.php renders the protection fields.
+Design rule throughout: spam is flagged and stored, never discarded, so a false positive
+stays recoverable — that is the direct answer to "even the proper contact requests get
+lost".
+
+Verified: 11/11 test files pass incl. new tests/test-contact-spam-and-storage.php (32
+assertions: every bot signal individually, rate limit is per-IP and lets normal use
+through, storage-happens-before-mail ordering, spam still reaches the store, and the
+enquiry store is never public/queryable/in REST). php -l clean across the theme.
+
+Left (documented in docs/CONTACT-AND-COMMENTS-OPS.md):
+- NOT deployed. Must be a surgical FTP patch — both sites stay live and the live
+  functions.php carries drift (task 797 meta description + the hardcoded SMTP block).
+- The actual ask "someone must manage the inbox" is a staffing decision, not code. The
+  destination is now filterable (prospergenics_contact_notification_address) so it can be
+  pointed at a shared mailbox without a code edit. JengoMail — already in their own stack
+  and already listed on /tools/ — is the obvious fit.
+- Nobody has confirmed the live SMTP block still authenticates. First post-deploy check:
+  send a test enquiry, confirm the Notification column reads "Sent".
+- Clearing the existing spam backlog is a WP-CLI admin job (commands in the doc); the
+  pending queue must be reviewed before deletion since real comments may be in it.
+- Historic lost enquiries are NOT recoverable: they were never written down anywhere.
+
+## 2026-10-18 — /tools/ listing completion (Martien assignment) — BLOCKED
+Investigated: /tools/ on test lists 7 entries (Jengo, CoachOS, JengoWork, Jengo Meet,
+JengoMail, Jengo Knowledge, SEO God). The page is NOT served by this theme — per
+docs/listing-pages-architecture.md it comes from the jengo-listings system (static
+datasets + FastAPI + WP plugin, deployed with deploy_collections.py).
+Blocked: no repo named jengo-listings is visible to the GitHub account in use
+(Mpoelesiamon) — not under martiendejong (78 repos), not under scp-jengo (42 repos),
+and not in global search. Cannot edit the tools dataset without it. Needs either access
+or the correct repo name. Candidate additions were surveyed from both orgs but not
+written anywhere, because "the tools you made last year" needs Martien to confirm which
+products belong in a public directory.

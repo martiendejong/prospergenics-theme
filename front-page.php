@@ -354,6 +354,11 @@ get_header();
                 <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" class="prospergenics-contact-form">
                     <input type="hidden" name="action" value="prospergenics_contact_form">
                     <?php wp_nonce_field( 'prospergenics_contact_form_nonce', 'contact_form_nonce' ); ?>
+                    <?php
+                    // Honeypot + timing token. The nonce alone stops no bot: it is served
+                    // in the page like any other field. See inc/spam-protection.php.
+                    echo prospergenics_spam_protection_fields(); // phpcs:ignore WordPress.Security.EscapeOutput -- builds its own escaped markup.
+                    ?>
 
                     <div class="form-group">
                         <label for="contact-name"><?php esc_html_e( 'Name', 'prospergenics' ); ?> *</label>
