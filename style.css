@@ -1034,6 +1034,35 @@ a:focus {
     margin-bottom: 0.5rem;
 }
 
+/* Team Story Section (task 940) - visible content only, no Review/
+   AggregateRating schema; these are team-culture quotes, not customer
+   reviews. Reuses the .cards-grid / .card base. */
+.team-story-quote {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.team-story-quote blockquote {
+    margin: 0 0 1.5rem;
+    font-style: italic;
+    line-height: 1.7;
+    color: var(--color-gray-dark);
+}
+
+.team-story-quote footer {
+    margin-top: auto;
+    font-weight: 700;
+    color: var(--color-green);
+}
+
+.team-story-quote footer .team-story-role {
+    display: block;
+    font-weight: 400;
+    font-size: 0.9rem;
+    color: var(--color-gray-dark);
+}
+
 /* ==========================================================================
    ACCESSIBILITY
    ========================================================================== */

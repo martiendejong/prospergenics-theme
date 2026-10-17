@@ -88,7 +88,7 @@ function prospergenics_add_social_meta_tags() {
 	$og_image         = get_template_directory_uri() . '/images/social-share.jpg';
 
 	if ( is_front_page() ) {
-		$og_title       = $site_name;
+		$og_title       = prospergenics_front_page_title();
 		$og_description = $site_description;
 		$og_type        = 'website';
 		$og_url         = home_url( '/' );
@@ -717,13 +717,22 @@ function prospergenics_save_program_buttons( $post_id ) {
 add_action( 'save_post', 'prospergenics_save_program_buttons' );
 
 /**
+ * The specific, keyword-relevant homepage title (task 733). One source for the <title> and
+ * for the front page's og:title / twitter:title, so a shared link does not preview as the bare
+ * site name ("Prospergenics", 13 chars -- under the 30-60 range social scrapers recommend).
+ */
+function prospergenics_front_page_title() {
+    return __( 'Prospergenics | AI & Software Development Coaching Community', 'prospergenics' );
+}
+
+/**
  * Give the front page a specific, keyword-relevant document title instead of
  * the generic "Home - Prospergenics" produced by the static Home page title.
  */
 function prospergenics_front_page_document_title( $title_parts ) {
     if ( is_front_page() && ! is_paged() ) {
         return array(
-            'title' => __( 'Prospergenics | AI & Software Development Coaching Community', 'prospergenics' ),
+            'title' => prospergenics_front_page_title(),
         );
     }
 
@@ -740,7 +749,7 @@ add_filter( 'document_title_parts', 'prospergenics_front_page_document_title' );
  */
 function prospergenics_front_page_title_override( $title ) {
     if ( is_front_page() && ! is_paged() ) {
-        return __( 'Prospergenics | AI & Software Development Coaching Community', 'prospergenics' );
+        return prospergenics_front_page_title();
     }
 
     return $title;
@@ -1052,6 +1061,38 @@ function prospergenics_martien_person_schema() {
     echo "\n" . '<script type="application/ld+json" class="prospergenics-person-schema">' . wp_json_encode( $schema ) . '</script>' . "\n";
 }
 add_action( 'wp_head', 'prospergenics_martien_person_schema', 26 );
+
+/**
+ * Task 940: real quotes from Prospergenics team members about what it's like to work
+ * here (comment on task 940, supplied by Martien). These are employee/team-culture
+ * testimonials, not reviews of Prospergenics' service by a client or trainee -- the
+ * identical content already went live on martiendejong.nl (task 925/PR #865) under the
+ * same policy: render as plain visible content on the homepage only, with NO Review or
+ * AggregateRating JSON-LD. Tagging an insider "why I like working here" quote as a
+ * schema.org Review would misrepresent it as independent customer social proof, which
+ * risks a Google manual action for spammy structured markup. Real client/trainee review
+ * schema (the literal ask in task 940's title) stays open until genuine customer
+ * reviews exist to back it.
+ */
+function prospergenics_get_team_story_quotes() {
+    return array(
+        array(
+            'author' => 'Sandra',
+            'role'   => __( 'Prospergenics, developer', 'prospergenics' ),
+            'quote'  => __( 'I work at Prospergenics as a developer. The systems we build are really used, so everything I learn is immediately tested in practice. We discuss what needs to happen, divide the work and carry responsibility for the result. You learn far more from shipping a real feature than from any exercise.', 'prospergenics' ),
+        ),
+        array(
+            'author' => 'Lessy',
+            'role'   => __( 'Prospergenics, QA', 'prospergenics' ),
+            'quote'  => __( 'My work at Prospergenics is quality assurance: I test what we build before users see it. That means thinking about what can go wrong, documenting it and working with the developers until it is fixed. Testing real products has taught me to look at software in a completely different way.', 'prospergenics' ),
+        ),
+        array(
+            'author' => 'Frank',
+            'role'   => __( 'Prospergenics, developer', 'prospergenics' ),
+            'quote'  => __( 'Prospergenics gives me the chance to work with technology and AI on projects with a real purpose. We solve real problems, try new tools and learn from each other. That builds not just technical skills, but the confidence to take on bigger tasks independently.', 'prospergenics' ),
+        ),
+    );
+}
 
 /**
  * Legacy URL Redirects

@@ -298,3 +298,38 @@ carry a valid contactPoint (parsed with `python -m json.tool` equivalent)
 while logo/sameAs from task 964 are byte-identical to before.
 Left: task 3068's own live FTP deploy is still outstanding (unrelated to
 this task, not touched here).
+
+## 2026-09-09 — task 940 (complete)
+Done: PR #13. Added a "Team Story" homepage section (front-page.php, between
+Team and Coaches) rendering the 3 real Prospergenics quotes Martien supplied
+(Sandra/Lessy/Frank) via a new `prospergenics_get_team_story_quotes()`
+getter, styled with new `.team-story-*` CSS reusing the existing
+`.cards-grid`/`.card` base. Per established policy from the identical
+sibling case on martiendejong.nl (task 925/PR #865, same 3 quotes): these
+are employee/team-culture testimonials, not customer reviews of
+Prospergenics' service, so they render as plain visible content only — no
+Review/AggregateRating JSON-LD, since tagging them as Review schema would
+misrepresent an insider quote as independent social proof (Google spam-
+schema risk). Genuine client/trainee review schema (task 940's literal ask)
+stays open pending real customer reviews.
+Verified: `php -l` clean on both changed files; new
+`tests/test-940-team-story-quotes.php` (11 assertions, including a
+"no Review/AggregateRating @type anywhere" grep) plus all 8 pre-existing
+test files pass, 9/9 test files green.
+Left: this PR is not deployed live — deploy is a separate FTP step per this
+repo's usual pattern (see task 2929/2942 entries above), left for the
+review/merge pass. Genuine client/trainee Review/AggregateRating schema
+remains a real open gap until Martien or someone else supplies actual
+customer reviews.
+
+## 2026-10-17 — task 926
+Done: PR #13 brought current with master (conflicts in functions.php and
+this file resolved by keeping both sides) and finished for review. Also fixed
+the homepage og:title/twitter:title (bare "Prospergenics", 13 chars) by
+reusing the existing 60-char homepage title via prospergenics_front_page_title().
+Verified: php -l clean; 10/10 test files pass (731 test extended for the
+og:title); Team Story section rendered with the real style.css in headless
+Chromium at 1280 and 390 px, no overflow, no console errors.
+Left: merge + FTP deploy (live theme has drifted from git, patch surgically).
+Review/AggregateRating schema stays off: all 3 quotes are team members, and
+Martien said "we need proper reviews first" on sibling task 950.
