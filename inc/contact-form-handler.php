@@ -2,7 +2,16 @@
 /**
  * Contact Form Handler
  *
- * Handles the fallback contact form submission
+ * Handles the fallback contact form submission.
+ *
+ * Previously this emailed via wp_mail() and did nothing else, so a submission existed
+ * only as an email: if delivery failed or the mail was filtered, the enquiry was gone
+ * with no record anywhere. Combined with zero spam protection (a nonce stops no bot),
+ * that is what produced thousands of junk submissions and genuine enquiries nobody
+ * could find.
+ *
+ * Now: validate -> classify -> STORE -> then try to mail, recording the outcome. The
+ * stored record is the source of truth; email is a notification on top of it.
  *
  * @package Prospergenics
  * @since 1.0.0
@@ -55,8 +64,46 @@ function prospergenics_process_contact_form() {
         exit;
     }
 
-    // Prepare email
-    $to = get_theme_mod( 'prospergenics_email', get_option( 'admin_email' ) );
+    $data = array(
+        'name'       => $name,
+        'email'      => $email,
+        'phone'      => $phone,
+        'subject'    => $subject,
+        'message'    => $message,
+        'ip'         => prospergenics_client_ip(),
+        'user_agent' => isset( $_SERVER['HTTP_USER_AGENT'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) ) : '',
+    );
+
+    // Classify. Spam is flagged, never discarded -- a false positive has to stay
+    // recoverable, which is the whole complaint about the old behaviour.
+    $spam_reasons = prospergenics_spam_reasons( $message, $_POST );
+    if ( empty( $spam_reasons ) && prospergenics_akismet_thinks_spam( $data ) ) {
+        $spam_reasons[] = 'Akismet';
+    }
+
+    // STORE FIRST. Everything after this point can fail without losing the enquiry.
+    $post_id = prospergenics_store_contact_message( $data, $spam_reasons );
+
+    if ( is_wp_error( $post_id ) ) {
+        // Could not even record it -- say so plainly rather than claiming success.
+        wp_redirect(
+            add_query_arg(
+                'contact_error',
+                rawurlencode( __( 'We could not record your message. Please email us directly.', 'prospergenics' ) ),
+                wp_get_referer()
+            )
+        );
+        exit;
+    }
+
+    // Spam is stored and acknowledged, but never emailed: notifying on it is what
+    // buried the real enquiries. It is reviewable under Contact Messages -> Drafts.
+    if ( ! empty( $spam_reasons ) ) {
+        wp_redirect( add_query_arg( 'contact_success', '1', wp_get_referer() . '#contact' ) );
+        exit;
+    }
+
+    $to = prospergenics_contact_notification_address();
 
     $email_subject = sprintf(
         /* translators: %s: contact form subject */
@@ -65,12 +112,13 @@ function prospergenics_process_contact_form() {
     );
 
     $email_message = sprintf(
-        /* translators: 1: name, 2: email, 3: phone, 4: message */
-        __( "New contact form submission:\n\nName: %1\$s\nEmail: %2\$s\nPhone: %3\$s\n\nMessage:\n%4\$s", 'prospergenics' ),
+        /* translators: 1: name, 2: email, 3: phone, 4: message, 5: admin link */
+        __( "New contact form submission:\n\nName: %1\$s\nEmail: %2\$s\nPhone: %3\$s\n\nMessage:\n%4\$s\n\n---\nAlso saved in WordPress: %5\$s", 'prospergenics' ),
         $name,
         $email,
         $phone,
-        $message
+        $message,
+        admin_url( 'post.php?post=' . $post_id . '&action=edit' )
     );
 
     $headers = array(
@@ -79,17 +127,21 @@ function prospergenics_process_contact_form() {
         'Reply-To: ' . $name . ' <' . $email . '>',
     );
 
-    // Send email
+    // Capture the reason for a delivery failure instead of discarding it, so a
+    // misconfigured mailer is visible in the admin rather than invisible forever.
+    $mail_error = '';
+    $capture    = function ( $wp_error ) use ( &$mail_error ) {
+        $mail_error = $wp_error->get_error_message();
+    };
+    add_action( 'wp_mail_failed', $capture );
     $sent = wp_mail( $to, $email_subject, $email_message, $headers );
+    remove_action( 'wp_mail_failed', $capture );
 
-    if ( $sent ) {
-        // Redirect back with success message
-        wp_redirect( add_query_arg( 'contact_success', '1', wp_get_referer() . '#contact' ) );
-    } else {
-        // Redirect back with error message
-        wp_redirect( add_query_arg( 'contact_error', urlencode( __( 'Failed to send message. Please try again later.', 'prospergenics' ) ), wp_get_referer() ) );
-    }
+    prospergenics_record_contact_mail_status( $post_id, $sent ? 'sent' : 'failed', $mail_error );
 
+    // The message is safely stored either way, so the visitor is told it arrived --
+    // because it did. A mail problem is ours to fix, not theirs to retry into a void.
+    wp_redirect( add_query_arg( 'contact_success', '1', wp_get_referer() . '#contact' ) );
     exit;
 }
 add_action( 'admin_post_nopriv_prospergenics_contact_form', 'prospergenics_process_contact_form' );
