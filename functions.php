@@ -88,7 +88,7 @@ function prospergenics_add_social_meta_tags() {
 	$og_image         = get_template_directory_uri() . '/images/social-share.jpg';
 
 	if ( is_front_page() ) {
-		$og_title       = $site_name;
+		$og_title       = prospergenics_front_page_title();
 		$og_description = $site_description;
 		$og_type        = 'website';
 		$og_url         = home_url( '/' );
@@ -717,13 +717,22 @@ function prospergenics_save_program_buttons( $post_id ) {
 add_action( 'save_post', 'prospergenics_save_program_buttons' );
 
 /**
+ * The specific, keyword-relevant homepage title (task 733). One source for the <title> and
+ * for the front page's og:title / twitter:title, so a shared link does not preview as the bare
+ * site name ("Prospergenics", 13 chars -- under the 30-60 range social scrapers recommend).
+ */
+function prospergenics_front_page_title() {
+    return __( 'Prospergenics | AI & Software Development Coaching Community', 'prospergenics' );
+}
+
+/**
  * Give the front page a specific, keyword-relevant document title instead of
  * the generic "Home - Prospergenics" produced by the static Home page title.
  */
 function prospergenics_front_page_document_title( $title_parts ) {
     if ( is_front_page() && ! is_paged() ) {
         return array(
-            'title' => __( 'Prospergenics | AI & Software Development Coaching Community', 'prospergenics' ),
+            'title' => prospergenics_front_page_title(),
         );
     }
 
@@ -740,7 +749,7 @@ add_filter( 'document_title_parts', 'prospergenics_front_page_document_title' );
  */
 function prospergenics_front_page_title_override( $title ) {
     if ( is_front_page() && ! is_paged() ) {
-        return __( 'Prospergenics | AI & Software Development Coaching Community', 'prospergenics' );
+        return prospergenics_front_page_title();
     }
 
     return $title;
@@ -1084,6 +1093,7 @@ function prospergenics_get_team_story_quotes() {
         ),
     );
 }
+
 /**
  * Legacy URL Redirects
  *

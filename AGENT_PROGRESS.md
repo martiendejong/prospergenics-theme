@@ -321,3 +321,15 @@ repo's usual pattern (see task 2929/2942 entries above), left for the
 review/merge pass. Genuine client/trainee Review/AggregateRating schema
 remains a real open gap until Martien or someone else supplies actual
 customer reviews.
+
+## 2026-10-17 — task 926
+Done: PR #13 brought current with master (conflicts in functions.php and
+this file resolved by keeping both sides) and finished for review. Also fixed
+the homepage og:title/twitter:title (bare "Prospergenics", 13 chars) by
+reusing the existing 60-char homepage title via prospergenics_front_page_title().
+Verified: php -l clean; 10/10 test files pass (731 test extended for the
+og:title); Team Story section rendered with the real style.css in headless
+Chromium at 1280 and 390 px, no overflow, no console errors.
+Left: merge + FTP deploy (live theme has drifted from git, patch surgically).
+Review/AggregateRating schema stays off: all 3 quotes are team members, and
+Martien said "we need proper reviews first" on sibling task 950.
