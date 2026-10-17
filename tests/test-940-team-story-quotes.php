@@ -50,25 +50,35 @@ foreach ( $quotes as $q ) {
 	ok( false === stripos( $q['role'], 'client' ) && false === stripos( $q['role'], 'trainee' ), "{$q['author']}'s role does not claim to be a client/trainee (it's a team role)" );
 }
 
-echo "\n[Test 2] front-page.php renders the quotes as plain content, with no Review/AggregateRating schema anywhere on the page\n";
+echo "\n[Test 2] the front page renders the quotes as plain content, with no Review/AggregateRating schema anywhere on the page\n";
+// Since the 2026 design port, front-page.php is generated from the static design source
+// by design/new-hero-2026-10/port-to-theme.py, so the Team Story section lives in a
+// template part that the generated file pulls in. Read both and assert against the pair:
+// what matters is that the front page renders these quotes, not which file holds them.
 $front_page_source = file_get_contents( dirname( __DIR__ ) . '/front-page.php' );
-ok( false !== strpos( $front_page_source, 'prospergenics_get_team_story_quotes()' ), 'front-page.php calls prospergenics_get_team_story_quotes()' );
-ok( false !== strpos( $front_page_source, 'Team Story' ), 'front-page.php has a "Team Story" section heading' );
+$team_story_part   = dirname( __DIR__ ) . '/template-parts/team-story-2026.php';
+ok( file_exists( $team_story_part ), 'template-parts/team-story-2026.php exists' );
+$team_story_source = file_exists( $team_story_part ) ? file_get_contents( $team_story_part ) : '';
+$rendered_source   = $front_page_source . "\n" . $team_story_source;
 
-// The whole theme (functions.php + front-page.php) must never pair this content with
-// Review/AggregateRating JSON-LD -- grep both files for an actual schema @type
+ok( false !== strpos( $front_page_source, "get_template_part( 'template-parts/team-story-2026' )" ), 'front-page.php includes the Team Story template part' );
+ok( false !== strpos( $rendered_source, 'prospergenics_get_team_story_quotes()' ), 'the front page calls prospergenics_get_team_story_quotes()' );
+ok( false !== strpos( $rendered_source, 'Team Story' ), 'the front page has a "Team Story" section heading' );
+
+// The whole theme (functions.php + the front page's own templates) must never pair this
+// content with Review/AggregateRating JSON-LD -- grep those files for an actual schema @type
 // declaration, not just the new code, since a stray occurrence anywhere would
 // misrepresent these quotes as customer reviews. (A plain word match would also flag
 // this function's own explanatory doc comment, which discusses AggregateRating only to
 // say it deliberately isn't used -- so match the schema key/value shape instead.)
-$combined = $front_page_source . "\n" . $source;
-ok( 0 === preg_match( '/[\'"]@type[\'"]\s*(=>|:)\s*[\'"]Review[\'"]/', $combined ), 'no \'@type\' => \'Review\' schema declaration anywhere in functions.php or front-page.php' );
-ok( 0 === preg_match( '/[\'"]@type[\'"]\s*(=>|:)\s*[\'"]AggregateRating[\'"]/', $combined ), 'no \'@type\' => \'AggregateRating\' schema declaration anywhere in functions.php or front-page.php' );
+$combined = $rendered_source . "\n" . $source;
+ok( 0 === preg_match( '/[\'"]@type[\'"]\s*(=>|:)\s*[\'"]Review[\'"]/', $combined ), 'no \'@type\' => \'Review\' schema declaration anywhere in functions.php or the front-page templates' );
+ok( 0 === preg_match( '/[\'"]@type[\'"]\s*(=>|:)\s*[\'"]AggregateRating[\'"]/', $combined ), 'no \'@type\' => \'AggregateRating\' schema declaration anywhere in functions.php or the front-page templates' );
 
 // The SEO God plugin's inline script moves the FAQ block before document.querySelector("footer"),
 // i.e. the page's FIRST <footer> element. A <footer> inside a quote card hijacks the FAQ into the
 // first card (seen live on 2026-10-17), so the Team Story section must not contain any <footer>.
-preg_match( '/<section id="team-story".*?<\/section>/s', $front_page_source, $team_story_section );
+preg_match( '/<section[^>]*id="team-story".*?<\/section>/s', $rendered_source, $team_story_section );
 ok( ! empty( $team_story_section ) && false === stripos( $team_story_section[0], '<footer' ), 'Team Story section contains no <footer> element (SEO God FAQ placement targets the first <footer>)' );
 
 echo "\n" . ( $failures === 0 ? "All assertions passed.\n" : "$failures assertion(s) FAILED.\n" );

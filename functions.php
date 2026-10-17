@@ -255,6 +255,91 @@ function prospergenics_scripts() {
 add_action( 'wp_enqueue_scripts', 'prospergenics_scripts' );
 
 /**
+ * 2026 design: front-page assets
+ *
+ * The front page renders design/new-hero-2026-10 (ported into front-page.php +
+ * css/hero-2026.css + js/hero-2026.js by that folder's port-to-theme.py). The design
+ * resets `*` and styles `body` itself, and brings its own full layout, so the legacy
+ * theme stylesheet and its nav/header script are dequeued here -- on the front page
+ * only. Every other template keeps the legacy CSS/JS untouched.
+ *
+ * Everything in functions.php that prints into wp_head() (Organization + Person JSON-LD,
+ * the front-page meta description, og/twitter tags, speakable selectors, hreflang) is
+ * unaffected and keeps running, which is the whole reason the design was ported into
+ * this theme instead of shipping the standalone generated prospergenics-2026 theme.
+ */
+function prospergenics_hero_2026_assets() {
+    if ( ! is_front_page() ) {
+        return;
+    }
+
+    $theme_uri = get_template_directory_uri();
+    $version   = wp_get_theme()->get( 'Version' );
+
+    // The legacy look would fight the design for the same elements.
+    wp_dequeue_style( 'prospergenics-style' );
+    wp_dequeue_script( 'prospergenics-scripts' );
+
+    // Sora (display) + Inter (body) are the design's two faces.
+    wp_enqueue_style(
+        'prospergenics-hero-2026-fonts',
+        'https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap',
+        array(),
+        null
+    );
+
+    wp_enqueue_style(
+        'prospergenics-hero-2026',
+        $theme_uri . '/css/hero-2026.css',
+        array( 'prospergenics-hero-2026-fonts' ),
+        $version
+    );
+
+    // Hand-maintained additions (skip link + Team Story), after the generated sheet so it can rely on its :root tokens.
+    wp_enqueue_style(
+        'prospergenics-front-page-2026',
+        $theme_uri . '/css/front-page-2026.css',
+        array( 'prospergenics-hero-2026' ),
+        $version
+    );
+
+    wp_enqueue_script(
+        'prospergenics-hero-2026',
+        $theme_uri . '/js/hero-2026.js',
+        array(),
+        $version,
+        true
+    );
+
+    // The showcase slider builds image paths at runtime; it cannot hardcode the theme URL.
+    wp_localize_script(
+        'prospergenics-hero-2026',
+        'PG_HERO',
+        array( 'assets' => trailingslashit( $theme_uri . '/assets' ) )
+    );
+}
+add_action( 'wp_enqueue_scripts', 'prospergenics_hero_2026_assets', 20 );
+
+/**
+ * Preconnect to the Google Fonts hosts the front page uses, so the two faces above
+ * are not blocked behind a cold connection.
+ */
+function prospergenics_hero_2026_resource_hints( $urls, $relation_type ) {
+    if ( 'preconnect' !== $relation_type || ! is_front_page() ) {
+        return $urls;
+    }
+
+    $urls[] = array( 'href' => 'https://fonts.googleapis.com' );
+    $urls[] = array(
+        'href'        => 'https://fonts.gstatic.com',
+        'crossorigin' => 'anonymous',
+    );
+
+    return $urls;
+}
+add_filter( 'wp_resource_hints', 'prospergenics_hero_2026_resource_hints', 10, 2 );
+
+/**
  * Register Widget Areas
  */
 function prospergenics_widgets_init() {
