@@ -65,5 +65,11 @@ $combined = $front_page_source . "\n" . $source;
 ok( 0 === preg_match( '/[\'"]@type[\'"]\s*(=>|:)\s*[\'"]Review[\'"]/', $combined ), 'no \'@type\' => \'Review\' schema declaration anywhere in functions.php or front-page.php' );
 ok( 0 === preg_match( '/[\'"]@type[\'"]\s*(=>|:)\s*[\'"]AggregateRating[\'"]/', $combined ), 'no \'@type\' => \'AggregateRating\' schema declaration anywhere in functions.php or front-page.php' );
 
+// The SEO God plugin's inline script moves the FAQ block before document.querySelector("footer"),
+// i.e. the page's FIRST <footer> element. A <footer> inside a quote card hijacks the FAQ into the
+// first card (seen live on 2026-10-17), so the Team Story section must not contain any <footer>.
+preg_match( '/<section id="team-story".*?<\/section>/s', $front_page_source, $team_story_section );
+ok( ! empty( $team_story_section ) && false === stripos( $team_story_section[0], '<footer' ), 'Team Story section contains no <footer> element (SEO God FAQ placement targets the first <footer>)' );
+
 echo "\n" . ( $failures === 0 ? "All assertions passed.\n" : "$failures assertion(s) FAILED.\n" );
 exit( $failures === 0 ? 0 : 1 );

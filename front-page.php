@@ -157,10 +157,11 @@ get_header();
             <?php foreach ( prospergenics_get_team_story_quotes() as $team_story_quote ) : ?>
                 <blockquote class="card team-story-quote">
                     <p><?php echo esc_html( $team_story_quote['quote'] ); ?></p>
-                    <footer>
+                    <?php // Deliberately not a footer element: the SEO God FAQ script inserts the FAQ before the page's first one. ?>
+                    <div class="team-story-attribution">
                         <?php echo esc_html( $team_story_quote['author'] ); ?>
                         <span class="team-story-role"><?php echo esc_html( $team_story_quote['role'] ); ?></span>
-                    </footer>
+                    </div>
                 </blockquote>
             <?php endforeach; ?>
         </div>
