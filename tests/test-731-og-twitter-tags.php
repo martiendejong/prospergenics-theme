@@ -60,6 +60,15 @@ if ( ! preg_match( '/(function prospergenics_add_social_meta_tags\(\)\s*\{.*?\r?
 }
 eval( $m[1] );
 
+// The front page's og:title/twitter:title come from the shared homepage-title helper (task 733),
+// extracted from functions.php the same way so the test sees the real string.
+function __( $text, $domain = 'default' ) { return $text; }
+if ( ! preg_match( '/(function prospergenics_front_page_title\(\)\s*\{.*?\r?\n\})/s', $source, $m_title ) ) {
+	fwrite( STDERR, "FAIL: could not locate prospergenics_front_page_title() in functions.php\n" );
+	exit( 1 );
+}
+eval( $m_title[1] );
+
 // Simulate the static front page: a "page" post type, so it is BOTH is_front_page() and
 // is_singular() at once — this is the exact condition that caused the original bug.
 class StubPost {
@@ -91,6 +100,11 @@ ok( strpos( $output, 'og:description" content="Prospergenics"' ) !== false, 'og:
 ok( strpos( $output, 'og:type" content="website"' ) !== false, 'og:type is "website" on the front page' );
 ok( substr_count( $output, 'twitter:card' ) === 1, 'exactly one twitter:card tag is emitted' );
 ok( strpos( $output, 'twitter:card" content="summary_large_image"' ) !== false, 'twitter:card is summary_large_image' );
+$front_title = prospergenics_front_page_title();
+$title_html  = htmlspecialchars( $front_title, ENT_QUOTES );
+ok( strpos( $output, 'og:title" content="' . $title_html . '"' ) !== false, 'og:title is the descriptive homepage title, not the bare site name' );
+ok( strpos( $output, 'twitter:title" content="' . $title_html . '"' ) !== false, 'twitter:title matches og:title' );
+ok( strlen( $front_title ) >= 30 && strlen( $front_title ) <= 60, 'homepage og:title length (' . strlen( $front_title ) . ') is inside the recommended 30-60 range' );
 
 echo "\n[Test 2] Regular single post (not front page): og:type is article, og:description uses post content\n";
 $GLOBALS['_is_front_page'] = false;

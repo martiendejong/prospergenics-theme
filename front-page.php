@@ -146,6 +146,27 @@ get_header();
         </div>
     </section>
 
+    <!-- Team Story Section -->
+    <section id="team-story" class="content-section alt-bg">
+        <div class="section-header">
+            <h2><?php esc_html_e( 'Team Story', 'prospergenics' ); ?></h2>
+            <p><?php esc_html_e( 'What it is like to build with Prospergenics, in our own words', 'prospergenics' ); ?></p>
+        </div>
+
+        <div class="cards-grid team-story-grid">
+            <?php foreach ( prospergenics_get_team_story_quotes() as $team_story_quote ) : ?>
+                <blockquote class="card team-story-quote">
+                    <p><?php echo esc_html( $team_story_quote['quote'] ); ?></p>
+                    <?php // Deliberately not a footer element: the SEO God FAQ script inserts the FAQ before the page's first one. ?>
+                    <div class="team-story-attribution">
+                        <?php echo esc_html( $team_story_quote['author'] ); ?>
+                        <span class="team-story-role"><?php echo esc_html( $team_story_quote['role'] ); ?></span>
+                    </div>
+                </blockquote>
+            <?php endforeach; ?>
+        </div>
+    </section>
+
     <!-- Coaches Section -->
     <section class="content-section alt-bg">
         <div class="section-header">
