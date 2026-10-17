@@ -333,3 +333,13 @@ Chromium at 1280 and 390 px, no overflow, no console errors.
 Left: merge + FTP deploy (live theme has drifted from git, patch surgically).
 Review/AggregateRating schema stays off: all 3 quotes are team members, and
 Martien said "we need proper reviews first" on sibling task 950.
+
+## 2026-10-17 — task 926 (review session, merge + deploy + hotfix)
+Done: reviewed and squash-merged PR #13 (94d1c08), surgically FTP-deployed it (live files backed up as
+`*.bak-task926`; live functions.php keeps its task 797 drift). Live check then showed the SEO God FAQ
+rendered INSIDE the first Team Story card: its inline script inserts the FAQ before the page's first
+`<footer>`, and each quote card used one. Follow-up PR swaps the card footer for a `div`, fixes the
+dead `.team-story-quote blockquote` selector (now `.team-story-quote p`) and adds a regression test.
+Verified: php -l clean, 10/10 test files pass (new assertion fails on the old markup); live check after
+the hotfix deploy is recorded on the task.
+Left: Review/AggregateRating schema stays on task 951 (someday) until real third-party reviews exist.

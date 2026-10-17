@@ -1043,20 +1043,20 @@ a:focus {
     height: 100%;
 }
 
-.team-story-quote blockquote {
+.team-story-quote p {
     margin: 0 0 1.5rem;
     font-style: italic;
     line-height: 1.7;
     color: var(--color-gray-dark);
 }
 
-.team-story-quote footer {
+.team-story-attribution {
     margin-top: auto;
     font-weight: 700;
     color: var(--color-green);
 }
 
-.team-story-quote footer .team-story-role {
+.team-story-attribution .team-story-role {
     display: block;
     font-weight: 400;
     font-size: 0.9rem;
