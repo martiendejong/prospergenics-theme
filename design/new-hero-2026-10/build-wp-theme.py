@@ -11,8 +11,9 @@ Output: ../../wp-theme/prospergenics-2026/
   assets/          <- assets/
   style.css, functions.php, index.php   (minimal WP plumbing)
 
-Team profile pages (team/<slug>/index.html) are static and deploy straight into
-public_html/team/ - see deploy-wp-theme-vimexx.py; they are not theme templates.
+Personal profile pages (people/<slug>/index.html) and the two list pages
+(experts/, community/) are static and deploy straight into public_html/ - see
+deploy-wp-theme-vimexx.py; they are not theme templates.
 
 The conversion only rewrites asset URLs to the theme directory and inserts the
 mandatory wp_head()/wp_footer() hooks. Everything else stays byte-identical so
@@ -51,7 +52,9 @@ def build():
     with open(os.path.join(HERE, "index.html"), encoding="utf-8") as f:
         home = convert(f.read(), "")
     home = home.replace('href="about/"', f'href="{HOME}about/"')
-    home = home.replace('href="team/', f'href="{HOME}team/')
+    home = home.replace('href="people/', f'href="{HOME}people/')
+    home = home.replace('href="experts/"', f'href="{HOME}experts/"')
+    home = home.replace('href="community/"', f'href="{HOME}community/"')
     with open(os.path.join(OUT, "front-page.php"), "w", encoding="utf-8") as f:
         f.write("<?php /* Front page - generated from design/new-hero-2026-10/index.html by build-wp-theme.py; edit the source, not this file. */ ?>\n" + home)
 

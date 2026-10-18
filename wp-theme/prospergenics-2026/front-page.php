@@ -469,6 +469,10 @@
     padding-bottom: .06em;
   }
   .voices-head p, .projects-head p { margin-top: 22px; font-size: clamp(16.5px, 1.5vw, 19px); line-height: 1.65; color: var(--muted); max-width: 46ch; }
+  /* links to the two curated list pages (/experts/ and /community/) */
+  .voices-links { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; max-width: none; }
+  .voices-links a { font-family: 'Sora', sans-serif; font-weight: 600; font-size: 14px; color: var(--green-900); text-decoration: none; background: var(--green-100); border: 1px solid rgba(34,166,90,.25); border-radius: 999px; padding: 9px 18px; transition: all .2s; }
+  .voices-links a:hover { background: var(--green-700); color: #fff; }
   .flow {
     /* vertical padding gives the lens (taller than the cards) room to stay fully visible,
        also while the whole strip scroll-zooms to 1.2 */
@@ -488,7 +492,7 @@
     display: grid; grid-template-columns: 216px minmax(0, 1fr); grid-template-rows: 1fr auto auto auto 1fr;
     column-gap: 20px;
   }
-  /* cards link to the member profile pages (/team/<slug>/) */
+  /* cards link to the personal profile pages (/people/<slug>/) */
   a.flow-card { color: inherit; text-decoration: none; cursor: pointer; }
   a.flow-card:hover .fc-name { color: var(--green-600); }
   /* gentle bob: whole sine periods so each loop ends at its start; 7/9/11 share no factor with
@@ -780,90 +784,91 @@
     <div class="voices-head">
       <h2>Meet the <span class="accent">alchemists</span></h2>
       <p>The people who turn skills, ideas and opportunities into real value.</p>
+      <p class="voices-links"><a href="<?php echo esc_url( home_url( '/' ) ); ?>experts/">Our experts &rarr;</a><a href="<?php echo esc_url( home_url( '/' ) ); ?>community/">Community stories &rarr;</a></p>
     </div>
     <div class="flow" data-scroll-scale="1.3" data-scroll-scale-from="0.8" data-scroll-scale-window="0.65">
       <div class="flow-tri" aria-hidden="true"><span><i></i></span></div>
       <div class="flow-tri flow-tri2" aria-hidden="true"><span><i></i></span></div>
       <div class="flow-track">
         <div class="flow-set">
-          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>team/martien/">
+          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/martien/">
             <span class="fc-ring" aria-hidden="true"></span>
             <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/martien.jpg" alt="Martien de Jong" style="object-position: 45% 25%" /></span>
             <div class="fc-name">Martien de Jong</div>
             <div class="fc-role">Software Developer, Founder</div>
             <p class="fc-quote">"I'm building Jengo, our AI agent platform. It runs most of what we ship."</p>
           </a>
-          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>team/simitia/">
+          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/simitia/">
             <span class="fc-ring" aria-hidden="true"></span>
             <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/sandra_profile-300x300.png" alt="Simitia Mpoe" style="object-position: center 25%" /></span>
             <div class="fc-name">Simitia Mpoe</div>
             <div class="fc-role">Software Developer, Entrepreneur</div>
             <p class="fc-quote">"I design and build web products, and I'm growing my own business with everything I learn."</p>
           </a>
-          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>team/diko/">
+          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/diko/">
             <span class="fc-ring" aria-hidden="true"></span>
             <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/diko_profile-300x300.png" alt="Diko Mohamed" style="object-position: center 30%" /></span>
             <div class="fc-name">Diko Mohamed</div>
             <div class="fc-role">Software Developer, Entrepreneur</div>
             <p class="fc-quote">"I turn opportunities into products. Right now that means integrations and new partnerships."</p>
           </a>
-          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>team/sjoerd/">
+          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/sjoerd/">
             <span class="fc-ring" aria-hidden="true"></span>
             <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/sjoerd-wide.png" alt="Sjoerd Schepman" style="object-position: 50% 15%" /></span>
             <div class="fc-name">Sjoerd Schepman</div>
             <div class="fc-role">Curator Perridon Holdings</div>
             <p class="fc-quote">"I curate the Perridon collection, researching the provenance and the stories behind every piece."</p>
           </a>
-          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>team/faith/">
+          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/faith/">
             <span class="fc-ring" aria-hidden="true"></span>
             <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/faith-nkumun-300x300.png" alt="Faith Nkumun" style="object-position: center 20%" /></span>
             <div class="fc-name">Faith Nkumun</div>
             <div class="fc-role">Entrepreneur, Community member</div>
             <p class="fc-quote">"I had a small store in Oloolaimutia. Here I learned the business skills to take it further."</p>
           </a>
-          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>team/maxwell/">
+          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/maxwell/">
             <span class="fc-ring" aria-hidden="true"></span>
             <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/maxwell-300x300.png" alt="Maxwell" style="object-position: center 20%" /></span>
             <div class="fc-name">Maxwell</div>
             <div class="fc-role">Student, Community member</div>
             <p class="fc-quote">"I'm still studying, and I apply what I learn on real projects with real customers."</p>
           </a>
-          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>team/lessy/">
+          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/lessy/">
             <span class="fc-ring" aria-hidden="true"></span>
             <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/lessy_profile-300x300.png" alt="Lesiamon Mpoe" style="object-position: center 25%" /></span>
             <div class="fc-name">Lesiamon Mpoe</div>
             <div class="fc-role">Co-founder, Trainer, Software Developer</div>
             <p class="fc-quote">"I develop software and train new developers. Good software starts with understanding people."</p>
           </a>
-          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>team/frank/">
+          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/frank/">
             <span class="fc-ring" aria-hidden="true"></span>
             <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/frank_profile-300x300.png" alt="Frank" style="object-position: center 25%" /></span>
             <div class="fc-name">Frank</div>
             <div class="fc-role">Software Developer</div>
             <p class="fc-quote">"I build and ship features for our web platforms, with real responsibility from day one."</p>
           </a>
-          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>team/sophy/">
+          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/sophy/">
             <span class="fc-ring" aria-hidden="true"></span>
             <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/sofy-300x300.png" alt="Sophy Nashipae de Jong" style="object-position: center 20%" /></span>
             <div class="fc-name">Sophy Nashipae de Jong</div>
             <div class="fc-role">Community member</div>
             <p class="fc-quote">"I'm learning Dutch with our own coach app. Learning works better when it feels personal."</p>
           </a>
-          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>team/mayiani/">
+          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/mayiani/">
             <span class="fc-ring" aria-hidden="true"></span>
             <span class="fc-portrait fc-initial" aria-hidden="true">M</span>
             <div class="fc-name">Mayiani Nanana Mpoe</div>
             <div class="fc-role">Community member</div>
             <p class="fc-quote">"I'm learning digital skills step by step and putting them to work in daily life."</p>
           </a>
-          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>team/lou/">
+          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/lou/">
             <span class="fc-ring" aria-hidden="true"></span>
             <span class="fc-portrait fc-initial" aria-hidden="true">L</span>
             <div class="fc-name">Lou Marten</div>
             <div class="fc-role">Marketing, Community member</div>
             <p class="fc-quote">"I work on our brand and marketing, finding the right words for what we build."</p>
           </a>
-          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>team/natumi/">
+          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/natumi/">
             <span class="fc-ring" aria-hidden="true"></span>
             <span class="fc-portrait fc-initial" aria-hidden="true">N</span>
             <div class="fc-name">Natumi</div>
@@ -872,84 +877,84 @@
           </a>
         </div>
         <div class="flow-set" aria-hidden="true">
-          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>team/martien/" tabindex="-1">
+          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/martien/" tabindex="-1">
             <span class="fc-ring"></span>
             <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/martien.jpg" alt="" style="object-position: 45% 25%" /></span>
             <div class="fc-name">Martien de Jong</div>
             <div class="fc-role">Software Developer, Founder</div>
             <p class="fc-quote">"I'm building Jengo, our AI agent platform. It runs most of what we ship."</p>
           </a>
-          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>team/simitia/" tabindex="-1">
+          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/simitia/" tabindex="-1">
             <span class="fc-ring"></span>
             <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/sandra_profile-300x300.png" alt="" style="object-position: center 25%" /></span>
             <div class="fc-name">Simitia Mpoe</div>
             <div class="fc-role">Software Developer, Entrepreneur</div>
             <p class="fc-quote">"I design and build web products, and I'm growing my own business with everything I learn."</p>
           </a>
-          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>team/diko/" tabindex="-1">
+          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/diko/" tabindex="-1">
             <span class="fc-ring"></span>
             <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/diko_profile-300x300.png" alt="" style="object-position: center 30%" /></span>
             <div class="fc-name">Diko Mohamed</div>
             <div class="fc-role">Software Developer, Entrepreneur</div>
             <p class="fc-quote">"I turn opportunities into products. Right now that means integrations and new partnerships."</p>
           </a>
-          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>team/sjoerd/" tabindex="-1">
+          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/sjoerd/" tabindex="-1">
             <span class="fc-ring"></span>
             <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/sjoerd-wide.png" alt="" style="object-position: 50% 15%" /></span>
             <div class="fc-name">Sjoerd Schepman</div>
             <div class="fc-role">Curator Perridon Holdings</div>
             <p class="fc-quote">"I curate the Perridon collection, researching the provenance and the stories behind every piece."</p>
           </a>
-          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>team/faith/" tabindex="-1">
+          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/faith/" tabindex="-1">
             <span class="fc-ring"></span>
             <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/faith-nkumun-300x300.png" alt="" style="object-position: center 20%" /></span>
             <div class="fc-name">Faith Nkumun</div>
             <div class="fc-role">Entrepreneur, Community member</div>
             <p class="fc-quote">"I had a small store in Oloolaimutia. Here I learned the business skills to take it further."</p>
           </a>
-          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>team/maxwell/" tabindex="-1">
+          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/maxwell/" tabindex="-1">
             <span class="fc-ring"></span>
             <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/maxwell-300x300.png" alt="" style="object-position: center 20%" /></span>
             <div class="fc-name">Maxwell</div>
             <div class="fc-role">Student, Community member</div>
             <p class="fc-quote">"I'm still studying, and I apply what I learn on real projects with real customers."</p>
           </a>
-          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>team/lessy/" tabindex="-1">
+          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/lessy/" tabindex="-1">
             <span class="fc-ring"></span>
             <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/lessy_profile-300x300.png" alt="" style="object-position: center 25%" /></span>
             <div class="fc-name">Lesiamon Mpoe</div>
             <div class="fc-role">Co-founder, Trainer, Software Developer</div>
             <p class="fc-quote">"I develop software and train new developers. Good software starts with understanding people."</p>
           </a>
-          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>team/frank/" tabindex="-1">
+          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/frank/" tabindex="-1">
             <span class="fc-ring"></span>
             <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/frank_profile-300x300.png" alt="" style="object-position: center 25%" /></span>
             <div class="fc-name">Frank</div>
             <div class="fc-role">Software Developer</div>
             <p class="fc-quote">"I build and ship features for our web platforms, with real responsibility from day one."</p>
           </a>
-          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>team/sophy/" tabindex="-1">
+          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/sophy/" tabindex="-1">
             <span class="fc-ring"></span>
             <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/sofy-300x300.png" alt="" style="object-position: center 20%" /></span>
             <div class="fc-name">Sophy Nashipae de Jong</div>
             <div class="fc-role">Community member</div>
             <p class="fc-quote">"I'm learning Dutch with our own coach app. Learning works better when it feels personal."</p>
           </a>
-          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>team/mayiani/" tabindex="-1">
+          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/mayiani/" tabindex="-1">
             <span class="fc-ring"></span>
             <span class="fc-portrait fc-initial">M</span>
             <div class="fc-name">Mayiani Nanana Mpoe</div>
             <div class="fc-role">Community member</div>
             <p class="fc-quote">"I'm learning digital skills step by step and putting them to work in daily life."</p>
           </a>
-          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>team/lou/" tabindex="-1">
+          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/lou/" tabindex="-1">
             <span class="fc-ring"></span>
             <span class="fc-portrait fc-initial">L</span>
             <div class="fc-name">Lou Marten</div>
             <div class="fc-role">Marketing, Community member</div>
             <p class="fc-quote">"I work on our brand and marketing, finding the right words for what we build."</p>
           </a>
-          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>team/natumi/" tabindex="-1">
+          <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/natumi/" tabindex="-1">
             <span class="fc-ring"></span>
             <span class="fc-portrait fc-initial">N</span>
             <div class="fc-name">Natumi</div>
