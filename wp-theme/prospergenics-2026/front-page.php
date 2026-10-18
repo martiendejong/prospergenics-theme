@@ -7,8 +7,9 @@
 <title>ProsperGenics — Create value</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Gabarito:wght@700;800;900&family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
+  h1, h2, h3 { font-family: 'Gabarito', sans-serif !important; }
   :root {
     /* ProsperGenics palette — deep forest → vivid growth green */
     --ink:        #0b2016;   /* near-black forest, for the big type */
@@ -680,8 +681,8 @@
   .wa-btn svg { width: 30px; height: 30px; fill: #fff; }
   @media (max-width: 560px){ .launcher { right: 18px; bottom: 18px; gap: 8px; } .launcher-orb { width: 144px; height: 124px; } .launcher-bubble { display: none; } .wa-btn { width: 46px; height: 46px; margin-top: 72px; } .wa-btn svg { width: 25px; height: 25px; } }
 
-  /* subtle double text-shadow on key text */
-  h1.reveal, .sub.reveal, .hbc-head, .sc-caption h3, .sc-caption p {
+  /* subtle double text-shadow on all headings and body text */
+  h1, h2, h3, h4, h5, h6, p {
     text-shadow: 0px 2px 0 rgba(70,70,70,.05), 2px 2px 0 rgba(70,70,70,.05), 0px -1px 0 rgba(70,70,70,.05), 2px -1px 0 rgba(70,70,70,.05);
   }
 
@@ -700,8 +701,8 @@
     <div class="hero-top">
       <div class="hero-top-photo"></div>
       <div class="copy">
-        <h1 class="reveal d1">Create<span class="accent">value</span></h1>
-        <p class="sub reveal d2">Evolve into the best version of yourself. Earn an income while creating opportunities for others.</p>
+        <h1 class="reveal d1">You create<span class="accent">value</span></h1>
+        <p class="sub reveal d2">We're building a system to help you realize your true capacity.</p>
       </div>
     </div>
 
