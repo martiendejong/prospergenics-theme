@@ -299,6 +299,29 @@ while logo/sameAs from task 964 are byte-identical to before.
 Left: task 3068's own live FTP deploy is still outstanding (unrelated to
 this task, not touched here).
 
+## 2026-09-09 — task 940 (complete)
+Done: PR #13. Added a "Team Story" homepage section (front-page.php, between
+Team and Coaches) rendering the 3 real Prospergenics quotes Martien supplied
+(Sandra/Lessy/Frank) via a new `prospergenics_get_team_story_quotes()`
+getter, styled with new `.team-story-*` CSS reusing the existing
+`.cards-grid`/`.card` base. Per established policy from the identical
+sibling case on martiendejong.nl (task 925/PR #865, same 3 quotes): these
+are employee/team-culture testimonials, not customer reviews of
+Prospergenics' service, so they render as plain visible content only — no
+Review/AggregateRating JSON-LD, since tagging them as Review schema would
+misrepresent an insider quote as independent social proof (Google spam-
+schema risk). Genuine client/trainee review schema (task 940's literal ask)
+stays open pending real customer reviews.
+Verified: `php -l` clean on both changed files; new
+`tests/test-940-team-story-quotes.php` (11 assertions, including a
+"no Review/AggregateRating @type anywhere" grep) plus all 8 pre-existing
+test files pass, 9/9 test files green.
+Left: this PR is not deployed live — deploy is a separate FTP step per this
+repo's usual pattern (see task 2929/2942 entries above), left for the
+review/merge pass. Genuine client/trainee Review/AggregateRating schema
+remains a real open gap until Martien or someone else supplies actual
+customer reviews.
+
 ## 2026-10-05 — task 4895 (feature/4895-about-page, PR #16 into design/new-hero-2026-10)
 Done: English About page (design/new-hero-2026-10/about/index.html) with the
 approved copy, deployed to https://test.prospergenics.com/about/. Plus a
@@ -311,3 +334,72 @@ images; homepage slides + launcher still work; link About<->home works.
 Left: Martien's review; port the copy to the live WordPress About page only
 after approval (production not touched). Knowledge docs 554/154/526 could not
 be opened here (JK MCP needs OAuth) - copy taken from the approved draft.
+
+## 2026-10-17 — task 926
+Done: PR #13 brought current with master (conflicts in functions.php and
+this file resolved by keeping both sides) and finished for review. Also fixed
+the homepage og:title/twitter:title (bare "Prospergenics", 13 chars) by
+reusing the existing 60-char homepage title via prospergenics_front_page_title().
+Verified: php -l clean; 10/10 test files pass (731 test extended for the
+og:title); Team Story section rendered with the real style.css in headless
+Chromium at 1280 and 390 px, no overflow, no console errors.
+Left: merge + FTP deploy (live theme has drifted from git, patch surgically).
+Review/AggregateRating schema stays off: all 3 quotes are team members, and
+Martien said "we need proper reviews first" on sibling task 950.
+
+## 2026-10-17 — task 926 (review session, merge + deploy + hotfix)
+Done: reviewed and squash-merged PR #13 (94d1c08), surgically FTP-deployed it (live files backed up as
+`*.bak-task926`; live functions.php keeps its task 797 drift). Live check then showed the SEO God FAQ
+rendered INSIDE the first Team Story card: its inline script inserts the FAQ before the page's first
+`<footer>`, and each quote card used one. Follow-up PR swaps the card footer for a `div`, fixes the
+dead `.team-story-quote blockquote` selector (now `.team-story-quote p`) and adds a regression test.
+Verified: php -l clean, 10/10 test files pass (new assertion fails on the old markup); live check after
+the hotfix deploy is recorded on the task.
+Left: Review/AggregateRating schema stays on task 951 (someday) until real third-party reviews exist.
+
+## 2026-10-18 — WordPress port of the 2026 hero design (design/new-hero-2026-10)
+Done: ported the static design into the REAL theme, which was the open README TODO
+("Port to the WordPress theme (front-page.php / template part + enqueued CSS/JS)").
+New `design/new-hero-2026-10/port-to-theme.py` generates, from index.html:
+`front-page.php` (markup, wrapped in get_header/get_footer('2026')), `css/hero-2026.css`
+(the <style> block, url() rehomed to ../assets/), `js/hero-2026.js` (the inline script,
+slide images via a localized PG_HERO.assets) and `assets/`. Hand-maintained alongside it:
+`header-2026.php`/`footer-2026.php` (document shell + wp_head/wp_footer only — the design
+draws no site nav or footer), `css/front-page-2026.css` (skip-link a11y + Team Story),
+`template-parts/team-story-2026.php`, and an 85-line purely additive enqueue block in
+functions.php (front-page-scoped; dequeues the legacy stylesheet/script there only).
+
+Why into this theme rather than promoting the generated standalone `prospergenics-2026`:
+test.prospergenics.com serves that theme and it emits ZERO JSON-LD, no meta description
+and no robots meta, while production's `prospergenics-theme` carries every SEO task
+merged to date. Promoting the standalone theme would have dropped all of it. Verified
+by curl against both hosts before starting.
+
+Verified: 11/11 test files pass (new `tests/test-hero-2026-port.php`, 34 assertions:
+wp_head/wp_footer present, exactly one <title>, the six wp_head SEO functions still
+defined, CSS/JS enqueued not inlined, front-page-scoped, no design-relative asset paths
+left, all 23 referenced assets exist). php -l clean on every file, node --check clean,
+port script idempotent. Rendered the real template through a WP-stubbed renderer in
+headless Chrome and diffed against the untouched design as a control: identical at 1440
+and at a true 390 viewport (vp/scrollW/wide-elements/broken-images all match), 0 JS
+errors, 20/20 images load, slider wired, Sora loading, Team Story 3 cards / 0 <footer>
+(task 926 constraint holds).
+
+Fixed two real bugs found during the port: 7 inline `background-image:url('assets/...')`
+on the project/service cards were not being rewritten (would have 404'd — the first
+version of the port script only handled src/href), and the skip link rendered as visible
+blue body text because its styles live in the dequeued legacy stylesheet.
+
+Left:
+- NOT deployed. Live deploy is the usual surgical FTP step, and this one is bigger than
+  previous ones (new front-page.php + css/ + js/ + assets/ + 2 new template parts).
+- Unresolved content question for Martien: the design's "voices" section (Martien/Simitia/
+  Diko one-liners) and master's Team Story (Sandra/Lessy/Frank, approved + live-verified)
+  are two different testimonial sections. The port keeps BOTH rather than silently dropping
+  approved live content — Team Story renders after the About/proof section. If Voices is
+  meant to replace it, delete the get_template_part call and the template part.
+- Task 797's front-page meta description is live on production but exists only on the
+  unmerged PR #4 branch, never in master. Caught by the new test (which deliberately does
+  not assert it). That drift should be reconciled before any full-file deploy overwrites it.
+- Still open from the design README: real slide destination URLs, Sandra's WhatsApp number
+  (still the `wa.me/254XXXXXXXXX` placeholder), CoachOS tenant wiring (task 4819).

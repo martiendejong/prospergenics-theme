@@ -88,7 +88,7 @@ function prospergenics_add_social_meta_tags() {
 	$og_image         = get_template_directory_uri() . '/images/social-share.jpg';
 
 	if ( is_front_page() ) {
-		$og_title       = $site_name;
+		$og_title       = prospergenics_front_page_title();
 		$og_description = $site_description;
 		$og_type        = 'website';
 		$og_url         = home_url( '/' );
@@ -253,6 +253,91 @@ function prospergenics_scripts() {
     }
 }
 add_action( 'wp_enqueue_scripts', 'prospergenics_scripts' );
+
+/**
+ * 2026 design: front-page assets
+ *
+ * The front page renders design/new-hero-2026-10 (ported into front-page.php +
+ * css/hero-2026.css + js/hero-2026.js by that folder's port-to-theme.py). The design
+ * resets `*` and styles `body` itself, and brings its own full layout, so the legacy
+ * theme stylesheet and its nav/header script are dequeued here -- on the front page
+ * only. Every other template keeps the legacy CSS/JS untouched.
+ *
+ * Everything in functions.php that prints into wp_head() (Organization + Person JSON-LD,
+ * the front-page meta description, og/twitter tags, speakable selectors, hreflang) is
+ * unaffected and keeps running, which is the whole reason the design was ported into
+ * this theme instead of shipping the standalone generated prospergenics-2026 theme.
+ */
+function prospergenics_hero_2026_assets() {
+    if ( ! is_front_page() ) {
+        return;
+    }
+
+    $theme_uri = get_template_directory_uri();
+    $version   = wp_get_theme()->get( 'Version' );
+
+    // The legacy look would fight the design for the same elements.
+    wp_dequeue_style( 'prospergenics-style' );
+    wp_dequeue_script( 'prospergenics-scripts' );
+
+    // Sora (display) + Inter (body) are the design's two faces.
+    wp_enqueue_style(
+        'prospergenics-hero-2026-fonts',
+        'https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap',
+        array(),
+        null
+    );
+
+    wp_enqueue_style(
+        'prospergenics-hero-2026',
+        $theme_uri . '/css/hero-2026.css',
+        array( 'prospergenics-hero-2026-fonts' ),
+        $version
+    );
+
+    // Hand-maintained additions (skip link + Team Story), after the generated sheet so it can rely on its :root tokens.
+    wp_enqueue_style(
+        'prospergenics-front-page-2026',
+        $theme_uri . '/css/front-page-2026.css',
+        array( 'prospergenics-hero-2026' ),
+        $version
+    );
+
+    wp_enqueue_script(
+        'prospergenics-hero-2026',
+        $theme_uri . '/js/hero-2026.js',
+        array(),
+        $version,
+        true
+    );
+
+    // The showcase slider builds image paths at runtime; it cannot hardcode the theme URL.
+    wp_localize_script(
+        'prospergenics-hero-2026',
+        'PG_HERO',
+        array( 'assets' => trailingslashit( $theme_uri . '/assets' ) )
+    );
+}
+add_action( 'wp_enqueue_scripts', 'prospergenics_hero_2026_assets', 20 );
+
+/**
+ * Preconnect to the Google Fonts hosts the front page uses, so the two faces above
+ * are not blocked behind a cold connection.
+ */
+function prospergenics_hero_2026_resource_hints( $urls, $relation_type ) {
+    if ( 'preconnect' !== $relation_type || ! is_front_page() ) {
+        return $urls;
+    }
+
+    $urls[] = array( 'href' => 'https://fonts.googleapis.com' );
+    $urls[] = array(
+        'href'        => 'https://fonts.gstatic.com',
+        'crossorigin' => 'anonymous',
+    );
+
+    return $urls;
+}
+add_filter( 'wp_resource_hints', 'prospergenics_hero_2026_resource_hints', 10, 2 );
 
 /**
  * Register Widget Areas
@@ -717,13 +802,22 @@ function prospergenics_save_program_buttons( $post_id ) {
 add_action( 'save_post', 'prospergenics_save_program_buttons' );
 
 /**
+ * The specific, keyword-relevant homepage title (task 733). One source for the <title> and
+ * for the front page's og:title / twitter:title, so a shared link does not preview as the bare
+ * site name ("Prospergenics", 13 chars -- under the 30-60 range social scrapers recommend).
+ */
+function prospergenics_front_page_title() {
+    return __( 'Prospergenics | AI & Software Development Coaching Community', 'prospergenics' );
+}
+
+/**
  * Give the front page a specific, keyword-relevant document title instead of
  * the generic "Home - Prospergenics" produced by the static Home page title.
  */
 function prospergenics_front_page_document_title( $title_parts ) {
     if ( is_front_page() && ! is_paged() ) {
         return array(
-            'title' => __( 'Prospergenics | AI & Software Development Coaching Community', 'prospergenics' ),
+            'title' => prospergenics_front_page_title(),
         );
     }
 
@@ -740,7 +834,7 @@ add_filter( 'document_title_parts', 'prospergenics_front_page_document_title' );
  */
 function prospergenics_front_page_title_override( $title ) {
     if ( is_front_page() && ! is_paged() ) {
-        return __( 'Prospergenics | AI & Software Development Coaching Community', 'prospergenics' );
+        return prospergenics_front_page_title();
     }
 
     return $title;
@@ -1052,6 +1146,38 @@ function prospergenics_martien_person_schema() {
     echo "\n" . '<script type="application/ld+json" class="prospergenics-person-schema">' . wp_json_encode( $schema ) . '</script>' . "\n";
 }
 add_action( 'wp_head', 'prospergenics_martien_person_schema', 26 );
+
+/**
+ * Task 940: real quotes from Prospergenics team members about what it's like to work
+ * here (comment on task 940, supplied by Martien). These are employee/team-culture
+ * testimonials, not reviews of Prospergenics' service by a client or trainee -- the
+ * identical content already went live on martiendejong.nl (task 925/PR #865) under the
+ * same policy: render as plain visible content on the homepage only, with NO Review or
+ * AggregateRating JSON-LD. Tagging an insider "why I like working here" quote as a
+ * schema.org Review would misrepresent it as independent customer social proof, which
+ * risks a Google manual action for spammy structured markup. Real client/trainee review
+ * schema (the literal ask in task 940's title) stays open until genuine customer
+ * reviews exist to back it.
+ */
+function prospergenics_get_team_story_quotes() {
+    return array(
+        array(
+            'author' => 'Sandra',
+            'role'   => __( 'Prospergenics, developer', 'prospergenics' ),
+            'quote'  => __( 'I work at Prospergenics as a developer. The systems we build are really used, so everything I learn is immediately tested in practice. We discuss what needs to happen, divide the work and carry responsibility for the result. You learn far more from shipping a real feature than from any exercise.', 'prospergenics' ),
+        ),
+        array(
+            'author' => 'Lessy',
+            'role'   => __( 'Prospergenics, QA', 'prospergenics' ),
+            'quote'  => __( 'My work at Prospergenics is quality assurance: I test what we build before users see it. That means thinking about what can go wrong, documenting it and working with the developers until it is fixed. Testing real products has taught me to look at software in a completely different way.', 'prospergenics' ),
+        ),
+        array(
+            'author' => 'Frank',
+            'role'   => __( 'Prospergenics, developer', 'prospergenics' ),
+            'quote'  => __( 'Prospergenics gives me the chance to work with technology and AI on projects with a real purpose. We solve real problems, try new tools and learn from each other. That builds not just technical skills, but the confidence to take on bigger tasks independently.', 'prospergenics' ),
+        ),
+    );
+}
 
 /**
  * Legacy URL Redirects
