@@ -148,10 +148,10 @@ get_header( '2026' );
           </article>
           <article class="flow-card">
             <span class="fc-ring" aria-hidden="true"></span>
-            <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/lessy_profile-300x300.png" alt="Lessy" style="object-position: center 25%" /></span>
-            <div class="fc-name">Lessy</div>
-            <div class="fc-role">Software Developer</div>
-            <p class="fc-quote">"Every task I pick up teaches me something I can use in the next one. We build, we learn, we build again."</p>
+            <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/lessy_profile-300x300.png" alt="Lesiamon Mpoe" style="object-position: center 25%" /></span>
+            <div class="fc-name">Lesiamon Mpoe</div>
+            <div class="fc-role">Co-founder, Trainer, Software Developer</div>
+            <p class="fc-quote">"Good software starts with understanding people."</p>
           </article>
           <article class="flow-card">
             <span class="fc-ring" aria-hidden="true"></span>
@@ -235,9 +235,9 @@ get_header( '2026' );
           <article class="flow-card">
             <span class="fc-ring"></span>
             <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/lessy_profile-300x300.png" alt="" style="object-position: center 25%" /></span>
-            <div class="fc-name">Lessy</div>
-            <div class="fc-role">Software Developer</div>
-            <p class="fc-quote">"Every task I pick up teaches me something I can use in the next one. We build, we learn, we build again."</p>
+            <div class="fc-name">Lesiamon Mpoe</div>
+            <div class="fc-role">Co-founder, Trainer, Software Developer</div>
+            <p class="fc-quote">"Good software starts with understanding people."</p>
           </article>
           <article class="flow-card">
             <span class="fc-ring"></span>
