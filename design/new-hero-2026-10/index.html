@@ -487,6 +487,9 @@
     display: grid; grid-template-columns: 216px minmax(0, 1fr); grid-template-rows: 1fr auto auto auto 1fr;
     column-gap: 20px;
   }
+  /* cards link to the member profile pages (/team/<slug>/) */
+  a.flow-card { color: inherit; text-decoration: none; cursor: pointer; }
+  a.flow-card:hover .fc-name { color: var(--green-600); }
   /* gentle bob: whole sine periods so each loop ends at its start; 7/9/11 share no factor with
      each other or with the 127s stream and 19s lens morph, so the combination never settles.
      Cycle of 3 must divide the cards-per-set count, or the duplicate set breaks the seam. */
@@ -781,176 +784,176 @@
       <div class="flow-tri flow-tri2" aria-hidden="true"><span><i></i></span></div>
       <div class="flow-track">
         <div class="flow-set">
-          <article class="flow-card">
+          <a class="flow-card" href="team/martien/">
             <span class="fc-ring" aria-hidden="true"></span>
             <span class="fc-portrait"><img src="assets/martien.jpg" alt="Martien de Jong" style="object-position: 45% 25%" /></span>
             <div class="fc-name">Martien de Jong</div>
             <div class="fc-role">Software Developer, Founder</div>
-            <p class="fc-quote">"Kenya and the Netherlands think differently about value. Combining both is our biggest strength."</p>
-          </article>
-          <article class="flow-card">
+            <p class="fc-quote">"I'm building Jengo, our AI agent platform. It runs most of what we ship."</p>
+          </a>
+          <a class="flow-card" href="team/simitia/">
             <span class="fc-ring" aria-hidden="true"></span>
             <span class="fc-portrait"><img src="assets/sandra_profile-300x300.png" alt="Simitia Mpoe" style="object-position: center 25%" /></span>
             <div class="fc-name">Simitia Mpoe</div>
             <div class="fc-role">Software Developer, Entrepreneur</div>
-            <p class="fc-quote">"ProsperGenics connects people who want to build something with the people who can help them do it."</p>
-          </article>
-          <article class="flow-card">
+            <p class="fc-quote">"I design and build web products, and I'm growing my own business with everything I learn."</p>
+          </a>
+          <a class="flow-card" href="team/diko/">
             <span class="fc-ring" aria-hidden="true"></span>
             <span class="fc-portrait"><img src="assets/diko_profile-300x300.png" alt="Diko Mohamed" style="object-position: center 30%" /></span>
             <div class="fc-name">Diko Mohamed</div>
             <div class="fc-role">Software Developer, Entrepreneur</div>
-            <p class="fc-quote">"What I like most: nobody waits for permission. You see an opportunity, you build it."</p>
-          </article>
-          <article class="flow-card">
+            <p class="fc-quote">"I turn opportunities into products. Right now that means integrations and new partnerships."</p>
+          </a>
+          <a class="flow-card" href="team/sjoerd/">
             <span class="fc-ring" aria-hidden="true"></span>
             <span class="fc-portrait"><img src="assets/sjoerd-wide.png" alt="Sjoerd Schepman" style="object-position: 50% 15%" /></span>
             <div class="fc-name">Sjoerd Schepman</div>
             <div class="fc-role">Curator Perridon Holdings</div>
-            <p class="fc-quote">"I've seen this team turn an idea into a working product in weeks. That pace is rare."</p>
-          </article>
-          <article class="flow-card">
+            <p class="fc-quote">"I curate the Perridon collection, researching the provenance and the stories behind every piece."</p>
+          </a>
+          <a class="flow-card" href="team/faith/">
             <span class="fc-ring" aria-hidden="true"></span>
             <span class="fc-portrait"><img src="assets/faith-nkumun-300x300.png" alt="Faith Nkumun" style="object-position: center 20%" /></span>
             <div class="fc-name">Faith Nkumun</div>
-            <div class="fc-role">Community member</div>
-            <p class="fc-quote">"I joined to learn digital skills. Now I help run real projects and teach others what I've learned."</p>
-          </article>
-          <article class="flow-card">
+            <div class="fc-role">Entrepreneur, Community member</div>
+            <p class="fc-quote">"I had a small store in Oloolaimutia. Here I learned the business skills to take it further."</p>
+          </a>
+          <a class="flow-card" href="team/maxwell/">
             <span class="fc-ring" aria-hidden="true"></span>
             <span class="fc-portrait"><img src="assets/maxwell-300x300.png" alt="Maxwell" style="object-position: center 20%" /></span>
             <div class="fc-name">Maxwell</div>
-            <div class="fc-role">Community member</div>
-            <p class="fc-quote">"We work on real products with real customers. You grow faster here than in any classroom."</p>
-          </article>
-          <article class="flow-card">
+            <div class="fc-role">Student, Community member</div>
+            <p class="fc-quote">"I'm still studying, and I apply what I learn on real projects with real customers."</p>
+          </a>
+          <a class="flow-card" href="team/lessy/">
             <span class="fc-ring" aria-hidden="true"></span>
             <span class="fc-portrait"><img src="assets/lessy_profile-300x300.png" alt="Lesiamon Mpoe" style="object-position: center 25%" /></span>
             <div class="fc-name">Lesiamon Mpoe</div>
             <div class="fc-role">Co-founder, Trainer, Software Developer</div>
-            <p class="fc-quote">"Good software starts with understanding people."</p>
-          </article>
-          <article class="flow-card">
+            <p class="fc-quote">"I develop software and train new developers. Good software starts with understanding people."</p>
+          </a>
+          <a class="flow-card" href="team/frank/">
             <span class="fc-ring" aria-hidden="true"></span>
             <span class="fc-portrait"><img src="assets/frank_profile-300x300.png" alt="Frank" style="object-position: center 25%" /></span>
             <div class="fc-name">Frank</div>
             <div class="fc-role">Software Developer</div>
-            <p class="fc-quote">"Working here means real responsibility from day one. You don't watch, you ship."</p>
-          </article>
-          <article class="flow-card">
+            <p class="fc-quote">"I build and ship features for our web platforms, with real responsibility from day one."</p>
+          </a>
+          <a class="flow-card" href="team/sophy/">
             <span class="fc-ring" aria-hidden="true"></span>
             <span class="fc-portrait"><img src="assets/sofy-300x300.png" alt="Sophy Nashipae de Jong" style="object-position: center 20%" /></span>
             <div class="fc-name">Sophy Nashipae de Jong</div>
             <div class="fc-role">Community member</div>
-            <p class="fc-quote">"I practise my Dutch with our own coach app. Learning works better when it feels personal."</p>
-          </article>
-          <article class="flow-card">
+            <p class="fc-quote">"I'm learning Dutch with our own coach app. Learning works better when it feels personal."</p>
+          </a>
+          <a class="flow-card" href="team/mayiani/">
             <span class="fc-ring" aria-hidden="true"></span>
             <span class="fc-portrait fc-initial" aria-hidden="true">M</span>
             <div class="fc-name">Mayiani Nanana Mpoe</div>
             <div class="fc-role">Community member</div>
-            <p class="fc-quote">"Value creation is not abstract here. You see it change daily life around you."</p>
-          </article>
-          <article class="flow-card">
+            <p class="fc-quote">"I'm learning digital skills step by step and putting them to work in daily life."</p>
+          </a>
+          <a class="flow-card" href="team/lou/">
             <span class="fc-ring" aria-hidden="true"></span>
             <span class="fc-portrait fc-initial" aria-hidden="true">L</span>
             <div class="fc-name">Lou Marten</div>
-            <div class="fc-role">Community member</div>
-            <p class="fc-quote">"Good ideas are everywhere. What makes the difference is a community that helps you build them."</p>
-          </article>
-          <article class="flow-card">
+            <div class="fc-role">Marketing, Community member</div>
+            <p class="fc-quote">"I work on our brand and marketing, finding the right words for what we build."</p>
+          </a>
+          <a class="flow-card" href="team/natumi/">
             <span class="fc-ring" aria-hidden="true"></span>
             <span class="fc-portrait fc-initial" aria-hidden="true">N</span>
             <div class="fc-name">Natumi</div>
-            <div class="fc-role">Community member</div>
-            <p class="fc-quote">"I started by asking questions. Now people come to ask me."</p>
-          </article>
+            <div class="fc-role">Livestock keeper, Community member</div>
+            <p class="fc-quote">"People invested in me. I grew my herd and the results now pay the school fees."</p>
+          </a>
         </div>
         <div class="flow-set" aria-hidden="true">
-          <article class="flow-card">
+          <a class="flow-card" href="team/martien/" tabindex="-1">
             <span class="fc-ring"></span>
             <span class="fc-portrait"><img src="assets/martien.jpg" alt="" style="object-position: 45% 25%" /></span>
             <div class="fc-name">Martien de Jong</div>
             <div class="fc-role">Software Developer, Founder</div>
-            <p class="fc-quote">"Kenya and the Netherlands think differently about value. Combining both is our biggest strength."</p>
-          </article>
-          <article class="flow-card">
+            <p class="fc-quote">"I'm building Jengo, our AI agent platform. It runs most of what we ship."</p>
+          </a>
+          <a class="flow-card" href="team/simitia/" tabindex="-1">
             <span class="fc-ring"></span>
             <span class="fc-portrait"><img src="assets/sandra_profile-300x300.png" alt="" style="object-position: center 25%" /></span>
             <div class="fc-name">Simitia Mpoe</div>
             <div class="fc-role">Software Developer, Entrepreneur</div>
-            <p class="fc-quote">"ProsperGenics connects people who want to build something with the people who can help them do it."</p>
-          </article>
-          <article class="flow-card">
+            <p class="fc-quote">"I design and build web products, and I'm growing my own business with everything I learn."</p>
+          </a>
+          <a class="flow-card" href="team/diko/" tabindex="-1">
             <span class="fc-ring"></span>
             <span class="fc-portrait"><img src="assets/diko_profile-300x300.png" alt="" style="object-position: center 30%" /></span>
             <div class="fc-name">Diko Mohamed</div>
             <div class="fc-role">Software Developer, Entrepreneur</div>
-            <p class="fc-quote">"What I like most: nobody waits for permission. You see an opportunity, you build it."</p>
-          </article>
-          <article class="flow-card">
+            <p class="fc-quote">"I turn opportunities into products. Right now that means integrations and new partnerships."</p>
+          </a>
+          <a class="flow-card" href="team/sjoerd/" tabindex="-1">
             <span class="fc-ring"></span>
             <span class="fc-portrait"><img src="assets/sjoerd-wide.png" alt="" style="object-position: 50% 15%" /></span>
             <div class="fc-name">Sjoerd Schepman</div>
             <div class="fc-role">Curator Perridon Holdings</div>
-            <p class="fc-quote">"I've seen this team turn an idea into a working product in weeks. That pace is rare."</p>
-          </article>
-          <article class="flow-card">
+            <p class="fc-quote">"I curate the Perridon collection, researching the provenance and the stories behind every piece."</p>
+          </a>
+          <a class="flow-card" href="team/faith/" tabindex="-1">
             <span class="fc-ring"></span>
             <span class="fc-portrait"><img src="assets/faith-nkumun-300x300.png" alt="" style="object-position: center 20%" /></span>
             <div class="fc-name">Faith Nkumun</div>
-            <div class="fc-role">Community member</div>
-            <p class="fc-quote">"I joined to learn digital skills. Now I help run real projects and teach others what I've learned."</p>
-          </article>
-          <article class="flow-card">
+            <div class="fc-role">Entrepreneur, Community member</div>
+            <p class="fc-quote">"I had a small store in Oloolaimutia. Here I learned the business skills to take it further."</p>
+          </a>
+          <a class="flow-card" href="team/maxwell/" tabindex="-1">
             <span class="fc-ring"></span>
             <span class="fc-portrait"><img src="assets/maxwell-300x300.png" alt="" style="object-position: center 20%" /></span>
             <div class="fc-name">Maxwell</div>
-            <div class="fc-role">Community member</div>
-            <p class="fc-quote">"We work on real products with real customers. You grow faster here than in any classroom."</p>
-          </article>
-          <article class="flow-card">
+            <div class="fc-role">Student, Community member</div>
+            <p class="fc-quote">"I'm still studying, and I apply what I learn on real projects with real customers."</p>
+          </a>
+          <a class="flow-card" href="team/lessy/" tabindex="-1">
             <span class="fc-ring"></span>
             <span class="fc-portrait"><img src="assets/lessy_profile-300x300.png" alt="" style="object-position: center 25%" /></span>
             <div class="fc-name">Lesiamon Mpoe</div>
             <div class="fc-role">Co-founder, Trainer, Software Developer</div>
-            <p class="fc-quote">"Good software starts with understanding people."</p>
-          </article>
-          <article class="flow-card">
+            <p class="fc-quote">"I develop software and train new developers. Good software starts with understanding people."</p>
+          </a>
+          <a class="flow-card" href="team/frank/" tabindex="-1">
             <span class="fc-ring"></span>
             <span class="fc-portrait"><img src="assets/frank_profile-300x300.png" alt="" style="object-position: center 25%" /></span>
             <div class="fc-name">Frank</div>
             <div class="fc-role">Software Developer</div>
-            <p class="fc-quote">"Working here means real responsibility from day one. You don't watch, you ship."</p>
-          </article>
-          <article class="flow-card">
+            <p class="fc-quote">"I build and ship features for our web platforms, with real responsibility from day one."</p>
+          </a>
+          <a class="flow-card" href="team/sophy/" tabindex="-1">
             <span class="fc-ring"></span>
             <span class="fc-portrait"><img src="assets/sofy-300x300.png" alt="" style="object-position: center 20%" /></span>
             <div class="fc-name">Sophy Nashipae de Jong</div>
             <div class="fc-role">Community member</div>
-            <p class="fc-quote">"I practise my Dutch with our own coach app. Learning works better when it feels personal."</p>
-          </article>
-          <article class="flow-card">
+            <p class="fc-quote">"I'm learning Dutch with our own coach app. Learning works better when it feels personal."</p>
+          </a>
+          <a class="flow-card" href="team/mayiani/" tabindex="-1">
             <span class="fc-ring"></span>
             <span class="fc-portrait fc-initial">M</span>
             <div class="fc-name">Mayiani Nanana Mpoe</div>
             <div class="fc-role">Community member</div>
-            <p class="fc-quote">"Value creation is not abstract here. You see it change daily life around you."</p>
-          </article>
-          <article class="flow-card">
+            <p class="fc-quote">"I'm learning digital skills step by step and putting them to work in daily life."</p>
+          </a>
+          <a class="flow-card" href="team/lou/" tabindex="-1">
             <span class="fc-ring"></span>
             <span class="fc-portrait fc-initial">L</span>
             <div class="fc-name">Lou Marten</div>
-            <div class="fc-role">Community member</div>
-            <p class="fc-quote">"Good ideas are everywhere. What makes the difference is a community that helps you build them."</p>
-          </article>
-          <article class="flow-card">
+            <div class="fc-role">Marketing, Community member</div>
+            <p class="fc-quote">"I work on our brand and marketing, finding the right words for what we build."</p>
+          </a>
+          <a class="flow-card" href="team/natumi/" tabindex="-1">
             <span class="fc-ring"></span>
             <span class="fc-portrait fc-initial">N</span>
             <div class="fc-name">Natumi</div>
-            <div class="fc-role">Community member</div>
-            <p class="fc-quote">"I started by asking questions. Now people come to ask me."</p>
-          </article>
+            <div class="fc-role">Livestock keeper, Community member</div>
+            <p class="fc-quote">"People invested in me. I grew my herd and the results now pay the school fees."</p>
+          </a>
         </div>
       </div>
       <div class="flow-lens" aria-hidden="true"></div>

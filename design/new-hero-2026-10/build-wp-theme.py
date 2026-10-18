@@ -7,8 +7,12 @@ Generate the "Prospergenics 2026" WordPress theme from the static design in THIS
 Output: ../../wp-theme/prospergenics-2026/
   front-page.php   <- index.html        (homepage, markup/CSS/JS preserved 1:1)
   page-about.php   <- about/index.html  (used automatically for the page with slug "about")
+  *.php            <- wp/*.php          (hand-written WP templates, copied verbatim)
   assets/          <- assets/
   style.css, functions.php, index.php   (minimal WP plumbing)
+
+Team profile pages (team/<slug>/index.html) are static and deploy straight into
+public_html/team/ - see deploy-wp-theme-vimexx.py; they are not theme templates.
 
 The conversion only rewrites asset URLs to the theme directory and inserts the
 mandatory wp_head()/wp_footer() hooks. Everything else stays byte-identical so
@@ -47,6 +51,7 @@ def build():
     with open(os.path.join(HERE, "index.html"), encoding="utf-8") as f:
         home = convert(f.read(), "")
     home = home.replace('href="about/"', f'href="{HOME}about/"')
+    home = home.replace('href="team/', f'href="{HOME}team/')
     with open(os.path.join(OUT, "front-page.php"), "w", encoding="utf-8") as f:
         f.write("<?php /* Front page - generated from design/new-hero-2026-10/index.html by build-wp-theme.py; edit the source, not this file. */ ?>\n" + home)
 
@@ -60,6 +65,13 @@ def build():
         f.write("<?php /* About page - generated from design/new-hero-2026-10/about/index.html by build-wp-theme.py; edit the source, not this file. */ ?>\n" + about)
 
     shutil.copytree(os.path.join(HERE, "assets"), os.path.join(OUT, "assets"))
+
+    # hand-written WP templates (e.g. single.php for posts/courses): copied verbatim
+    wp_src = os.path.join(HERE, "wp")
+    if os.path.isdir(wp_src):
+        for fn in os.listdir(wp_src):
+            if fn.endswith(".php"):
+                shutil.copy(os.path.join(wp_src, fn), os.path.join(OUT, fn))
 
     with open(os.path.join(OUT, "style.css"), "w", encoding="utf-8") as f:
         f.write("""/*
