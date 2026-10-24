@@ -748,22 +748,11 @@
   }
   .wa-btn:hover { transform: scale(1.09); }
   .wa-btn svg { width: 30px; height: 30px; fill: #fff; }
-  /* compact state: a clean round photo button */
-  .launcher.is-compact .launcher-orb {
-    width: 68px; height: 68px;
-    border-radius: 50%;
-    overflow: hidden;
-    filter: drop-shadow(0 8px 18px rgba(11,32,22,.40));
-    background: var(--green-500);
-  }
-  .launcher.is-compact .launcher-orb .l-blob,
-  .launcher.is-compact .launcher-orb .l-ring { display: none; }
-  .launcher.is-compact .launcher-orb .l-photo {
-    inset: 0; border-radius: 50%; overflow: hidden; animation: none;
-  }
-  .launcher.is-compact .launcher-orb .l-photo img {
-    transform: scale(1.3); transform-origin: center 22%;
-  }
+  /* compact state: smaller circular orb, rings stay, blob becomes a perfect circle */
+  .launcher.is-compact .launcher-orb { width: 74px; height: 74px; filter: drop-shadow(0 10px 22px rgba(11,32,22,.42)); }
+  .launcher.is-compact .launcher-orb .l-blob { border-radius: 50%; animation: none; }
+  .launcher.is-compact .launcher-orb .l-photo { inset: 4px; border-radius: 50%; overflow: hidden; animation: none; }
+  .launcher.is-compact .launcher-orb .l-photo img { transform: scale(1.25); transform-origin: center 22%; }
   .launcher.is-compact .launcher-orb .l-pulse { right: 3px; top: 3px; width: 13px; height: 13px; }
   /* the bubble only appears as a hint on hover/focus of the compact button; beside the
      "Not sure where to start?" block (full size) that block's own copy does its job */
