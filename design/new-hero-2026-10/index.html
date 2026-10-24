@@ -1495,7 +1495,9 @@
   </script>
 
   <script>
-    // Scroll top-fade: content entering the top 25 % of the viewport fades out.
+    // Scroll top-fade: gradient mask — the top 25 % of the viewport is a fade zone.
+    // Content entering from the bottom stays fully opaque; once it scrolls into the
+    // top 25 %, the part nearest the top fades while the lower part stays solid.
     (function(){
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
       const items = Array.from(document.querySelectorAll('main > section:not(.hero) > *'));
@@ -1505,7 +1507,12 @@
         const zone = window.innerHeight * 0.25;
         items.forEach(el => {
           const t = el.getBoundingClientRect().top;
-          el.style.opacity = t >= zone ? '' : t <= 0 ? '0' : (t / zone).toFixed(3);
+          if (t >= zone) {
+            el.style.maskImage = ''; el.style.webkitMaskImage = '';
+          } else {
+            const g = `linear-gradient(to bottom,transparent ${-t}px,#000 ${zone - t}px)`;
+            el.style.maskImage = g; el.style.webkitMaskImage = g;
+          }
         });
         ticking = false;
       }
