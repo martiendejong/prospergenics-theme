@@ -299,22 +299,32 @@
       document.addEventListener('click', function (e) { if (!panel.hidden && !e.target.closest('.site-header')) setOpen(false); });
       window.matchMedia('(min-width: 881px)').addEventListener('change', function (e) { if (e.matches) setOpen(false); });
     })();
-    // Scroll top-fade: gradient mask — the top 25 % of the viewport is a fade zone.
-    // Content entering from the bottom stays fully opaque; once it scrolls into the
-    // top 25 %, the part nearest the top fades while the lower part stays solid.
+    // Scroll top-fade: gradient mask — the top 15 % of the viewport is a fade zone.
+    // Non-hero: viewport-relative formula. Hero children: scroll-relative (no mask at scrollY=0).
     (function () {
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
       var items = Array.prototype.slice.call(document.querySelectorAll('main > section:not(.hero) > *'));
-      if (!items.length) return;
+      var heroItems = Array.prototype.slice.call(document.querySelectorAll('main > section.hero > *'));
+      if (!items.length && !heroItems.length) return;
       var ticking = false;
       function update() {
-        var zone = window.innerHeight * 0.25;
+        var zone = window.innerHeight * 0.15;
+        var scrollY = window.scrollY || 0;
         items.forEach(function (el) {
           var t = el.getBoundingClientRect().top;
           if (t >= zone) {
             el.style.maskImage = ''; el.style.webkitMaskImage = '';
           } else {
             var g = 'linear-gradient(to bottom,transparent ' + (-t) + 'px,#000 ' + (zone - t) + 'px)';
+            el.style.maskImage = g; el.style.webkitMaskImage = g;
+          }
+        });
+        heroItems.forEach(function (el) {
+          if (scrollY <= 0) {
+            el.style.maskImage = ''; el.style.webkitMaskImage = '';
+          } else {
+            var fd = Math.min(scrollY, zone);
+            var g = 'linear-gradient(to bottom,transparent 0px,#000 ' + fd + 'px)';
             el.style.maskImage = g; el.style.webkitMaskImage = g;
           }
         });

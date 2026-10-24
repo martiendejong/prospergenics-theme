@@ -76,6 +76,18 @@
     .brand img { height: 36px; }
   }
   @media (min-width: 881px){ .nav-panel { display: none !important; } }
+  /* Desktop header: fixed + hidden by default; JS adds .hdr-visible on scroll-up past hero */
+  @media (min-width: 881px) {
+    .site-header {
+      position: fixed; top: 0; left: 0; right: 0; max-width: none;
+      background: rgba(244,250,246,.95);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 1px 0 rgba(15,61,40,.10);
+      transform: translateY(-110%);
+      transition: transform .35s cubic-bezier(.22,.61,.36,1);
+    }
+    .site-header.hdr-visible { transform: translateY(0); }
+  }
   :focus-visible { outline: 3px solid var(--green-500); outline-offset: 3px; }
 
   /* ─────────────────────────────  FOOTER  ───────────────────────────── */
@@ -736,17 +748,31 @@
   }
   .wa-btn:hover { transform: scale(1.09); }
   .wa-btn svg { width: 30px; height: 30px; fill: #fff; }
-  /* compact state: a small round chat button with WhatsApp beside it */
-  .launcher.is-compact .launcher-orb { width: 84px; height: 84px; filter: drop-shadow(0 12px 22px rgba(11,32,22,.38)); }
-  .launcher.is-compact .launcher-orb .l-pulse { right: 2px; top: 2px; width: 13px; height: 13px; }
+  /* compact state: a clean round photo button */
+  .launcher.is-compact .launcher-orb {
+    width: 68px; height: 68px;
+    border-radius: 50%;
+    overflow: hidden;
+    filter: drop-shadow(0 8px 18px rgba(11,32,22,.40));
+    background: var(--green-500);
+  }
+  .launcher.is-compact .launcher-orb .l-blob,
+  .launcher.is-compact .launcher-orb .l-ring { display: none; }
+  .launcher.is-compact .launcher-orb .l-photo {
+    inset: 0; border-radius: 50%; overflow: hidden; animation: none;
+  }
+  .launcher.is-compact .launcher-orb .l-photo img {
+    transform: scale(1.3); transform-origin: center 22%;
+  }
+  .launcher.is-compact .launcher-orb .l-pulse { right: 3px; top: 3px; width: 13px; height: 13px; }
   /* the bubble only appears as a hint on hover/focus of the compact button; beside the
      "Not sure where to start?" block (full size) that block's own copy does its job */
   .launcher-bubble { opacity: 0; pointer-events: none; transform: translateX(12px); }
-  .launcher.is-compact .launcher-bubble { right: 112px; bottom: 18px; }
+  .launcher.is-compact .launcher-bubble { right: 96px; bottom: 14px; }
   .launcher.is-compact:hover .launcher-bubble, .launcher.is-compact:focus-within .launcher-bubble { opacity: 1; transform: none; }
-  .launcher.is-compact .wa-btn { left: -30px; bottom: -4px; width: 44px; height: 44px; }
-  .launcher.is-compact .wa-btn svg { width: 24px; height: 24px; }
-  body.launcher-compact .co-embed-panel { bottom: 136px !important; height: min(560px, calc(100vh - 168px)) !important; }
+  .launcher.is-compact .wa-btn { left: -26px; bottom: -4px; width: 40px; height: 40px; }
+  .launcher.is-compact .wa-btn svg { width: 22px; height: 22px; }
+  body.launcher-compact .co-embed-panel { bottom: 120px !important; height: min(560px, calc(100vh - 152px)) !important; }
   @media (max-width: 560px){ .launcher { right: 18px; bottom: 18px; gap: 8px; } .launcher-bubble { display: none; } }
   @media (prefers-reduced-motion: reduce){ .launcher-orb, .launcher .wa-btn, .launcher-bubble { transition: none; } }
 
@@ -1495,16 +1521,18 @@
   </script>
 
   <script>
-    // Scroll top-fade: gradient mask — the top 25 % of the viewport is a fade zone.
-    // Content entering from the bottom stays fully opaque; once it scrolls into the
-    // top 25 %, the part nearest the top fades while the lower part stays solid.
+    // Scroll top-fade: gradient mask — the top 15 % of the viewport is a fade zone.
+    // Non-hero: viewport-relative formula (transparent at 0, opaque at 15 %).
+    // Hero children: scroll-relative formula (no mask at scrollY=0; grows as user scrolls).
     (function(){
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
       const items = Array.from(document.querySelectorAll('main > section:not(.hero) > *'));
-      if (!items.length) return;
+      const heroItems = Array.from(document.querySelectorAll('main > section.hero > *'));
+      if (!items.length && !heroItems.length) return;
       let ticking = false;
       function update() {
-        const zone = window.innerHeight * 0.25;
+        const zone = window.innerHeight * 0.15;
+        const scrollY = window.scrollY || 0;
         items.forEach(el => {
           const t = el.getBoundingClientRect().top;
           if (t >= zone) {
@@ -1514,10 +1542,43 @@
             el.style.maskImage = g; el.style.webkitMaskImage = g;
           }
         });
+        heroItems.forEach(el => {
+          if (scrollY <= 0) {
+            el.style.maskImage = ''; el.style.webkitMaskImage = '';
+          } else {
+            const fd = Math.min(scrollY, zone);
+            const g = `linear-gradient(to bottom,transparent 0px,#000 ${fd}px)`;
+            el.style.maskImage = g; el.style.webkitMaskImage = g;
+          }
+        });
         ticking = false;
       }
       window.addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
       window.addEventListener('resize', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+    })();
+    // Desktop header: hidden by default; slides in when scrolled past hero and scrolling up.
+    (function(){
+      const header = document.querySelector('.site-header');
+      const heroSection = document.querySelector('section.hero');
+      if (!header || !heroSection) return;
+      const desktop = window.matchMedia('(min-width: 881px)');
+      let lastY = 0, threshold = 0, ticking = false;
+      function calcThreshold() {
+        threshold = heroSection.getBoundingClientRect().bottom + (window.scrollY || 0);
+      }
+      function update() {
+        if (!desktop.matches) { header.classList.remove('hdr-visible'); lastY = window.scrollY || 0; ticking = false; return; }
+        const y = window.scrollY || 0;
+        if (y > threshold && y < lastY) {
+          header.classList.add('hdr-visible');
+        } else {
+          header.classList.remove('hdr-visible');
+        }
+        lastY = y; ticking = false;
+      }
+      window.addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+      window.addEventListener('resize', calcThreshold, { passive: true });
+      calcThreshold(); lastY = window.scrollY || 0;
     })();
   </script>
 
