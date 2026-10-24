@@ -1,5 +1,25 @@
 # Agent Progress
 
+## 2026-10-24 — SEO/security layer and contact page for the 2026 theme (audit C2, M2, M4, H5)
+Done: wp/inc/security.php (headers incl. strict CSP as Report-Only, security.txt, XML-RPC
+refused, generator removed, users endpoint and author archives hidden from visitors) and
+wp/inc/seo.php (noindex on every host but prospergenics.com/www; homepage description,
+OG/Twitter tags and a 1200x630 sharing image; excerpt-based descriptions on inner pages,
+all skipped when an SEO plugin is active; Organization + WebSite JSON-LD with SearchAction
+and the WhatsApp contact). Static profile pages gained canonical/sharing tags and noindex
+that follows SITE. Contact: PR #20's store-first modules copied into wp/inc/ unchanged, new
+page-contact.php (form with honeypot + signed timing token, WhatsApp/value-test panel,
+success/error state) also served at /contact/ when WordPress has no contact page.
+Verified on local WP: headers and security.txt served; /wp-json/wp/v2/users, ?author=1 and
+/author/admin/ 404; xmlrpc.php 403; noindex on localhost; JSON-LD parses. A human form
+submission is stored as a message and its mail failure recorded ("Could not instantiate mail
+function" - no mailer locally); a honeypot submission is stored as spam and not mailed.
+tests/test-2026-seo-security.php and tests/test-2026-contact.php (PR #20's test, adapted);
+16/16 test files pass.
+Left: confirm on test that a real enquiry shows Notification "Sent" (SMTP mu-plugin), check the
+browser console for CSP Report-Only warnings before enforcing it, and have Martien confirm
+the new homepage description/Organization wording.
+
 ## 2026-10-24 — WhatsApp number + chat launcher overlap, audit C6/H4 (PR #22)
 Done: WhatsApp links now use wa.me/254741619743 (the number production uses, confirmed by
 Lesiamon); also added to the homepage footer. The fixed chat launcher (242x186 orb plus a

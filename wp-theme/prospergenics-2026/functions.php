@@ -13,6 +13,32 @@ remove_action( 'wp_head', '_wp_render_title_tag', 1 );
 require get_template_directory() . '/inc/security.php';
 require get_template_directory() . '/inc/seo.php';
 
+// Contact form: every enquiry is stored before any email is attempted, with spam flagged
+// (never discarded) and the delivery result recorded. Ported from PR #20 for production.
+require get_template_directory() . '/inc/spam-protection.php';
+require get_template_directory() . '/inc/contact-messages-store.php';
+require get_template_directory() . '/inc/contact-messages-admin.php';
+require get_template_directory() . '/inc/contact-form-handler.php';
+require get_template_directory() . '/inc/comment-spam-protection.php';
+// page-contact.php shows the result next to the form; skip the handler's generic footer notice.
+remove_action( 'wp_footer', 'prospergenics_contact_form_messages' );
+
+/**
+ * Serve page-contact.php at /contact/ even when WordPress has no "contact" page yet, so the
+ * contact links in the header, footer and 404 page never lead nowhere.
+ */
+add_action( 'template_redirect', function () {
+    if ( ! is_404() || 'contact' !== trim( (string) parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH ), '/' ) ) {
+        return;
+    }
+    global $wp_query;
+    $wp_query->is_404 = false;
+    status_header( 200 );
+    add_filter( 'pre_get_document_title', function () { return 'Contact – ProsperGenics'; } );
+    include get_template_directory() . '/page-contact.php';
+    exit;
+}, 20 );
+
 /**
  * Legacy URL redirects (301), only for requests that would otherwise 404.
  *
