@@ -311,11 +311,10 @@
       if (!items.length && !heroItemsData.length) return;
       var ticking = false;
       function applyFx(el, progress) {
-        el.style.transform = 'scale(' + (1 - progress * 0.06) + ')';
         el.style.filter = 'grayscale(' + (progress * 75) + '%)';
       }
       function clearFx(el) {
-        el.style.transform = ''; el.style.filter = '';
+        el.style.filter = '';
         el.style.maskImage = ''; el.style.webkitMaskImage = '';
       }
       function update() {

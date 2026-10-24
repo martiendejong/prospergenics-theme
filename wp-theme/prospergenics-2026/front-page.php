@@ -869,7 +869,7 @@
 
   <!-- SECOND MESSAGE · who we are (summary of the About page) -->
   <section class="proof" id="about">
-    <div class="proof-intro">
+    <div class="proof-intro" data-scroll-scale="1.05" data-scroll-scale-from="0.97">
       <div class="proof-copy reveal d1">
         <h2 class="alchemy">Discover the&nbsp;alchemy <span class="accent">of prosperity</span></h2>
         <p>ProsperGenics is a community of people who want to create value for themselves, for others, and for the communities around them.</p>
@@ -1550,12 +1550,12 @@
       if (!items.length && !heroItemsData.length) return;
       let ticking = false;
       function applyFx(el, progress) {
-        const sc = 1 - progress * 0.06;
-        el.style.transform = `scale(${sc})`;
+        // Note: transform intentionally omitted — scroll-scale system owns el.style.transform.
+        // Clearing it here would wipe the grow-in scale every frame.
         el.style.filter = `grayscale(${progress * 75}%)`;
       }
       function clearFx(el) {
-        el.style.transform = ''; el.style.filter = '';
+        el.style.filter = '';
         el.style.maskImage = ''; el.style.webkitMaskImage = '';
       }
       function update() {
