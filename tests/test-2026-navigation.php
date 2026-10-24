@@ -12,6 +12,9 @@
  *   - the menu script is present (toggle + Escape),
  *   - the homepage has a <footer> with contact and legal links, and <main>.
  *
+ *   - About, profile and list pages (from site_chrome.py) offer the same main menu as the
+ *     homepage and inner pages.
+ *
  * Run with: php tests/test-2026-navigation.php
  */
 
@@ -48,6 +51,35 @@ ok( false !== strpos( $home, '<footer class="site-footer">' ), 'homepage has a s
 foreach ( array( '/contact/', '/privacy-policy/', '/cookie-policy/' ) as $href ) {
 	ok( false !== strpos( $home, 'href="' . $href . '"' ), "footer links $href" );
 }
+
+echo "every page type offers the same main menu\n";
+// The homepage and the WordPress inner pages define the menu inline; About and the static
+// people/experts/community pages get it from site_chrome.py. They must not drift apart.
+function main_menu( $html ) {
+	if ( ! preg_match( '#<nav class="nav-links" aria-label="Main">(.*?)</nav>#s', $html, $m ) ) {
+		return array();
+	}
+	// [^<>]: the PHP templates' hrefs contain a closing PHP tag, so a bare [^<] would
+	// capture part of the href along with the label.
+	preg_match_all( '#>([^<>]+)</a>#', $m[1], $labels );
+	return array_map( 'trim', $labels[1] );
+}
+$design   = dirname( __DIR__ ) . '/design/new-hero-2026-10';
+$expected = array( 'Courses', 'Members', 'Tools', 'Services', 'Partners', 'About' );
+$sources  = array(
+	'homepage'        => $pages['homepage'],
+	'inner pages'     => $pages['inner pages'],
+	'About page'      => file_get_contents( $theme . '/page-about.php' ),
+	'a profile page'  => file_get_contents( $design . '/people/lessy/index.html' ),
+	'experts list'    => file_get_contents( $design . '/experts/index.html' ),
+	'community list'  => file_get_contents( $design . '/community/index.html' ),
+);
+foreach ( $sources as $label => $html ) {
+	ok( $expected === main_menu( $html ), "$label menu is " . implode( ', ', $expected ) );
+	ok( false !== strpos( $html, 'aria-controls="mobile-menu"' ) && false !== strpos( $html, 'id="mobile-menu" hidden' ), "$label has the mobile menu" );
+	ok( false !== strpos( $html, 'class="site-footer"' ) || false !== strpos( $html, 'class="pg-footer"' ), "$label has the site footer" );
+}
+ok( false === strpos( $sources['About page'], '<header class="nav">' ), 'About page no longer carries its old two-link header' );
 
 echo $failures ? "\n$failures FAILED\n" : "\nAll assertions passed.\n";
 exit( $failures ? 1 : 0 );

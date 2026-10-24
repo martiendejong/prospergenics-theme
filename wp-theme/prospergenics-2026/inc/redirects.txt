@@ -1,0 +1,25 @@
+# Legacy URL redirects for the 2026 theme: permanent (301), and only used when the old URL
+# would otherwise be "page not found", so a real page is never hidden by a rule.
+#
+# One rule per line:  <old path>  <new path or full URL>
+#   - paths are site-relative, without the domain: kenya, not https://prospergenics.com/kenya/
+#   - leading/trailing slashes and capitals don't matter on the old path
+#   - a trailing /* on the old path matches everything under it (programs/* = programs/<anything>)
+#   - exact rules win over /* rules; for /* rules the longest match wins
+# Old member profiles (/members/<name>/, /team_member/<name>/) are handled in redirects.php:
+# they go to /people/<name>/ when that profile exists.
+#
+# Add the ~30 URLs from the launch task below. tests/test-2026-routing.php checks this file
+# for duplicates, redirect chains and loops on every pull request.
+
+# Task 855: pre-restructure page, its Kenya content now lives on About
+kenya                /about/
+
+# Production theme's "program" post type (Digital Technology, Cultural Exchange, Sustainable
+# Farming, ...): the 2026 theme has no programmes section; courses are the closest match.
+# REVIEW (Martien): confirm /courses/ is the right home for these.
+programs             /courses/
+programs/*           /courses/
+
+# Production theme's member_type taxonomy archives (team, coach, community)
+member-type/*        /community/

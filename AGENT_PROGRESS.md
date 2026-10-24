@@ -1,5 +1,21 @@
 # Agent Progress
 
+## 2026-10-24 — shared header/footer, redirect map, sitemaps (batch 3)
+Done: (1) design/new-hero-2026-10/site_chrome.py: one header (same six links + "Take the test"),
+mobile menu and footer for About and the people/experts/community pages, which had two other
+menus; build-profiles.py imports it and it rewrites marked blocks in about/index.html.
+(2) wp/inc/redirects.php + redirects.txt: legacy 301s as a plain "old new" list with /*
+wildcards, exact-then-longest matching, chain/loop/duplicate checks; adds /programs/* ->
+/courses/ (for Martien to confirm) and /member-type/* -> /community/ for the production
+theme's post types. (3) wp/inc/sitemap.php: /people-sitemap.xml, a core sitemap provider,
+Yoast index link and robots.txt line for the static pages; core users sitemap dropped and
+unknown sitemap names now 404.
+Verified on local WP: same menu on all page types (menu, Esc, no overflow, axe clean); all
+redirects 301 as listed, real pages untouched, unknown URLs 404; sitemaps valid XML with 15
+static pages. New tests/test-2026-sitemap.php, extended navigation and routing tests (both
+fail on the old code); 17/17 test files pass; rebuild leaves no diff.
+Left: Martien's ~30 legacy URLs go into redirects.txt; confirm /programs/ -> /courses/.
+
 ## 2026-10-24 — CI and deploy-to-test workflows (audit H8)
 Done: .github/workflows/ci.yml (php -l on every PHP file, every tests/*.php, and a check that the
 generated theme/profile pages match the design source) on PRs and pushes to master and the

@@ -21,7 +21,10 @@ homepage slider. A person can be both; an external expert is just "expert".
 Asset URLs are relative so the pages work in the static preview;
 deploy-wp-theme-vimexx.py rewrites them to the theme directory on upload.
 """
-import json, os
+import json, os, sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import site_chrome  # noqa: E402  shared header, mobile menu and footer
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SITE = "https://test.prospergenics.com"
@@ -326,6 +329,7 @@ PROFILES = [
 # ── shared page chrome ──────────────────────────────────────────────────────
 
 # Inserted as a .format() *value*, so braces here are literal CSS (not escaped).
+# Header/footer styling comes from site_chrome.CSS (shared with the About page).
 STYLE = """  :root {
     /* same palette + tokens as the homepage */
     --ink:#0b2016; --green-900:#0f3d28; --green-700:#1a7a46; --green-600:#22a65a;
@@ -343,23 +347,11 @@ STYLE = """  :root {
   h1,h2,h3,p { text-shadow:0px 2px 0 rgba(70,70,70,.05),2px 2px 0 rgba(70,70,70,.05),0px -1px 0 rgba(70,70,70,.05),2px -1px 0 rgba(70,70,70,.05); }
   .wrap { max-width:1080px; margin:0 auto; padding:0 var(--gutter); }
   :focus-visible { outline:3px solid var(--green-500); outline-offset:3px; border-radius:8px; }
-  .nav { position:relative; z-index:20; display:flex; align-items:center; justify-content:space-between; gap:16px; max-width:1500px; margin:0 auto; padding:22px var(--gutter) 0; }
-  .brand img { height:68px; width:auto; }
-  .nav-links { display:flex; align-items:center; gap:30px; }
-  .nav-links a { font-size:15px; font-weight:500; color:var(--green-900); text-decoration:none; opacity:.8; transition:opacity .2s; }
-  .nav-links a:hover { opacity:1; }
-  .nav-links a[aria-current="page"] { opacity:1; font-weight:600; box-shadow:inset 0 -2px 0 var(--green-500); padding-bottom:3px; }
-  @media (max-width:560px) { .brand img { height:56px; } .nav-links { gap:20px; } }
   .eyebrow { display:inline-flex; align-items:center; gap:10px; font-family:'Sora',sans-serif; font-weight:600; font-size:13px; letter-spacing:.08em; text-transform:uppercase; color:var(--green-700); padding:8px 14px 8px 10px; border-radius:999px; background:var(--green-100); border:1px solid rgba(34,166,90,.2); }
   .eyebrow .dot { width:7px; height:7px; border-radius:50%; background:var(--green-500); box-shadow:0 0 0 4px rgba(52,199,89,.22); }
   .chips { display:flex; flex-wrap:wrap; gap:10px; }
   .chip { font-family:'Sora',sans-serif; font-weight:600; font-size:13.5px; color:var(--green-900); background:var(--green-100); border:1px solid rgba(34,166,90,.25); border-radius:999px; padding:8px 16px; }
-  .chip small { display:block; font-weight:500; font-size:11px; color:var(--green-700); margin-top:2px; }
-  footer { border-top:1px solid var(--line); background:var(--paper-2); margin-top:clamp(56px,8vw,96px); }
-  footer .wrap { display:flex; align-items:center; justify-content:space-between; gap:18px; padding-top:26px; padding-bottom:26px; }
-  .f-brand { display:flex; align-items:center; gap:12px; font-size:14px; color:var(--muted); }
-  .f-brand img { height:40px; }
-  footer a { font-size:14px; color:var(--green-900); }"""
+  .chip small { display:block; font-weight:500; font-size:11px; color:var(--green-700); margin-top:2px; }"""
 
 PROFILE_PAGE = """<!DOCTYPE html>
 <html lang="en">
@@ -406,19 +398,12 @@ PROFILE_PAGE = """<!DOCTYPE html>
   .bg-grid .card {{ padding:14px 18px; }}
   .back {{ display:inline-flex; align-items:center; gap:8px; margin-top:clamp(40px,5vw,56px); font-family:'Sora',sans-serif; font-weight:600; font-size:15px; color:var(--green-700); text-decoration:none; }}
   .back:hover {{ color:var(--green-600); }}
+{chrome_css}
 </style>
 </head>
 <body>
 
-  <header class="nav">
-    <a class="brand" href="../../" aria-label="ProsperGenics · home"><img src="../../assets/logo.png" alt="ProsperGenics" /></a>
-    <nav class="nav-links" aria-label="Main">
-      <a href="../../">Home</a>
-      <a href="../../about/">About</a>
-      <a href="../../experts/">Experts</a>
-      <a href="../../community/">Community</a>
-    </nav>
-  </header>
+  {site_header}
 
   <main>
     <section class="p-hero">
@@ -473,13 +458,9 @@ PROFILE_PAGE = """<!DOCTYPE html>
     </section>
   </main>
 
-  <footer>
-    <div class="wrap">
-      <div class="f-brand"><img src="../../assets/logo.png" alt="" /><span>ProsperGenics · building prosperity together</span></div>
-      <a href="../../">Home</a>
-    </div>
-  </footer>
+  {site_footer}
 
+  {chrome_js}
 </body>
 </html>
 """
@@ -517,19 +498,12 @@ LIST_PAGE = """<!DOCTYPE html>
   .pc-line {{ font-size:14.5px; line-height:1.55; color:var(--body); margin-bottom:12px; }}
   .pc-body .chips {{ gap:7px; }}
   .pc-body .chip {{ font-size:12px; padding:5px 12px; }}
+{chrome_css}
 </style>
 </head>
 <body>
 
-  <header class="nav">
-    <a class="brand" href="../" aria-label="ProsperGenics · home"><img src="../assets/logo.png" alt="ProsperGenics" /></a>
-    <nav class="nav-links" aria-label="Main">
-      <a href="../">Home</a>
-      <a href="../about/">About</a>
-      <a href="../experts/"{cur_experts}>Experts</a>
-      <a href="../community/"{cur_community}>Community</a>
-    </nav>
-  </header>
+  {site_header}
 
   <main>
     <section class="l-hero">
@@ -548,13 +522,9 @@ LIST_PAGE = """<!DOCTYPE html>
     </section>
   </main>
 
-  <footer>
-    <div class="wrap">
-      <div class="f-brand"><img src="../assets/logo.png" alt="" /><span>ProsperGenics · building prosperity together</span></div>
-      <a href="../">Home</a>
-    </div>
-  </footer>
+  {site_footer}
 
+  {chrome_js}
 </body>
 </html>
 """
@@ -607,6 +577,8 @@ def build_profiles():
         url = f"{SITE}/people/{m['slug']}/"
         image = f"{SITE}/wp-content/themes/prospergenics-2026/assets/{m['img']}" if m.get("img") else f"{SITE}/wp-content/themes/prospergenics-2026/assets/og-image.jpg"
         html = PROFILE_PAGE.format(
+            site_header=site_chrome.header("../../"), site_footer=site_chrome.footer("../../"),
+            chrome_css=site_chrome.CSS, chrome_js=site_chrome.JS,
             head_meta=head_meta(url, f"{m['name']} · ProsperGenics", f"{m['name']}, {m['role']}. Story, value contributions and expertise at ProsperGenics.", image),
             style=STYLE,
             name=m["name"], role=m["role"], quote=m["quote"], story=m["story"],
@@ -655,13 +627,13 @@ def build_list(folder, tag, title, eyebrow, heading, lede, meta_desc):
         ],
     }
     html = LIST_PAGE.format(
+        site_header=site_chrome.header("../"), site_footer=site_chrome.footer("../"),
+        chrome_css=site_chrome.CSS, chrome_js=site_chrome.JS,
         head_meta=head_meta(f"{SITE}/{folder}/", f"{title} · ProsperGenics", meta_desc, f"{SITE}/wp-content/themes/prospergenics-2026/assets/og-image.jpg"),
         style=STYLE, title=title, meta_desc=meta_desc, eyebrow=eyebrow,
         heading=heading, lede=lede,
         jsonld=json.dumps(jsonld, indent=2),
         cards="\n".join(list_card(m) for m in people),
-        cur_experts=' aria-current="page"' if folder == "experts" else "",
-        cur_community=' aria-current="page"' if folder == "community" else "",
     )
     out_dir = os.path.normpath(os.path.join(HERE, "..", folder))
     os.makedirs(out_dir, exist_ok=True)
