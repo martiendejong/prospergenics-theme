@@ -10,6 +10,9 @@ add_action( 'after_setup_theme', function () {
 // The templates carry their own <title>; keep WP/plugins from printing a second one.
 remove_action( 'wp_head', '_wp_render_title_tag', 1 );
 
+require get_template_directory() . '/inc/security.php';
+require get_template_directory() . '/inc/seo.php';
+
 /**
  * Legacy URL redirects (301), only for requests that would otherwise 404.
  *

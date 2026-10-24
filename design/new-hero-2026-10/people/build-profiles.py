@@ -25,6 +25,25 @@ import json, os
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SITE = "https://test.prospergenics.com"
+# Pages built for any other SITE (test, sandboxes) get noindex; switch SITE to this at launch.
+PRODUCTION_SITE = "https://prospergenics.com"
+
+
+def head_meta(url, title, description, image):
+    """robots (noindex off production), canonical and sharing tags for a static page."""
+    from html import escape
+    tags = [] if SITE == PRODUCTION_SITE else ['<meta name="robots" content="noindex" />']
+    tags += [
+        f'<link rel="canonical" href="{escape(url)}" />',
+        '<meta property="og:type" content="profile" />' if "/people/" in url else '<meta property="og:type" content="website" />',
+        '<meta property="og:site_name" content="ProsperGenics" />',
+        f'<meta property="og:title" content="{escape(title)}" />',
+        f'<meta property="og:description" content="{escape(description)}" />',
+        f'<meta property="og:url" content="{escape(url)}" />',
+        f'<meta property="og:image" content="{escape(image)}" />',
+        '<meta name="twitter:card" content="summary_large_image" />',
+    ]
+    return "\n".join(tags)
 FALLBACK = "This part of the story is still being written."
 
 # expertises: list of {"name": ..., "endorsers": [names]} - endorsers optional and
@@ -349,7 +368,7 @@ PROFILE_PAGE = """<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>{name} · ProsperGenics</title>
 <meta name="description" content="{name}, {role}. Story, value contributions and expertise at ProsperGenics." />
-<meta name="robots" content="noindex" />
+{head_meta}
 <link rel="icon" href="../../assets/logo.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -474,7 +493,7 @@ LIST_PAGE = """<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>{title} · ProsperGenics</title>
 <meta name="description" content="{meta_desc}" />
-<meta name="robots" content="noindex" />
+{head_meta}
 <link rel="icon" href="../assets/logo.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -589,7 +608,10 @@ def build_profiles():
             portrait = m["initial"]
             initial_class = " p-initial"
         eyebrow = "ProsperGenics expert" if "expert" in m["tags"] else "ProsperGenics community"
+        url = f"{SITE}/people/{m['slug']}/"
+        image = f"{SITE}/wp-content/themes/prospergenics-2026/assets/{m['img']}" if m.get("img") else f"{SITE}/wp-content/themes/prospergenics-2026/assets/og-image.jpg"
         html = PROFILE_PAGE.format(
+            head_meta=head_meta(url, f"{m['name']} · ProsperGenics", f"{m['name']}, {m['role']}. Story, value contributions and expertise at ProsperGenics.", image),
             style=STYLE,
             name=m["name"], role=m["role"], quote=m["quote"], story=m["story"],
             eyebrow=eyebrow, portrait=portrait, initial_class=initial_class,
@@ -637,6 +659,7 @@ def build_list(folder, tag, title, eyebrow, heading, lede, meta_desc):
         ],
     }
     html = LIST_PAGE.format(
+        head_meta=head_meta(f"{SITE}/{folder}/", f"{title} · ProsperGenics", meta_desc, f"{SITE}/wp-content/themes/prospergenics-2026/assets/og-image.jpg"),
         style=STYLE, title=title, meta_desc=meta_desc, eyebrow=eyebrow,
         heading=heading, lede=lede,
         jsonld=json.dumps(jsonld, indent=2),
