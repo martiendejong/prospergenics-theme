@@ -6,6 +6,9 @@ targeted the old IIS server and is superseded by this script).
 
     python deploy-wp-theme-vimexx.py
 
+Credentials: PG_FTP_USER / PG_FTP_PASSWORD from the environment when set (GitHub Actions),
+otherwise the Jengo vault (Martien's machine).
+
 Server: web0168.zxcs.nl (Vimexx DA pakket u63291p434771, FTPS poort 21,
 TLS session reuse verplicht). FTP root = DA home, so paths start at domains/.
 Uploads:
@@ -76,8 +79,13 @@ def main():
     subprocess.run([sys.executable, os.path.join(PEOPLE, "build-profiles.py")], check=True)
     subprocess.run([sys.executable, os.path.join(HERE, "build-wp-theme.py")], check=True)
 
-    cred = vault_cred(VAULT_PROJECT, VAULT_CRED,
-                      "deploy prospergenics-2026 thema + profielpagina's naar test.prospergenics.com")
+    # CI (GitHub Actions, .github/workflows/deploy-test.yml) passes the FTPS login as
+    # environment variables from repository secrets; on Martien's machine it comes from the vault.
+    if os.environ.get("PG_FTP_USER") and os.environ.get("PG_FTP_PASSWORD"):
+        cred = {"username": os.environ["PG_FTP_USER"], "password": os.environ["PG_FTP_PASSWORD"]}
+    else:
+        cred = vault_cred(VAULT_PROJECT, VAULT_CRED,
+                          "deploy prospergenics-2026 thema + profielpagina's naar test.prospergenics.com")
     ftp = FTPS()
     ftp.connect(FTP_HOST, FTP_PORT, timeout=60)
     ftp.login(cred["username"], cred["password"])

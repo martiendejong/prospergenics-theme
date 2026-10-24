@@ -1,0 +1,64 @@
+name: Deploy to test.prospergenics.com
+
+# Every push to the design branch (including a merged pull request) is tested and then
+# uploaded to the Vimexx hosting behind test.prospergenics.com with the same script Martien
+# runs by hand: design/new-hero-2026-10/deploy-wp-theme-vimexx.py.
+#
+# Setup (once, by a repository admin): Settings -> Secrets and variables -> Actions ->
+# add TEST_FTP_USERNAME and TEST_FTP_PASSWORD (the FTPS login for web0168.zxcs.nl, the same
+# credential as vault project 6 / credential 266). Until both exist this workflow runs the
+# tests and skips the upload with a notice, so it never fails just for missing secrets.
+on:
+  push:
+    branches: [design/new-hero-2026-10]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-test
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run tests before deploying
+        run: |
+          for t in tests/*.php; do php "$t" > /dev/null || { echo "::error file=$t::test failed, not deploying"; exit 1; }; done
+
+      - name: Check deploy credentials
+        id: creds
+        env:
+          PG_FTP_USER: ${{ secrets.TEST_FTP_USERNAME }}
+          PG_FTP_PASSWORD: ${{ secrets.TEST_FTP_PASSWORD }}
+        run: |
+          if [ -n "$PG_FTP_USER" ] && [ -n "$PG_FTP_PASSWORD" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::TEST_FTP_USERNAME / TEST_FTP_PASSWORD are not set, so nothing was uploaded. See the comment at the top of this workflow."
+          fi
+
+      - name: Build and upload
+        if: steps.creds.outputs.ready == 'true'
+        env:
+          PG_FTP_USER: ${{ secrets.TEST_FTP_USERNAME }}
+          PG_FTP_PASSWORD: ${{ secrets.TEST_FTP_PASSWORD }}
+        run: python3 design/new-hero-2026-10/deploy-wp-theme-vimexx.py
+
+      - name: Smoke-check the test site
+        if: steps.creds.outputs.ready == 'true'
+        run: |
+          for path in / /about/ /contact/ /people/lessy/ /.well-known/security.txt; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "https://test.prospergenics.com$path")
+            echo "$path -> $code"
+            [ "$code" = "200" ] || { echo "::error::$path returned $code after deploy"; exit 1; }
+          done
+          code=$(curl -s -o /dev/null -w '%{http_code}' "https://test.prospergenics.com/this-page-does-not-exist-$(date +%s)/")
+          echo "unknown URL -> $code"
+          [ "$code" = "404" ] || { echo "::error::unknown URLs should 404, got $code"; exit 1; }
