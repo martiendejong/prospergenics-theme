@@ -319,9 +319,11 @@
       var ticking = false;
       function applyFx(el, progress) {
         el.style.filter = 'grayscale(' + (progress * 75) + '%)';
+        el.style.scale = String(1 - progress * 0.05);
       }
       function clearFx(el) {
         el.style.filter = '';
+        el.style.scale = '';
         el.style.maskImage = ''; el.style.webkitMaskImage = '';
       }
       function update() {

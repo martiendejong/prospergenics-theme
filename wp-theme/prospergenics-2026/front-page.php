@@ -1549,12 +1549,14 @@
       if (!items.length && !heroItemsData.length) return;
       let ticking = false;
       function applyFx(el, progress) {
-        // Note: transform intentionally omitted — scroll-scale system owns el.style.transform.
-        // Clearing it here would wipe the grow-in scale every frame.
+        // CSS `scale` property is independent of `transform`, so it composes with
+        // the scroll-scale grow-in system without conflict.
         el.style.filter = `grayscale(${progress * 75}%)`;
+        el.style.scale = String(1 - progress * 0.05);
       }
       function clearFx(el) {
         el.style.filter = '';
+        el.style.scale = '';
         el.style.maskImage = ''; el.style.webkitMaskImage = '';
       }
       function update() {
