@@ -77,18 +77,16 @@
     .brand img { height: 36px; }
   }
   @media (min-width: 881px){ .nav-panel { display: none !important; } }
-  /* Desktop header: fixed + hidden by default; JS adds .hdr-visible on scroll-up past hero */
-  @media (min-width: 881px) {
-    .site-header {
-      position: fixed; top: 0; left: 0; right: 0; max-width: none;
-      background: rgba(244,250,246,.95);
-      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-      box-shadow: 0 1px 0 rgba(15,61,40,.10);
-      transform: translateY(-110%);
-      transition: transform .35s cubic-bezier(.22,.61,.36,1);
-    }
-    .site-header.hdr-visible { transform: translateY(0); }
+  /* Header: fixed + hidden on all screen sizes; JS adds .hdr-visible on scroll-up past hero */
+  .site-header {
+    position: fixed; top: 0; left: 0; right: 0; max-width: none;
+    background: rgba(244,250,246,.95);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 1px 0 rgba(15,61,40,.10);
+    transform: translateY(-110%);
+    transition: transform .35s cubic-bezier(.22,.61,.36,1);
   }
+  .site-header.hdr-visible { transform: translateY(0); }
   :focus-visible { outline: 3px solid var(--green-500); outline-offset: 3px; }
 
   /* ─────────────────────────────  FOOTER  ───────────────────────────── */
@@ -410,6 +408,20 @@
     -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
   }
   .hbc-body { font-size: 16px; line-height: 1.6; color: var(--muted); }
+  .hero-bottom-cta { cursor: pointer; }
+  .hbc-arrow {
+    display: inline-flex; align-items: center; justify-content: center;
+    margin-top: 22px; width: 46px; height: 46px; border-radius: 50%;
+    background: var(--green-100); border: 1.5px solid rgba(26,122,70,.20);
+    color: var(--green-700); transition: background .2s, border-color .2s;
+    animation: hbc-point 2s ease-in-out infinite;
+  }
+  .hbc-arrow svg { width: 20px; height: 20px; fill: currentColor; }
+  .hero-bottom-cta:hover .hbc-arrow { background: var(--green-200); border-color: rgba(26,122,70,.4); }
+  @keyframes hbc-point {
+    0%, 100% { transform: translateX(0); }
+    50%       { transform: translateX(8px); }
+  }
   @media (max-width: 980px) { .hero-bottom-cta { display: none; } }
 
   /* ───────────────  INTERACTIVE 4-SLIDE SHOWCASE  ─────────────── */
@@ -749,12 +761,19 @@
   }
   .wa-btn:hover { transform: scale(1.09); }
   .wa-btn svg { width: 30px; height: 30px; fill: #fff; }
-  /* compact state: smaller circular orb, rings stay, blob becomes a perfect circle */
-  .launcher.is-compact .launcher-orb { width: 74px; height: 74px; filter: drop-shadow(0 10px 22px rgba(11,32,22,.42)); }
-  .launcher.is-compact .launcher-orb .l-blob { border-radius: 50%; animation: none; }
-  .launcher.is-compact .launcher-orb .l-photo { inset: 4px; border-radius: 50%; overflow: hidden; animation: none; }
-  .launcher.is-compact .launcher-orb .l-photo img { transform: scale(1.25); transform-origin: center 22%; }
-  .launcher.is-compact .launcher-orb .l-pulse { right: 3px; top: 3px; width: 13px; height: 13px; }
+  /* compact state: clean round photo button — no blob, no rings */
+  .launcher.is-compact .launcher-orb {
+    width: 62px; height: 62px; border-radius: 50%; overflow: hidden;
+    border: 2.5px solid var(--green-500);
+    background: var(--green-200);
+    filter: drop-shadow(0 6px 18px rgba(11,32,22,.40));
+    transition: transform .2s var(--ease);
+  }
+  .launcher.is-compact .launcher-orb .l-blob,
+  .launcher.is-compact .launcher-orb .l-ring { display: none; }
+  .launcher.is-compact .launcher-orb .l-photo { inset: 0; border-radius: 0; overflow: hidden; animation: none; }
+  .launcher.is-compact .launcher-orb .l-photo img { transform: scale(1.15); transform-origin: center 18%; }
+  .launcher.is-compact .launcher-orb .l-pulse { right: 0px; top: 0px; width: 13px; height: 13px; }
   /* the bubble only appears as a hint on hover/focus of the compact button; beside the
      "Not sure where to start?" block (full size) that block's own copy does its job */
   .launcher-bubble { opacity: 0; pointer-events: none; transform: translateX(12px); }
@@ -820,7 +839,7 @@
       <div class="copy">
         <div class="copy-inner">
           <h1 class="reveal d1">You create<span class="accent">value</span></h1>
-          <p class="sub reveal d2">We're building a system to help you realize your true capacity.</p>
+          <p class="sub reveal d2">We're building the system to help you realize your true capacity.</p>
         </div>
       </div>
     </div>
@@ -846,6 +865,9 @@
       <div class="hero-bottom-cta reveal d4">
         <p class="hbc-head">Not sure where <span class="accent">to start?</span></p>
         <p class="hbc-body">Tell us what you want to achieve. We'll help you find the next step.</p>
+        <span class="hbc-arrow" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8-8-8z"/></svg>
+        </span>
       </div>
     </div>
   </section>
@@ -1571,18 +1593,16 @@
       window.addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
       window.addEventListener('resize', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
     })();
-    // Desktop header: hidden by default; slides in when scrolled past hero and scrolling up.
+    // Header: hidden by default on all screen sizes; slides in when scrolled past hero + scrolling up.
     (function(){
       const header = document.querySelector('.site-header');
       const heroSection = document.querySelector('section.hero');
       if (!header || !heroSection) return;
-      const desktop = window.matchMedia('(min-width: 881px)');
       let lastY = 0, threshold = 0, ticking = false;
       function calcThreshold() {
         threshold = heroSection.getBoundingClientRect().bottom + (window.scrollY || 0);
       }
       function update() {
-        if (!desktop.matches) { header.classList.remove('hdr-visible'); lastY = window.scrollY || 0; ticking = false; return; }
         const y = window.scrollY || 0;
         if (y > threshold && y < lastY) {
           header.classList.add('hdr-visible');
@@ -1599,8 +1619,11 @@
 
   <script>
     // Chat launcher: full-size on desktop, compact on mobile — never changes on scroll.
+    // Clicking .hero-bottom-cta (the "Not sure where to start?" block) also opens the chat.
     (function () {
       const launcher = document.querySelector('.launcher');
+      const orb = document.querySelector('.launcher-orb');
+      const cta = document.querySelector('.hero-bottom-cta');
       if (!launcher) return;
       const mobile = window.matchMedia('(max-width: 880px)');
       function update() {
@@ -1610,6 +1633,7 @@
       }
       mobile.addEventListener('change', update);
       update();
+      if (cta && orb) cta.addEventListener('click', () => orb.click());
     })();
 
     // Mobile menu: toggle, close on Esc / link click / resize to desktop, focus handling.
