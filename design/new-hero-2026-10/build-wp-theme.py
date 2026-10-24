@@ -30,7 +30,7 @@ HOME = "<?php echo esc_url( home_url( '/' ) ); ?>"
 
 def convert(html, asset_prefix):
     # WP hooks, with the original markup untouched otherwise
-    html = html.replace('<html lang="en">', '<html lang="en" <?php language_attributes(); ?>>', 1)
+    html = html.replace('<html lang="en">', '<html <?php language_attributes(); ?>>', 1)
     html = html.replace('<html lang="en" class="no-js">',
                         '<html class="no-js" <?php language_attributes(); ?>>', 1)
     html = html.replace("</head>", "<?php wp_head(); ?>\n</head>", 1)

@@ -1,12 +1,13 @@
 <?php /* Front page - generated from design/new-hero-2026-10/index.html by build-wp-theme.py; edit the source, not this file. */ ?>
 <!DOCTYPE html>
-<html lang="en" <?php language_attributes(); ?>>
+<html <?php language_attributes(); ?>>
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>ProsperGenics — Create value</title>
 <link rel="icon" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/logo.png" />
 <link rel="apple-touch-icon" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/logo.png" />
+<link rel="preload" as="image" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/hero-top.webp" fetchpriority="high" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Gabarito:wght@700;800;900&family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -64,7 +65,7 @@
   .hero-top-photo {
     position: absolute; top: 34px; bottom: 0; left: 50%; width: 100vw; transform: translateX(-50%);
     z-index: 0; pointer-events: none;
-    background: url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/hero-top.png') center 12% / cover no-repeat;
+    background: url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/hero-top.webp') center 12% / cover no-repeat;
     opacity: .97;
     /* full screen width; soft fade at top + bottom into the paper */
     -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.05) 5%, rgba(0, 0, 0, 0.2) 10%, rgba(0, 0, 0, 0.5) 15%, #000 20%, #000 80%, rgba(0, 0, 0, 0.8) 85%, rgba(0, 0, 0, 0.4) 90%, rgba(0, 0, 0, 0.1) 95%, transparent 100%);
@@ -273,7 +274,7 @@
   .hero-photobg {
     position: absolute; top: 0; bottom: 0; left: 50%; width: 100vw; transform: translateX(-50%);
     z-index: 0; pointer-events: none;
-    background: url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/hero-bg.jpg') center 28% / cover no-repeat;
+    background: url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/hero-bg.webp') center 28% / cover no-repeat;
     opacity: .62;
   }
   /* a wash to keep text crisp over the photo (stronger on the left, behind the copy) */
@@ -450,6 +451,8 @@
   .vt-cta .btn-primary:hover { transform: translateY(-2px); }
   .vt-cta-note { font-size: 14.5px; color: var(--muted); max-width: 40ch; }
   .vt-error { margin-top: 16px; font-size: 14px; color: #a33; }
+  .vt-privacy { margin-top: 14px; font-size: 13px; line-height: 1.5; color: var(--muted); }
+  .vt-privacy a { color: var(--green-700); }
   @media (max-width: 640px){
     .vtest-box, .vtest-in, .vt-field, .vt-answer { transform: none; }
     .vtest-in { padding: 24px 18px; }
@@ -749,7 +752,7 @@
       </div>
       <div class="proof-visual reveal d2">
         <a class="pv-scale pv-link" href="/courses">
-          <img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/discover-alchemy.png" alt="A ProsperGenics community session - browse the course material" />
+          <img loading="lazy" decoding="async" src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/discover-alchemy.webp" alt="A ProsperGenics community session - browse the course material" />
           <span class="pv-caption">Browse Course Material <span class="arrow">&rarr;</span></span>
         </a>
       </div>
@@ -795,63 +798,63 @@
         <div class="flow-set">
           <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/martien/">
             <span class="fc-ring" aria-hidden="true"></span>
-            <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/martien.jpg" alt="Martien de Jong" style="object-position: 45% 25%" /></span>
+            <span class="fc-portrait"><img loading="lazy" decoding="async" src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/martien.webp" alt="Martien de Jong" style="object-position: 45% 25%" /></span>
             <div class="fc-name">Martien de Jong</div>
             <div class="fc-role">Software Developer, Founder</div>
             <p class="fc-quote">"I'm building Jengo, our AI agent platform. It runs most of what we ship."</p>
           </a>
           <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/simitia/">
             <span class="fc-ring" aria-hidden="true"></span>
-            <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/sandra_profile-300x300.png" alt="Simitia Mpoe" style="object-position: center 25%" /></span>
+            <span class="fc-portrait"><img loading="lazy" decoding="async" src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/sandra_profile-300x300.webp" alt="Simitia Mpoe" style="object-position: center 25%" /></span>
             <div class="fc-name">Simitia Mpoe</div>
             <div class="fc-role">Software Developer, Entrepreneur</div>
             <p class="fc-quote">"I design and build web products, and I'm growing my own business with everything I learn."</p>
           </a>
           <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/diko/">
             <span class="fc-ring" aria-hidden="true"></span>
-            <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/diko_profile-300x300.png" alt="Diko Mohamed" style="object-position: center 30%" /></span>
+            <span class="fc-portrait"><img loading="lazy" decoding="async" src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/diko_profile-300x300.webp" alt="Diko Mohamed" style="object-position: center 30%" /></span>
             <div class="fc-name">Diko Mohamed</div>
             <div class="fc-role">Software Developer, Entrepreneur</div>
             <p class="fc-quote">"I turn opportunities into products. Right now that means integrations and new partnerships."</p>
           </a>
           <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/sjoerd/">
             <span class="fc-ring" aria-hidden="true"></span>
-            <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/sjoerd-wide.png" alt="Sjoerd Schepman" style="object-position: 50% 15%" /></span>
+            <span class="fc-portrait"><img loading="lazy" decoding="async" src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/sjoerd-wide.webp" alt="Sjoerd Schepman" style="object-position: 50% 15%" /></span>
             <div class="fc-name">Sjoerd Schepman</div>
             <div class="fc-role">Curator Perridon Holdings</div>
             <p class="fc-quote">"I curate the Perridon collection, researching the provenance and the stories behind every piece."</p>
           </a>
           <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/faith/">
             <span class="fc-ring" aria-hidden="true"></span>
-            <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/faith-nkumun-300x300.png" alt="Faith Nkumun" style="object-position: center 20%" /></span>
+            <span class="fc-portrait"><img loading="lazy" decoding="async" src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/faith-nkumun-300x300.webp" alt="Faith Nkumun" style="object-position: center 20%" /></span>
             <div class="fc-name">Faith Nkumun</div>
             <div class="fc-role">Entrepreneur, Community member</div>
             <p class="fc-quote">"I had a small store in Oloolaimutia. Here I learned the business skills to take it further."</p>
           </a>
           <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/maxwell/">
             <span class="fc-ring" aria-hidden="true"></span>
-            <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/maxwell-300x300.png" alt="Maxwell" style="object-position: center 20%" /></span>
+            <span class="fc-portrait"><img loading="lazy" decoding="async" src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/maxwell-300x300.webp" alt="Maxwell" style="object-position: center 20%" /></span>
             <div class="fc-name">Maxwell</div>
             <div class="fc-role">Student, Community member</div>
             <p class="fc-quote">"I'm still studying, and I apply what I learn on real projects with real customers."</p>
           </a>
           <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/lessy/">
             <span class="fc-ring" aria-hidden="true"></span>
-            <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/lessy_profile-300x300.png" alt="Lesiamon Mpoe" style="object-position: center 25%" /></span>
+            <span class="fc-portrait"><img loading="lazy" decoding="async" src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/lessy_profile-300x300.webp" alt="Lesiamon Mpoe" style="object-position: center 25%" /></span>
             <div class="fc-name">Lesiamon Mpoe</div>
             <div class="fc-role">Co-founder, Trainer, Software Developer</div>
             <p class="fc-quote">"I develop software and train new developers. Good software starts with understanding people."</p>
           </a>
           <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/frank/">
             <span class="fc-ring" aria-hidden="true"></span>
-            <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/frank_profile-300x300.png" alt="Frank" style="object-position: center 25%" /></span>
+            <span class="fc-portrait"><img loading="lazy" decoding="async" src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/frank_profile-300x300.webp" alt="Frank" style="object-position: center 25%" /></span>
             <div class="fc-name">Frank</div>
             <div class="fc-role">Software Developer</div>
             <p class="fc-quote">"I build and ship features for our web platforms, with real responsibility from day one."</p>
           </a>
           <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/sophy/">
             <span class="fc-ring" aria-hidden="true"></span>
-            <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/sofy-300x300.png" alt="Sophy Nashipae de Jong" style="object-position: center 20%" /></span>
+            <span class="fc-portrait"><img loading="lazy" decoding="async" src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/sofy-300x300.webp" alt="Sophy Nashipae de Jong" style="object-position: center 20%" /></span>
             <div class="fc-name">Sophy Nashipae de Jong</div>
             <div class="fc-role">Community member</div>
             <p class="fc-quote">"I'm learning Dutch with our own coach app. Learning works better when it feels personal."</p>
@@ -881,63 +884,63 @@
         <div class="flow-set" aria-hidden="true">
           <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/martien/" tabindex="-1">
             <span class="fc-ring"></span>
-            <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/martien.jpg" alt="" style="object-position: 45% 25%" /></span>
+            <span class="fc-portrait"><img loading="lazy" decoding="async" src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/martien.webp" alt="" style="object-position: 45% 25%" /></span>
             <div class="fc-name">Martien de Jong</div>
             <div class="fc-role">Software Developer, Founder</div>
             <p class="fc-quote">"I'm building Jengo, our AI agent platform. It runs most of what we ship."</p>
           </a>
           <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/simitia/" tabindex="-1">
             <span class="fc-ring"></span>
-            <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/sandra_profile-300x300.png" alt="" style="object-position: center 25%" /></span>
+            <span class="fc-portrait"><img loading="lazy" decoding="async" src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/sandra_profile-300x300.webp" alt="" style="object-position: center 25%" /></span>
             <div class="fc-name">Simitia Mpoe</div>
             <div class="fc-role">Software Developer, Entrepreneur</div>
             <p class="fc-quote">"I design and build web products, and I'm growing my own business with everything I learn."</p>
           </a>
           <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/diko/" tabindex="-1">
             <span class="fc-ring"></span>
-            <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/diko_profile-300x300.png" alt="" style="object-position: center 30%" /></span>
+            <span class="fc-portrait"><img loading="lazy" decoding="async" src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/diko_profile-300x300.webp" alt="" style="object-position: center 30%" /></span>
             <div class="fc-name">Diko Mohamed</div>
             <div class="fc-role">Software Developer, Entrepreneur</div>
             <p class="fc-quote">"I turn opportunities into products. Right now that means integrations and new partnerships."</p>
           </a>
           <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/sjoerd/" tabindex="-1">
             <span class="fc-ring"></span>
-            <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/sjoerd-wide.png" alt="" style="object-position: 50% 15%" /></span>
+            <span class="fc-portrait"><img loading="lazy" decoding="async" src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/sjoerd-wide.webp" alt="" style="object-position: 50% 15%" /></span>
             <div class="fc-name">Sjoerd Schepman</div>
             <div class="fc-role">Curator Perridon Holdings</div>
             <p class="fc-quote">"I curate the Perridon collection, researching the provenance and the stories behind every piece."</p>
           </a>
           <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/faith/" tabindex="-1">
             <span class="fc-ring"></span>
-            <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/faith-nkumun-300x300.png" alt="" style="object-position: center 20%" /></span>
+            <span class="fc-portrait"><img loading="lazy" decoding="async" src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/faith-nkumun-300x300.webp" alt="" style="object-position: center 20%" /></span>
             <div class="fc-name">Faith Nkumun</div>
             <div class="fc-role">Entrepreneur, Community member</div>
             <p class="fc-quote">"I had a small store in Oloolaimutia. Here I learned the business skills to take it further."</p>
           </a>
           <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/maxwell/" tabindex="-1">
             <span class="fc-ring"></span>
-            <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/maxwell-300x300.png" alt="" style="object-position: center 20%" /></span>
+            <span class="fc-portrait"><img loading="lazy" decoding="async" src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/maxwell-300x300.webp" alt="" style="object-position: center 20%" /></span>
             <div class="fc-name">Maxwell</div>
             <div class="fc-role">Student, Community member</div>
             <p class="fc-quote">"I'm still studying, and I apply what I learn on real projects with real customers."</p>
           </a>
           <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/lessy/" tabindex="-1">
             <span class="fc-ring"></span>
-            <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/lessy_profile-300x300.png" alt="" style="object-position: center 25%" /></span>
+            <span class="fc-portrait"><img loading="lazy" decoding="async" src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/lessy_profile-300x300.webp" alt="" style="object-position: center 25%" /></span>
             <div class="fc-name">Lesiamon Mpoe</div>
             <div class="fc-role">Co-founder, Trainer, Software Developer</div>
             <p class="fc-quote">"I develop software and train new developers. Good software starts with understanding people."</p>
           </a>
           <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/frank/" tabindex="-1">
             <span class="fc-ring"></span>
-            <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/frank_profile-300x300.png" alt="" style="object-position: center 25%" /></span>
+            <span class="fc-portrait"><img loading="lazy" decoding="async" src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/frank_profile-300x300.webp" alt="" style="object-position: center 25%" /></span>
             <div class="fc-name">Frank</div>
             <div class="fc-role">Software Developer</div>
             <p class="fc-quote">"I build and ship features for our web platforms, with real responsibility from day one."</p>
           </a>
           <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/sophy/" tabindex="-1">
             <span class="fc-ring"></span>
-            <span class="fc-portrait"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/sofy-300x300.png" alt="" style="object-position: center 20%" /></span>
+            <span class="fc-portrait"><img loading="lazy" decoding="async" src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/sofy-300x300.webp" alt="" style="object-position: center 20%" /></span>
             <div class="fc-name">Sophy Nashipae de Jong</div>
             <div class="fc-role">Community member</div>
             <p class="fc-quote">"I'm learning Dutch with our own coach app. Learning works better when it feels personal."</p>
@@ -979,15 +982,15 @@
     </div>
     <div class="pstrips" data-scroll-scale="1.2">
       <div class="pstrip">
-        <a class="pcard" href="/jengo" aria-label="Jengo" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/jengo-task-outcomes.png')">
+        <a class="pcard" href="/jengo" aria-label="Jengo" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/jengo-task-outcomes.webp')">
           <span class="pc-tag">Jengo</span>
           <div class="pc-caption"><p>Give your AI an extra brain.</p></div>
         </a>
-        <a class="pcard" href="/courses" aria-label="AI trainings" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/sandra.png'); background-position: 60% 20%">
+        <a class="pcard" href="/courses" aria-label="AI trainings" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/sandra.webp'); background-position: 60% 20%">
           <span class="pc-tag">AI trainings</span>
           <div class="pc-caption"><p>AI training and certification.</p></div>
         </a>
-        <a class="pcard" href="/citizenship" aria-label="Citizenship courses" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/jengo-werkplek-duo.png'); background-color: #101826">
+        <a class="pcard" href="/citizenship" aria-label="Citizenship courses" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/jengo-werkplek-duo.webp'); background-color: #101826">
           <span class="pc-tag">Citizenship courses</span>
           <div class="pc-caption"><p>Dutch citizenship and language courses.</p></div>
         </a>
@@ -1006,19 +1009,19 @@
     </div>
     <div class="pstrips" data-scroll-scale="1.2">
       <div class="pstrip">
-        <a class="pcard" href="/services/coachos" aria-label="CoachOS platform" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/jengo-telefoon-chat.png'); background-color: var(--paper-2)">
+        <a class="pcard" href="/services/coachos" aria-label="CoachOS platform" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/jengo-telefoon-chat.webp'); background-color: var(--paper-2)">
           <span class="pc-tag">CoachOS</span>
           <div class="pc-caption"><p>AI chat, courses and avatar videos for your organisation, on your own platform.</p></div>
         </a>
-        <a class="pcard" href="/services/research" aria-label="Research and investigation" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/artrevisionist.jpg'); background-position: 28% 35%">
+        <a class="pcard" href="/services/research" aria-label="Research and investigation" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/artrevisionist.webp'); background-position: 28% 35%">
           <span class="pc-tag">Research &amp; investigation</span>
           <div class="pc-caption"><p>Deep research that corrects the record, with evidence anyone can verify.</p></div>
         </a>
-        <a class="pcard" href="/services/provenance" aria-label="Provenance" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/bugatti-insights.jpg')">
+        <a class="pcard" href="/services/provenance" aria-label="Provenance" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/bugatti-insights.webp')">
           <span class="pc-tag">Provenance</span>
           <div class="pc-caption"><p>Provenance systems that give objects a verifiable history.</p></div>
         </a>
-        <a class="pcard" href="/services/online-presence" aria-label="Online presence" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/seomagic.png')">
+        <a class="pcard" href="/services/online-presence" aria-label="Online presence" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/seomagic.webp')">
           <span class="pc-tag">Online presence</span>
           <div class="pc-caption"><p>Websites, SEO, AI-optimisation and social media promotion that get you found.</p></div>
         </a>
@@ -1068,7 +1071,7 @@
     <button class="launcher-orb" aria-label="Open ProsperGenics chat">
       <span class="l-ring"></span><span class="l-ring l-ring2"></span>
       <span class="l-blob"></span>
-      <span class="l-photo"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/contact-bg.jpg" alt="Lessy &amp; Diko — chat with ProsperGenics" /></span>
+      <span class="l-photo"><img loading="lazy" decoding="async" src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/contact-bg.webp" alt="Lessy &amp; Diko — chat with ProsperGenics" /></span>
       <span class="l-pulse"></span>
       <!-- stopPropagation: the whole orb is the CoachOS chat trigger (embed.js listens via
            closest('.launcher-orb') on document); without it a WhatsApp click would also toggle the chat -->
@@ -1086,11 +1089,11 @@
 
   <script>
     const SLIDES = [
-      { t:"Learn and get certified", d:"Turn knowledge into provable, useful skills.",                               img:"<?php echo esc_url( get_template_directory_uri() ); ?>/assets/sandra.png",              pos:"90% 32%",    href:"/courses" },
-      { t:"Find value-creators", d:"Meet engineers, designers, researchers and entrepreneurs.", img:"<?php echo esc_url( get_template_directory_uri() ); ?>/assets/sjoerd-wide.png",          pos:"80% 45%",    href:"/members" },
-      { t:"Expand your capacity", d:"A curated directory of online tools that make your life easier.",               img:"<?php echo esc_url( get_template_directory_uri() ); ?>/assets/programs-bg.jpg",         pos:"center 45%", href:"/tools" },
-      { t:"Maximize your value", d:"Lets build and optimize your processes together.",                              img:"<?php echo esc_url( get_template_directory_uri() ); ?>/assets/maximize.png",             pos:"center 32%", href:"/services" },
-      { t:"Our partners", d:"The companies and organisations we create value with.",                               img:"<?php echo esc_url( get_template_directory_uri() ); ?>/assets/value.png",                pos:"center 55%", href:"/partners" },
+      { t:"Learn and get certified", d:"Turn knowledge into provable, useful skills.",                               img:"<?php echo esc_url( get_template_directory_uri() ); ?>/assets/sandra.webp",              pos:"90% 32%",    href:"/courses" },
+      { t:"Find value-creators", d:"Meet engineers, designers, researchers and entrepreneurs.", img:"<?php echo esc_url( get_template_directory_uri() ); ?>/assets/sjoerd-wide.webp",          pos:"80% 45%",    href:"/members" },
+      { t:"Expand your capacity", d:"A curated directory of online tools that make your life easier.",               img:"<?php echo esc_url( get_template_directory_uri() ); ?>/assets/programs-bg.webp",         pos:"center 45%", href:"/tools" },
+      { t:"Maximize your value", d:"Lets build and optimize your processes together.",                              img:"<?php echo esc_url( get_template_directory_uri() ); ?>/assets/maximize.webp",             pos:"center 32%", href:"/services" },
+      { t:"Our partners", d:"The companies and organisations we create value with.",                               img:"<?php echo esc_url( get_template_directory_uri() ); ?>/assets/value.webp",                pos:"center 55%", href:"/partners" },
     ];
     const panel = document.getElementById('scPanel');
     const title = document.getElementById('scTitle');
@@ -1192,6 +1195,8 @@
           '  <button class="btn btn-primary" id="vtSend" type="button">Send my confirmation link <span class="arrow">&rarr;</span></button>' +
           '  <span class="vt-hint">One email, no spam. Your profile unlocks after you confirm.</span>' +
           '</div>' +
+          '<p class="vt-privacy">We only use your email and answers to create and send your value profile. ' +
+          'They are processed on our CoachOS platform. <a href="/privacy-policy/">Privacy policy</a></p>' +
           '<div class="vt-error" id="vtErr2" style="display:none"></div>';
         const emailEl = document.getElementById('vtEmail');
         const sendBtn = document.getElementById('vtSend');

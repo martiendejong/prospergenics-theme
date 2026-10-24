@@ -33,7 +33,7 @@ PROFILES = [
     {
         "slug": "martien", "name": "Martien de Jong", "role": "Software Developer, Founder",
         "tags": ["expert", "member"],
-        "img": "martien.jpg", "pos": "45% 25%",
+        "img": "martien.webp", "pos": "45% 25%",
         "quote": "I'm building Jengo, our AI agent platform. It runs most of what we ship.",
         "story": "Martien has been building software professionally since 2006: hospital systems, government platforms, rail apps, SEO automation. Somewhere along the way the question shifted from \"what can I build\" to \"how is value actually created\". ProsperGenics is his answer in progress: a community spanning the Netherlands and Kenya where people create value for themselves and each other, with software as the lever. Today he builds Jengo, the AI agent platform that runs most of what the community ships.",
         "contributions": [
@@ -59,7 +59,7 @@ PROFILES = [
     {
         "slug": "simitia", "name": "Simitia Mpoe", "role": "Software Developer, Entrepreneur",
         "tags": ["expert", "member"],
-        "img": "sandra_profile-300x300.png", "pos": "center 25%",
+        "img": "sandra_profile-300x300.webp", "pos": "center 25%",
         "quote": "I design and build web products, and I'm growing my own business with everything I learn.",
         "story": "Simitia came to the community to build, and that is exactly what she does: web products, design work, her own ventures. Every project adds a skill, and every skill flows back into her own business. She is one of the clearest examples of the ProsperGenics loop: learn by building, build to create value, reinvest the value in yourself.",
         "contributions": [
@@ -82,7 +82,7 @@ PROFILES = [
     {
         "slug": "diko", "name": "Diko Mohamed", "role": "Software Developer, Entrepreneur",
         "tags": ["expert", "member"],
-        "img": "diko_profile-300x300.png", "pos": "center 30%",
+        "img": "diko_profile-300x300.webp", "pos": "center 30%",
         "quote": "I turn opportunities into products. Right now that means integrations and new partnerships.",
         "story": "Diko's talent is seeing the opportunity before anyone else does, and then actually building it. Inside the community he develops software; outside it he opens doors: integrations, partnerships, contacts that connect ProsperGenics products to the wider tech world.",
         "contributions": [
@@ -104,7 +104,7 @@ PROFILES = [
     {
         "slug": "sjoerd", "name": "Sjoerd Schepman", "role": "Curator Perridon Holdings",
         "tags": ["expert"],
-        "img": "sjoerd-wide.png", "pos": "50% 15%",
+        "img": "sjoerd-wide.webp", "pos": "50% 15%",
         "quote": "I curate the Perridon collection, researching the provenance and the stories behind every piece.",
         "story": "Sjoerd curates the Perridon art collection: researching where each work comes from, who held it, and what its story is. With the ProsperGenics team he explores how software can serve that work, from provenance research tooling to making a collection's knowledge accessible.",
         "contributions": [
@@ -125,7 +125,7 @@ PROFILES = [
     {
         "slug": "faith", "name": "Faith Nkumun", "role": "Entrepreneur, Community member",
         "tags": ["member"],
-        "img": "faith-nkumun-300x300.png", "pos": "center 20%",
+        "img": "faith-nkumun-300x300.webp", "pos": "center 20%",
         "quote": "I had a small store in Oloolaimutia. Here I learned the business skills to take it further.",
         "story": "Faith ran a small store in Oloolaimutia, Kenya. She joined the community to learn the business side of her business: bookkeeping, planning, trade. What she learned, she now applies to take her store further, and what she proves, she passes on to others around her.",
         "contributions": [
@@ -146,7 +146,7 @@ PROFILES = [
     {
         "slug": "maxwell", "name": "Maxwell", "role": "Student, Community member",
         "tags": ["member"],
-        "img": "maxwell-300x300.png", "pos": "center 20%",
+        "img": "maxwell-300x300.webp", "pos": "center 20%",
         "quote": "I'm still studying, and I apply what I learn on real projects with real customers.",
         "story": "Maxwell is still studying, and that is precisely his strength: everything he learns in class gets tested the same week on real community projects with real customers. School gives him the theory; the community gives him the practice.",
         "contributions": [
@@ -165,7 +165,7 @@ PROFILES = [
     {
         "slug": "lessy", "name": "Lesiamon Mpoe", "role": "Co-founder, Trainer, Software Developer",
         "tags": ["expert", "member"],
-        "img": "lessy_profile-300x300.png", "pos": "center 25%",
+        "img": "lessy_profile-300x300.webp", "pos": "center 25%",
         "quote": "I develop software and train new developers. Good software starts with understanding people.",
         "story": "Lesiamon co-founded ProsperGenics and carries two of its pillars: he builds software, and he builds the people who build software. New developers in the community learn the craft from him, task by task. His conviction: good software starts with understanding people.",
         "contributions": [
@@ -187,7 +187,7 @@ PROFILES = [
     {
         "slug": "frank", "name": "Frank", "role": "Software Developer",
         "tags": ["expert", "member"],
-        "img": "frank_profile-300x300.png", "pos": "center 25%",
+        "img": "frank_profile-300x300.webp", "pos": "center 25%",
         "quote": "I build and ship features for our web platforms, with real responsibility from day one.",
         "story": "Frank is a Kenyan software developer who got real responsibility from day one, and took it. He builds and ships features for the community's web platforms: from first commit to live deployment, including this website.",
         "contributions": [
@@ -207,7 +207,7 @@ PROFILES = [
     {
         "slug": "sophy", "name": "Sophy Nashipae de Jong", "role": "Community member",
         "tags": ["member"],
-        "img": "sofy-300x300.png", "pos": "center 20%",
+        "img": "sofy-300x300.webp", "pos": "center 20%",
         "quote": "I'm learning Dutch with our own coach app. Learning works better when it feels personal.",
         "story": "Sophy bridges two worlds. She manages Nashipae Cultural Oasis, a cultural centre that preserves and shares Maasai culture: a place for learning, celebration and community. And she is learning Dutch with the community's own coach app, usually as the first user of whatever the team builds next.",
         "contributions": [
@@ -285,7 +285,7 @@ PROFILES = [
     {
         "slug": "farid", "name": "Farid Harrak", "role": "Community member",
         "tags": ["member"],
-        "img": "farid-300x300.png", "pos": "center 20%",
+        "img": "farid-300x300.webp", "pos": "center 20%",
         "quote": "I'm learning to build websites with AI, bringing my gaming passion into the web.",
         "story": "Farid is a game enthusiast learning to build websites with AI. He combines his passion for gaming with emerging AI technologies to create web experiences, developing his skills in modern, AI-powered web development one project at a time.",
         "contributions": [
@@ -306,40 +306,41 @@ PROFILES = [
 
 # ── shared page chrome ──────────────────────────────────────────────────────
 
-STYLE = """  :root {{
+# Inserted as a .format() *value*, so braces here are literal CSS (not escaped).
+STYLE = """  :root {
     /* same palette + tokens as the homepage */
     --ink:#0b2016; --green-900:#0f3d28; --green-700:#1a7a46; --green-600:#22a65a;
     --green-500:#34c759; --green-300:#86e0a6; --green-100:#d9f5e3;
     --paper:#f4faf6; --paper-2:#eaf5ee; --line:rgba(15,61,40,.12);
     --muted:#4a6555; --body:#27402f;
     --ease:cubic-bezier(.22,.61,.36,1); --gutter:clamp(22px,5vw,72px);
-  }}
-  * {{ box-sizing:border-box; margin:0; padding:0; }}
-  html {{ scroll-behavior:smooth; }}
-  body {{ font-family:'Inter',system-ui,sans-serif; color:var(--ink); background:var(--paper); -webkit-font-smoothing:antialiased; overflow-x:hidden; }}
-  img {{ display:block; max-width:100%; }}
-  a {{ color:inherit; }}
-  h1,h2,h3 {{ font-family:'Gabarito',sans-serif; }}
-  h1,h2,h3,p {{ text-shadow:0px 2px 0 rgba(70,70,70,.05),2px 2px 0 rgba(70,70,70,.05),0px -1px 0 rgba(70,70,70,.05),2px -1px 0 rgba(70,70,70,.05); }}
-  .wrap {{ max-width:1080px; margin:0 auto; padding:0 var(--gutter); }}
-  :focus-visible {{ outline:3px solid var(--green-500); outline-offset:3px; border-radius:8px; }}
-  .nav {{ position:relative; z-index:20; display:flex; align-items:center; justify-content:space-between; gap:16px; max-width:1500px; margin:0 auto; padding:22px var(--gutter) 0; }}
-  .brand img {{ height:68px; width:auto; }}
-  .nav-links {{ display:flex; align-items:center; gap:30px; }}
-  .nav-links a {{ font-size:15px; font-weight:500; color:var(--green-900); text-decoration:none; opacity:.8; transition:opacity .2s; }}
-  .nav-links a:hover {{ opacity:1; }}
-  .nav-links a[aria-current="page"] {{ opacity:1; font-weight:600; box-shadow:inset 0 -2px 0 var(--green-500); padding-bottom:3px; }}
-  @media (max-width:560px) {{ .brand img {{ height:56px; }} .nav-links {{ gap:20px; }} }}
-  .eyebrow {{ display:inline-flex; align-items:center; gap:10px; font-family:'Sora',sans-serif; font-weight:600; font-size:13px; letter-spacing:.08em; text-transform:uppercase; color:var(--green-700); padding:8px 14px 8px 10px; border-radius:999px; background:var(--green-100); border:1px solid rgba(34,166,90,.2); }}
-  .eyebrow .dot {{ width:7px; height:7px; border-radius:50%; background:var(--green-500); box-shadow:0 0 0 4px rgba(52,199,89,.22); }}
-  .chips {{ display:flex; flex-wrap:wrap; gap:10px; }}
-  .chip {{ font-family:'Sora',sans-serif; font-weight:600; font-size:13.5px; color:var(--green-900); background:var(--green-100); border:1px solid rgba(34,166,90,.25); border-radius:999px; padding:8px 16px; }}
-  .chip small {{ display:block; font-weight:500; font-size:11px; color:var(--green-700); margin-top:2px; }}
-  footer {{ border-top:1px solid var(--line); background:var(--paper-2); margin-top:clamp(56px,8vw,96px); }}
-  footer .wrap {{ display:flex; align-items:center; justify-content:space-between; gap:18px; padding-top:26px; padding-bottom:26px; }}
-  .f-brand {{ display:flex; align-items:center; gap:12px; font-size:14px; color:var(--muted); }}
-  .f-brand img {{ height:40px; }}
-  footer a {{ font-size:14px; color:var(--green-900); }}"""
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html { scroll-behavior:smooth; }
+  body { font-family:'Inter',system-ui,sans-serif; color:var(--ink); background:var(--paper); -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+  img { display:block; max-width:100%; }
+  a { color:inherit; }
+  h1,h2,h3 { font-family:'Gabarito',sans-serif; }
+  h1,h2,h3,p { text-shadow:0px 2px 0 rgba(70,70,70,.05),2px 2px 0 rgba(70,70,70,.05),0px -1px 0 rgba(70,70,70,.05),2px -1px 0 rgba(70,70,70,.05); }
+  .wrap { max-width:1080px; margin:0 auto; padding:0 var(--gutter); }
+  :focus-visible { outline:3px solid var(--green-500); outline-offset:3px; border-radius:8px; }
+  .nav { position:relative; z-index:20; display:flex; align-items:center; justify-content:space-between; gap:16px; max-width:1500px; margin:0 auto; padding:22px var(--gutter) 0; }
+  .brand img { height:68px; width:auto; }
+  .nav-links { display:flex; align-items:center; gap:30px; }
+  .nav-links a { font-size:15px; font-weight:500; color:var(--green-900); text-decoration:none; opacity:.8; transition:opacity .2s; }
+  .nav-links a:hover { opacity:1; }
+  .nav-links a[aria-current="page"] { opacity:1; font-weight:600; box-shadow:inset 0 -2px 0 var(--green-500); padding-bottom:3px; }
+  @media (max-width:560px) { .brand img { height:56px; } .nav-links { gap:20px; } }
+  .eyebrow { display:inline-flex; align-items:center; gap:10px; font-family:'Sora',sans-serif; font-weight:600; font-size:13px; letter-spacing:.08em; text-transform:uppercase; color:var(--green-700); padding:8px 14px 8px 10px; border-radius:999px; background:var(--green-100); border:1px solid rgba(34,166,90,.2); }
+  .eyebrow .dot { width:7px; height:7px; border-radius:50%; background:var(--green-500); box-shadow:0 0 0 4px rgba(52,199,89,.22); }
+  .chips { display:flex; flex-wrap:wrap; gap:10px; }
+  .chip { font-family:'Sora',sans-serif; font-weight:600; font-size:13.5px; color:var(--green-900); background:var(--green-100); border:1px solid rgba(34,166,90,.25); border-radius:999px; padding:8px 16px; }
+  .chip small { display:block; font-weight:500; font-size:11px; color:var(--green-700); margin-top:2px; }
+  footer { border-top:1px solid var(--line); background:var(--paper-2); margin-top:clamp(56px,8vw,96px); }
+  footer .wrap { display:flex; align-items:center; justify-content:space-between; gap:18px; padding-top:26px; padding-bottom:26px; }
+  .f-brand { display:flex; align-items:center; gap:12px; font-size:14px; color:var(--muted); }
+  .f-brand img { height:40px; }
+  footer a { font-size:14px; color:var(--green-900); }"""
 
 PROFILE_PAGE = """<!DOCTYPE html>
 <html lang="en">

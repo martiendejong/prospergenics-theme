@@ -1,5 +1,20 @@
 # Agent Progress
 
+## 2026-10-24 — 2026 audit quick fixes (claude/wizardly-babbage-35o2ct)
+Done: from docs/AUDIT-2026-10.md. Fixed the profile generator's doubled CSS braces (all 15
+/people/, /experts/, /community/ pages were rendering unstyled), merged PR #21 (Lesiamon
+he/him) and PR #17 (favicon), added wp_head()/wp_footer() to the 2026 single.php, dropped
+the duplicate lang attribute, added a privacy notice to the value test email step,
+converted the theme photos to resized WebP (assets 22 MB -> 3 MB; homepage 13.9 MB ->
+1.2 MB, local Lighthouse LCP 62.8 s -> 6.2 s), lazy-loaded the homepage images, preloaded
+the hero image, and removed the web-reachable update-team-profiles.php.
+Verified: new tests/test-2026-quick-fixes.php passes (fails on the old code); all 11
+existing test files still pass; pages re-crawled on a local WP 6.8 install.
+Left: not deployed to test. Real WhatsApp number still missing. The root-theme port
+(front-page.php + css/ + assets/ at the repo root) was not regenerated and still uses
+the old images. The privacy link only works once the catch-all redirect in index.php
+is replaced (audit C1).
+
 ## 2026-09-01 — task 1122 (fix/1122-speakable-schema)
 Done: registered `prospergenics_speakable_selectors()` on the
 `seo_god_schema_speakable_selectors` filter (companion PR in martiendejong/seo-god,

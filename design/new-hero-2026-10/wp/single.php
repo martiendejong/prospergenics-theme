@@ -3,7 +3,7 @@ defined('ABSPATH') || exit;
 // Standalone single-post template — no get_header(), matches the course page pattern.
 ?>
 <!DOCTYPE html>
-<html lang="en" <?php language_attributes(); ?>>
+<html <?php language_attributes(); ?>>
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -99,6 +99,7 @@ body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);background:var(--
 }
 .post-back:hover{color:var(--green-700);}
 </style>
+<?php wp_head(); ?>
 </head>
 <body>
 
@@ -140,5 +141,6 @@ body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);background:var(--
 </div>
 
 <?php endwhile; ?>
+<?php wp_footer(); ?>
 </body>
 </html>
