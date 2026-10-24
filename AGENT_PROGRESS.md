@@ -1,5 +1,18 @@
 # Agent Progress
 
+## 2026-10-24 — CI and deploy-to-test workflows (audit H8)
+Done: .github/workflows/ci.yml (php -l on every PHP file, every tests/*.php, and a check that the
+generated theme/profile pages match the design source) on PRs and pushes to master and the
+design branch. .github/workflows/deploy-test.yml: on push to design/new-hero-2026-10, tests then
+deploy-wp-theme-vimexx.py with TEST_FTP_USERNAME/TEST_FTP_PASSWORD secrets, then smoke-checks
+key pages (200) and an unknown URL (404); without the secrets it skips the upload with a notice.
+deploy-wp-theme-vimexx.py now takes PG_FTP_USER/PG_FTP_PASSWORD from the environment, else the
+vault as before.
+Verified: every CI step run locally on the committed tree (lint clean, 16/16 tests, rebuild
+leaves no diff); both workflow files parse as YAML.
+Left: a repo admin adds the two secrets (and optionally protection rules on the "test"
+environment). The upload itself has not run yet: no credentials in this environment.
+
 ## 2026-10-24 — self-hosted fonts and homepage accessibility (audit M1, M3)
 Done: Gabarito/Sora/Inter now come from assets/fonts/ (@fontsource 5.3.0, OFL-1.1, latin
 subset, 11 weights, 200 KB, font-display: swap) instead of Google Fonts on every page type;
