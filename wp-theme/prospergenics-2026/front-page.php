@@ -1525,7 +1525,12 @@
         'main > section:not(.hero) > *, main > section.hero > .hero-bottom'
       ));
       const heroItems = Array.from(document.querySelectorAll('main > section.hero > .hero-top > .copy > .copy-inner'));
-      if (!items.length && !heroItems.length) return;
+      // Capture initial top for each heroItem at load time so we know whether it already sits
+      // inside the fade zone (desktop) or below it (mobile). fadeStart = min(zone, initialTop):
+      // on mobile initialTop >> zone → behaves like the other items (viewport-relative);
+      // on desktop initialTop < zone → fading starts as soon as the element begins to scroll up.
+      const heroItemsData = heroItems.map(el => ({ el, initialTop: el.getBoundingClientRect().top }));
+      if (!items.length && !heroItemsData.length) return;
       let ticking = false;
       function applyFx(el, progress) {
         const sc = 1 - progress * 0.06;
@@ -1538,7 +1543,6 @@
       }
       function update() {
         const zone = window.innerHeight * 0.15;
-        const scrollY = window.scrollY || 0;
         items.forEach(el => {
           const t = el.getBoundingClientRect().top;
           if (t >= zone) {
@@ -1550,13 +1554,14 @@
             applyFx(el, progress);
           }
         });
-        heroItems.forEach(el => {
-          if (scrollY <= 0) {
+        heroItemsData.forEach(({ el, initialTop }) => {
+          const t = el.getBoundingClientRect().top;
+          const fadeStart = Math.min(zone, initialTop);
+          if (t >= fadeStart) {
             clearFx(el);
           } else {
-            const fd = Math.min(scrollY, zone);
-            const progress = fd / zone;
-            const g = `linear-gradient(to bottom,transparent 0px,#000 ${fd}px)`;
+            const progress = Math.max(0, Math.min(1, (zone - t) / zone));
+            const g = `linear-gradient(to bottom,transparent ${-t}px,#000 ${zone - t}px)`;
             el.style.maskImage = g; el.style.webkitMaskImage = g;
             applyFx(el, progress);
           }

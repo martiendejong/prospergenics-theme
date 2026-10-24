@@ -318,7 +318,8 @@
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
       var items = Array.prototype.slice.call(document.querySelectorAll('main > section:not(.hero) > *, main > section.hero > .hero-bottom'));
       var heroItems = Array.prototype.slice.call(document.querySelectorAll('main > section.hero > .hero-top > .copy > .copy-inner'));
-      if (!items.length && !heroItems.length) return;
+      var heroItemsData = heroItems.map(function (el) { return { el: el, initialTop: el.getBoundingClientRect().top }; });
+      if (!items.length && !heroItemsData.length) return;
       var ticking = false;
       function applyFx(el, progress) {
         el.style.transform = 'scale(' + (1 - progress * 0.06) + ')';
@@ -330,7 +331,6 @@
       }
       function update() {
         var zone = window.innerHeight * 0.15;
-        var scrollY = window.scrollY || 0;
         items.forEach(function (el) {
           var t = el.getBoundingClientRect().top;
           if (t >= zone) {
@@ -342,15 +342,16 @@
             applyFx(el, progress);
           }
         });
-        heroItems.forEach(function (el) {
-          if (scrollY <= 0) {
-            clearFx(el);
+        heroItemsData.forEach(function (item) {
+          var t = item.el.getBoundingClientRect().top;
+          var fadeStart = Math.min(zone, item.initialTop);
+          if (t >= fadeStart) {
+            clearFx(item.el);
           } else {
-            var fd = Math.min(scrollY, zone);
-            var progress = fd / zone;
-            var g = 'linear-gradient(to bottom,transparent 0px,#000 ' + fd + 'px)';
-            el.style.maskImage = g; el.style.webkitMaskImage = g;
-            applyFx(el, progress);
+            var progress = Math.max(0, Math.min(1, (zone - t) / zone));
+            var g = 'linear-gradient(to bottom,transparent ' + (-t) + 'px,#000 ' + (zone - t) + 'px)';
+            item.el.style.maskImage = g; item.el.style.webkitMaskImage = g;
+            applyFx(item.el, progress);
           }
         });
         ticking = false;
