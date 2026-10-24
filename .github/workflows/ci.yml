@@ -41,6 +41,7 @@ jobs:
       - name: Generated theme matches its design source
         if: hashFiles('design/new-hero-2026-10/build-wp-theme.py') != ''
         run: |
+          python3 design/new-hero-2026-10/site_chrome.py
           python3 design/new-hero-2026-10/people/build-profiles.py
           python3 design/new-hero-2026-10/build-wp-theme.py
           # build-wp-theme.py rewrites wp-theme/prospergenics-2026/ from design/new-hero-2026-10/;
