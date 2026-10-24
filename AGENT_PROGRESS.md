@@ -1,5 +1,50 @@
 # Agent Progress
 
+## 2026-10-24 — CI and deploy-to-test workflows (audit H8)
+Done: .github/workflows/ci.yml (php -l on every PHP file, every tests/*.php, and a check that the
+generated theme/profile pages match the design source) on PRs and pushes to master and the
+design branch. .github/workflows/deploy-test.yml: on push to design/new-hero-2026-10, tests then
+deploy-wp-theme-vimexx.py with TEST_FTP_USERNAME/TEST_FTP_PASSWORD secrets, then smoke-checks
+key pages (200) and an unknown URL (404); without the secrets it skips the upload with a notice.
+deploy-wp-theme-vimexx.py now takes PG_FTP_USER/PG_FTP_PASSWORD from the environment, else the
+vault as before.
+Verified: every CI step run locally on the committed tree (lint clean, 16/16 tests, rebuild
+leaves no diff); both workflow files parse as YAML.
+Left: a repo admin adds the two secrets (and optionally protection rules on the "test"
+environment). The upload itself has not run yet: no credentials in this environment.
+
+## 2026-10-24 — self-hosted fonts and homepage accessibility (audit M1, M3)
+Done: Gabarito/Sora/Inter now come from assets/fonts/ (@fontsource 5.3.0, OFL-1.1, latin
+subset, 11 weights, 200 KB, font-display: swap) instead of Google Fonts on every page type;
+homepage preloads the two first-paint faces. Homepage a11y: active showcase tab green-600 ->
+green-700 (3.1:1 -> 5.3:1 with white), showcase caption h3 -> h2 (no skipped level; same look,
+the global Gabarito !important rule still applies), aria-labels dropped from the 7 project/
+service card links so their visible text is their name. The 9 empty alts are portraits beside
+the person's name and the header logo inside a labelled link: correct as is.
+Verified: Lighthouse accessibility 100 on the homepage (was 93-94); fonts load locally;
+16/16 test files pass. Local performance numbers stay pessimistic: PHP's single-threaded dev
+server + SQLite give ~1 s TTFB, so measure on test with a page cache.
+
+## 2026-10-24 — SEO/security layer and contact page for the 2026 theme (audit C2, M2, M4, H5)
+Done: wp/inc/security.php (headers incl. strict CSP as Report-Only, security.txt, XML-RPC
+refused, generator removed, users endpoint and author archives hidden from visitors) and
+wp/inc/seo.php (noindex on every host but prospergenics.com/www; homepage description,
+OG/Twitter tags and a 1200x630 sharing image; excerpt-based descriptions on inner pages,
+all skipped when an SEO plugin is active; Organization + WebSite JSON-LD with SearchAction
+and the WhatsApp contact). Static profile pages gained canonical/sharing tags and noindex
+that follows SITE. Contact: PR #20's store-first modules copied into wp/inc/ unchanged, new
+page-contact.php (form with honeypot + signed timing token, WhatsApp/value-test panel,
+success/error state) also served at /contact/ when WordPress has no contact page.
+Verified on local WP: headers and security.txt served; /wp-json/wp/v2/users, ?author=1 and
+/author/admin/ 404; xmlrpc.php 403; noindex on localhost; JSON-LD parses. A human form
+submission is stored as a message and its mail failure recorded ("Could not instantiate mail
+function" - no mailer locally); a honeypot submission is stored as spam and not mailed.
+tests/test-2026-seo-security.php and tests/test-2026-contact.php (PR #20's test, adapted);
+16/16 test files pass.
+Left: confirm on test that a real enquiry shows Notification "Sent" (SMTP mu-plugin), check the
+browser console for CSP Report-Only warnings before enforcing it, and have Martien confirm
+the new homepage description/Organization wording.
+
 ## 2026-10-24 — WhatsApp number + chat launcher overlap, audit C6/H4 (PR #22)
 Done: WhatsApp links now use wa.me/254741619743 (the number production uses, confirmed by
 Lesiamon); also added to the homepage footer. The fixed chat launcher (242x186 orb plus a

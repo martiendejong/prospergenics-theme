@@ -75,6 +75,9 @@ def build():
         for fn in os.listdir(wp_src):
             if fn.endswith(".php"):
                 shutil.copy(os.path.join(wp_src, fn), os.path.join(OUT, fn))
+        # theme modules required by functions.php (security, SEO, contact form, ...)
+        if os.path.isdir(os.path.join(wp_src, "inc")):
+            shutil.copytree(os.path.join(wp_src, "inc"), os.path.join(OUT, "inc"))
 
     with open(os.path.join(OUT, "style.css"), "w", encoding="utf-8") as f:
         f.write("""/*

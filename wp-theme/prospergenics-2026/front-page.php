@@ -8,9 +8,9 @@
 <link rel="icon" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/logo.png" />
 <link rel="apple-touch-icon" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/logo.png" />
 <link rel="preload" as="image" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/hero-top.webp" fetchpriority="high" />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Gabarito:wght@700;800;900&family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="preload" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/fonts/gabarito-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="preload" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/fonts/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="stylesheet" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/fonts/fonts.css" />
 <style>
   h1, h2, h3 { font-family: 'Gabarito', sans-serif !important; }
   :root {
@@ -412,7 +412,7 @@
   .sc-tab svg { width: 21px; height: 21px; fill: var(--green-700); flex: none; transition: fill .2s; }
   .sc-tab .arr { margin-left: auto; font-size: 18px; opacity: 0; transform: translateX(-6px); transition: all .2s var(--ease); }
   .sc-tab:hover { color: var(--green-700); }
-  .sc-tab.active { background: var(--green-600); color: #fff; box-shadow: 0 16px 30px -14px var(--green-600); }
+  .sc-tab.active { background: var(--green-700); color: #fff; box-shadow: 0 16px 30px -14px var(--green-700); } /* green-700: 5.3:1 with white (green-600 was 3.1:1) */
   .sc-tab.active svg { fill: #fff; }
   .sc-tab.active .arr { opacity: 1; transform: none; }
   /* right panel: parallelogram with subtly slanted left + right edges */
@@ -429,7 +429,7 @@
     clip-path: polygon(0 10%, 100% 24%, 100% 100%, 0 100%);
     display: flex; flex-direction: column; justify-content: flex-end; padding: 0 56px 22px 28px;
   }
-  .sc-caption h3 { font-family:'Sora',sans-serif; font-weight:700; font-size: 20px; color:#fff; line-height:1.1; letter-spacing:-.015em; margin-bottom: 7px; }
+  .sc-caption h2 { font-family:'Sora',sans-serif; font-weight:700; font-size: 20px; color:#fff; line-height:1.1; letter-spacing:-.015em; margin-bottom: 7px; }
   .sc-caption p { font-size: 12px; line-height:1.4; color: rgba(255,255,255,.85); max-width: 30ch; }
   .sc-go { position:absolute; right: 22px; bottom: 22px; z-index:3; margin-right: 20px; width: 40px; height:40px; border-radius:50%; border:1.5px solid rgba(255,255,255,.7); color:#fff; display:grid; place-items:center; font-size:17px; transition: all .2s var(--ease); }
   .showcase-panel:hover .sc-go { background:#fff; color: var(--green-900); border-color:#fff; }
@@ -440,7 +440,7 @@
     .sc-tab .arr { display: none; }
     .showcase-panel { flex: none; width: 100%; height: 300px; clip-path: polygon(18px 0, 100% 0, calc(100% - 18px) 100%, 0 100%); }
     .sc-caption { height: 44%; padding: 0 46px 18px 22px; }
-    .sc-caption h3 { font-size: 20px; }
+    .sc-caption h2 { font-size: 20px; }
   }
 
   /* ───────────────  VALUE TEST · "How valuable are you?"  ─────────────── */
@@ -820,7 +820,7 @@
         </div>
         <a class="showcase-panel" id="scPanel" href="/courses">
           <div class="sc-caption">
-            <h3 id="scTitle">Learn and get certified</h3>
+            <h2 id="scTitle">Learn and get certified</h2>
             <p id="scDesc">Turn knowledge into provable, useful skills.</p>
           </div>
           <span class="sc-go">→</span>
@@ -1072,15 +1072,15 @@
     </div>
     <div class="pstrips" data-scroll-scale="1.2">
       <div class="pstrip">
-        <a class="pcard" href="/jengo" aria-label="Jengo" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/jengo-task-outcomes.webp')">
+        <a class="pcard" href="/jengo" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/jengo-task-outcomes.webp')">
           <span class="pc-tag">Jengo</span>
           <div class="pc-caption"><p>Give your AI an extra brain.</p></div>
         </a>
-        <a class="pcard" href="/courses" aria-label="AI trainings" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/sandra.webp'); background-position: 60% 20%">
+        <a class="pcard" href="/courses" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/sandra.webp'); background-position: 60% 20%">
           <span class="pc-tag">AI trainings</span>
           <div class="pc-caption"><p>AI training and certification.</p></div>
         </a>
-        <a class="pcard" href="/citizenship" aria-label="Citizenship courses" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/jengo-werkplek-duo.webp'); background-color: #101826">
+        <a class="pcard" href="/citizenship" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/jengo-werkplek-duo.webp'); background-color: #101826">
           <span class="pc-tag">Citizenship courses</span>
           <div class="pc-caption"><p>Dutch citizenship and language courses.</p></div>
         </a>
@@ -1099,19 +1099,19 @@
     </div>
     <div class="pstrips" data-scroll-scale="1.2">
       <div class="pstrip">
-        <a class="pcard" href="/services/coachos" aria-label="CoachOS platform" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/jengo-telefoon-chat.webp'); background-color: var(--paper-2)">
+        <a class="pcard" href="/services/coachos" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/jengo-telefoon-chat.webp'); background-color: var(--paper-2)">
           <span class="pc-tag">CoachOS</span>
           <div class="pc-caption"><p>AI chat, courses and avatar videos for your organisation, on your own platform.</p></div>
         </a>
-        <a class="pcard" href="/services/research" aria-label="Research and investigation" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/artrevisionist.webp'); background-position: 28% 35%">
+        <a class="pcard" href="/services/research" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/artrevisionist.webp'); background-position: 28% 35%">
           <span class="pc-tag">Research &amp; investigation</span>
           <div class="pc-caption"><p>Deep research that corrects the record, with evidence anyone can verify.</p></div>
         </a>
-        <a class="pcard" href="/services/provenance" aria-label="Provenance" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/bugatti-insights.webp')">
+        <a class="pcard" href="/services/provenance" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/bugatti-insights.webp')">
           <span class="pc-tag">Provenance</span>
           <div class="pc-caption"><p>Provenance systems that give objects a verifiable history.</p></div>
         </a>
-        <a class="pcard" href="/services/online-presence" aria-label="Online presence" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/seomagic.webp')">
+        <a class="pcard" href="/services/online-presence" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/seomagic.webp')">
           <span class="pc-tag">Online presence</span>
           <div class="pc-caption"><p>Websites, SEO, AI-optimisation and social media promotion that get you found.</p></div>
         </a>
