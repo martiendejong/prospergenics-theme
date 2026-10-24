@@ -39,7 +39,23 @@ main{flex:1 0 auto;}
 .nav-links a:hover{opacity:1;}
 .nav-cta{font-family:'Sora',sans-serif;font-weight:600;font-size:13.5px;padding:9px 17px;border-radius:999px;border:1.5px solid var(--green-700);color:var(--green-900);background:transparent;text-decoration:none;transition:all .2s;}
 .nav-cta:hover{background:var(--green-700);color:#fff;}
-@media(max-width:800px){.nav-links{display:none;}}
+.pg-nav{gap:24px;}
+.pg-nav .brand{margin-right:auto;}
+.nav-toggle{display:none;width:44px;height:44px;border-radius:12px;border:1.5px solid var(--line);background:#fff;cursor:pointer;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;}
+.nav-toggle[aria-expanded="true"]{background:var(--paper-2);border-color:var(--green-300);}
+.nav-toggle-bars,.nav-toggle-bars::before,.nav-toggle-bars::after{display:block;width:20px;height:2px;border-radius:2px;background:var(--green-900);transition:transform .2s var(--ease),opacity .2s;}
+.nav-toggle-bars{position:relative;}
+.nav-toggle-bars::before,.nav-toggle-bars::after{content:"";position:absolute;left:0;}
+.nav-toggle-bars::before{top:-6px;}.nav-toggle-bars::after{top:6px;}
+.nav-toggle[aria-expanded="true"] .nav-toggle-bars{background:transparent;}
+.nav-toggle[aria-expanded="true"] .nav-toggle-bars::before{transform:translateY(6px) rotate(45deg);}
+.nav-toggle[aria-expanded="true"] .nav-toggle-bars::after{transform:translateY(-6px) rotate(-45deg);}
+.nav-panel{position:absolute;top:100%;left:12px;right:12px;margin-top:6px;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 24px 60px -20px rgba(11,32,22,.35);padding:10px;}
+.nav-panel a{display:flex;align-items:center;min-height:48px;padding:0 14px;border-radius:12px;font-size:17px;font-weight:500;color:var(--green-900);text-decoration:none;}
+.nav-panel a:hover,.nav-panel a:focus-visible{background:var(--paper-2);}
+.nav-panel .nav-panel-cta{margin-top:6px;justify-content:center;background:var(--green-700);color:#fff;font-family:'Sora',sans-serif;font-weight:600;}
+@media(max-width:880px){.nav-links,.pg-nav>.nav-cta{display:none;}.nav-toggle{display:inline-flex;}.pg-nav{padding:12px 16px;}}
+@media(min-width:881px){.nav-panel{display:none!important;}}
 
 /* HERO BAND */
 .post-hero{
@@ -146,7 +162,22 @@ main{flex:1 0 auto;}
     <a href="<?= esc_url(home_url('/tools/')) ?>">Tools</a>
     <a href="<?= esc_url(home_url('/services/')) ?>">Services</a>
     <a href="<?= esc_url(home_url('/partners/')) ?>">Partners</a>
+    <a href="<?= esc_url(home_url('/about/')) ?>">About</a>
   </nav>
   <a class="nav-cta" href="<?= esc_url(home_url('/#value-test')) ?>">Take the test</a>
+  <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-menu" aria-label="Open menu">
+    <span class="nav-toggle-bars" aria-hidden="true"></span>
+  </button>
+  <div class="nav-panel" id="mobile-menu" hidden>
+    <nav aria-label="Mobile">
+      <a href="<?= esc_url(home_url('/courses/')) ?>">Courses</a>
+      <a href="<?= esc_url(home_url('/members/')) ?>">Members</a>
+      <a href="<?= esc_url(home_url('/tools/')) ?>">Tools</a>
+      <a href="<?= esc_url(home_url('/services/')) ?>">Services</a>
+      <a href="<?= esc_url(home_url('/partners/')) ?>">Partners</a>
+      <a href="<?= esc_url(home_url('/about/')) ?>">About</a>
+      <a class="nav-panel-cta" href="<?= esc_url(home_url('/#value-test')) ?>">Take the test</a>
+    </nav>
+  </div>
 </header>
 <main id="main">

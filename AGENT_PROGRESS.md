@@ -1,5 +1,19 @@
 # Agent Progress
 
+## 2026-10-24 — 2026 header, mobile menu and homepage footer, audit C5 (PR #22)
+Done: the homepage had CSS for a nav but no markup, and no footer; inner pages hid their
+links below 800 px with no way to open them. Added a site header (logo, Courses, Members,
+Tools, Services, Partners, About, "Take the test") with a menu button below 880 px that
+opens a panel (aria-expanded/aria-controls, focus moves in, Esc and outside click close and
+return focus, closes when resized to desktop) to design/new-hero-2026-10/index.html and
+wp/header.php. Added a homepage footer (Explore / Community / Get in touch, legal links)
+with bottom padding so the fixed chat launcher doesn't cover it; inner footer gains Contact.
+Verified: Playwright on local WP — menu open/close/Esc/outside click on homepage and inner
+pages, no overflow at 390 px; axe shows only the two pre-existing homepage issues (showcase
+tab contrast, nested chat orb). New tests/test-2026-navigation.php; all 14 test files pass.
+Left: not deployed. Profile and About pages keep their own 4-link nav (Home/About/Experts/
+Community), so the menus differ between page types. Footer has no social links yet.
+
 ## 2026-10-24 — 2026 routing fix, audit C1 (claude/wizardly-babbage-35o2ct, PR #22)
 Done: the 2026 theme's index.php redirected every non-front request to /, turning every
 inner URL and every 404 into a soft-404. Replaced it with real templates in

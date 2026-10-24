@@ -43,19 +43,61 @@
   }
 
   /* ─────────────────────────────  TOP BAR  ───────────────────────────── */
-  .nav {
-    position: absolute; inset: 0 0 auto 0; z-index: 20;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 28px clamp(24px, 5vw, 72px);
+  .site-header {
+    position: relative; z-index: 30; max-width: 1500px; margin: 0 auto;
+    display: flex; align-items: center; gap: 28px;
+    padding: 18px clamp(20px, 5vw, 72px);
   }
-  .brand { display: flex; align-items: center; }
-  .brand img { height: 42px; width: auto; display: block; }
-  .nav-links { display: flex; align-items: center; gap: 34px; }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; margin-right: auto; }
+  .brand img { height: 40px; width: auto; display: block; }
+  .brand-text { font-family:'Sora',sans-serif; font-weight:800; font-size:20px; color:var(--green-900); letter-spacing:-.02em; }
+  .nav-links { display: flex; align-items: center; gap: 30px; }
   .nav-links a { font-size: 15px; font-weight: 500; color: var(--green-900); text-decoration: none; opacity: .8; transition: opacity .2s; }
   .nav-links a:hover { opacity: 1; }
-  .nav-cta { font-family:'Sora',sans-serif; font-weight:600; font-size:14px; padding:10px 18px; border-radius:999px; border:1.5px solid var(--green-700); color:var(--green-900); background:transparent; cursor:pointer; transition:all .2s; }
+  .nav-cta { font-family:'Sora',sans-serif; font-weight:600; font-size:14px; padding:10px 18px; border-radius:999px; border:1.5px solid var(--green-700); color:var(--green-900); background:transparent; text-decoration:none; white-space:nowrap; cursor:pointer; transition:all .2s; }
   .nav-cta:hover { background: var(--green-700); color: #fff; }
-  @media (max-width: 880px){ .nav-links{ display:none; } }
+  .nav-toggle { display: none; width: 44px; height: 44px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--white); cursor: pointer; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent; }
+  .nav-toggle[aria-expanded="true"] { background: var(--paper-2); border-color: var(--green-300); }
+  .nav-toggle-bars, .nav-toggle-bars::before, .nav-toggle-bars::after { display: block; width: 20px; height: 2px; border-radius: 2px; background: var(--green-900); transition: transform .2s var(--ease), opacity .2s; }
+  .nav-toggle-bars { position: relative; }
+  .nav-toggle-bars::before, .nav-toggle-bars::after { content: ""; position: absolute; left: 0; }
+  .nav-toggle-bars::before { top: -6px; } .nav-toggle-bars::after { top: 6px; }
+  .nav-toggle[aria-expanded="true"] .nav-toggle-bars { background: transparent; }
+  .nav-toggle[aria-expanded="true"] .nav-toggle-bars::before { transform: translateY(6px) rotate(45deg); }
+  .nav-toggle[aria-expanded="true"] .nav-toggle-bars::after { transform: translateY(-6px) rotate(-45deg); }
+  .nav-panel { position: absolute; top: 100%; left: 12px; right: 12px; background: var(--white); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); padding: 10px; }
+  .nav-panel a { display: flex; align-items: center; min-height: 48px; padding: 0 14px; border-radius: 12px; font-size: 17px; font-weight: 500; color: var(--green-900); text-decoration: none; }
+  .nav-panel a:hover, .nav-panel a:focus-visible { background: var(--paper-2); }
+  .nav-panel .nav-panel-cta { margin-top: 6px; justify-content: center; background: var(--green-700); color: #fff; font-family:'Sora',sans-serif; font-weight:600; }
+  .nav-panel .nav-panel-cta:hover { background: var(--green-900); }
+  @media (max-width: 880px){
+    .nav-links, .site-header > .nav-cta { display: none; }
+    .nav-toggle { display: inline-flex; }
+    .site-header { padding: 12px 16px; }
+    .brand img { height: 36px; }
+  }
+  @media (min-width: 881px){ .nav-panel { display: none !important; } }
+  :focus-visible { outline: 3px solid var(--green-500); outline-offset: 3px; }
+
+  /* ─────────────────────────────  FOOTER  ───────────────────────────── */
+  .site-footer { background: var(--green-900); color: rgba(255,255,255,.78); margin-top: clamp(48px, 7vw, 96px); }
+  .site-footer-inner { max-width: 1500px; margin: 0 auto; padding: clamp(40px, 5vw, 64px) clamp(20px, 5vw, 72px) 28px; display: grid; grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr)); gap: 32px 40px; }
+  .site-footer .f-brand { display: grid; gap: 14px; align-content: start; }
+  .site-footer .f-brand img { height: 44px; width: auto; background: var(--paper); border-radius: 10px; padding: 4px; }
+  .site-footer .f-brand p { font-size: 15px; line-height: 1.6; max-width: 34ch; }
+  .site-footer h2 { font-family:'Sora',sans-serif !important; font-size: 13px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--green-300); margin-bottom: 14px; text-shadow: none; }
+  .site-footer ul { list-style: none; display: grid; gap: 10px; }
+  .site-footer a { color: #fff; text-decoration: none; font-size: 15px; }
+  .site-footer a:hover { text-decoration: underline; }
+  /* bottom padding keeps the fixed chat launcher (bottom-right, ~200px tall) off the footer at full scroll */
+  .site-footer-base { max-width: 1500px; margin: 0 auto; padding: 18px clamp(20px, 5vw, 72px) 210px; border-top: 1px solid rgba(255,255,255,.14); display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 10px 28px; font-size: 13.5px; }
+  .site-footer-base nav { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+  .site-footer-base a { font-size: 13.5px; color: rgba(255,255,255,.85); }
+  @media (max-width: 880px){
+    .site-footer-inner { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .site-footer .f-brand { grid-column: 1 / -1; }
+    .site-footer-base { padding-bottom: 190px; }
+  }
 
   /* ─────────────────────────────  HERO  ───────────────────────────── */
   .hero { position: relative; max-width: 1500px; margin: 0 auto; padding: 0 clamp(24px, 5vw, 72px); }
@@ -708,6 +750,38 @@
 </head>
 <body>
 
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="ProsperGenics home">
+      <img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/logo.png" alt="" width="42" height="40" />
+      <span class="brand-text">ProsperGenics</span>
+    </a>
+    <nav class="nav-links" aria-label="Main">
+      <a href="/courses">Courses</a>
+      <a href="/members">Members</a>
+      <a href="/tools">Tools</a>
+      <a href="/services">Services</a>
+      <a href="/partners">Partners</a>
+      <a href="<?php echo esc_url( home_url( '/' ) ); ?>about/">About</a>
+    </nav>
+    <a class="nav-cta" href="#value-test">Take the test</a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-menu" aria-label="Open menu">
+      <span class="nav-toggle-bars" aria-hidden="true"></span>
+    </button>
+    <div class="nav-panel" id="mobile-menu" hidden>
+      <nav aria-label="Mobile">
+        <a href="/courses">Courses</a>
+        <a href="/members">Members</a>
+        <a href="/tools">Tools</a>
+        <a href="/services">Services</a>
+        <a href="/partners">Partners</a>
+        <a href="<?php echo esc_url( home_url( '/' ) ); ?>about/">About</a>
+        <a class="nav-panel-cta" href="#value-test">Take the test</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+
   <section class="hero">
     <!-- TOP: message (left, on paper) + team photo fading in from ~30% -->
     <div class="hero-top">
@@ -1065,6 +1139,49 @@
     </div>
   </section>
 
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <div class="f-brand">
+        <img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/logo.png" alt="ProsperGenics" width="46" height="44" />
+        <p>A community in Kenya and the Netherlands researching and practising how value is created.</p>
+      </div>
+      <div>
+        <h2>Explore</h2>
+        <ul>
+          <li><a href="/courses">Courses</a></li>
+          <li><a href="/tools">Tools</a></li>
+          <li><a href="/services">Services</a></li>
+          <li><a href="/partners">Partners</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Community</h2>
+        <ul>
+          <li><a href="<?php echo esc_url( home_url( '/' ) ); ?>about/">About us</a></li>
+          <li><a href="<?php echo esc_url( home_url( '/' ) ); ?>experts/">Our experts</a></li>
+          <li><a href="<?php echo esc_url( home_url( '/' ) ); ?>community/">Community stories</a></li>
+          <li><a href="/blog/">Blog</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Get in touch</h2>
+        <ul>
+          <li><a href="/contact/">Contact us</a></li>
+          <li><a href="#value-test">Take the value test</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="site-footer-base">
+      <span>© ProsperGenics</span>
+      <nav aria-label="Legal">
+        <a href="/privacy-policy/">Privacy policy</a>
+        <a href="/cookie-policy/">Cookie policy</a>
+      </nav>
+    </div>
+  </footer>
+
   <!-- Floating chat launcher: ProsperGenics coach (CoachOS tenant) + WhatsApp to Sandra -->
   <div class="launcher">
     <div class="launcher-bubble">Chat with ProsperGenics<small>Ask about tools, training &amp; projects</small></div>
@@ -1362,6 +1479,26 @@
     })();
   </script>
 
+  <script>
+    // Mobile menu: toggle, close on Esc / link click / resize to desktop, focus handling.
+    (function () {
+      const btn = document.querySelector('.nav-toggle');
+      const panel = document.getElementById('mobile-menu');
+      if (!btn || !panel) return;
+      function setOpen(open, returnFocus) {
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+        panel.hidden = !open;
+        if (open) { const first = panel.querySelector('a'); if (first) first.focus(); }
+        else if (returnFocus) { btn.focus(); }
+      }
+      btn.addEventListener('click', function () { setOpen(btn.getAttribute('aria-expanded') !== 'true'); });
+      panel.addEventListener('click', function (e) { if (e.target.closest('a')) setOpen(false); });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !panel.hidden) setOpen(false, true); });
+      document.addEventListener('click', function (e) { if (!panel.hidden && !e.target.closest('.site-header')) setOpen(false); });
+      window.matchMedia('(min-width: 881px)').addEventListener('change', function (e) { if (e.matches) setOpen(false); });
+    })();
+  </script>
 <?php wp_footer(); ?>
 </body>
 </html>
