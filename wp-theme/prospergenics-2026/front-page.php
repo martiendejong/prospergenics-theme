@@ -1522,7 +1522,7 @@
       const items = Array.from(document.querySelectorAll(
         'main > section:not(.hero) > *, main > section.hero > .hero-bottom'
       ));
-      const heroItems = Array.from(document.querySelectorAll('main > section.hero > .hero-top > .copy'));
+      const heroItems = Array.from(document.querySelectorAll('main > section.hero > .hero-top > .copy > *'));
       if (!items.length && !heroItems.length) return;
       let ticking = false;
       function update() {
