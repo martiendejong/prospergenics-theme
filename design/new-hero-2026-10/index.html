@@ -816,8 +816,10 @@
     <div class="hero-top">
       <div class="hero-top-photo"></div>
       <div class="copy">
-        <h1 class="reveal d1">You create<span class="accent">value</span></h1>
-        <p class="sub reveal d2">We're building a system to help you realize your true capacity.</p>
+        <div class="copy-inner">
+          <h1 class="reveal d1">You create<span class="accent">value</span></h1>
+          <p class="sub reveal d2">We're building a system to help you realize your true capacity.</p>
+        </div>
       </div>
     </div>
 
@@ -1520,7 +1522,7 @@
       const items = Array.from(document.querySelectorAll(
         'main > section:not(.hero) > *, main > section.hero > .hero-bottom'
       ));
-      const heroItems = Array.from(document.querySelectorAll('main > section.hero > .hero-top > .copy > *'));
+      const heroItems = Array.from(document.querySelectorAll('main > section.hero > .hero-top > .copy > .copy-inner'));
       if (!items.length && !heroItems.length) return;
       let ticking = false;
       function update() {
