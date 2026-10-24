@@ -1244,7 +1244,7 @@
     }
     function restart(){ clearInterval(timer); timer = setInterval(()=> show((idx+1)%SLIDES.length), 5000); }
     tabs.forEach((t,i)=>{
-      t.addEventListener('click', e=>{ e.preventDefault(); show(i); restart(); });
+      t.addEventListener('click', ()=>{ window.location.href = SLIDES[i].href; });
       t.addEventListener('mouseenter', ()=>{ show(i); restart(); });
     });
     show(0); restart();
