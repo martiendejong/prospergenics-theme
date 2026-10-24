@@ -41,3 +41,5 @@ add_action( 'template_redirect', function () {
 
 // Legacy URL redirects (301, only for requests that would otherwise 404). Rules: inc/redirects.txt.
 require get_template_directory() . '/inc/redirects.php';
+// Sitemap entries for the static /people/, /experts/ and /community/ pages.
+require get_template_directory() . '/inc/sitemap.php';
