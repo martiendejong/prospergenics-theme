@@ -409,15 +409,17 @@
   .hbc-body { font-size: 16px; line-height: 1.6; color: var(--muted); }
   .hero-bottom-cta { cursor: pointer; display: flex; flex-direction: column; align-items: flex-start; }
   .hbc-arrow {
-    align-self: flex-end;
-    display: flex; align-items: center; justify-content: flex-end;
+    align-self: flex-end; margin-right: 36px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
     margin-top: 24px;
-    height: 46px; min-width: 160px; padding: 0 18px 0 28px; border-radius: 999px;
+    height: 46px; padding: 0 16px 0 22px; border-radius: 999px;
     background: var(--green-100); border: 1.5px solid rgba(26,122,70,.20);
-    color: var(--green-700); transition: background .2s, border-color .2s;
+    color: var(--green-700); font-family: 'Sora', sans-serif; font-weight: 600; font-size: 14px;
+    white-space: nowrap;
+    transition: background .2s, border-color .2s;
     animation: hbc-point 2s ease-in-out infinite;
   }
-  .hbc-arrow svg { width: 22px; height: 22px; fill: currentColor; }
+  .hbc-arrow svg { width: 20px; height: 20px; fill: currentColor; flex-shrink: 0; }
   .hero-bottom-cta:hover .hbc-arrow { background: var(--green-200); border-color: rgba(26,122,70,.4); }
   @keyframes hbc-point {
     0%, 100% { transform: translateX(0); }
@@ -865,8 +867,9 @@
       <div class="hero-bottom-cta reveal d4">
         <p class="hbc-head">Not sure where <span class="accent">to start?</span></p>
         <p class="hbc-body">Tell us what you want to achieve. We'll help you find the next step.</p>
-        <span class="hbc-arrow" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8-8-8z"/></svg>
+        <span class="hbc-arrow">
+          Chat with us
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8-8-8z"/></svg>
         </span>
       </div>
     </div>
