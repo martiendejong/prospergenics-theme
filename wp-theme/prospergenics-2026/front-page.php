@@ -89,14 +89,14 @@
   .site-footer ul { list-style: none; display: grid; gap: 10px; }
   .site-footer a { color: #fff; text-decoration: none; font-size: 15px; }
   .site-footer a:hover { text-decoration: underline; }
-  /* bottom padding keeps the fixed chat launcher (bottom-right, ~200px tall) off the footer at full scroll */
-  .site-footer-base { max-width: 1500px; margin: 0 auto; padding: 18px clamp(20px, 5vw, 72px) 210px; border-top: 1px solid rgba(255,255,255,.14); display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 10px 28px; font-size: 13.5px; }
+  /* bottom padding keeps the fixed (compact) chat launcher off the footer at full scroll */
+  .site-footer-base { max-width: 1500px; margin: 0 auto; padding: 18px clamp(20px, 5vw, 72px) 120px; border-top: 1px solid rgba(255,255,255,.14); display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 10px 28px; font-size: 13.5px; }
   .site-footer-base nav { display: flex; flex-wrap: wrap; gap: 8px 20px; }
   .site-footer-base a { font-size: 13.5px; color: rgba(255,255,255,.85); }
   @media (max-width: 880px){
     .site-footer-inner { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .site-footer .f-brand { grid-column: 1 / -1; }
-    .site-footer-base { padding-bottom: 190px; }
+    .site-footer-base { padding-bottom: 120px; }
   }
 
   /* ─────────────────────────────  HERO  ───────────────────────────── */
@@ -384,6 +384,9 @@
     .proof-visual .pv-scale { clip-path: polygon(20px 0, 100% 0, calc(100% - 20px) 100%, 0 100%); transform: none; }
   }
   .hero-bottom-cta { flex: 1; }
+  /* the full-size chat launcher (fixed, bottom-right) sits beside this block: keep the text out of
+     the right ~300px of the viewport, net of the space the centred 1500px hero already leaves */
+  @media (min-width: 981px){ .hero-bottom { padding-right: max(0px, calc(300px - max(0px, (100vw - 1500px) / 2) - clamp(24px, 5vw, 72px))); } }
   .hbc-head {
     font-family: 'Sora', sans-serif; font-weight: 800;
     font-size: clamp(36px, 4vw, 56px); line-height: 1.0; letter-spacing: -.03em;
@@ -680,6 +683,7 @@
 
   /* ───────────────  FLOATING CHAT LAUNCHER (bottom-right)  ─────────────── */
   .launcher { position: fixed; right: 30px; bottom: 30px; z-index: 60; display: flex; align-items: flex-end; gap: 12px; }
+  .launcher-orb, .launcher .wa-btn, .launcher-bubble { transition: width .35s var(--ease), height .35s var(--ease), left .35s var(--ease), bottom .35s var(--ease), opacity .25s, transform .2s var(--ease); }
   .launcher-orb {
     position: relative; width: 242px; height: 186px; border: none; background: transparent;
     padding: 0; cursor: pointer; filter: drop-shadow(0 20px 38px rgba(11,32,22,.44));
@@ -726,14 +730,26 @@
   .launcher-bubble small { display:block; font-weight:500; font-size:11.5px; color:var(--muted); margin-top:2px; }
   .launcher-bubble::after { content:""; position:absolute; right:-7px; bottom:20px; width:13px; height:13px; background:#fff; border-right:1px solid var(--line); border-bottom:1px solid var(--line); transform: rotate(-45deg); }
   .wa-btn {
-    z-index: 5; margin-left: -50px; margin-top: 127px;
+    position: absolute; z-index: 5; left: -26px; bottom: 4px;
     width: 54px; height: 54px; border-radius: 50%; background: #25D366; display: grid; place-items: center;
     box-shadow: 0 10px 24px -8px rgba(37,211,102,.75); text-decoration: none;
     transition: transform .2s var(--ease);
   }
   .wa-btn:hover { transform: scale(1.09); }
   .wa-btn svg { width: 30px; height: 30px; fill: #fff; }
-  @media (max-width: 560px){ .launcher { right: 18px; bottom: 18px; gap: 8px; } .launcher-orb { width: 144px; height: 124px; } .launcher-bubble { display: none; } .wa-btn { width: 46px; height: 46px; margin-top: 72px; } .wa-btn svg { width: 25px; height: 25px; } }
+  /* compact state: a small round chat button with WhatsApp beside it */
+  .launcher.is-compact .launcher-orb { width: 84px; height: 84px; filter: drop-shadow(0 12px 22px rgba(11,32,22,.38)); }
+  .launcher.is-compact .launcher-orb .l-pulse { right: 2px; top: 2px; width: 13px; height: 13px; }
+  /* the bubble only appears as a hint on hover/focus of the compact button; beside the
+     "Not sure where to start?" block (full size) that block's own copy does its job */
+  .launcher-bubble { opacity: 0; pointer-events: none; transform: translateX(12px); }
+  .launcher.is-compact .launcher-bubble { right: 112px; bottom: 18px; }
+  .launcher.is-compact:hover .launcher-bubble, .launcher.is-compact:focus-within .launcher-bubble { opacity: 1; transform: none; }
+  .launcher.is-compact .wa-btn { left: -30px; bottom: -4px; width: 44px; height: 44px; }
+  .launcher.is-compact .wa-btn svg { width: 24px; height: 24px; }
+  body.launcher-compact .co-embed-panel { bottom: 136px !important; height: min(560px, calc(100vh - 168px)) !important; }
+  @media (max-width: 560px){ .launcher { right: 18px; bottom: 18px; gap: 8px; } .launcher-bubble { display: none; } }
+  @media (prefers-reduced-motion: reduce){ .launcher-orb, .launcher .wa-btn, .launcher-bubble { transition: none; } }
 
   /* subtle double text-shadow on all headings and body text */
   h1, h2, h3, h4, h5, h6, p {
@@ -1169,6 +1185,7 @@
         <h2>Get in touch</h2>
         <ul>
           <li><a href="/contact/">Contact us</a></li>
+          <li><a href="https://wa.me/254741619743" target="_blank" rel="noopener">WhatsApp +254 741 619743</a></li>
           <li><a href="#value-test">Take the value test</a></li>
         </ul>
       </div>
@@ -1182,20 +1199,20 @@
     </div>
   </footer>
 
-  <!-- Floating chat launcher: ProsperGenics coach (CoachOS tenant) + WhatsApp to Sandra -->
-  <div class="launcher">
+  <!-- Floating chat launcher: ProsperGenics coach (CoachOS tenant) + WhatsApp.
+       Compact round button by default; full size (orb + bubble) only while the "Not sure where
+       to start?" block is on screen on desktop, where space is reserved for it. -->
+  <div class="launcher is-compact">
     <div class="launcher-bubble">Chat with ProsperGenics<small>Ask about tools, training &amp; projects</small></div>
     <button class="launcher-orb" aria-label="Open ProsperGenics chat">
       <span class="l-ring"></span><span class="l-ring l-ring2"></span>
       <span class="l-blob"></span>
       <span class="l-photo"><img loading="lazy" decoding="async" src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/contact-bg.webp" alt="Lessy &amp; Diko — chat with ProsperGenics" /></span>
       <span class="l-pulse"></span>
-      <!-- stopPropagation: the whole orb is the CoachOS chat trigger (embed.js listens via
-           closest('.launcher-orb') on document); without it a WhatsApp click would also toggle the chat -->
-      <a class="wa-btn" href="https://wa.me/254XXXXXXXXX" target="_blank" rel="noopener" title="WhatsApp Sandra" onclick="event.stopPropagation()">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.2 4.79 1.2h.01c5.46 0 9.9-4.45 9.9-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2m0 1.67c2.2 0 4.27.86 5.82 2.42a8.2 8.2 0 0 1 2.42 5.82c0 4.54-3.7 8.24-8.25 8.24-1.52 0-3.01-.41-4.3-1.19l-.31-.18-3.12.82.83-3.04-.2-.32a8.17 8.17 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24M8.53 7.33c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.43 1.03 2.6.13.17 1.76 2.68 4.25 3.76.59.26 1.06.41 1.42.52.6.19 1.14.16 1.57.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.08.15-1.18-.06-.1-.23-.16-.48-.29-.25-.12-1.47-.72-1.7-.81-.23-.08-.39-.12-.56.13-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.12-1.05-.39-2-1.23-.74-.66-1.24-1.47-1.38-1.72-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.43.12-.14.16-.25.25-.42.08-.16.04-.3-.02-.42-.06-.12-.56-1.35-.77-1.85-.2-.48-.41-.42-.56-.42-.14-.01-.31-.01-.48-.01"/></svg>
-      </a>
     </button>
+    <a class="wa-btn" href="https://wa.me/254741619743" target="_blank" rel="noopener" aria-label="Chat with ProsperGenics on WhatsApp" title="Chat with ProsperGenics on WhatsApp">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.2 4.79 1.2h.01c5.46 0 9.9-4.45 9.9-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2m0 1.67c2.2 0 4.27.86 5.82 2.42a8.2 8.2 0 0 1 2.42 5.82c0 4.54-3.7 8.24-8.25 8.24-1.52 0-3.01-.41-4.3-1.19l-.31-.18-3.12.82.83-3.04-.2-.32a8.17 8.17 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24M8.53 7.33c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.43 1.03 2.6.13.17 1.76 2.68 4.25 3.76.59.26 1.06.41 1.42.52.6.19 1.14.16 1.57.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.08.15-1.18-.06-.1-.23-.16-.48-.29-.25-.12-1.47-.72-1.7-.81-.23-.08-.39-.12-.56.13-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.12-1.05-.39-2-1.23-.74-.66-1.24-1.47-1.38-1.72-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.43.12-.14.16-.25.25-.42.08-.16.04-.3-.02-.42-.06-.12-.56-1.35-.77-1.85-.2-.48-.41-.42-.56-.42-.14-.01-.31-.01-.48-.01"/></svg>
+    </a>
   </div>
 
   <!-- ProsperGenics coach chat (CoachOS tenant 'prospergenics'): takeover mode, the launcher
@@ -1480,6 +1497,29 @@
   </script>
 
   <script>
+    // Chat launcher: compact everywhere, except full size while "Not sure where to start?" is on
+    // screen on desktop (the block it was designed to sit beside, with room reserved for it).
+    (function () {
+      const launcher = document.querySelector('.launcher');
+      const cta = document.querySelector('.hero-bottom-cta');
+      if (!launcher) return;
+      const wide = window.matchMedia('(min-width: 981px)');
+      let ctaVisible = false;
+      function update() {
+        const compact = !(wide.matches && ctaVisible);
+        launcher.classList.toggle('is-compact', compact);
+        document.body.classList.toggle('launcher-compact', compact);
+      }
+      if (cta && 'IntersectionObserver' in window) {
+        new IntersectionObserver(function (entries) {
+          ctaVisible = entries[0].isIntersecting;
+          update();
+        }, { threshold: 0.6 }).observe(cta);
+      }
+      wide.addEventListener('change', update);
+      update();
+    })();
+
     // Mobile menu: toggle, close on Esc / link click / resize to desktop, focus handling.
     (function () {
       const btn = document.querySelector('.nav-toggle');

@@ -1,5 +1,21 @@
 # Agent Progress
 
+## 2026-10-24 — WhatsApp number + chat launcher overlap, audit C6/H4 (PR #22)
+Done: WhatsApp links now use wa.me/254741619743 (the number production uses, confirmed by
+Lesiamon); also added to the homepage footer. The fixed chat launcher (242x186 orb plus a
+speech bubble) covered page content at every scroll position: it is now a compact 84 px
+round button by default and only grows to full size, without the bubble, while the "Not sure
+where to start?" block is on screen on desktop, where .hero-bottom now reserves room for it.
+The bubble shows as a hint on hover/focus of the compact button. The WhatsApp link moved
+out of the chat <button> (axe nested-interactive error gone, stopPropagation no longer
+needed). Footer bottom padding reduced to match the compact button.
+Verified: text/link overlap check on local WP — before: text covered at rest on 1440 px and
+7/21/18 items passing under the launcher at 1440/1280/390 px; after: nothing covered at rest
+or at the bottom, 1/2/8 items passing under it while scrolling. WhatsApp button receives its
+own clicks at both sizes. New assertions in tests/test-2026-quick-fixes.php; 14/14 files pass.
+Left: the CoachOS chat itself (embed.js) can't load from this environment; check on test that
+the compact button still opens the chat and the panel sits above it.
+
 ## 2026-10-24 — 2026 header, mobile menu and homepage footer, audit C5 (PR #22)
 Done: the homepage had CSS for a nav but no markup, and no footer; inner pages hid their
 links below 800 px with no way to open them. Added a site header (logo, Courses, Members,

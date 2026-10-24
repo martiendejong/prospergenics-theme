@@ -6,7 +6,8 @@
  *   - H2: single.php must go through wp_head()/wp_footer() (via header.php/footer.php),
  *   - no duplicate lang attribute on <html> (lang="en" plus language_attributes()),
  *   - C4: no theme image over 600 KB, and every asset a template references exists,
- *   - H1: the value test shows a privacy notice next to the email field.
+ *   - H1: the value test shows a privacy notice next to the email field,
+ *   - C6/H4: real WhatsApp number, WhatsApp link not nested in the chat button, compact launcher.
  *
  * Run with: php tests/test-2026-quick-fixes.php
  */
@@ -61,6 +62,12 @@ echo "Value test privacy notice\n";
 $front = file_get_contents( $theme . '/front-page.php' );
 ok( false !== strpos( $front, 'class="vt-privacy"' ), 'value test shows a privacy notice' );
 ok( false !== strpos( $front, '/privacy-policy/' ), 'privacy notice links the privacy policy' );
+
+echo "Chat launcher and WhatsApp (C6, H4)\n";
+ok( false === strpos( $front, '254XXXXXXXXX' ), 'no placeholder WhatsApp number left' );
+ok( false !== strpos( $front, 'https://wa.me/254741619743' ), 'WhatsApp links use the real number' );
+ok( ! preg_match( '#<button class="launcher-orb"[^>]*>(?:(?!</button>).)*<a #s', $front ), 'WhatsApp link is not nested inside the chat button' );
+ok( false !== strpos( $front, '<div class="launcher is-compact">' ), 'launcher starts compact (small even without JS)' );
 
 echo $failures ? "\n$failures FAILED\n" : "\nAll assertions passed.\n";
 exit( $failures ? 1 : 0 );
