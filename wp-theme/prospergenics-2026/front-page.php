@@ -765,26 +765,16 @@
   }
   .wa-btn:hover { transform: scale(1.09); }
   .wa-btn svg { width: 30px; height: 30px; fill: #fff; }
-  /* compact state: clean round photo button — no blob, no rings */
-  .launcher.is-compact .launcher-orb {
-    width: 62px; height: 62px; border-radius: 50%; overflow: hidden;
-    border: 2.5px solid var(--green-500);
-    background: var(--green-200);
-    filter: drop-shadow(0 6px 18px rgba(11,32,22,.40));
-    transition: transform .2s var(--ease);
-  }
-  .launcher.is-compact .launcher-orb .l-blob,
-  .launcher.is-compact .launcher-orb .l-ring { display: none; }
-  .launcher.is-compact .launcher-orb .l-photo { inset: 0; border-radius: 0; overflow: hidden; animation: none; }
-  .launcher.is-compact .launcher-orb .l-photo img { transform: scale(1.15); transform-origin: center 18%; }
-  .launcher.is-compact .launcher-orb .l-pulse { right: 0px; top: 0px; width: 13px; height: 13px; }
-  /* the bubble only appears as a hint on hover/focus of the compact button; beside the
-     "Not sure where to start?" block (full size) that block's own copy does its job */
+  /* compact state: desktop-style blob + rings + same photo zoom, just smaller */
+  .launcher.is-compact .launcher-orb { width: 96px; height: 96px; filter: drop-shadow(0 12px 26px rgba(11,32,22,.42)); }
+  /* blob, rings and photo all inherit desktop defaults — only fine-tune pulse position */
+  .launcher.is-compact .launcher-orb .l-pulse { right: 8px; top: 6px; width: 13px; height: 13px; }
+  /* the bubble only appears as a hint on hover/focus of the compact button */
   .launcher-bubble { opacity: 0; pointer-events: none; transform: translateX(12px); }
-  .launcher.is-compact .launcher-bubble { right: 96px; bottom: 14px; }
+  .launcher.is-compact .launcher-bubble { right: 110px; bottom: 30px; }
   .launcher.is-compact:hover .launcher-bubble, .launcher.is-compact:focus-within .launcher-bubble { opacity: 1; transform: none; }
-  .launcher.is-compact .wa-btn { left: -26px; bottom: -4px; width: 40px; height: 40px; }
-  .launcher.is-compact .wa-btn svg { width: 22px; height: 22px; }
+  .launcher.is-compact .wa-btn { left: -22px; bottom: -2px; width: 44px; height: 44px; }
+  .launcher.is-compact .wa-btn svg { width: 24px; height: 24px; }
   body.launcher-compact .co-embed-panel { bottom: 120px !important; height: min(560px, calc(100vh - 152px)) !important; }
   @media (max-width: 560px){ .launcher { right: 18px; bottom: 18px; gap: 8px; } .launcher-bubble { display: none; } }
   @media (prefers-reduced-motion: reduce){ .launcher-orb, .launcher .wa-btn, .launcher-bubble { transition: none; } }
