@@ -1,5 +1,17 @@
 # Agent Progress
 
+## 2026-10-24 — self-hosted fonts and homepage accessibility (audit M1, M3)
+Done: Gabarito/Sora/Inter now come from assets/fonts/ (@fontsource 5.3.0, OFL-1.1, latin
+subset, 11 weights, 200 KB, font-display: swap) instead of Google Fonts on every page type;
+homepage preloads the two first-paint faces. Homepage a11y: active showcase tab green-600 ->
+green-700 (3.1:1 -> 5.3:1 with white), showcase caption h3 -> h2 (no skipped level; same look,
+the global Gabarito !important rule still applies), aria-labels dropped from the 7 project/
+service card links so their visible text is their name. The 9 empty alts are portraits beside
+the person's name and the header logo inside a labelled link: correct as is.
+Verified: Lighthouse accessibility 100 on the homepage (was 93-94); fonts load locally;
+16/16 test files pass. Local performance numbers stay pessimistic: PHP's single-threaded dev
+server + SQLite give ~1 s TTFB, so measure on test with a page cache.
+
 ## 2026-10-24 — SEO/security layer and contact page for the 2026 theme (audit C2, M2, M4, H5)
 Done: wp/inc/security.php (headers incl. strict CSP as Report-Only, security.txt, XML-RPC
 refused, generator removed, users endpoint and author archives hidden from visitors) and

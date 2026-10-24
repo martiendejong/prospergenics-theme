@@ -12,9 +12,7 @@
 <meta property="og:description" content="A community researching and practising value creation: learning by doing, empowering people, and building prosperity together." />
 <meta property="og:image" content="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/hero-top.jpg" />
 <link rel="icon" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/logo.png" />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/fonts/fonts.css" />
 <script>document.documentElement.className = 'js';</script>
 <style>
   :root {
