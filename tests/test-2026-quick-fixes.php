@@ -3,7 +3,7 @@
  * Standalone regression test for the 2026 audit quick fixes (docs/AUDIT-2026-10.md):
  *   - C3: the generated /people/, /experts/ and /community/ pages must not contain
  *     doubled CSS braces ("{{" / "}}"), which browsers drop as invalid rules,
- *   - H2: the hand-written single.php must go through wp_head()/wp_footer(),
+ *   - H2: single.php must go through wp_head()/wp_footer() (via header.php/footer.php),
  *   - no duplicate lang attribute on <html> (lang="en" plus language_attributes()),
  *   - C4: no theme image over 600 KB, and every asset a template references exists,
  *   - H1: the value test shows a privacy notice next to the email field.
@@ -32,9 +32,10 @@ foreach ( $pages as $page ) {
 }
 
 echo "single.php\n";
+// single.php gets wp_head()/wp_footer() through the shared header.php/footer.php.
 $single = file_get_contents( $theme . '/single.php' );
-ok( false !== strpos( $single, 'wp_head()' ), 'single.php calls wp_head()' );
-ok( false !== strpos( $single, 'wp_footer()' ), 'single.php calls wp_footer()' );
+ok( false !== strpos( $single, 'get_header()' ) && false !== strpos( file_get_contents( $theme . '/header.php' ), 'wp_head()' ), 'single.php reaches wp_head() via header.php' );
+ok( false !== strpos( $single, 'get_footer()' ) && false !== strpos( file_get_contents( $theme . '/footer.php' ), 'wp_footer()' ), 'single.php reaches wp_footer() via footer.php' );
 
 echo "<html> lang attribute\n";
 foreach ( glob( $theme . '/*.php' ) as $tpl ) {

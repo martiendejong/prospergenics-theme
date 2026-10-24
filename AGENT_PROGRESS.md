@@ -1,5 +1,21 @@
 # Agent Progress
 
+## 2026-10-24 — 2026 routing fix, audit C1 (claude/wizardly-babbage-35o2ct, PR #22)
+Done: the 2026 theme's index.php redirected every non-front request to /, turning every
+inner URL and every 404 into a soft-404. Replaced it with real templates in
+design/new-hero-2026-10/wp/: shared header.php/footer.php (head, nav, footer with legal
+links, header/main/footer landmarks), page.php, index.php (blog, archives, search),
+404.php and searchform.php; single.php now uses the shared header/footer. functions.php
+moved from a string in build-wp-theme.py into wp/functions.php and gained 301s, only on
+404s, for /kenya/ -> /about/ and /members/<slug>/, /team_member/<slug>/ -> /people/<slug>/
+when that static profile exists.
+Verified: local WP 6.8 — /trainings/, /contact/, /blog/, archives and search 200; unknown
+URLs 404; legacy URLs 301 as above; axe clean and no overflow at 1440/390 px. New
+tests/test-2026-routing.php plus all 12 other test files pass.
+Left: not deployed. jengo-listings routes on test (/courses, /members, /tools, ...) are
+untested here (private plugin): check them after deploying. Inner pages still hide the
+nav links below 800 px with no menu button (audit C5).
+
 ## 2026-10-24 — 2026 audit quick fixes (claude/wizardly-babbage-35o2ct)
 Done: from docs/AUDIT-2026-10.md. Fixed the profile generator's doubled CSS braces (all 15
 /people/, /experts/, /community/ pages were rendering unstyled), merged PR #21 (Lesiamon
