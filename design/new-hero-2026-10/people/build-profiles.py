@@ -167,7 +167,7 @@ PROFILES = [
         "tags": ["expert", "member"],
         "img": "lessy_profile-300x300.png", "pos": "center 25%",
         "quote": "I develop software and train new developers. Good software starts with understanding people.",
-        "story": "Lesiamon co-founded ProsperGenics and carries two of its pillars: she builds software, and she builds the people who build software. New developers in the community learn the craft from her, task by task. Her conviction: good software starts with understanding people.",
+        "story": "Lesiamon co-founded ProsperGenics and carries two of its pillars: he builds software, and he builds the people who build software. New developers in the community learn the craft from him, task by task. His conviction: good software starts with understanding people.",
         "contributions": [
             ("Developer training", "Trains the community's new developers, from first task to production work."),
             ("Websites & web applications", "Builds and maintains software across the community's projects."),
