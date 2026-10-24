@@ -1215,7 +1215,7 @@
   <!-- Floating chat launcher: ProsperGenics coach (CoachOS tenant) + WhatsApp.
        Compact round button by default; full size (orb + bubble) only while the "Not sure where
        to start?" block is on screen on desktop, where space is reserved for it. -->
-  <div class="launcher is-compact">
+  <div class="launcher">
     <div class="launcher-bubble">Chat with ProsperGenics<small>Ask about tools, training &amp; projects</small></div>
     <button class="launcher-orb" aria-label="Open ProsperGenics chat">
       <span class="l-ring"></span><span class="l-ring l-ring2"></span>
@@ -1576,12 +1576,18 @@
   </script>
 
   <script>
-    // Chat launcher: always compact — full-size expansion removed (resize on scroll was jarring).
+    // Chat launcher: full-size on desktop, compact on mobile — never changes on scroll.
     (function () {
       const launcher = document.querySelector('.launcher');
       if (!launcher) return;
-      launcher.classList.add('is-compact');
-      document.body.classList.add('launcher-compact');
+      const mobile = window.matchMedia('(max-width: 880px)');
+      function update() {
+        const compact = mobile.matches;
+        launcher.classList.toggle('is-compact', compact);
+        document.body.classList.toggle('launcher-compact', compact);
+      }
+      mobile.addEventListener('change', update);
+      update();
     })();
 
     // Mobile menu: toggle, close on Esc / link click / resize to desktop, focus handling.
