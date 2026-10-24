@@ -408,19 +408,21 @@
     -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
   }
   .hbc-body { font-size: 16px; line-height: 1.6; color: var(--muted); }
-  .hero-bottom-cta { cursor: pointer; }
+  .hero-bottom-cta { cursor: pointer; display: flex; flex-direction: column; align-items: flex-start; }
   .hbc-arrow {
-    display: inline-flex; align-items: center; justify-content: center;
-    margin-top: 22px; width: 46px; height: 46px; border-radius: 50%;
+    align-self: flex-end;
+    display: flex; align-items: center; justify-content: flex-end;
+    margin-top: 24px;
+    height: 46px; min-width: 160px; padding: 0 18px 0 28px; border-radius: 999px;
     background: var(--green-100); border: 1.5px solid rgba(26,122,70,.20);
     color: var(--green-700); transition: background .2s, border-color .2s;
     animation: hbc-point 2s ease-in-out infinite;
   }
-  .hbc-arrow svg { width: 20px; height: 20px; fill: currentColor; }
+  .hbc-arrow svg { width: 22px; height: 22px; fill: currentColor; }
   .hero-bottom-cta:hover .hbc-arrow { background: var(--green-200); border-color: rgba(26,122,70,.4); }
   @keyframes hbc-point {
     0%, 100% { transform: translateX(0); }
-    50%       { transform: translateX(8px); }
+    50%       { transform: translateX(10px); }
   }
   @media (max-width: 980px) { .hero-bottom-cta { display: none; } }
 
