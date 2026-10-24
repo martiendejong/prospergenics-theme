@@ -311,8 +311,8 @@
     // Non-hero: viewport-relative formula. Hero children: scroll-relative (no mask at scrollY=0).
     (function () {
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-      var items = Array.prototype.slice.call(document.querySelectorAll('main > section:not(.hero) > *'));
-      var heroItems = Array.prototype.slice.call(document.querySelectorAll('main > section.hero > *'));
+      var items = Array.prototype.slice.call(document.querySelectorAll('main > section:not(.hero) > *, main > section.hero > .hero-bottom'));
+      var heroItems = Array.prototype.slice.call(document.querySelectorAll('main > section.hero > .hero-top > .copy'));
       if (!items.length && !heroItems.length) return;
       var ticking = false;
       function update() {

@@ -1513,12 +1513,16 @@
 
   <script>
     // Scroll top-fade: gradient mask — the top 15 % of the viewport is a fade zone.
-    // Non-hero: viewport-relative formula (transparent at 0, opaque at 15 %).
-    // Hero children: scroll-relative formula (no mask at scrollY=0; grows as user scrolls).
+    // Non-hero + hero-bottom: viewport-relative formula (transparent at 0, opaque at 15 %).
+    // .copy in hero-top: scroll-relative formula (no mask at scrollY=0; grows as user scrolls).
+    // .hero-top itself is excluded because its child is a full-bleed 100vw background image;
+    // masking the parent would clip that image to the container width (visible left/right margins).
     (function(){
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-      const items = Array.from(document.querySelectorAll('main > section:not(.hero) > *'));
-      const heroItems = Array.from(document.querySelectorAll('main > section.hero > *'));
+      const items = Array.from(document.querySelectorAll(
+        'main > section:not(.hero) > *, main > section.hero > .hero-bottom'
+      ));
+      const heroItems = Array.from(document.querySelectorAll('main > section.hero > .hero-top > .copy'));
       if (!items.length && !heroItems.length) return;
       let ticking = false;
       function update() {
@@ -1574,27 +1578,12 @@
   </script>
 
   <script>
-    // Chat launcher: compact everywhere, except full size while "Not sure where to start?" is on
-    // screen on desktop (the block it was designed to sit beside, with room reserved for it).
+    // Chat launcher: always compact — full-size expansion removed (resize on scroll was jarring).
     (function () {
       const launcher = document.querySelector('.launcher');
-      const cta = document.querySelector('.hero-bottom-cta');
       if (!launcher) return;
-      const wide = window.matchMedia('(min-width: 981px)');
-      let ctaVisible = false;
-      function update() {
-        const compact = !(wide.matches && ctaVisible);
-        launcher.classList.toggle('is-compact', compact);
-        document.body.classList.toggle('launcher-compact', compact);
-      }
-      if (cta && 'IntersectionObserver' in window) {
-        new IntersectionObserver(function (entries) {
-          ctaVisible = entries[0].isIntersecting;
-          update();
-        }, { threshold: 0.6 }).observe(cta);
-      }
-      wide.addEventListener('change', update);
-      update();
+      launcher.classList.add('is-compact');
+      document.body.classList.add('launcher-compact');
     })();
 
     // Mobile menu: toggle, close on Esc / link click / resize to desktop, focus handling.
