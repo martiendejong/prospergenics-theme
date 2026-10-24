@@ -1495,6 +1495,26 @@
   </script>
 
   <script>
+    // Scroll top-fade: content entering the top 25 % of the viewport fades out.
+    (function(){
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      const items = Array.from(document.querySelectorAll('main > section:not(.hero) > *'));
+      if (!items.length) return;
+      let ticking = false;
+      function update() {
+        const zone = window.innerHeight * 0.25;
+        items.forEach(el => {
+          const t = el.getBoundingClientRect().top;
+          el.style.opacity = t >= zone ? '' : t <= 0 ? '0' : (t / zone).toFixed(3);
+        });
+        ticking = false;
+      }
+      window.addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+      window.addEventListener('resize', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+    })();
+  </script>
+
+  <script>
     // Chat launcher: compact everywhere, except full size while "Not sure where to start?" is on
     // screen on desktop (the block it was designed to sit beside, with room reserved for it).
     (function () {
