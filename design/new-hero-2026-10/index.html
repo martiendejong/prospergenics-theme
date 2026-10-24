@@ -4,6 +4,9 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>ProsperGenics — Create value</title>
+<link rel="icon" href="assets/logo.png" />
+<link rel="apple-touch-icon" href="assets/logo.png" />
+<link rel="preload" as="image" href="assets/hero-top.webp" fetchpriority="high" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Gabarito:wght@700;800;900&family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -39,19 +42,61 @@
   }
 
   /* ─────────────────────────────  TOP BAR  ───────────────────────────── */
-  .nav {
-    position: absolute; inset: 0 0 auto 0; z-index: 20;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 28px clamp(24px, 5vw, 72px);
+  .site-header {
+    position: relative; z-index: 30; max-width: 1500px; margin: 0 auto;
+    display: flex; align-items: center; gap: 28px;
+    padding: 18px clamp(20px, 5vw, 72px);
   }
-  .brand { display: flex; align-items: center; }
-  .brand img { height: 42px; width: auto; display: block; }
-  .nav-links { display: flex; align-items: center; gap: 34px; }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; margin-right: auto; }
+  .brand img { height: 40px; width: auto; display: block; }
+  .brand-text { font-family:'Sora',sans-serif; font-weight:800; font-size:20px; color:var(--green-900); letter-spacing:-.02em; }
+  .nav-links { display: flex; align-items: center; gap: 30px; }
   .nav-links a { font-size: 15px; font-weight: 500; color: var(--green-900); text-decoration: none; opacity: .8; transition: opacity .2s; }
   .nav-links a:hover { opacity: 1; }
-  .nav-cta { font-family:'Sora',sans-serif; font-weight:600; font-size:14px; padding:10px 18px; border-radius:999px; border:1.5px solid var(--green-700); color:var(--green-900); background:transparent; cursor:pointer; transition:all .2s; }
+  .nav-cta { font-family:'Sora',sans-serif; font-weight:600; font-size:14px; padding:10px 18px; border-radius:999px; border:1.5px solid var(--green-700); color:var(--green-900); background:transparent; text-decoration:none; white-space:nowrap; cursor:pointer; transition:all .2s; }
   .nav-cta:hover { background: var(--green-700); color: #fff; }
-  @media (max-width: 880px){ .nav-links{ display:none; } }
+  .nav-toggle { display: none; width: 44px; height: 44px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--white); cursor: pointer; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent; }
+  .nav-toggle[aria-expanded="true"] { background: var(--paper-2); border-color: var(--green-300); }
+  .nav-toggle-bars, .nav-toggle-bars::before, .nav-toggle-bars::after { display: block; width: 20px; height: 2px; border-radius: 2px; background: var(--green-900); transition: transform .2s var(--ease), opacity .2s; }
+  .nav-toggle-bars { position: relative; }
+  .nav-toggle-bars::before, .nav-toggle-bars::after { content: ""; position: absolute; left: 0; }
+  .nav-toggle-bars::before { top: -6px; } .nav-toggle-bars::after { top: 6px; }
+  .nav-toggle[aria-expanded="true"] .nav-toggle-bars { background: transparent; }
+  .nav-toggle[aria-expanded="true"] .nav-toggle-bars::before { transform: translateY(6px) rotate(45deg); }
+  .nav-toggle[aria-expanded="true"] .nav-toggle-bars::after { transform: translateY(-6px) rotate(-45deg); }
+  .nav-panel { position: absolute; top: 100%; left: 12px; right: 12px; background: var(--white); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); padding: 10px; }
+  .nav-panel a { display: flex; align-items: center; min-height: 48px; padding: 0 14px; border-radius: 12px; font-size: 17px; font-weight: 500; color: var(--green-900); text-decoration: none; }
+  .nav-panel a:hover, .nav-panel a:focus-visible { background: var(--paper-2); }
+  .nav-panel .nav-panel-cta { margin-top: 6px; justify-content: center; background: var(--green-700); color: #fff; font-family:'Sora',sans-serif; font-weight:600; }
+  .nav-panel .nav-panel-cta:hover { background: var(--green-900); }
+  @media (max-width: 880px){
+    .nav-links, .site-header > .nav-cta { display: none; }
+    .nav-toggle { display: inline-flex; }
+    .site-header { padding: 12px 16px; }
+    .brand img { height: 36px; }
+  }
+  @media (min-width: 881px){ .nav-panel { display: none !important; } }
+  :focus-visible { outline: 3px solid var(--green-500); outline-offset: 3px; }
+
+  /* ─────────────────────────────  FOOTER  ───────────────────────────── */
+  .site-footer { background: var(--green-900); color: rgba(255,255,255,.78); margin-top: clamp(48px, 7vw, 96px); }
+  .site-footer-inner { max-width: 1500px; margin: 0 auto; padding: clamp(40px, 5vw, 64px) clamp(20px, 5vw, 72px) 28px; display: grid; grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr)); gap: 32px 40px; }
+  .site-footer .f-brand { display: grid; gap: 14px; align-content: start; }
+  .site-footer .f-brand img { height: 44px; width: auto; background: var(--paper); border-radius: 10px; padding: 4px; }
+  .site-footer .f-brand p { font-size: 15px; line-height: 1.6; max-width: 34ch; }
+  .site-footer h2 { font-family:'Sora',sans-serif !important; font-size: 13px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--green-300); margin-bottom: 14px; text-shadow: none; }
+  .site-footer ul { list-style: none; display: grid; gap: 10px; }
+  .site-footer a { color: #fff; text-decoration: none; font-size: 15px; }
+  .site-footer a:hover { text-decoration: underline; }
+  /* bottom padding keeps the fixed (compact) chat launcher off the footer at full scroll */
+  .site-footer-base { max-width: 1500px; margin: 0 auto; padding: 18px clamp(20px, 5vw, 72px) 120px; border-top: 1px solid rgba(255,255,255,.14); display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 10px 28px; font-size: 13.5px; }
+  .site-footer-base nav { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+  .site-footer-base a { font-size: 13.5px; color: rgba(255,255,255,.85); }
+  @media (max-width: 880px){
+    .site-footer-inner { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .site-footer .f-brand { grid-column: 1 / -1; }
+    .site-footer-base { padding-bottom: 120px; }
+  }
 
   /* ─────────────────────────────  HERO  ───────────────────────────── */
   .hero { position: relative; max-width: 1500px; margin: 0 auto; padding: 0 clamp(24px, 5vw, 72px); }
@@ -61,7 +106,7 @@
   .hero-top-photo {
     position: absolute; top: 34px; bottom: 0; left: 50%; width: 100vw; transform: translateX(-50%);
     z-index: 0; pointer-events: none;
-    background: url('assets/hero-top.png') center 12% / cover no-repeat;
+    background: url('assets/hero-top.webp') center 12% / cover no-repeat;
     opacity: .97;
     /* full screen width; soft fade at top + bottom into the paper */
     -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.05) 5%, rgba(0, 0, 0, 0.2) 10%, rgba(0, 0, 0, 0.5) 15%, #000 20%, #000 80%, rgba(0, 0, 0, 0.8) 85%, rgba(0, 0, 0, 0.4) 90%, rgba(0, 0, 0, 0.1) 95%, transparent 100%);
@@ -270,7 +315,7 @@
   .hero-photobg {
     position: absolute; top: 0; bottom: 0; left: 50%; width: 100vw; transform: translateX(-50%);
     z-index: 0; pointer-events: none;
-    background: url('assets/hero-bg.jpg') center 28% / cover no-repeat;
+    background: url('assets/hero-bg.webp') center 28% / cover no-repeat;
     opacity: .62;
   }
   /* a wash to keep text crisp over the photo (stronger on the left, behind the copy) */
@@ -338,6 +383,9 @@
     .proof-visual .pv-scale { clip-path: polygon(20px 0, 100% 0, calc(100% - 20px) 100%, 0 100%); transform: none; }
   }
   .hero-bottom-cta { flex: 1; }
+  /* the full-size chat launcher (fixed, bottom-right) sits beside this block: keep the text out of
+     the right ~300px of the viewport, net of the space the centred 1500px hero already leaves */
+  @media (min-width: 981px){ .hero-bottom { padding-right: max(0px, calc(300px - max(0px, (100vw - 1500px) / 2) - clamp(24px, 5vw, 72px))); } }
   .hbc-head {
     font-family: 'Sora', sans-serif; font-weight: 800;
     font-size: clamp(36px, 4vw, 56px); line-height: 1.0; letter-spacing: -.03em;
@@ -447,6 +495,8 @@
   .vt-cta .btn-primary:hover { transform: translateY(-2px); }
   .vt-cta-note { font-size: 14.5px; color: var(--muted); max-width: 40ch; }
   .vt-error { margin-top: 16px; font-size: 14px; color: #a33; }
+  .vt-privacy { margin-top: 14px; font-size: 13px; line-height: 1.5; color: var(--muted); }
+  .vt-privacy a { color: var(--green-700); }
   @media (max-width: 640px){
     .vtest-box, .vtest-in, .vt-field, .vt-answer { transform: none; }
     .vtest-in { padding: 24px 18px; }
@@ -632,6 +682,7 @@
 
   /* ───────────────  FLOATING CHAT LAUNCHER (bottom-right)  ─────────────── */
   .launcher { position: fixed; right: 30px; bottom: 30px; z-index: 60; display: flex; align-items: flex-end; gap: 12px; }
+  .launcher-orb, .launcher .wa-btn, .launcher-bubble { transition: width .35s var(--ease), height .35s var(--ease), left .35s var(--ease), bottom .35s var(--ease), opacity .25s, transform .2s var(--ease); }
   .launcher-orb {
     position: relative; width: 242px; height: 186px; border: none; background: transparent;
     padding: 0; cursor: pointer; filter: drop-shadow(0 20px 38px rgba(11,32,22,.44));
@@ -678,14 +729,26 @@
   .launcher-bubble small { display:block; font-weight:500; font-size:11.5px; color:var(--muted); margin-top:2px; }
   .launcher-bubble::after { content:""; position:absolute; right:-7px; bottom:20px; width:13px; height:13px; background:#fff; border-right:1px solid var(--line); border-bottom:1px solid var(--line); transform: rotate(-45deg); }
   .wa-btn {
-    z-index: 5; margin-left: -50px; margin-top: 127px;
+    position: absolute; z-index: 5; left: -26px; bottom: 4px;
     width: 54px; height: 54px; border-radius: 50%; background: #25D366; display: grid; place-items: center;
     box-shadow: 0 10px 24px -8px rgba(37,211,102,.75); text-decoration: none;
     transition: transform .2s var(--ease);
   }
   .wa-btn:hover { transform: scale(1.09); }
   .wa-btn svg { width: 30px; height: 30px; fill: #fff; }
-  @media (max-width: 560px){ .launcher { right: 18px; bottom: 18px; gap: 8px; } .launcher-orb { width: 144px; height: 124px; } .launcher-bubble { display: none; } .wa-btn { width: 46px; height: 46px; margin-top: 72px; } .wa-btn svg { width: 25px; height: 25px; } }
+  /* compact state: a small round chat button with WhatsApp beside it */
+  .launcher.is-compact .launcher-orb { width: 84px; height: 84px; filter: drop-shadow(0 12px 22px rgba(11,32,22,.38)); }
+  .launcher.is-compact .launcher-orb .l-pulse { right: 2px; top: 2px; width: 13px; height: 13px; }
+  /* the bubble only appears as a hint on hover/focus of the compact button; beside the
+     "Not sure where to start?" block (full size) that block's own copy does its job */
+  .launcher-bubble { opacity: 0; pointer-events: none; transform: translateX(12px); }
+  .launcher.is-compact .launcher-bubble { right: 112px; bottom: 18px; }
+  .launcher.is-compact:hover .launcher-bubble, .launcher.is-compact:focus-within .launcher-bubble { opacity: 1; transform: none; }
+  .launcher.is-compact .wa-btn { left: -30px; bottom: -4px; width: 44px; height: 44px; }
+  .launcher.is-compact .wa-btn svg { width: 24px; height: 24px; }
+  body.launcher-compact .co-embed-panel { bottom: 136px !important; height: min(560px, calc(100vh - 168px)) !important; }
+  @media (max-width: 560px){ .launcher { right: 18px; bottom: 18px; gap: 8px; } .launcher-bubble { display: none; } }
+  @media (prefers-reduced-motion: reduce){ .launcher-orb, .launcher .wa-btn, .launcher-bubble { transition: none; } }
 
   /* subtle double text-shadow on all headings and body text */
   h1, h2, h3, h4, h5, h6, p {
@@ -700,6 +763,38 @@
 </style>
 </head>
 <body>
+
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="ProsperGenics home">
+      <img src="assets/logo.png" alt="" width="42" height="40" />
+      <span class="brand-text">ProsperGenics</span>
+    </a>
+    <nav class="nav-links" aria-label="Main">
+      <a href="/courses">Courses</a>
+      <a href="/members">Members</a>
+      <a href="/tools">Tools</a>
+      <a href="/services">Services</a>
+      <a href="/partners">Partners</a>
+      <a href="about/">About</a>
+    </nav>
+    <a class="nav-cta" href="#value-test">Take the test</a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-menu" aria-label="Open menu">
+      <span class="nav-toggle-bars" aria-hidden="true"></span>
+    </button>
+    <div class="nav-panel" id="mobile-menu" hidden>
+      <nav aria-label="Mobile">
+        <a href="/courses">Courses</a>
+        <a href="/members">Members</a>
+        <a href="/tools">Tools</a>
+        <a href="/services">Services</a>
+        <a href="/partners">Partners</a>
+        <a href="about/">About</a>
+        <a class="nav-panel-cta" href="#value-test">Take the test</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
 
   <section class="hero">
     <!-- TOP: message (left, on paper) + team photo fading in from ~30% -->
@@ -745,7 +840,7 @@
       </div>
       <div class="proof-visual reveal d2">
         <a class="pv-scale pv-link" href="/courses">
-          <img src="assets/discover-alchemy.png" alt="A ProsperGenics community session - browse the course material" />
+          <img loading="lazy" decoding="async" src="assets/discover-alchemy.webp" alt="A ProsperGenics community session - browse the course material" />
           <span class="pv-caption">Browse Course Material <span class="arrow">&rarr;</span></span>
         </a>
       </div>
@@ -791,63 +886,63 @@
         <div class="flow-set">
           <a class="flow-card" href="people/martien/">
             <span class="fc-ring" aria-hidden="true"></span>
-            <span class="fc-portrait"><img src="assets/martien.jpg" alt="Martien de Jong" style="object-position: 45% 25%" /></span>
+            <span class="fc-portrait"><img loading="lazy" decoding="async" src="assets/martien.webp" alt="Martien de Jong" style="object-position: 45% 25%" /></span>
             <div class="fc-name">Martien de Jong</div>
             <div class="fc-role">Software Developer, Founder</div>
             <p class="fc-quote">"I'm building Jengo, our AI agent platform. It runs most of what we ship."</p>
           </a>
           <a class="flow-card" href="people/simitia/">
             <span class="fc-ring" aria-hidden="true"></span>
-            <span class="fc-portrait"><img src="assets/sandra_profile-300x300.png" alt="Simitia Mpoe" style="object-position: center 25%" /></span>
+            <span class="fc-portrait"><img loading="lazy" decoding="async" src="assets/sandra_profile-300x300.webp" alt="Simitia Mpoe" style="object-position: center 25%" /></span>
             <div class="fc-name">Simitia Mpoe</div>
             <div class="fc-role">Software Developer, Entrepreneur</div>
             <p class="fc-quote">"I design and build web products, and I'm growing my own business with everything I learn."</p>
           </a>
           <a class="flow-card" href="people/diko/">
             <span class="fc-ring" aria-hidden="true"></span>
-            <span class="fc-portrait"><img src="assets/diko_profile-300x300.png" alt="Diko Mohamed" style="object-position: center 30%" /></span>
+            <span class="fc-portrait"><img loading="lazy" decoding="async" src="assets/diko_profile-300x300.webp" alt="Diko Mohamed" style="object-position: center 30%" /></span>
             <div class="fc-name">Diko Mohamed</div>
             <div class="fc-role">Software Developer, Entrepreneur</div>
             <p class="fc-quote">"I turn opportunities into products. Right now that means integrations and new partnerships."</p>
           </a>
           <a class="flow-card" href="people/sjoerd/">
             <span class="fc-ring" aria-hidden="true"></span>
-            <span class="fc-portrait"><img src="assets/sjoerd-wide.png" alt="Sjoerd Schepman" style="object-position: 50% 15%" /></span>
+            <span class="fc-portrait"><img loading="lazy" decoding="async" src="assets/sjoerd-wide.webp" alt="Sjoerd Schepman" style="object-position: 50% 15%" /></span>
             <div class="fc-name">Sjoerd Schepman</div>
             <div class="fc-role">Curator Perridon Holdings</div>
             <p class="fc-quote">"I curate the Perridon collection, researching the provenance and the stories behind every piece."</p>
           </a>
           <a class="flow-card" href="people/faith/">
             <span class="fc-ring" aria-hidden="true"></span>
-            <span class="fc-portrait"><img src="assets/faith-nkumun-300x300.png" alt="Faith Nkumun" style="object-position: center 20%" /></span>
+            <span class="fc-portrait"><img loading="lazy" decoding="async" src="assets/faith-nkumun-300x300.webp" alt="Faith Nkumun" style="object-position: center 20%" /></span>
             <div class="fc-name">Faith Nkumun</div>
             <div class="fc-role">Entrepreneur, Community member</div>
             <p class="fc-quote">"I had a small store in Oloolaimutia. Here I learned the business skills to take it further."</p>
           </a>
           <a class="flow-card" href="people/maxwell/">
             <span class="fc-ring" aria-hidden="true"></span>
-            <span class="fc-portrait"><img src="assets/maxwell-300x300.png" alt="Maxwell" style="object-position: center 20%" /></span>
+            <span class="fc-portrait"><img loading="lazy" decoding="async" src="assets/maxwell-300x300.webp" alt="Maxwell" style="object-position: center 20%" /></span>
             <div class="fc-name">Maxwell</div>
             <div class="fc-role">Student, Community member</div>
             <p class="fc-quote">"I'm still studying, and I apply what I learn on real projects with real customers."</p>
           </a>
           <a class="flow-card" href="people/lessy/">
             <span class="fc-ring" aria-hidden="true"></span>
-            <span class="fc-portrait"><img src="assets/lessy_profile-300x300.png" alt="Lesiamon Mpoe" style="object-position: center 25%" /></span>
+            <span class="fc-portrait"><img loading="lazy" decoding="async" src="assets/lessy_profile-300x300.webp" alt="Lesiamon Mpoe" style="object-position: center 25%" /></span>
             <div class="fc-name">Lesiamon Mpoe</div>
             <div class="fc-role">Co-founder, Trainer, Software Developer</div>
             <p class="fc-quote">"I develop software and train new developers. Good software starts with understanding people."</p>
           </a>
           <a class="flow-card" href="people/frank/">
             <span class="fc-ring" aria-hidden="true"></span>
-            <span class="fc-portrait"><img src="assets/frank_profile-300x300.png" alt="Frank" style="object-position: center 25%" /></span>
+            <span class="fc-portrait"><img loading="lazy" decoding="async" src="assets/frank_profile-300x300.webp" alt="Frank" style="object-position: center 25%" /></span>
             <div class="fc-name">Frank</div>
             <div class="fc-role">Software Developer</div>
             <p class="fc-quote">"I build and ship features for our web platforms, with real responsibility from day one."</p>
           </a>
           <a class="flow-card" href="people/sophy/">
             <span class="fc-ring" aria-hidden="true"></span>
-            <span class="fc-portrait"><img src="assets/sofy-300x300.png" alt="Sophy Nashipae de Jong" style="object-position: center 20%" /></span>
+            <span class="fc-portrait"><img loading="lazy" decoding="async" src="assets/sofy-300x300.webp" alt="Sophy Nashipae de Jong" style="object-position: center 20%" /></span>
             <div class="fc-name">Sophy Nashipae de Jong</div>
             <div class="fc-role">Community member</div>
             <p class="fc-quote">"I'm learning Dutch with our own coach app. Learning works better when it feels personal."</p>
@@ -877,63 +972,63 @@
         <div class="flow-set" aria-hidden="true">
           <a class="flow-card" href="people/martien/" tabindex="-1">
             <span class="fc-ring"></span>
-            <span class="fc-portrait"><img src="assets/martien.jpg" alt="" style="object-position: 45% 25%" /></span>
+            <span class="fc-portrait"><img loading="lazy" decoding="async" src="assets/martien.webp" alt="" style="object-position: 45% 25%" /></span>
             <div class="fc-name">Martien de Jong</div>
             <div class="fc-role">Software Developer, Founder</div>
             <p class="fc-quote">"I'm building Jengo, our AI agent platform. It runs most of what we ship."</p>
           </a>
           <a class="flow-card" href="people/simitia/" tabindex="-1">
             <span class="fc-ring"></span>
-            <span class="fc-portrait"><img src="assets/sandra_profile-300x300.png" alt="" style="object-position: center 25%" /></span>
+            <span class="fc-portrait"><img loading="lazy" decoding="async" src="assets/sandra_profile-300x300.webp" alt="" style="object-position: center 25%" /></span>
             <div class="fc-name">Simitia Mpoe</div>
             <div class="fc-role">Software Developer, Entrepreneur</div>
             <p class="fc-quote">"I design and build web products, and I'm growing my own business with everything I learn."</p>
           </a>
           <a class="flow-card" href="people/diko/" tabindex="-1">
             <span class="fc-ring"></span>
-            <span class="fc-portrait"><img src="assets/diko_profile-300x300.png" alt="" style="object-position: center 30%" /></span>
+            <span class="fc-portrait"><img loading="lazy" decoding="async" src="assets/diko_profile-300x300.webp" alt="" style="object-position: center 30%" /></span>
             <div class="fc-name">Diko Mohamed</div>
             <div class="fc-role">Software Developer, Entrepreneur</div>
             <p class="fc-quote">"I turn opportunities into products. Right now that means integrations and new partnerships."</p>
           </a>
           <a class="flow-card" href="people/sjoerd/" tabindex="-1">
             <span class="fc-ring"></span>
-            <span class="fc-portrait"><img src="assets/sjoerd-wide.png" alt="" style="object-position: 50% 15%" /></span>
+            <span class="fc-portrait"><img loading="lazy" decoding="async" src="assets/sjoerd-wide.webp" alt="" style="object-position: 50% 15%" /></span>
             <div class="fc-name">Sjoerd Schepman</div>
             <div class="fc-role">Curator Perridon Holdings</div>
             <p class="fc-quote">"I curate the Perridon collection, researching the provenance and the stories behind every piece."</p>
           </a>
           <a class="flow-card" href="people/faith/" tabindex="-1">
             <span class="fc-ring"></span>
-            <span class="fc-portrait"><img src="assets/faith-nkumun-300x300.png" alt="" style="object-position: center 20%" /></span>
+            <span class="fc-portrait"><img loading="lazy" decoding="async" src="assets/faith-nkumun-300x300.webp" alt="" style="object-position: center 20%" /></span>
             <div class="fc-name">Faith Nkumun</div>
             <div class="fc-role">Entrepreneur, Community member</div>
             <p class="fc-quote">"I had a small store in Oloolaimutia. Here I learned the business skills to take it further."</p>
           </a>
           <a class="flow-card" href="people/maxwell/" tabindex="-1">
             <span class="fc-ring"></span>
-            <span class="fc-portrait"><img src="assets/maxwell-300x300.png" alt="" style="object-position: center 20%" /></span>
+            <span class="fc-portrait"><img loading="lazy" decoding="async" src="assets/maxwell-300x300.webp" alt="" style="object-position: center 20%" /></span>
             <div class="fc-name">Maxwell</div>
             <div class="fc-role">Student, Community member</div>
             <p class="fc-quote">"I'm still studying, and I apply what I learn on real projects with real customers."</p>
           </a>
           <a class="flow-card" href="people/lessy/" tabindex="-1">
             <span class="fc-ring"></span>
-            <span class="fc-portrait"><img src="assets/lessy_profile-300x300.png" alt="" style="object-position: center 25%" /></span>
+            <span class="fc-portrait"><img loading="lazy" decoding="async" src="assets/lessy_profile-300x300.webp" alt="" style="object-position: center 25%" /></span>
             <div class="fc-name">Lesiamon Mpoe</div>
             <div class="fc-role">Co-founder, Trainer, Software Developer</div>
             <p class="fc-quote">"I develop software and train new developers. Good software starts with understanding people."</p>
           </a>
           <a class="flow-card" href="people/frank/" tabindex="-1">
             <span class="fc-ring"></span>
-            <span class="fc-portrait"><img src="assets/frank_profile-300x300.png" alt="" style="object-position: center 25%" /></span>
+            <span class="fc-portrait"><img loading="lazy" decoding="async" src="assets/frank_profile-300x300.webp" alt="" style="object-position: center 25%" /></span>
             <div class="fc-name">Frank</div>
             <div class="fc-role">Software Developer</div>
             <p class="fc-quote">"I build and ship features for our web platforms, with real responsibility from day one."</p>
           </a>
           <a class="flow-card" href="people/sophy/" tabindex="-1">
             <span class="fc-ring"></span>
-            <span class="fc-portrait"><img src="assets/sofy-300x300.png" alt="" style="object-position: center 20%" /></span>
+            <span class="fc-portrait"><img loading="lazy" decoding="async" src="assets/sofy-300x300.webp" alt="" style="object-position: center 20%" /></span>
             <div class="fc-name">Sophy Nashipae de Jong</div>
             <div class="fc-role">Community member</div>
             <p class="fc-quote">"I'm learning Dutch with our own coach app. Learning works better when it feels personal."</p>
@@ -975,15 +1070,15 @@
     </div>
     <div class="pstrips" data-scroll-scale="1.2">
       <div class="pstrip">
-        <a class="pcard" href="/jengo" aria-label="Jengo" style="background-image:url('assets/jengo-task-outcomes.png')">
+        <a class="pcard" href="/jengo" aria-label="Jengo" style="background-image:url('assets/jengo-task-outcomes.webp')">
           <span class="pc-tag">Jengo</span>
           <div class="pc-caption"><p>Give your AI an extra brain.</p></div>
         </a>
-        <a class="pcard" href="/courses" aria-label="AI trainings" style="background-image:url('assets/sandra.png'); background-position: 60% 20%">
+        <a class="pcard" href="/courses" aria-label="AI trainings" style="background-image:url('assets/sandra.webp'); background-position: 60% 20%">
           <span class="pc-tag">AI trainings</span>
           <div class="pc-caption"><p>AI training and certification.</p></div>
         </a>
-        <a class="pcard" href="/citizenship" aria-label="Citizenship courses" style="background-image:url('assets/jengo-werkplek-duo.png'); background-color: #101826">
+        <a class="pcard" href="/citizenship" aria-label="Citizenship courses" style="background-image:url('assets/jengo-werkplek-duo.webp'); background-color: #101826">
           <span class="pc-tag">Citizenship courses</span>
           <div class="pc-caption"><p>Dutch citizenship and language courses.</p></div>
         </a>
@@ -1002,19 +1097,19 @@
     </div>
     <div class="pstrips" data-scroll-scale="1.2">
       <div class="pstrip">
-        <a class="pcard" href="/services/coachos" aria-label="CoachOS platform" style="background-image:url('assets/jengo-telefoon-chat.png'); background-color: var(--paper-2)">
+        <a class="pcard" href="/services/coachos" aria-label="CoachOS platform" style="background-image:url('assets/jengo-telefoon-chat.webp'); background-color: var(--paper-2)">
           <span class="pc-tag">CoachOS</span>
           <div class="pc-caption"><p>AI chat, courses and avatar videos for your organisation, on your own platform.</p></div>
         </a>
-        <a class="pcard" href="/services/research" aria-label="Research and investigation" style="background-image:url('assets/artrevisionist.jpg'); background-position: 28% 35%">
+        <a class="pcard" href="/services/research" aria-label="Research and investigation" style="background-image:url('assets/artrevisionist.webp'); background-position: 28% 35%">
           <span class="pc-tag">Research &amp; investigation</span>
           <div class="pc-caption"><p>Deep research that corrects the record, with evidence anyone can verify.</p></div>
         </a>
-        <a class="pcard" href="/services/provenance" aria-label="Provenance" style="background-image:url('assets/bugatti-insights.jpg')">
+        <a class="pcard" href="/services/provenance" aria-label="Provenance" style="background-image:url('assets/bugatti-insights.webp')">
           <span class="pc-tag">Provenance</span>
           <div class="pc-caption"><p>Provenance systems that give objects a verifiable history.</p></div>
         </a>
-        <a class="pcard" href="/services/online-presence" aria-label="Online presence" style="background-image:url('assets/seomagic.png')">
+        <a class="pcard" href="/services/online-presence" aria-label="Online presence" style="background-image:url('assets/seomagic.webp')">
           <span class="pc-tag">Online presence</span>
           <div class="pc-caption"><p>Websites, SEO, AI-optimisation and social media promotion that get you found.</p></div>
         </a>
@@ -1058,20 +1153,64 @@
     </div>
   </section>
 
-  <!-- Floating chat launcher: ProsperGenics coach (CoachOS tenant) + WhatsApp to Sandra -->
-  <div class="launcher">
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <div class="f-brand">
+        <img src="assets/logo.png" alt="ProsperGenics" width="46" height="44" />
+        <p>A community in Kenya and the Netherlands researching and practising how value is created.</p>
+      </div>
+      <div>
+        <h2>Explore</h2>
+        <ul>
+          <li><a href="/courses">Courses</a></li>
+          <li><a href="/tools">Tools</a></li>
+          <li><a href="/services">Services</a></li>
+          <li><a href="/partners">Partners</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Community</h2>
+        <ul>
+          <li><a href="about/">About us</a></li>
+          <li><a href="experts/">Our experts</a></li>
+          <li><a href="community/">Community stories</a></li>
+          <li><a href="/blog/">Blog</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Get in touch</h2>
+        <ul>
+          <li><a href="/contact/">Contact us</a></li>
+          <li><a href="https://wa.me/254741619743" target="_blank" rel="noopener">WhatsApp +254 741 619743</a></li>
+          <li><a href="#value-test">Take the value test</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="site-footer-base">
+      <span>© ProsperGenics</span>
+      <nav aria-label="Legal">
+        <a href="/privacy-policy/">Privacy policy</a>
+        <a href="/cookie-policy/">Cookie policy</a>
+      </nav>
+    </div>
+  </footer>
+
+  <!-- Floating chat launcher: ProsperGenics coach (CoachOS tenant) + WhatsApp.
+       Compact round button by default; full size (orb + bubble) only while the "Not sure where
+       to start?" block is on screen on desktop, where space is reserved for it. -->
+  <div class="launcher is-compact">
     <div class="launcher-bubble">Chat with ProsperGenics<small>Ask about tools, training &amp; projects</small></div>
     <button class="launcher-orb" aria-label="Open ProsperGenics chat">
       <span class="l-ring"></span><span class="l-ring l-ring2"></span>
       <span class="l-blob"></span>
-      <span class="l-photo"><img src="assets/contact-bg.jpg" alt="Lessy &amp; Diko — chat with ProsperGenics" /></span>
+      <span class="l-photo"><img loading="lazy" decoding="async" src="assets/contact-bg.webp" alt="Lessy &amp; Diko — chat with ProsperGenics" /></span>
       <span class="l-pulse"></span>
-      <!-- stopPropagation: the whole orb is the CoachOS chat trigger (embed.js listens via
-           closest('.launcher-orb') on document); without it a WhatsApp click would also toggle the chat -->
-      <a class="wa-btn" href="https://wa.me/254XXXXXXXXX" target="_blank" rel="noopener" title="WhatsApp Sandra" onclick="event.stopPropagation()">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.2 4.79 1.2h.01c5.46 0 9.9-4.45 9.9-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2m0 1.67c2.2 0 4.27.86 5.82 2.42a8.2 8.2 0 0 1 2.42 5.82c0 4.54-3.7 8.24-8.25 8.24-1.52 0-3.01-.41-4.3-1.19l-.31-.18-3.12.82.83-3.04-.2-.32a8.17 8.17 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24M8.53 7.33c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.43 1.03 2.6.13.17 1.76 2.68 4.25 3.76.59.26 1.06.41 1.42.52.6.19 1.14.16 1.57.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.08.15-1.18-.06-.1-.23-.16-.48-.29-.25-.12-1.47-.72-1.7-.81-.23-.08-.39-.12-.56.13-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.12-1.05-.39-2-1.23-.74-.66-1.24-1.47-1.38-1.72-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.43.12-.14.16-.25.25-.42.08-.16.04-.3-.02-.42-.06-.12-.56-1.35-.77-1.85-.2-.48-.41-.42-.56-.42-.14-.01-.31-.01-.48-.01"/></svg>
-      </a>
     </button>
+    <a class="wa-btn" href="https://wa.me/254741619743" target="_blank" rel="noopener" aria-label="Chat with ProsperGenics on WhatsApp" title="Chat with ProsperGenics on WhatsApp">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.2 4.79 1.2h.01c5.46 0 9.9-4.45 9.9-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2m0 1.67c2.2 0 4.27.86 5.82 2.42a8.2 8.2 0 0 1 2.42 5.82c0 4.54-3.7 8.24-8.25 8.24-1.52 0-3.01-.41-4.3-1.19l-.31-.18-3.12.82.83-3.04-.2-.32a8.17 8.17 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24M8.53 7.33c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.43 1.03 2.6.13.17 1.76 2.68 4.25 3.76.59.26 1.06.41 1.42.52.6.19 1.14.16 1.57.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.08.15-1.18-.06-.1-.23-.16-.48-.29-.25-.12-1.47-.72-1.7-.81-.23-.08-.39-.12-.56.13-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.12-1.05-.39-2-1.23-.74-.66-1.24-1.47-1.38-1.72-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.43.12-.14.16-.25.25-.42.08-.16.04-.3-.02-.42-.06-.12-.56-1.35-.77-1.85-.2-.48-.41-.42-.56-.42-.14-.01-.31-.01-.48-.01"/></svg>
+    </a>
   </div>
 
   <!-- ProsperGenics coach chat (CoachOS tenant 'prospergenics'): takeover mode, the launcher
@@ -1082,11 +1221,11 @@
 
   <script>
     const SLIDES = [
-      { t:"Learn and get certified", d:"Turn knowledge into provable, useful skills.",                               img:"assets/sandra.png",              pos:"90% 32%",    href:"/courses" },
-      { t:"Find value-creators", d:"Meet engineers, designers, researchers and entrepreneurs.", img:"assets/sjoerd-wide.png",          pos:"80% 45%",    href:"/members" },
-      { t:"Expand your capacity", d:"A curated directory of online tools that make your life easier.",               img:"assets/programs-bg.jpg",         pos:"center 45%", href:"/tools" },
-      { t:"Maximize your value", d:"Lets build and optimize your processes together.",                              img:"assets/maximize.png",             pos:"center 32%", href:"/services" },
-      { t:"Our partners", d:"The companies and organisations we create value with.",                               img:"assets/value.png",                pos:"center 55%", href:"/partners" },
+      { t:"Learn and get certified", d:"Turn knowledge into provable, useful skills.",                               img:"assets/sandra.webp",              pos:"90% 32%",    href:"/courses" },
+      { t:"Find value-creators", d:"Meet engineers, designers, researchers and entrepreneurs.", img:"assets/sjoerd-wide.webp",          pos:"80% 45%",    href:"/members" },
+      { t:"Expand your capacity", d:"A curated directory of online tools that make your life easier.",               img:"assets/programs-bg.webp",         pos:"center 45%", href:"/tools" },
+      { t:"Maximize your value", d:"Lets build and optimize your processes together.",                              img:"assets/maximize.webp",             pos:"center 32%", href:"/services" },
+      { t:"Our partners", d:"The companies and organisations we create value with.",                               img:"assets/value.webp",                pos:"center 55%", href:"/partners" },
     ];
     const panel = document.getElementById('scPanel');
     const title = document.getElementById('scTitle');
@@ -1188,6 +1327,8 @@
           '  <button class="btn btn-primary" id="vtSend" type="button">Send my confirmation link <span class="arrow">&rarr;</span></button>' +
           '  <span class="vt-hint">One email, no spam. Your profile unlocks after you confirm.</span>' +
           '</div>' +
+          '<p class="vt-privacy">We only use your email and answers to create and send your value profile. ' +
+          'They are processed on our CoachOS platform. <a href="/privacy-policy/">Privacy policy</a></p>' +
           '<div class="vt-error" id="vtErr2" style="display:none"></div>';
         const emailEl = document.getElementById('vtEmail');
         const sendBtn = document.getElementById('vtSend');
@@ -1353,5 +1494,48 @@
     })();
   </script>
 
+  <script>
+    // Chat launcher: compact everywhere, except full size while "Not sure where to start?" is on
+    // screen on desktop (the block it was designed to sit beside, with room reserved for it).
+    (function () {
+      const launcher = document.querySelector('.launcher');
+      const cta = document.querySelector('.hero-bottom-cta');
+      if (!launcher) return;
+      const wide = window.matchMedia('(min-width: 981px)');
+      let ctaVisible = false;
+      function update() {
+        const compact = !(wide.matches && ctaVisible);
+        launcher.classList.toggle('is-compact', compact);
+        document.body.classList.toggle('launcher-compact', compact);
+      }
+      if (cta && 'IntersectionObserver' in window) {
+        new IntersectionObserver(function (entries) {
+          ctaVisible = entries[0].isIntersecting;
+          update();
+        }, { threshold: 0.6 }).observe(cta);
+      }
+      wide.addEventListener('change', update);
+      update();
+    })();
+
+    // Mobile menu: toggle, close on Esc / link click / resize to desktop, focus handling.
+    (function () {
+      const btn = document.querySelector('.nav-toggle');
+      const panel = document.getElementById('mobile-menu');
+      if (!btn || !panel) return;
+      function setOpen(open, returnFocus) {
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+        panel.hidden = !open;
+        if (open) { const first = panel.querySelector('a'); if (first) first.focus(); }
+        else if (returnFocus) { btn.focus(); }
+      }
+      btn.addEventListener('click', function () { setOpen(btn.getAttribute('aria-expanded') !== 'true'); });
+      panel.addEventListener('click', function (e) { if (e.target.closest('a')) setOpen(false); });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !panel.hidden) setOpen(false, true); });
+      document.addEventListener('click', function (e) { if (!panel.hidden && !e.target.closest('.site-header')) setOpen(false); });
+      window.matchMedia('(min-width: 881px)').addEventListener('change', function (e) { if (e.matches) setOpen(false); });
+    })();
+  </script>
 </body>
 </html>

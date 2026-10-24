@@ -7,9 +7,9 @@ Generate the "Prospergenics 2026" WordPress theme from the static design in THIS
 Output: ../../wp-theme/prospergenics-2026/
   front-page.php   <- index.html        (homepage, markup/CSS/JS preserved 1:1)
   page-about.php   <- about/index.html  (used automatically for the page with slug "about")
-  *.php            <- wp/*.php          (hand-written WP templates, copied verbatim)
+  *.php            <- wp/*.php          (hand-written WP templates + functions.php, copied verbatim)
   assets/          <- assets/
-  style.css, functions.php, index.php   (minimal WP plumbing)
+  style.css                            (theme header; everything else is in wp/)
 
 Personal profile pages (people/<slug>/index.html) and the two list pages
 (experts/, community/) are static and deploy straight into public_html/ - see
@@ -30,7 +30,7 @@ HOME = "<?php echo esc_url( home_url( '/' ) ); ?>"
 
 def convert(html, asset_prefix):
     # WP hooks, with the original markup untouched otherwise
-    html = html.replace('<html lang="en">', '<html lang="en" <?php language_attributes(); ?>>', 1)
+    html = html.replace('<html lang="en">', '<html <?php language_attributes(); ?>>', 1)
     html = html.replace('<html lang="en" class="no-js">',
                         '<html class="no-js" <?php language_attributes(); ?>>', 1)
     html = html.replace("</head>", "<?php wp_head(); ?>\n</head>", 1)
@@ -89,29 +89,8 @@ Text Domain: prospergenics-2026
 */
 """)
 
-    with open(os.path.join(OUT, "functions.php"), "w", encoding="utf-8") as f:
-        f.write("""<?php
-/**
- * Prospergenics 2026 - intentionally minimal.
- * Templates are self-contained (inline CSS/JS) to preserve the interactive
- * front-end exactly as designed; nothing is enqueued here.
- */
-add_action( 'after_setup_theme', function () {
-    add_theme_support( 'automatic-feed-links' );
-} );
-// The templates carry their own <title>; keep WP/plugins from printing a second one.
-remove_action( 'wp_head', '_wp_render_title_tag', 1 );
-""")
-
-    with open(os.path.join(OUT, "index.php"), "w", encoding="utf-8") as f:
-        f.write("""<?php
-/* Fallback for any non-page request: send visitors to the front page. */
-if ( ! is_front_page() ) {
-    wp_safe_redirect( home_url( '/' ) );
-    exit;
-}
-get_template_part( 'front-page' );
-""")
+    # functions.php, index.php, page.php, 404.php, header.php, footer.php, searchform.php
+    # and single.php all live in wp/ and are copied verbatim above.
 
     n = sum(len(fs) for _, _, fs in os.walk(OUT))
     print(f"built {OUT} ({n} files)")

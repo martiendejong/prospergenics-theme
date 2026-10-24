@@ -18,7 +18,7 @@ tenant** chat, with a WhatsApp-to-Sandra button beside it.
 
 ## Status / TODO before it goes live
 - Real destination URLs for the 4 slides (now `/people`, `/services`, `/tools`, `/learn`).
-- Sandra's WhatsApp number (placeholder `wa.me/254XXXXXXXXX`).
+- WhatsApp number: done, `wa.me/254741619743` (the number production uses), set 2026-10-24.
 - Wire the chat launcher to the CoachOS `prospergenics` tenant (JengoWork task 4819).
 - Port to the WordPress theme (`front-page.php` / template part + enqueued CSS/JS).
 - About page (task 4895) is at `/about/` on the test site; the same copy still has to be

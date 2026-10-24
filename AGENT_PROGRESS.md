@@ -1,5 +1,66 @@
 # Agent Progress
 
+## 2026-10-24 — WhatsApp number + chat launcher overlap, audit C6/H4 (PR #22)
+Done: WhatsApp links now use wa.me/254741619743 (the number production uses, confirmed by
+Lesiamon); also added to the homepage footer. The fixed chat launcher (242x186 orb plus a
+speech bubble) covered page content at every scroll position: it is now a compact 84 px
+round button by default and only grows to full size, without the bubble, while the "Not sure
+where to start?" block is on screen on desktop, where .hero-bottom now reserves room for it.
+The bubble shows as a hint on hover/focus of the compact button. The WhatsApp link moved
+out of the chat <button> (axe nested-interactive error gone, stopPropagation no longer
+needed). Footer bottom padding reduced to match the compact button.
+Verified: text/link overlap check on local WP — before: text covered at rest on 1440 px and
+7/21/18 items passing under the launcher at 1440/1280/390 px; after: nothing covered at rest
+or at the bottom, 1/2/8 items passing under it while scrolling. WhatsApp button receives its
+own clicks at both sizes. New assertions in tests/test-2026-quick-fixes.php; 14/14 files pass.
+Left: the CoachOS chat itself (embed.js) can't load from this environment; check on test that
+the compact button still opens the chat and the panel sits above it.
+
+## 2026-10-24 — 2026 header, mobile menu and homepage footer, audit C5 (PR #22)
+Done: the homepage had CSS for a nav but no markup, and no footer; inner pages hid their
+links below 800 px with no way to open them. Added a site header (logo, Courses, Members,
+Tools, Services, Partners, About, "Take the test") with a menu button below 880 px that
+opens a panel (aria-expanded/aria-controls, focus moves in, Esc and outside click close and
+return focus, closes when resized to desktop) to design/new-hero-2026-10/index.html and
+wp/header.php. Added a homepage footer (Explore / Community / Get in touch, legal links)
+with bottom padding so the fixed chat launcher doesn't cover it; inner footer gains Contact.
+Verified: Playwright on local WP — menu open/close/Esc/outside click on homepage and inner
+pages, no overflow at 390 px; axe shows only the two pre-existing homepage issues (showcase
+tab contrast, nested chat orb). New tests/test-2026-navigation.php; all 14 test files pass.
+Left: not deployed. Profile and About pages keep their own 4-link nav (Home/About/Experts/
+Community), so the menus differ between page types. Footer has no social links yet.
+
+## 2026-10-24 — 2026 routing fix, audit C1 (claude/wizardly-babbage-35o2ct, PR #22)
+Done: the 2026 theme's index.php redirected every non-front request to /, turning every
+inner URL and every 404 into a soft-404. Replaced it with real templates in
+design/new-hero-2026-10/wp/: shared header.php/footer.php (head, nav, footer with legal
+links, header/main/footer landmarks), page.php, index.php (blog, archives, search),
+404.php and searchform.php; single.php now uses the shared header/footer. functions.php
+moved from a string in build-wp-theme.py into wp/functions.php and gained 301s, only on
+404s, for /kenya/ -> /about/ and /members/<slug>/, /team_member/<slug>/ -> /people/<slug>/
+when that static profile exists.
+Verified: local WP 6.8 — /trainings/, /contact/, /blog/, archives and search 200; unknown
+URLs 404; legacy URLs 301 as above; axe clean and no overflow at 1440/390 px. New
+tests/test-2026-routing.php plus all 12 other test files pass.
+Left: not deployed. jengo-listings routes on test (/courses, /members, /tools, ...) are
+untested here (private plugin): check them after deploying. Inner pages still hide the
+nav links below 800 px with no menu button (audit C5).
+
+## 2026-10-24 — 2026 audit quick fixes (claude/wizardly-babbage-35o2ct)
+Done: from docs/AUDIT-2026-10.md. Fixed the profile generator's doubled CSS braces (all 15
+/people/, /experts/, /community/ pages were rendering unstyled), merged PR #21 (Lesiamon
+he/him) and PR #17 (favicon), added wp_head()/wp_footer() to the 2026 single.php, dropped
+the duplicate lang attribute, added a privacy notice to the value test email step,
+converted the theme photos to resized WebP (assets 22 MB -> 3 MB; homepage 13.9 MB ->
+1.2 MB, local Lighthouse LCP 62.8 s -> 6.2 s), lazy-loaded the homepage images, preloaded
+the hero image, and removed the web-reachable update-team-profiles.php.
+Verified: new tests/test-2026-quick-fixes.php passes (fails on the old code); all 11
+existing test files still pass; pages re-crawled on a local WP 6.8 install.
+Left: not deployed to test. Real WhatsApp number still missing. The root-theme port
+(front-page.php + css/ + assets/ at the repo root) was not regenerated and still uses
+the old images. The privacy link only works once the catch-all redirect in index.php
+is replaced (audit C1).
+
 ## 2026-09-01 — task 1122 (fix/1122-speakable-schema)
 Done: registered `prospergenics_speakable_selectors()` on the
 `seo_god_schema_speakable_selectors` filter (companion PR in martiendejong/seo-god,
