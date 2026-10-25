@@ -169,5 +169,26 @@ $tpl = file_get_contents( $theme . '/pg-profile.php' );
 ok( ! preg_match( '/echo\s+\$data\[[^\]]+\]\s*;/', $tpl ), 'profile template never echoes data unescaped' );
 ok( false !== strpos( file_get_contents( $theme . '/pg-profile-settings.php' ), "wp_nonce_field( 'pg_profiles_privacy'" ), 'settings form carries a nonce' );
 
+echo "[Test 12] wp-admin screens of profile entries are for administrators only\n";
+$GLOBALS['hooks'] = array();
+$GLOBALS['cpts']  = array();
+function add_action( $hook, $cb ) { $GLOBALS['hooks'][ $hook ][] = $cb; }
+function add_filter( $hook, $cb ) { $GLOBALS['hooks'][ $hook ][] = $cb; }
+function register_post_type( $type, $args ) { $GLOBALS['cpts'][ $type ] = $args; }
+require $theme . '/inc/profiles/data.php';
+foreach ( $GLOBALS['hooks']['init'] as $cb ) {
+	if ( $cb instanceof Closure ) { $cb(); }
+}
+foreach ( array( 'pg_experience', 'pg_education', 'pg_skill' ) as $cpt ) {
+	$caps = isset( $GLOBALS['cpts'][ $cpt ]['capabilities'] ) ? $GLOBALS['cpts'][ $cpt ]['capabilities'] : array();
+	$need = array( 'edit_posts', 'edit_others_posts', 'edit_published_posts', 'read_private_posts', 'delete_posts', 'delete_others_posts', 'create_posts' );
+	$ok   = true;
+	foreach ( $need as $c ) {
+		$ok = $ok && isset( $caps[ $c ] ) && 'edit_users' === $caps[ $c ];
+	}
+	ok( $ok, "$cpt: every list/edit/delete capability maps to edit_users (contributors, authors and editors are refused)" );
+}
+ok( false === strpos( $rest, 'edit_post' ) && false !== strpos( $rest, "(int) \$post->post_author !== get_current_user_id()" ), 'members still edit their own entries: the REST routes check ownership, not post capabilities' );
+
 echo $failures ? "\n$failures FAILED\n" : "\nAll profile tests passed.\n";
 exit( $failures ? 1 : 0 );

@@ -189,3 +189,24 @@ function prospergenics_courses_instructor_path( $user_id, $display_name ) {
 	$slug = trim( $slug, '-' );
 	return (int) $user_id . ( '' !== $slug ? '-' . $slug : '' );
 }
+
+/** Completion requests a learner may send per window (REST; the lesson page form is one per click). */
+const PROSPERGENICS_COURSES_RATE_LIMIT  = 60;
+const PROSPERGENICS_COURSES_RATE_WINDOW = 60;
+
+/**
+ * Fixed-window rate limit. Returns the new window state, and whether this hit is allowed.
+ *
+ * @param array|false $state ['start' => int, 'hits' => int] or false when none.
+ * @return array{allowed:bool,state:array{start:int,hits:int}}
+ */
+function prospergenics_courses_rate_hit( $state, $now, $limit = PROSPERGENICS_COURSES_RATE_LIMIT, $window = PROSPERGENICS_COURSES_RATE_WINDOW ) {
+	if ( ! is_array( $state ) || ! isset( $state['start'], $state['hits'] ) || $now - (int) $state['start'] >= $window ) {
+		$state = array( 'start' => (int) $now, 'hits' => 0 );
+	}
+	$allowed = $state['hits'] < $limit;
+	if ( $allowed ) {
+		$state['hits']++;
+	}
+	return array( 'allowed' => $allowed, 'state' => $state );
+}

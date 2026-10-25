@@ -18,11 +18,12 @@
  *   GET|PUT|DELETE     /courses/lessons/{id}   (content only for enrolled learners and editors)
  * The current user's own learning (logged in; always acts on the current user)
  *   GET|POST|DELETE    /courses/{id}/enrolment
- *   POST|DELETE        /courses/lessons/{id}/completion
+ *   POST|DELETE        /courses/lessons/{id}/completion   (POST only for a lesson the learner opened;
+ *                                                      at most 60 requests a minute per learner)
  *   GET                /courses/{id}/certificate
  *   GET                /courses/me
  * Public
- *   GET                /courses/certificates/{code}   certificate verification
+ *   GET                /courses/certificates/{code}   certificate verification (410 when revoked)
  * Instructors
  *   GET                /courses/instructor/stats
  */
@@ -635,6 +636,12 @@ add_action( 'rest_api_init', function () {
 		array(
 			'methods'             => 'POST, DELETE',
 			'callback'            => function ( WP_REST_Request $request ) {
+				$key  = 'pg_courses_completion_rl_' . get_current_user_id();
+				$rate = prospergenics_courses_rate_hit( get_transient( $key ), time() );
+				set_transient( $key, $rate['state'], PROSPERGENICS_COURSES_RATE_WINDOW );
+				if ( ! $rate['allowed'] ) {
+					return new WP_Error( 'pg_courses_rate_limited', 'Too many requests. Try again in a minute.', array( 'status' => 429 ) );
+				}
 				return prospergenics_courses_set_lesson_complete( get_current_user_id(), (int) $request['id'], 'POST' === $request->get_method() );
 			},
 			'permission_callback' => 'prospergenics_courses_rest_logged_in',
@@ -645,9 +652,19 @@ add_action( 'rest_api_init', function () {
 	register_rest_route( $ns, '/courses/(?P<id>\d+)/certificate', array(
 		'methods'             => 'GET',
 		'callback'            => function ( WP_REST_Request $request ) {
-			$cert = prospergenics_courses_get_certificate( get_current_user_id(), (int) $request['id'] );
+			$user_id = get_current_user_id();
+			$cert    = prospergenics_courses_get_certificate( $user_id, (int) $request['id'] );
+			if ( ! $cert && prospergenics_courses_is_enrolled( $user_id, (int) $request['id'] ) && 100 === prospergenics_courses_progress( $user_id, (int) $request['id'] ) ) {
+				if ( 'unverified' === prospergenics_courses_certificate_block_reason( $user_id ) ) {
+					return new WP_Error( 'pg_courses_unverified', 'Confirm your email address to receive your certificate.', array( 'status' => 403 ) );
+				}
+				$cert = prospergenics_courses_issue_certificate( $user_id, (int) $request['id'] );
+			}
 			if ( ! $cert ) {
 				return new WP_Error( 'rest_not_found', 'No certificate for this course yet.', array( 'status' => 404 ) );
+			}
+			if ( prospergenics_courses_certificate_is_revoked( $cert ) ) {
+				return new WP_Error( 'pg_courses_revoked', 'This certificate was revoked.', array( 'status' => 410 ) );
 			}
 			$data                 = prospergenics_courses_certificate_data( $cert );
 			$data['download_url'] = prospergenics_courses_certificate_url( (int) $request['id'] );
@@ -671,7 +688,7 @@ add_action( 'rest_api_init', function () {
 					'course'      => array( 'id' => (int) $course->ID, 'title' => get_the_title( $course ), 'link' => get_permalink( $course ) ),
 					'enrolled_at' => get_post_time( 'c', true, $e ),
 					'progress'    => prospergenics_courses_progress( get_current_user_id(), $course->ID ),
-					'certificate' => $cert ? (string) get_post_meta( $cert->ID, '_pg_courses_code', true ) : null,
+					'certificate' => $cert && ! prospergenics_courses_certificate_is_revoked( $cert ) ? (string) get_post_meta( $cert->ID, '_pg_courses_code', true ) : null,
 				);
 			}
 			return $out;
@@ -687,6 +704,9 @@ add_action( 'rest_api_init', function () {
 				return new WP_REST_Response( array( 'valid' => false ), 404 );
 			}
 			$d = prospergenics_courses_certificate_data( $cert );
+			if ( $d['revoked_at'] ) {
+				return new WP_REST_Response( array( 'valid' => false, 'revoked' => true, 'code' => $d['code'], 'revoked_at' => gmdate( 'c', $d['revoked_at'] ), 'message' => 'This certificate was revoked.' ), 410 );
+			}
 			return array(
 				'valid'      => true,
 				'code'       => $d['code'],

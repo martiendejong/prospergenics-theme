@@ -4,7 +4,9 @@
  *
  * Enrolment record = a pg_enrolment post: post_author = learner, post_parent = course,
  * post_date_gmt = enrolled_at. Progress lives on that record (_pg_courses_completed:
- * lesson id => unix time), so unenrolling (deleting the record) removes the progress too.
+ * lesson id => unix time; _pg_courses_opened: lesson id => when the learner first opened it), so
+ * unenrolling (deleting the record) removes the progress too. A lesson can only be marked
+ * complete after it was opened.
  * Only the learner themself can enrol, unenrol or complete lessons: every entry point here
  * acts on get_current_user_id().
  */
@@ -125,6 +127,16 @@ function prospergenics_courses_completed_map( $user_id, $course_id ) {
 	return is_array( $map ) ? array_map( 'intval', $map ) : array();
 }
 
+/** @return array<int,int> lesson id => first opened at (unix time) */
+function prospergenics_courses_opened_map( $user_id, $course_id ) {
+	$enrolment = prospergenics_courses_get_enrolment( $user_id, $course_id );
+	if ( ! $enrolment ) {
+		return array();
+	}
+	$map = get_post_meta( $enrolment->ID, '_pg_courses_opened', true );
+	return is_array( $map ) ? array_map( 'intval', $map ) : array();
+}
+
 /** @return int[] */
 function prospergenics_courses_completed_ids( $user_id, $course_id ) {
 	return array_map( 'intval', array_keys( prospergenics_courses_completed_map( $user_id, $course_id ) ) );
@@ -156,6 +168,9 @@ function prospergenics_courses_set_lesson_complete( $user_id, $lesson_id, $done 
 	$map = prospergenics_courses_completed_map( $user_id, $course_id );
 	if ( $done ) {
 		if ( ! isset( $map[ $lesson->ID ] ) ) {
+			if ( ! isset( prospergenics_courses_opened_map( $user_id, $course_id )[ $lesson->ID ] ) ) {
+				return new WP_Error( 'pg_courses_not_opened', 'Open the lesson before marking it complete.', array( 'status' => 403 ) );
+			}
 			$map[ $lesson->ID ] = time();
 		}
 	} else {
@@ -166,22 +181,37 @@ function prospergenics_courses_set_lesson_complete( $user_id, $lesson_id, $done 
 
 	$progress = prospergenics_courses_progress( $user_id, $course_id );
 	$code     = null;
+	$blocked  = null;
 	if ( 100 === $progress ) {
 		if ( ! get_post_meta( $enrolment->ID, '_pg_courses_completed_at', true ) ) {
 			update_post_meta( $enrolment->ID, '_pg_courses_completed_at', time() );
 			do_action( 'prospergenics_courses_course_completed', (int) $user_id, (int) $course_id );
 		}
-		$cert = prospergenics_courses_issue_certificate( $user_id, $course_id );
-		$code = $cert ? (string) get_post_meta( $cert->ID, '_pg_courses_code', true ) : null;
+		$cert    = prospergenics_courses_issue_certificate( $user_id, $course_id );
+		$revoked = $cert && prospergenics_courses_certificate_is_revoked( $cert );
+		$code    = $cert && ! $revoked ? (string) get_post_meta( $cert->ID, '_pg_courses_code', true ) : null;
+		$blocked = $cert ? ( $revoked ? 'revoked' : null ) : prospergenics_courses_certificate_block_reason( $user_id );
 	}
-	return array( 'progress' => $progress, 'completed' => (bool) $done, 'certificate' => $code );
+	// certificate_blocked: why a learner at 100% has no (valid) certificate ('unverified', 'revoked'), else null.
+	return array( 'progress' => $progress, 'completed' => (bool) $done, 'certificate' => $code, 'certificate_blocked' => $blocked ? $blocked : null );
 }
 
-/** Remember the lesson the learner opened last (for "Continue"). */
+/**
+ * The learner opened a lesson (the lesson page calls this): record the first time, which
+ * completion requires, and remember the lesson opened last (for "Continue").
+ */
 function prospergenics_courses_touch_lesson( $user_id, $lesson ) {
 	$course_id = prospergenics_courses_course_of( $lesson );
 	$enrolment = prospergenics_courses_get_enrolment( $user_id, $course_id );
-	if ( $enrolment && (int) get_post_meta( $enrolment->ID, '_pg_courses_last_lesson', true ) !== (int) $lesson->ID ) {
+	if ( ! $enrolment ) {
+		return;
+	}
+	$opened = prospergenics_courses_opened_map( $user_id, $course_id );
+	if ( ! isset( $opened[ $lesson->ID ] ) ) {
+		$opened[ $lesson->ID ] = time();
+		update_post_meta( $enrolment->ID, '_pg_courses_opened', $opened );
+	}
+	if ( (int) get_post_meta( $enrolment->ID, '_pg_courses_last_lesson', true ) !== (int) $lesson->ID ) {
 		update_post_meta( $enrolment->ID, '_pg_courses_last_lesson', (int) $lesson->ID );
 	}
 }
@@ -255,6 +285,9 @@ function prospergenics_courses_notices() {
 		'completed'   => 'Lesson marked as complete.',
 		'uncompleted' => 'Lesson marked as not complete.',
 		'finished'    => 'Congratulations, you completed the course! Your certificate is ready.',
+		'finished_unverified' => 'Congratulations, you completed the course! Confirm your email address to receive your certificate.',
+		'revoked'     => 'The certificate was revoked.',
+		'reinstated'  => 'The certificate is valid again.',
 		'paid'        => 'Enrolment in paid courses is not open yet.',
 		'error'       => 'Something went wrong. Please try again.',
 		'published'   => 'The course is published.',
@@ -308,7 +341,7 @@ add_action( 'admin_post_pg_courses_complete', function () {
 		prospergenics_courses_redirect( $url, 'error' );
 	}
 	if ( $done && 100 === $result['progress'] ) {
-		prospergenics_courses_redirect( get_permalink( prospergenics_courses_course_of( $lesson_id ) ), 'finished' );
+		prospergenics_courses_redirect( get_permalink( prospergenics_courses_course_of( $lesson_id ) ), 'unverified' === $result['certificate_blocked'] ? 'finished_unverified' : ( $result['certificate_blocked'] ? 'completed' : 'finished' ) );
 	}
 	// Completing a lesson moves on to the next one, if there is one.
 	if ( $done && ! empty( $_POST['next'] ) ) {

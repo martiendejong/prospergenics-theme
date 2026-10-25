@@ -1,10 +1,9 @@
 <?php
 defined('ABSPATH') || exit;
 // /courses/instructor/<id>-<name>/: bio, courses taught, student count, rating placeholder (card #6362).
-// Served by inc/courses/routing.php. Only users who teach (have a published course) have a page.
-$pgc_user = get_userdata((int) get_query_var('pg_courses_user'));
-$pgc_has  = $pgc_user ? get_posts(array('post_type' => 'pg_course', 'post_status' => 'publish', 'author' => $pgc_user->ID, 'posts_per_page' => 1, 'fields' => 'ids')) : array();
-if (!$pgc_user || !$pgc_has) {
+// Served by inc/courses/routing.php. Only users who teach (may edit courses and have a published course) have a page.
+$pgc_user = prospergenics_courses_public_instructor((int) get_query_var('pg_courses_user'));
+if (!$pgc_user) {
     global $wp_query;
     $wp_query->set_404();
     status_header(404);

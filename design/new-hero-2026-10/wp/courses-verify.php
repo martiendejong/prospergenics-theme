@@ -9,7 +9,8 @@ if ($pgc_code && !get_query_var('pg_courses_code')) {
     wp_safe_redirect(prospergenics_courses_verify_url($pgc_code));
     exit;
 }
-$pgc_cert = $pgc_code ? prospergenics_courses_get_certificate_by_code($pgc_code) : null;
+$pgc_cert    = $pgc_code ? prospergenics_courses_get_certificate_by_code($pgc_code) : null;
+$pgc_revoked = $pgc_cert && prospergenics_courses_certificate_is_revoked($pgc_cert);
 if ($pgc_code && !$pgc_cert) {
     status_header(404);
 }
@@ -19,13 +20,19 @@ get_header();
 <div class="post-hero">
   <div class="post-hero-inner">
     <div class="ph-eyebrow"><span class="dot"></span>Certificate verification</div>
-    <h1><?php echo $pgc_cert ? 'Valid certificate' : ($pgc_code ? 'Certificate not found' : 'Verify a certificate'); ?></h1>
+    <h1><?php echo $pgc_revoked ? 'Certificate revoked' : ($pgc_cert ? 'Valid certificate' : ($pgc_code ? 'Certificate not found' : 'Verify a certificate')); ?></h1>
     <p class="ph-excerpt">ProsperGenics certificates carry an ID like PG-XXXX-XXXX-XXXX and a link to this page.</p>
   </div>
 </div>
 
 <div class="post-wrap">
-  <?php if ($pgc_cert) : $d = prospergenics_courses_certificate_data($pgc_cert); ?>
+  <?php echo prospergenics_courses_notice_html(); ?>
+  <?php if ($pgc_revoked) : $d = prospergenics_courses_certificate_data($pgc_cert); ?>
+    <div class="pgc-verify pgc-verify--bad" role="alert">
+      <p><strong>This certificate was revoked</strong> on <?= esc_html(wp_date('j F Y', $d['revoked_at'])) ?> and is no longer valid.</p>
+      <p>Certificate ID <code><?= esc_html($d['code']) ?></code>, issued for <?= esc_html($d['course']) ?>.</p>
+    </div>
+  <?php elseif ($pgc_cert) : $d = prospergenics_courses_certificate_data($pgc_cert); ?>
     <div class="pgc-verify pgc-verify--ok" role="status">
       <p class="pgc-verify-badge"><?php echo prospergenics_courses_icon('check'); ?> This certificate is genuine.</p>
       <dl class="pgc-verify-list">
@@ -46,6 +53,13 @@ get_header();
   <?php elseif ($pgc_code) : ?>
     <div class="pgc-verify pgc-verify--bad" role="alert">
       <p>No certificate with the ID <code><?= esc_html($pgc_code) ?></code> exists. Check the ID for typing errors.</p>
+    </div>
+  <?php endif; ?>
+  <?php if ($pgc_cert && current_user_can('edit_others_pg_courses')) : // staff: revoke a certificate issued in error or by abuse ?>
+    <div class="pgc-verify-staff">
+      <?php echo $pgc_revoked
+          ? prospergenics_courses_action_form('pg_courses_revoke', 'pg_courses_revoke_' . $pgc_cert->ID, array('certificate_id' => $pgc_cert->ID, 'reinstate' => 1), 'Make this certificate valid again', 'pgc-btn pgc-btn--ghost pgc-btn--small')
+          : prospergenics_courses_action_form('pg_courses_revoke', 'pg_courses_revoke_' . $pgc_cert->ID, array('certificate_id' => $pgc_cert->ID), 'Revoke this certificate', 'pgc-btn pgc-btn--danger pgc-btn--small', ' data-pgc-confirm="' . esc_attr('Revoke this certificate? It will no longer verify or download.') . '"'); ?>
     </div>
   <?php endif; ?>
 

@@ -41,6 +41,9 @@
 .post-hero .pgc-btn:hover{background:var(--green-100);border-color:var(--green-100);}
 .post-hero .pgc-btn--ghost{background:transparent;border-color:rgba(255,255,255,.75);color:#fff;}
 .post-hero .pgc-btn--ghost:hover{background:rgba(255,255,255,.12);color:#fff;}
+.pgc-cert-note{flex-basis:100%;border-radius:12px;padding:12px 16px;font-size:14.5px;line-height:1.5;background:#fff4d6;color:#4a3700;border:1px solid #e8c766;}
+.pgc-cert-note form{margin-top:10px;}
+.pgc-cert-note .pgc-btn.pgc-btn--ghost{background:#fff;border-color:#8a6500;color:#4a3700;}
 
 /* ---------- notices */
 .pgc-notice{margin:18px 0 0;border-radius:12px;padding:12px 16px;font-size:15px;line-height:1.5;background:var(--green-100);color:var(--green-900);border:1px solid rgba(26,122,70,.3);}
@@ -199,6 +202,8 @@
 .pgc-verify-list dt{color:var(--muted);}
 .pgc-verify-list dd{font-weight:600;overflow-wrap:anywhere;}
 .pgc-verify-list a{color:var(--green-700);}
+.pgc-verify--bad p+p{margin-top:8px;}
+.pgc-verify-staff{margin:-12px 0 28px;}
 .pgc-verify-form{display:grid;gap:8px;}
 .pgc-verify-form label{font-size:14px;font-weight:600;color:var(--green-900);}
 .pgc-verify-row{display:flex;flex-wrap:wrap;gap:10px;}
