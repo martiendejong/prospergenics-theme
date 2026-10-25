@@ -33,6 +33,7 @@ $GLOBALS['_hooks'] = array();
 function add_action( $hook, $cb, $prio = 10 ) { $GLOBALS['_hooks'][] = array( 'add', $hook, $cb ); }
 function add_filter( $hook, $cb, $prio = 10 ) { $GLOBALS['_hooks'][] = array( 'add', $hook, $cb ); }
 function remove_action( $hook, $cb, $prio = 10 ) { $GLOBALS['_hooks'][] = array( 'remove', $hook, $cb ); }
+function remove_filter( $hook, $cb, $prio = 10 ) { $GLOBALS['_hooks'][] = array( 'remove', $hook, $cb ); }
 function apply_filters( $hook, $value ) { return $value; }
 function home_url( $path = '' ) { return 'https://prospergenics.com' . $path; }
 function get_template_directory_uri() { return 'https://prospergenics.com/wp-content/themes/prospergenics-2026'; }
@@ -57,6 +58,12 @@ ok( false !== strpos( $h['Content-Security-Policy'], "worker-src 'self' blob:" )
 ok( false !== strpos( $h['Content-Security-Policy'], "object-src 'none'" ) && false !== strpos( $h['Content-Security-Policy'], "frame-ancestors 'self'" ), 'enforced CSP blocks plugins and cross-origin framing' );
 ok( false === strpos( $h['Content-Security-Policy-Report-Only'], 'unsafe-eval' ) && false === strpos( $h['Content-Security-Policy-Report-Only'], ' https:;' ), 'report-only CSP is a strict allowlist (no unsafe-eval, no blanket https:)' );
 ok( false !== strpos( $h['Content-Security-Policy-Report-Only'], 'https://coaching.martiendejong.nl' ), 'report-only CSP allows the CoachOS chat' );
+$ro = array();
+foreach ( explode( '; ', $h['Content-Security-Policy-Report-Only'] ) as $d ) { $p = explode( ' ', $d ); $ro[ array_shift( $p ) ] = $p; }
+ok( in_array( 'https://static.cloudflareinsights.com', $ro['script-src'], true ) && in_array( 'https://cloudflareinsights.com', $ro['connect-src'], true ), 'report-only CSP allows Cloudflare Web Analytics (beacon script and its endpoint)' );
+ok( in_array( 'https://fonts.googleapis.com', $ro['style-src'], true ) && in_array( 'https://fonts.gstatic.com', $ro['font-src'], true ), 'report-only CSP allows the Google Fonts that jengo-listings loads' );
+ok( false === strpos( $h['Content-Security-Policy-Report-Only'], 's.w.org' ), 'report-only CSP does not need s.w.org (emoji script is removed)' );
+ok( hooked( 'remove', 'wp_head', 'print_emoji_detection_script' ) && hooked( 'remove', 'wp_print_styles', 'print_emoji_styles' ), 'WordPress emoji script and styles are removed' );
 ok( false !== strpos( $h['Permissions-Policy'], 'microphone=(self)' ) && false !== strpos( $h['Permissions-Policy'], 'camera=()' ), 'Permissions-Policy keeps the chat microphone, blocks the camera' );
 ok( ! isset( prospergenics_2026_security_headers( false )['Strict-Transport-Security'] ), 'no HSTS over plain HTTP' );
 

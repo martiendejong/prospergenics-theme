@@ -582,6 +582,54 @@
       document.addEventListener('click', function (e) { if (!panel.hidden && !e.target.closest('.site-header')) setOpen(false); });
       window.matchMedia('(min-width: 881px)').addEventListener('change', function (e) { if (e.matches) setOpen(false); });
     })();
+    // Scroll top-fade: gradient mask — the top 15 % of the viewport is a fade zone.
+    // Non-hero: viewport-relative formula. Hero children: scroll-relative (no mask at scrollY=0).
+    (function () {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      var items = Array.prototype.slice.call(document.querySelectorAll('main > section:not(.hero) > *, main > section.hero > .hero-bottom'));
+      var heroItems = Array.prototype.slice.call(document.querySelectorAll('main > section.hero > .hero-top > .copy > .copy-inner'));
+      var heroItemsData = heroItems.map(function (el) { return { el: el, initialTop: el.getBoundingClientRect().top }; });
+      if (!items.length && !heroItemsData.length) return;
+      var ticking = false;
+      function applyFx(el, progress) {
+        el.style.filter = 'grayscale(' + (progress * 75) + '%)';
+        el.style.scale = String(1 - progress * 0.05);
+      }
+      function clearFx(el) {
+        el.style.filter = '';
+        el.style.scale = '';
+        el.style.maskImage = ''; el.style.webkitMaskImage = '';
+      }
+      function update() {
+        var zone = window.innerHeight * 0.15;
+        items.forEach(function (el) {
+          var t = el.getBoundingClientRect().top;
+          if (t >= zone) {
+            clearFx(el);
+          } else {
+            var progress = Math.max(0, Math.min(1, (zone - t) / zone));
+            var g = 'linear-gradient(to bottom,transparent ' + (-t) + 'px,#000 ' + (zone - t) + 'px)';
+            el.style.maskImage = g; el.style.webkitMaskImage = g;
+            applyFx(el, progress);
+          }
+        });
+        heroItemsData.forEach(function (item) {
+          var t = item.el.getBoundingClientRect().top;
+          var fadeStart = Math.min(zone, item.initialTop);
+          if (t >= fadeStart) {
+            clearFx(item.el);
+          } else {
+            var progress = Math.max(0, Math.min(1, (zone - t) / zone));
+            var g = 'linear-gradient(to bottom,transparent ' + (-t) + 'px,#000 ' + (zone - t) + 'px)';
+            item.el.style.maskImage = g; item.el.style.webkitMaskImage = g;
+            applyFx(item.el, progress);
+          }
+        });
+        ticking = false;
+      }
+      window.addEventListener('scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+      window.addEventListener('resize', function () { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+    })();
   </script>
   <!-- /site-chrome:js -->
 <?php wp_footer(); ?>

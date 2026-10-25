@@ -39,6 +39,8 @@ main{flex:1 0 auto;}
 .nav-cta:hover{background:var(--green-700);color:#fff;}
 .pg-nav{gap:24px;}
 .pg-nav .brand{margin-right:auto;}
+.nav-me{display:inline-flex;align-items:center;gap:8px;font-size:14.5px;font-weight:500;color:var(--green-900);text-decoration:none;}
+.nav-me img{width:32px;height:32px;border-radius:50%;object-fit:cover;}
 .nav-toggle{display:none;width:44px;height:44px;border-radius:12px;border:1.5px solid var(--line);background:#fff;cursor:pointer;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;}
 .nav-toggle[aria-expanded="true"]{background:var(--paper-2);border-color:var(--green-300);}
 .nav-toggle-bars,.nav-toggle-bars::before,.nav-toggle-bars::after{display:block;width:20px;height:2px;border-radius:2px;background:var(--green-900);transition:transform .2s var(--ease),opacity .2s;}
@@ -52,7 +54,7 @@ main{flex:1 0 auto;}
 .nav-panel a{display:flex;align-items:center;min-height:48px;padding:0 14px;border-radius:12px;font-size:17px;font-weight:500;color:var(--green-900);text-decoration:none;}
 .nav-panel a:hover,.nav-panel a:focus-visible{background:var(--paper-2);}
 .nav-panel .nav-panel-cta{margin-top:6px;justify-content:center;background:var(--green-700);color:#fff;font-family:'Sora',sans-serif;font-weight:600;}
-@media(max-width:880px){.nav-links,.pg-nav>.nav-cta{display:none;}.nav-toggle{display:inline-flex;}.pg-nav{padding:12px 16px;}}
+@media(max-width:880px){.nav-links,.pg-nav>.nav-cta,.nav-me{display:none;}.nav-toggle{display:inline-flex;}.pg-nav{padding:12px 16px;}}
 @media(min-width:881px){.nav-panel{display:none!important;}}
 
 /* HERO BAND */
@@ -188,6 +190,10 @@ main{flex:1 0 auto;}
     <a href="<?= esc_url(home_url('/partners/')) ?>">Partners</a>
     <a href="<?= esc_url(home_url('/about/')) ?>">About</a>
   </nav>
+<?php if ( is_user_logged_in() && function_exists( 'prospergenics_profiles_url' ) ) : $pg_uid = get_current_user_id(); $pg_photo = prospergenics_profiles_photo_url( $pg_uid, 'thumbnail' ); ?>
+  <a class="nav-me" href="<?= esc_url( prospergenics_profiles_url( $pg_uid ) ) ?>"><?php if ( $pg_photo ) : ?><img src="<?= esc_url( $pg_photo ) ?>" alt="" width="32" height="32" /><?php endif; ?>My profile</a>
+  <a class="nav-me" href="<?= esc_url(home_url('/courses/my/')) ?>">My courses</a>
+<?php endif; ?>
   <a class="nav-cta" href="<?= esc_url(home_url('/#value-test')) ?>">Take the test</a>
   <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-menu" aria-label="Open menu">
     <span class="nav-toggle-bars" aria-hidden="true"></span>
@@ -200,6 +206,10 @@ main{flex:1 0 auto;}
       <a href="<?= esc_url(home_url('/services/')) ?>">Services</a>
       <a href="<?= esc_url(home_url('/partners/')) ?>">Partners</a>
       <a href="<?= esc_url(home_url('/about/')) ?>">About</a>
+<?php if ( is_user_logged_in() ) : ?>
+<?php if ( function_exists( 'prospergenics_profiles_url' ) ) : ?>      <a href="<?= esc_url( prospergenics_profiles_url( get_current_user_id() ) ) ?>">My profile</a>
+<?php endif; ?>      <a href="<?= esc_url(home_url('/courses/my/')) ?>">My courses</a>
+<?php endif; ?>
       <a class="nav-panel-cta" href="<?= esc_url(home_url('/#value-test')) ?>">Take the test</a>
     </nav>
   </div>

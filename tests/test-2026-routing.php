@@ -53,6 +53,7 @@ function home_url( $path = '/' ) { return 'https://prospergenics.com' . $path; }
 function add_action( ...$args ) {}
 function add_theme_support( ...$args ) {}
 function remove_action( ...$args ) {}
+function remove_filter( ...$args ) {}
 // Under eval() __DIR__ is this tests/ folder, so point the module at the theme's real rules file.
 function apply_filters( $hook, $value ) {
 	return 'prospergenics_2026_redirects_file' === $hook ? $GLOBALS['theme'] . '/inc/redirects.txt' : $value;
