@@ -2,6 +2,15 @@
 /**
  * Prospergenics Platform: courses track (JengoWork board "Prospergenics Platform").
  * Loader for this track's modules in inc/courses/. See docs/PLATFORM-BUILD.md.
+ *
+ * Cards #6355-#6364: course data model, /courses/ listing, course pages, lesson viewer,
+ * enrolment, progress, PDF certificates with a public verification page, instructor pages,
+ * the course wizard and the instructor dashboard.
  */
 
 defined( 'ABSPATH' ) || exit;
+
+foreach ( array( 'helpers', 'pdf', 'data-model', 'enrolment', 'certificate', 'routing', 'render', 'rest', 'instructor' ) as $prospergenics_courses_module ) {
+	require __DIR__ . '/courses/' . $prospergenics_courses_module . '.php';
+}
+unset( $prospergenics_courses_module );
