@@ -1,6 +1,7 @@
 <?php
 defined('ABSPATH') || exit;
-// Shared head, styles and nav for every inner template (single, page, index, 404).
+// Shared head and styles for every inner template (single, page, index, 404); the header itself
+// (menu, account links, mobile menu) comes from inc/site-chrome.php, like on every other page type.
 ?>
 <!DOCTYPE html>
 <html <?php language_attributes(); ?>>
@@ -21,41 +22,6 @@ html{scroll-behavior:smooth;}
 body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);background:var(--paper);-webkit-font-smoothing:antialiased;overflow-x:hidden;}
 body{min-height:100vh;display:flex;flex-direction:column;}
 main{flex:1 0 auto;}
-
-/* NAV */
-.pg-nav{
-  position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;
-  padding:18px clamp(24px,5vw,72px);
-  background:rgba(244,250,246,.92);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
-  border-bottom:1px solid var(--line);
-}
-.pg-nav .brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
-.pg-nav .brand img{height:38px;width:auto;display:block;}
-.brand-text{font-family:'Sora',sans-serif;font-weight:800;font-size:20px;color:var(--green-900);letter-spacing:-.02em;}
-.nav-links{display:flex;align-items:center;gap:28px;}
-.nav-links a{font-size:14.5px;font-weight:500;color:var(--green-900);text-decoration:none;opacity:.8;transition:opacity .2s;}
-.nav-links a:hover{opacity:1;}
-.nav-cta{font-family:'Sora',sans-serif;font-weight:600;font-size:13.5px;padding:9px 17px;border-radius:999px;border:1.5px solid var(--green-700);color:var(--green-900);background:transparent;text-decoration:none;transition:all .2s;}
-.nav-cta:hover{background:var(--green-700);color:#fff;}
-.pg-nav{gap:24px;}
-.pg-nav .brand{margin-right:auto;}
-.nav-me{display:inline-flex;align-items:center;gap:8px;font-size:14.5px;font-weight:500;color:var(--green-900);text-decoration:none;}
-.nav-me img{width:32px;height:32px;border-radius:50%;object-fit:cover;}
-.nav-toggle{display:none;width:44px;height:44px;border-radius:12px;border:1.5px solid var(--line);background:#fff;cursor:pointer;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;}
-.nav-toggle[aria-expanded="true"]{background:var(--paper-2);border-color:var(--green-300);}
-.nav-toggle-bars,.nav-toggle-bars::before,.nav-toggle-bars::after{display:block;width:20px;height:2px;border-radius:2px;background:var(--green-900);transition:transform .2s var(--ease),opacity .2s;}
-.nav-toggle-bars{position:relative;}
-.nav-toggle-bars::before,.nav-toggle-bars::after{content:"";position:absolute;left:0;}
-.nav-toggle-bars::before{top:-6px;}.nav-toggle-bars::after{top:6px;}
-.nav-toggle[aria-expanded="true"] .nav-toggle-bars{background:transparent;}
-.nav-toggle[aria-expanded="true"] .nav-toggle-bars::before{transform:translateY(6px) rotate(45deg);}
-.nav-toggle[aria-expanded="true"] .nav-toggle-bars::after{transform:translateY(-6px) rotate(-45deg);}
-.nav-panel{position:absolute;top:100%;left:12px;right:12px;margin-top:6px;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 24px 60px -20px rgba(11,32,22,.35);padding:10px;}
-.nav-panel a{display:flex;align-items:center;min-height:48px;padding:0 14px;border-radius:12px;font-size:17px;font-weight:500;color:var(--green-900);text-decoration:none;}
-.nav-panel a:hover,.nav-panel a:focus-visible{background:var(--paper-2);}
-.nav-panel .nav-panel-cta{margin-top:6px;justify-content:center;background:var(--green-700);color:#fff;font-family:'Sora',sans-serif;font-weight:600;}
-@media(max-width:880px){.nav-links,.pg-nav>.nav-cta,.nav-me{display:none;}.nav-toggle{display:inline-flex;}.pg-nav{padding:12px 16px;}}
-@media(min-width:881px){.nav-panel{display:none!important;}}
 
 /* HERO BAND */
 .post-hero{
@@ -161,57 +127,16 @@ main{flex:1 0 auto;}
 .direct-value{font-family:'Gabarito',sans-serif;font-weight:800;font-size:21px;}
 .direct-note{font-size:14px;color:var(--muted);}
 @media(max-width:820px){.contact-wrap{grid-template-columns:minmax(0,1fr);}.field-row{grid-template-columns:minmax(0,1fr);}}
-/* SITE FOOTER */
-.pg-footer{border-top:1px solid var(--line);background:var(--paper-2);}
-.pg-footer-inner{max-width:1100px;margin:0 auto;padding:26px clamp(24px,5vw,72px);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px 24px;}
-.pg-footer .f-brand{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--muted);}
-.pg-footer .f-brand img{height:34px;width:auto;}
-.pg-footer nav{display:flex;flex-wrap:wrap;gap:8px 20px;}
-.pg-footer nav a{font-size:14px;color:var(--green-900);text-decoration:none;}
-.pg-footer nav a:hover{text-decoration:underline;}
 .screen-reader-text{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
 :focus-visible{outline:3px solid var(--green-500);outline-offset:3px;border-radius:6px;}
+</style>
+<style id="prospergenics-site-chrome-css">
+<?php echo prospergenics_2026_site_chrome_css(); // phpcs:ignore WordPress.Security.EscapeOutput -- the theme's own stylesheet. ?>
 </style>
 <?php wp_head(); ?>
 </head>
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
 
-<header class="pg-nav">
-  <a class="brand" href="<?= esc_url(home_url('/')) ?>">
-    <img src="<?= esc_url(get_template_directory_uri()) ?>/assets/logo.png" alt="ProsperGenics" />
-    <span class="brand-text">ProsperGenics</span>
-  </a>
-  <nav class="nav-links" aria-label="Main">
-    <a href="<?= esc_url(home_url('/courses/')) ?>">Courses</a>
-    <a href="<?= esc_url(home_url('/members/')) ?>">Members</a>
-    <a href="<?= esc_url(home_url('/tools/')) ?>">Tools</a>
-    <a href="<?= esc_url(home_url('/services/')) ?>">Services</a>
-    <a href="<?= esc_url(home_url('/partners/')) ?>">Partners</a>
-    <a href="<?= esc_url(home_url('/about/')) ?>">About</a>
-  </nav>
-<?php if ( is_user_logged_in() && function_exists( 'prospergenics_profiles_url' ) ) : $pg_uid = get_current_user_id(); $pg_photo = prospergenics_profiles_photo_url( $pg_uid, 'thumbnail' ); ?>
-  <a class="nav-me" href="<?= esc_url( prospergenics_profiles_url( $pg_uid ) ) ?>"><?php if ( $pg_photo ) : ?><img src="<?= esc_url( $pg_photo ) ?>" alt="" width="32" height="32" /><?php endif; ?>My profile</a>
-  <a class="nav-me" href="<?= esc_url(home_url('/courses/my/')) ?>">My courses</a>
-<?php endif; ?>
-  <a class="nav-cta" href="<?= esc_url(home_url('/#value-test')) ?>">Take the test</a>
-  <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-menu" aria-label="Open menu">
-    <span class="nav-toggle-bars" aria-hidden="true"></span>
-  </button>
-  <div class="nav-panel" id="mobile-menu" hidden>
-    <nav aria-label="Mobile">
-      <a href="<?= esc_url(home_url('/courses/')) ?>">Courses</a>
-      <a href="<?= esc_url(home_url('/members/')) ?>">Members</a>
-      <a href="<?= esc_url(home_url('/tools/')) ?>">Tools</a>
-      <a href="<?= esc_url(home_url('/services/')) ?>">Services</a>
-      <a href="<?= esc_url(home_url('/partners/')) ?>">Partners</a>
-      <a href="<?= esc_url(home_url('/about/')) ?>">About</a>
-<?php if ( is_user_logged_in() ) : ?>
-<?php if ( function_exists( 'prospergenics_profiles_url' ) ) : ?>      <a href="<?= esc_url( prospergenics_profiles_url( get_current_user_id() ) ) ?>">My profile</a>
-<?php endif; ?>      <a href="<?= esc_url(home_url('/courses/my/')) ?>">My courses</a>
-<?php endif; ?>
-      <a class="nav-panel-cta" href="<?= esc_url(home_url('/#value-test')) ?>">Take the test</a>
-    </nav>
-  </div>
-</header>
+<?php echo prospergenics_2026_site_header(); // phpcs:ignore WordPress.Security.EscapeOutput -- built from escaped parts in inc/site-chrome.php. ?>
 <main id="main">

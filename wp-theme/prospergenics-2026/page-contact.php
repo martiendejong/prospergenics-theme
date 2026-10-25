@@ -8,6 +8,12 @@ get_header();
 
 $sent  = isset($_GET['contact_success']);
 $error = isset($_GET['contact_error']) ? sanitize_text_field(wp_unslash($_GET['contact_error'])) : '';
+// ?subject=Tools (from "Join", the courses empty state and the listings' buttons) preselects
+// that subject; anything not on the list is ignored.
+$subject = isset($_GET['subject']) ? sanitize_text_field(wp_unslash($_GET['subject'])) : '';
+if (!in_array($subject, prospergenics_2026_contact_subjects(), true)) {
+    $subject = '';
+}
 $intro = '';
 if (have_posts()) {
     the_post();
@@ -65,12 +71,9 @@ if (have_posts()) {
         <div class="field">
           <label for="contact-subject">What is it about?</label>
           <select id="contact-subject" name="contact_subject" required>
-            <option value="Courses and certification">Courses and certification</option>
-            <option value="Services for my organisation">Services for my organisation</option>
-            <option value="Tools">Tools</option>
-            <option value="Partnership">Partnership</option>
-            <option value="Joining the community">Joining the community</option>
-            <option value="Something else">Something else</option>
+<?php foreach (prospergenics_2026_contact_subjects() as $pg_option): ?>
+            <option value="<?= esc_attr($pg_option) ?>"<?php selected($pg_option, $subject); ?>><?= esc_html($pg_option) ?></option>
+<?php endforeach; ?>
           </select>
         </div>
       </div>

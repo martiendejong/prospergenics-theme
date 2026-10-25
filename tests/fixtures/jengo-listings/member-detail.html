@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --ink:#0b2016;--green-900:#0f3d28;--green-700:#1a7a46;--green-600:#22a65a;
+  --green-500:#34c759;--green-300:#86e0a6;--green-100:#d9f5e3;
+  --paper:#f4faf6;--paper-2:#eaf5ee;--line:rgba(15,61,40,.12);
+  --muted:#4a6555;--shadow:0 24px 60px -20px rgba(11,32,22,.35);
+  --ease:cubic-bezier(.22,.61,.36,1);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);background:var(--paper);-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+
+/* NAV */
+.pg-nav{
+  position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;
+  padding:18px clamp(24px,5vw,72px);
+  background:rgba(244,250,246,.92);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);
+}
+.pg-nav .brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.pg-nav .brand img{height:38px;width:auto;display:block;}
+.brand-text{font-family:'Sora',sans-serif;font-weight:800;font-size:20px;color:var(--green-900);letter-spacing:-.02em;}
+.nav-links{display:flex;align-items:center;gap:28px;}
+.nav-links a{font-size:14.5px;font-weight:500;color:var(--green-900);text-decoration:none;opacity:.8;transition:opacity .2s;}
+.nav-links a:hover,.nav-links a.current{opacity:1;}
+.nav-cta{font-family:'Sora',sans-serif;font-weight:600;font-size:13.5px;padding:9px 17px;border-radius:999px;border:1.5px solid var(--green-700);color:var(--green-900);background:transparent;text-decoration:none;transition:all .2s;}
+.nav-cta:hover{background:var(--green-700);color:#fff;}
+@media(max-width:900px){.nav-links{display:none;}}
+
+/* BREADCRUMB */
+.pg-breadcrumb{
+  max-width:1100px;margin:0 auto;padding:16px clamp(24px,5vw,72px) 0;
+  font-size:13px;color:var(--muted);display:flex;align-items:center;gap:7px;flex-wrap:wrap;
+}
+.pg-breadcrumb a{color:var(--muted);text-decoration:none;}
+.pg-breadcrumb a:hover{color:var(--green-700);}
+.pg-breadcrumb .sep{opacity:.45;}
+
+/* HERO BAND */
+.dir-hero{
+  background:linear-gradient(140deg,var(--green-900) 0%,var(--green-700) 60%,#1d8e4f 100%);
+  padding:clamp(48px,6.5vw,88px) clamp(24px,5vw,72px) clamp(36px,4.5vw,64px);
+  position:relative;overflow:hidden;
+}
+.dir-hero::before{
+  content:"";position:absolute;top:-120px;right:-80px;
+  width:520px;height:520px;border-radius:50%;
+  background:radial-gradient(circle,rgba(52,199,89,.18),transparent 65%);
+  pointer-events:none;
+}
+.dir-hero-inner{max-width:1100px;margin:0 auto;position:relative;z-index:1;display:flex;align-items:center;gap:clamp(24px,4vw,48px);flex-wrap:wrap;}
+.dh-copy{flex:1;min-width:280px;}
+.dh-eyebrow{
+  display:inline-flex;align-items:center;gap:9px;margin-bottom:16px;
+  font-family:'Sora',sans-serif;font-weight:700;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  color:rgba(255,255,255,.8);
+}
+.dh-eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--green-300);}
+.dh-status{
+  display:inline-block;margin-left:10px;
+  font-family:'Sora',sans-serif;font-weight:700;font-size:10px;letter-spacing:.09em;text-transform:uppercase;
+  background:rgba(255,255,255,.16);color:#fff;padding:4px 10px;border-radius:999px;
+}
+.dir-hero h1{
+  font-family:'Sora',sans-serif;font-weight:800;
+  font-size:clamp(36px,5vw,64px);line-height:1.02;letter-spacing:-.035em;color:#fff;
+}
+.dh-subtitle{margin-top:14px;font-size:clamp(16px,1.55vw,19px);line-height:1.6;color:rgba(255,255,255,.85);max-width:56ch;}
+.dh-tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:18px;}
+.dh-tag{font-size:12px;font-weight:500;background:rgba(255,255,255,.13);color:#fff;border:1px solid rgba(255,255,255,.22);padding:4px 12px;border-radius:999px;}
+.dh-photo{
+  width:clamp(130px,16vw,190px);height:clamp(130px,16vw,190px);border-radius:50%;overflow:hidden;flex-shrink:0;
+  border:4px solid rgba(255,255,255,.25);box-shadow:0 18px 44px -14px rgba(0,0,0,.45);
+  background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;
+}
+.dh-photo img{width:100%;height:100%;object-fit:cover;}
+.dh-photo .dh-initial{font-family:'Sora',sans-serif;font-weight:800;font-size:56px;color:#fff;}
+
+/* BODY */
+.dir-main{max-width:1100px;margin:0 auto;padding:clamp(36px,5vw,64px) clamp(24px,5vw,72px) clamp(64px,8vw,120px);}
+.dir-cols{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:clamp(28px,4vw,56px);}
+@media(max-width:860px){.dir-cols{grid-template-columns:1fr;}}
+
+.dir-desc{font-size:16px;line-height:1.75;color:var(--ink);}
+.dir-desc p{margin-bottom:1.1em;}
+.dir-quote{
+  margin:26px 0;padding:20px 26px;border-left:4px solid var(--green-500);
+  background:#fff;border-radius:0 12px 12px 0;
+  font-size:16.5px;line-height:1.65;color:var(--green-900);font-style:italic;
+}
+
+/* FACTS */
+.dir-facts{
+  background:#fff;border:1px solid var(--line);border-radius:14px;
+  padding:24px 26px;height:fit-content;
+}
+.dir-facts h3{font-family:'Sora',sans-serif;font-weight:800;font-size:15px;margin-bottom:14px;color:var(--green-900);}
+.fact{padding:10px 0;border-bottom:1px solid var(--line);font-size:14px;}
+.fact:last-of-type{border-bottom:none;}
+.fact .fl{display:block;font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:3px;}
+.fact a{color:var(--green-700);text-decoration:none;font-weight:600;}
+.fact a:hover{text-decoration:underline;}
+.facts-cta{
+  display:block;text-align:center;margin-top:18px;
+  font-family:'Sora',sans-serif;font-weight:600;font-size:14px;
+  padding:12px 20px;border-radius:999px;
+  background:linear-gradient(100deg,var(--green-700),var(--green-600));color:#fff;
+  text-decoration:none;transition:transform .2s var(--ease);
+}
+.facts-cta:hover{transform:translateY(-1px);}
+
+/* FAQ */
+.dir-faq{margin-top:clamp(36px,5vw,56px);}
+.dir-faq h2{font-family:'Sora',sans-serif;font-weight:800;font-size:clamp(22px,2.4vw,30px);letter-spacing:-.02em;margin-bottom:18px;color:var(--ink);}
+.faq-item{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px 22px;margin-bottom:12px;}
+.faq-item h3{font-family:'Sora',sans-serif;font-weight:700;font-size:15.5px;color:var(--green-900);margin-bottom:8px;}
+.faq-item p{font-size:14.5px;line-height:1.65;color:var(--muted);}
+
+/* BACK */
+.dir-back{margin-top:clamp(32px,4vw,48px);}
+.dir-back a{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:'Sora',sans-serif;font-weight:600;font-size:14px;
+  color:var(--green-700);text-decoration:none;
+}
+.dir-back a:hover{text-decoration:underline;}
+</style>
+<meta name='robots' content='noindex, nofollow' />
+<link rel="alternate" type="application/rss+xml" title="ProsperGenics &raquo; Feed" href="https://test.prospergenics.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="ProsperGenics &raquo; Comments Feed" href="https://test.prospergenics.com/comments/feed/" />
+
+<meta name="description" content="A community in Kenya and the Netherlands that creates value together: courses and certification, AI tools, services and the people behind them." />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="ProsperGenics" />
+<meta property="og:title" content="ProsperGenics — Create value" />
+<meta property="og:description" content="A community in Kenya and the Netherlands that creates value together: courses and certification, AI tools, services and the people behind them." />
+<meta property="og:url" content="https://test.prospergenics.com/" />
+<meta property="og:image" content="https://test.prospergenics.com/wp-content/themes/prospergenics-2026/assets/og-image.jpg" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="ProsperGenics — Create value" />
+<meta name="twitter:description" content="A community in Kenya and the Netherlands that creates value together: courses and certification, AI tools, services and the people behind them." />
+<meta name="twitter:image" content="https://test.prospergenics.com/wp-content/themes/prospergenics-2026/assets/og-image.jpg" />
+<style id="wp-img-auto-sizes-contain-inline-css">
+img:is([sizes=auto i],[sizes^="auto," i]){contain-intrinsic-size:3000px 1500px}
+/*# sourceURL=wp-img-auto-sizes-contain-inline-css */
+</style>
+<style id="wp-block-library-inline-css">
+:root{--wp-block-synced-color:#7a00df;--wp-block-synced-color--rgb:122,0,223;--wp-bound-block-color:var(--wp-block-synced-color);--wp-editor-canvas-background:#ddd;--wp-admin-theme-color:#007cba;--wp-admin-theme-color--rgb:0,124,186;--wp-admin-theme-color-darker-10:#006ba1;--wp-admin-theme-color-darker-10--rgb:0,107,160.5;--wp-admin-theme-color-darker-20:#005a87;--wp-admin-theme-color-darker-20--rgb:0,90,135;--wp-admin-border-width-focus:2px}@media (min-resolution:192dpi){:root{--wp-admin-border-width-focus:1.5px}}.wp-element-button{cursor:pointer}:root .has-very-light-gray-background-color{background-color:#eee}:root .has-very-dark-gray-background-color{background-color:#313131}:root .has-very-light-gray-color{color:#eee}:root .has-very-dark-gray-color{color:#313131}:root .has-vivid-green-cyan-to-vivid-cyan-blue-gradient-background{background:linear-gradient(135deg,#00d084,#0693e3)}:root .has-purple-crush-gradient-background{background:linear-gradient(135deg,#34e2e4,#4721fb 50%,#ab1dfe)}:root .has-hazy-dawn-gradient-background{background:linear-gradient(135deg,#faaca8,#dad0ec)}:root .has-subdued-olive-gradient-background{background:linear-gradient(135deg,#fafae1,#67a671)}:root .has-atomic-cream-gradient-background{background:linear-gradient(135deg,#fdd79a,#004a59)}:root .has-nightshade-gradient-background{background:linear-gradient(135deg,#330968,#31cdcf)}:root .has-midnight-gradient-background{background:linear-gradient(135deg,#020381,#2874fc)}:root{--wp--preset--font-size--normal:16px;--wp--preset--font-size--huge:42px}.has-regular-font-size{font-size:1em}.has-larger-font-size{font-size:2.625em}.has-normal-font-size{font-size:var(--wp--preset--font-size--normal)}.has-huge-font-size{font-size:var(--wp--preset--font-size--huge)}:root .has-text-align-center{text-align:center}:root .has-text-align-left{text-align:left}:root .has-text-align-right{text-align:right}.has-fit-text{white-space:nowrap!important}#end-resizable-editor-section{display:none}.aligncenter{clear:both}.items-justified-left{justify-content:flex-start}.items-justified-center{justify-content:center}.items-justified-right{justify-content:flex-end}.items-justified-space-between{justify-content:space-between}.screen-reader-text{word-wrap:normal!important;border:0;clip-path:inset(50%);height:1px;margin:-1px;overflow:hidden;padding:0;position:absolute;width:1px;word-break:normal!important}.screen-reader-text:focus{background-color:#ddd;clip-path:none;color:#444;display:block;font-size:1em;height:auto;left:5px;line-height:normal;padding:15px 23px 14px;text-decoration:none;top:5px;width:auto;z-index:100000}html :where(.has-border-color){border-style:solid}html :where([style^=border-color],[style*=";border-color"],[style*="; border-color"]){border-style:solid}html :where([style^=border-top-color],[style*=";border-top-color"],[style*="; border-top-color"]){border-top-style:solid}html :where([style^=border-right-color],[style*=";border-right-color"],[style*="; border-right-color"]){border-right-style:solid}html :where([style^=border-bottom-color],[style*=";border-bottom-color"],[style*="; border-bottom-color"]){border-bottom-style:solid}html :where([style^=border-left-color],[style*=";border-left-color"],[style*="; border-left-color"]){border-left-style:solid}html :where([style^=border-width],[style*=";border-width"],[style*="; border-width"]){border-style:solid}html :where([style^=border-top-width],[style*=";border-top-width"],[style*="; border-top-width"]){border-top-style:solid}html :where([style^=border-right-width],[style*=";border-right-width"],[style*="; border-right-width"]){border-right-style:solid}html :where([style^=border-bottom-width],[style*=";border-bottom-width"],[style*="; border-bottom-width"]){border-bottom-style:solid}html :where([style^=border-left-width],[style*=";border-left-width"],[style*="; border-left-width"]){border-left-style:solid}html :where(img[class*=wp-image-]){height:auto;max-width:100%}:where(figure){margin:0 0 1em}html :where(.is-position-sticky){--wp-admin--admin-bar--position-offset:var(--wp-admin--admin-bar--height,0px)}@media screen and (max-width:600px){html :where(.is-position-sticky){--wp-admin--admin-bar--position-offset:0px}}
+
+/*# sourceURL=/wp-includes/css/dist/block-library/common.min.css */
+</style>
+<style id="classic-theme-styles-inline-css">
+/*! This file is auto-generated */
+.wp-block-button__link{color:#fff;background-color:#32373c;border-radius:9999px;box-shadow:none;text-decoration:none;padding:calc(.667em + 2px) calc(1.333em + 2px);font-size:1.125em}.wp-block-file__button{background:#32373c;color:#fff;text-decoration:none}
+/*# sourceURL=/wp-includes/css/classic-themes.min.css */
+</style>
+
+<style id="global-styles-inline-css">
+:root{--wp--preset--aspect-ratio--square: 1;--wp--preset--aspect-ratio--4-3: 4/3;--wp--preset--aspect-ratio--3-4: 3/4;--wp--preset--aspect-ratio--3-2: 3/2;--wp--preset--aspect-ratio--2-3: 2/3;--wp--preset--aspect-ratio--16-9: 16/9;--wp--preset--aspect-ratio--9-16: 9/16;--wp--preset--color--black: #000000;--wp--preset--color--cyan-bluish-gray: #abb8c3;--wp--preset--color--white: #ffffff;--wp--preset--color--pale-pink: #f78da7;--wp--preset--color--vivid-red: #cf2e2e;--wp--preset--color--luminous-vivid-orange: #ff6900;--wp--preset--color--luminous-vivid-amber: #fcb900;--wp--preset--color--light-green-cyan: #7bdcb5;--wp--preset--color--vivid-green-cyan: #00d084;--wp--preset--color--pale-cyan-blue: #8ed1fc;--wp--preset--color--vivid-cyan-blue: #0693e3;--wp--preset--color--vivid-purple: #9b51e0;--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple: linear-gradient(135deg,rgb(6,147,227) 0%,rgb(155,81,224) 100%);--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan: linear-gradient(135deg,rgb(122,220,180) 0%,rgb(0,208,130) 100%);--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange: linear-gradient(135deg,rgb(252,185,0) 0%,rgb(255,105,0) 100%);--wp--preset--gradient--luminous-vivid-orange-to-vivid-red: linear-gradient(135deg,rgb(255,105,0) 0%,rgb(207,46,46) 100%);--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray: linear-gradient(135deg,rgb(238,238,238) 0%,rgb(169,184,195) 100%);--wp--preset--gradient--cool-to-warm-spectrum: linear-gradient(135deg,rgb(74,234,220) 0%,rgb(151,120,209) 20%,rgb(207,42,186) 40%,rgb(238,44,130) 60%,rgb(251,105,98) 80%,rgb(254,248,76) 100%);--wp--preset--gradient--blush-light-purple: linear-gradient(135deg,rgb(255,206,236) 0%,rgb(152,150,240) 100%);--wp--preset--gradient--blush-bordeaux: linear-gradient(135deg,rgb(254,205,165) 0%,rgb(254,45,45) 50%,rgb(107,0,62) 100%);--wp--preset--gradient--luminous-dusk: linear-gradient(135deg,rgb(255,203,112) 0%,rgb(199,81,192) 50%,rgb(65,88,208) 100%);--wp--preset--gradient--pale-ocean: linear-gradient(135deg,rgb(255,245,203) 0%,rgb(182,227,212) 50%,rgb(51,167,181) 100%);--wp--preset--gradient--electric-grass: linear-gradient(135deg,rgb(202,248,128) 0%,rgb(113,206,126) 100%);--wp--preset--gradient--midnight: linear-gradient(135deg,rgb(2,3,129) 0%,rgb(40,116,252) 100%);--wp--preset--font-size--small: 13px;--wp--preset--font-size--medium: 20px;--wp--preset--font-size--large: 36px;--wp--preset--font-size--x-large: 42px;--wp--preset--spacing--20: 0.44rem;--wp--preset--spacing--30: 0.67rem;--wp--preset--spacing--40: 1rem;--wp--preset--spacing--50: 1.5rem;--wp--preset--spacing--60: 2.25rem;--wp--preset--spacing--70: 3.38rem;--wp--preset--spacing--80: 5.06rem;--wp--preset--shadow--natural: 6px 6px 9px rgba(0, 0, 0, 0.2);--wp--preset--shadow--deep: 12px 12px 50px rgba(0, 0, 0, 0.4);--wp--preset--shadow--sharp: 6px 6px 0px rgba(0, 0, 0, 0.2);--wp--preset--shadow--outlined: 6px 6px 0px -3px rgb(255, 255, 255), 6px 6px rgb(0, 0, 0);--wp--preset--shadow--crisp: 6px 6px 0px rgb(0, 0, 0);}.wp-block-button{--wp--preset--dimension--25: 25%;--wp--preset--dimension--50: 50%;--wp--preset--dimension--75: 75%;--wp--preset--dimension--100: 100%;}:where(body) { margin: 0; }:where(.is-layout-flex){gap: 0.5em;}:where(.is-layout-grid){gap: 0.5em;}body .is-layout-flex{display: flex;}.is-layout-flex{flex-wrap: wrap;align-items: center;}.is-layout-flex > :is(*, div){margin: 0;}body .is-layout-grid{display: grid;}.is-layout-grid > :is(*, div){margin: 0;}body{padding-top: 0px;padding-right: 0px;padding-bottom: 0px;padding-left: 0px;}:root :where(.wp-element-button, .wp-block-button__link){background-color: #32373c;border-width: 0;color: #fff;font-family: inherit;font-size: inherit;font-style: inherit;font-weight: inherit;letter-spacing: inherit;line-height: inherit;padding-top: calc(0.667em + 2px);padding-right: calc(1.333em + 2px);padding-bottom: calc(0.667em + 2px);padding-left: calc(1.333em + 2px);text-decoration: none;text-transform: inherit;}.has-black-color{color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-color{color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-color{color: var(--wp--preset--color--white) !important;}.has-pale-pink-color{color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-color{color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-color{color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-color{color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-color{color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-color{color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-color{color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-color{color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-color{color: var(--wp--preset--color--vivid-purple) !important;}.has-black-background-color{background-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-background-color{background-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}.has-pale-pink-background-color{background-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-background-color{background-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-background-color{background-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-background-color{background-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-background-color{background-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-background-color{background-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-background-color{background-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-background-color{background-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-background-color{background-color: var(--wp--preset--color--vivid-purple) !important;}.has-black-border-color{border-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-border-color{border-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-border-color{border-color: var(--wp--preset--color--white) !important;}.has-pale-pink-border-color{border-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-border-color{border-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-border-color{border-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-border-color{border-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-border-color{border-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-border-color{border-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-border-color{border-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-border-color{border-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-border-color{border-color: var(--wp--preset--color--vivid-purple) !important;}.has-vivid-cyan-blue-to-vivid-purple-gradient-background{background: var(--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple) !important;}.has-light-green-cyan-to-vivid-green-cyan-gradient-background{background: var(--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan) !important;}.has-luminous-vivid-amber-to-luminous-vivid-orange-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange) !important;}.has-luminous-vivid-orange-to-vivid-red-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-orange-to-vivid-red) !important;}.has-very-light-gray-to-cyan-bluish-gray-gradient-background{background: var(--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray) !important;}.has-cool-to-warm-spectrum-gradient-background{background: var(--wp--preset--gradient--cool-to-warm-spectrum) !important;}.has-blush-light-purple-gradient-background{background: var(--wp--preset--gradient--blush-light-purple) !important;}.has-blush-bordeaux-gradient-background{background: var(--wp--preset--gradient--blush-bordeaux) !important;}.has-luminous-dusk-gradient-background{background: var(--wp--preset--gradient--luminous-dusk) !important;}.has-pale-ocean-gradient-background{background: var(--wp--preset--gradient--pale-ocean) !important;}.has-electric-grass-gradient-background{background: var(--wp--preset--gradient--electric-grass) !important;}.has-midnight-gradient-background{background: var(--wp--preset--gradient--midnight) !important;}.has-small-font-size{font-size: var(--wp--preset--font-size--small) !important;}.has-medium-font-size{font-size: var(--wp--preset--font-size--medium) !important;}.has-large-font-size{font-size: var(--wp--preset--font-size--large) !important;}.has-x-large-font-size{font-size: var(--wp--preset--font-size--x-large) !important;}
+/*# sourceURL=global-styles-inline-css */
+</style>
+
+<link rel='stylesheet' id='jengo-listings-css' href='https://test.prospergenics.com/wp-content/plugins/jengo-listings/assets/listings.css?ver=1.4.0' media='all' />
+<link rel="https://api.w.org/" href="https://test.prospergenics.com/wp-json/" /><title>Lessy — ProsperGenics Members</title>
+<meta name="description" content="Lessy is a software developer in the ProsperGenics community, building and learning on real project work.">
+<link rel="canonical" href="https://test.prospergenics.com/members/lessy/">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Person","name":"Lessy","description":"Lessy is a software developer in the ProsperGenics community, building and learning on real project work.","url":"https://test.prospergenics.com/members/lessy/","jobTitle":"Software Developer","memberOf":{"@type":"Organization","name":"ProsperGenics","url":"https://test.prospergenics.com/"}}</script>
+
+<script type="application/ld+json" class="prospergenics-2026-schema">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://test.prospergenics.com/#organization","name":"ProsperGenics","url":"https://test.prospergenics.com/","logo":"https://test.prospergenics.com/wp-content/themes/prospergenics-2026/assets/logo.png","description":"ProsperGenics is a community in Kenya and the Netherlands researching and practising value creation. We build, learn and measure through real projects: courses and certification, AI tools and services for organisations.","areaServed":["Kenya","Netherlands"],"contactPoint":{"@type":"ContactPoint","contactType":"customer service","telephone":"+254741619743","url":"https://wa.me/254741619743"}},{"@type":"WebSite","@id":"https://test.prospergenics.com/#website","name":"ProsperGenics","url":"https://test.prospergenics.com/","publisher":{"@id":"https://test.prospergenics.com/#organization"},"potentialAction":{"@type":"SearchAction","target":"https://test.prospergenics.com/?s={search_term_string}","query-input":"required name=search_term_string"}}]}</script>
+</head>
+<body>
+
+<nav class="pg-nav">
+  <a href="https://test.prospergenics.com/" class="brand">
+    <img src="https://test.prospergenics.com/wp-content/themes/prospergenics-2026/assets/logo.png" alt="ProsperGenics"
+         onerror="this.style.display='none'" />
+    <span class="brand-text">ProsperGenics</span>
+  </a>
+  <div class="nav-links">
+    <a href="https://test.prospergenics.com/">Home</a>
+          <a href="https://test.prospergenics.com/courses/" >Courses</a>
+          <a href="https://test.prospergenics.com/members/" class="current">Members</a>
+          <a href="https://test.prospergenics.com/tools/" >Tools</a>
+          <a href="https://test.prospergenics.com/services/" >Services</a>
+          <a href="https://test.prospergenics.com/partners/" >Partners</a>
+          <a href="https://test.prospergenics.com/vacancies/" >Vacancies</a>
+      </div>
+  <a href="https://test.prospergenics.com/#value-test" class="nav-cta">Take the test</a>
+</nav>
+
+<div class="pg-breadcrumb">
+  <a href="https://test.prospergenics.com/">Home</a>
+  <span class="sep">›</span>
+  <a href="https://test.prospergenics.com/members/">Members</a>
+  <span class="sep">›</span>
+  <span>Lessy</span>
+</div>
+
+<header class="dir-hero">
+  <div class="dir-hero-inner">
+    <div class="dh-copy">
+      <div class="dh-eyebrow"><span class="dot"></span>Members</div>
+      <h1>Lessy</h1>
+      <p class="dh-subtitle">Software Developer</p>            <div class="dh-tags">
+                  <span class="dh-tag">Software development</span>
+              </div>
+          </div>
+        <div class="dh-photo"><img src="https://test.prospergenics.com/wp-content/themes/prospergenics-2026/assets/lessy_profile-300x300.png" alt="Lessy" style="object-position:center 25%" /></div>
+      </div>
+</header>
+
+<main class="dir-main">
+  <div class="dir-cols">
+    <article>
+              <blockquote class="dir-quote">“Every task I pick up teaches me something I can use in the next one. We build, we learn, we build again.”</blockquote>
+            <div class="dir-desc"><p>Lessy is a software developer in the ProsperGenics community, building and learning on real project work.</p></div>
+
+      
+      <div class="dir-back">
+        <a href="https://test.prospergenics.com/members/">← All members</a>
+      </div>
+    </article>
+
+    <aside class="dir-facts">
+      <h3>At a glance</h3>
+      <div class="fact"><span class="fl">Name</span>Lessy</div>
+      <div class="fact"><span class="fl">Role</span>Software Developer</div>                  <a class="facts-cta" href="https://test.prospergenics.com/" >Get in touch →</a>
+    </aside>
+  </div>
+</main>
+
+<script type="speculationrules">
+{"prefetch":[{"source":"document","where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":["/wp-*.php","/wp-admin/*","/wp-content/uploads/*","/wp-content/*","/wp-content/plugins/*","/wp-content/themes/prospergenics-2026/*","/*\\?(.+)"]}},{"not":{"selector_matches":"a[rel~=\"nofollow\"]"}},{"not":{"selector_matches":".no-prefetch, .no-prefetch a"}}]},"eagerness":"conservative"}]}
+</script>
+<script id="jengo-listings-js-extra">
+var JengoListings = {"apiUrl":"https://listings.prospergenics.com","type":"members"};
+//# sourceURL=jengo-listings-js-extra
+</script>
+<script id="jengo-listings-js" src="https://test.prospergenics.com/wp-content/plugins/jengo-listings/assets/listings.js?ver=1.4.0"></script>
+</body>
+</html>

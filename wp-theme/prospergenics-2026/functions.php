@@ -12,6 +12,10 @@ remove_action( 'wp_head', '_wp_render_title_tag', 1 );
 
 require get_template_directory() . '/inc/security.php';
 require get_template_directory() . '/inc/seo.php';
+// The one site header + footer (menu in inc/site-chrome/nav.json), also put on jengo-listings
+// pages; and the account side: admin bar for staff only, members kept out of wp-admin, login page.
+require get_template_directory() . '/inc/site-chrome.php';
+require get_template_directory() . '/inc/account.php';
 
 // Contact form: every enquiry is stored before any email is attempted, with spam flagged
 // (never discarded) and the delivery result recorded. Ported from PR #20 for production.
