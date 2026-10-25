@@ -28,6 +28,13 @@ add_action( 'init', function () {
         'rewrite'             => false,
         'query_var'           => false,
         'capability_type'     => 'post',
+        // The wp-admin screens list every member's entries, private ones included: administrators
+        // only. Members edit their own entries on /in/{slug}/ through prospergenics/v1/profile/…,
+        // whose permission callbacks check ownership themselves.
+        'capabilities'        => array_fill_keys( array(
+            'edit_posts', 'edit_others_posts', 'edit_private_posts', 'edit_published_posts', 'publish_posts', 'create_posts',
+            'read_private_posts', 'delete_posts', 'delete_private_posts', 'delete_published_posts', 'delete_others_posts',
+        ), 'edit_users' ),
         'map_meta_cap'        => true,
         'supports'            => array( 'title', 'editor', 'author' ),
         'menu_icon'           => 'dashicons-id',

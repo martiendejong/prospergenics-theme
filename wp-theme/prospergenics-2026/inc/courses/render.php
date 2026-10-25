@@ -109,9 +109,7 @@ function prospergenics_courses_enrol_cta( $course, $user_id ) {
 			$label = 0 === $progress ? 'Start the course' : ( 100 === $progress ? 'Review the course' : 'Continue learning' );
 			$html .= '<a class="pgc-btn" href="' . esc_url( get_permalink( $resume ) ) . '">' . esc_html( $label ) . '</a>';
 		}
-		if ( prospergenics_courses_get_certificate( $user_id, $course->ID ) || 100 === $progress ) {
-			$html .= '<a class="pgc-btn pgc-btn--ghost" href="' . esc_url( prospergenics_courses_certificate_url( $course ) ) . '">Download certificate (PDF)</a>';
-		}
+		$html .= prospergenics_courses_certificate_html( $course, $user_id, $progress, 'pgc-btn pgc-btn--ghost', 'Download certificate (PDF)' );
 		$html .= '</div>';
 	} elseif ( ! prospergenics_courses_is_free( $course->ID ) ) {
 		$html .= '<p class="pgc-cta-note"><strong>' . esc_html( prospergenics_courses_format_price( prospergenics_courses_price( $course->ID ) ) ) . '</strong> · Enrolment in paid courses opens soon.</p>';
@@ -123,6 +121,32 @@ function prospergenics_courses_enrol_cta( $course, $user_id ) {
 		$html .= '<p class="pgc-cta-note">Free course. One click and you can start.</p>';
 	}
 	return $html . '</div>';
+}
+
+/**
+ * The certificate link for an enrolled learner: the download button once earned, why there is
+ * none when the email address is unconfirmed (with a way to resend the link) or the certificate
+ * was revoked, and nothing before 100%.
+ */
+function prospergenics_courses_certificate_html( $course, $user_id, $progress, $class, $label, $sr_suffix = '' ) {
+	$cert = prospergenics_courses_get_certificate( $user_id, $course->ID );
+	if ( $cert && prospergenics_courses_certificate_is_revoked( $cert ) ) {
+		return '<p class="pgc-cert-note">Your certificate for this course was revoked.</p>';
+	}
+	if ( ! $cert && 100 === $progress && 'unverified' === prospergenics_courses_certificate_block_reason( $user_id ) ) {
+		$user  = get_userdata( $user_id );
+		$html  = '<div class="pgc-cert-note" role="note"><p><strong>Confirm your email address to receive your certificate.</strong> Certificates are only issued to confirmed accounts. Open the link we emailed to ' . esc_html( $user ? $user->user_email : 'you' ) . ', then come back here.</p>';
+		if ( function_exists( 'prospergenics_profiles_resend_verification' ) ) {
+			$html .= '<form class="pgc-inline-form" method="post" action="' . esc_url( home_url( '/profile/verify/' ) ) . '">' . wp_nonce_field( 'pg_profiles_resend', '_pgp_nonce', false, false );
+			$html .= '<input type="hidden" name="pgp_action" value="resend" /><button type="submit" class="pgc-btn pgc-btn--ghost pgc-btn--small">Send the confirmation link again</button></form>';
+		}
+		return $html . '</div>';
+	}
+	if ( ! $cert && 100 !== $progress ) {
+		return '';
+	}
+	$sr = '' !== $sr_suffix ? '<span class="screen-reader-text"> ' . esc_html( $sr_suffix ) . '</span>' : '';
+	return '<a class="' . esc_attr( $class ) . '" href="' . esc_url( prospergenics_courses_certificate_url( $course ) ) . '">' . esc_html( $label ) . $sr . '</a>';
 }
 
 /** Small inline SVG icons (decorative). */
@@ -256,10 +280,8 @@ function prospergenics_courses_render_my_courses( $user_id ) {
 		if ( $resume ) {
 			$html .= '<a class="pgc-btn pgc-btn--small" href="' . esc_url( get_permalink( $resume ) ) . '">' . ( 100 === $progress ? 'Review' : 'Continue' ) . '<span class="screen-reader-text"> ' . esc_html( get_the_title( $course ) ) . '</span></a>';
 		}
-		if ( $cert || 100 === $progress ) {
-			$html .= '<a class="pgc-btn pgc-btn--ghost pgc-btn--small" href="' . esc_url( prospergenics_courses_certificate_url( $course ) ) . '">Certificate (PDF)<span class="screen-reader-text"> for ' . esc_html( get_the_title( $course ) ) . '</span></a>';
-		}
-		if ( $cert ) {
+		$html .= prospergenics_courses_certificate_html( $course, $user_id, $progress, 'pgc-btn pgc-btn--ghost pgc-btn--small', 'Certificate (PDF)', 'for ' . get_the_title( $course ) );
+		if ( $cert && ! prospergenics_courses_certificate_is_revoked( $cert ) ) {
 			$code  = (string) get_post_meta( $cert->ID, '_pg_courses_code', true );
 			$html .= '<a class="pgc-link-small" href="' . esc_url( prospergenics_courses_verify_url( $code ) ) . '">Verification page</a>';
 		}
