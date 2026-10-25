@@ -19,8 +19,9 @@ require $prospergenics_profiles_dir . 'routes.php';             // /in/{slug}/, 
 require $prospergenics_profiles_dir . 'render.php';             // markup helpers for the templates
 unset( $prospergenics_profiles_dir );
 
-// Article bylines (#6367) link to the author's profile, when this reader may see it.
-add_filter( 'prospergenics_articles_author_url', function ( $url, $user_id ) {
+// Article bylines (#6367) and course instructors (#6357, #6362) link to the member's profile,
+// when this reader may see it.
+function prospergenics_profiles_public_url_for( $url, $user_id ) {
     if ( ! $user_id || ! get_userdata( $user_id ) ) {
         return $url;
     }
@@ -32,4 +33,6 @@ add_filter( 'prospergenics_articles_author_url', function ( $url, $user_id ) {
         prospergenics_profiles_is_connection( $user_id, $viewer )
     );
     return ! empty( $visible['profile'] ) ? prospergenics_profiles_url( $user_id ) : $url;
-}, 10, 2 );
+}
+add_filter( 'prospergenics_articles_author_url', 'prospergenics_profiles_public_url_for', 10, 2 );
+add_filter( 'prospergenics_courses_instructor_profile_url', 'prospergenics_profiles_public_url_for', 10, 2 );

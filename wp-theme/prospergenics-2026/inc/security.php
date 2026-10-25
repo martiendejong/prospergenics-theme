@@ -49,7 +49,7 @@ function prospergenics_2026_security_headers( $is_ssl ) {
             "img-src 'self' data: blob: https://secure.gravatar.com https://coaching.martiendejong.nl",
             "font-src 'self' data: https://fonts.gstatic.com",
             "connect-src 'self' https://coaching.martiendejong.nl https://listings.prospergenics.com https://cloudflareinsights.com",
-            "frame-src 'self' https://coaching.martiendejong.nl",
+            "frame-src 'self' https://coaching.martiendejong.nl https://www.youtube-nocookie.com https://www.youtube.com https://player.vimeo.com",
             "media-src 'self' https://coaching.martiendejong.nl",
             "worker-src 'self' blob:",
             "frame-ancestors 'self'",
