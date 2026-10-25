@@ -76,6 +76,16 @@
     .brand img { height: 36px; }
   }
   @media (min-width: 881px){ .nav-panel { display: none !important; } }
+  /* Header: fixed + hidden on all screen sizes; JS adds .hdr-visible on scroll-up past hero */
+  .site-header {
+    position: fixed; top: 0; left: 0; right: 0; max-width: none;
+    background: rgba(244,250,246,.95);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 1px 0 rgba(15,61,40,.10);
+    transform: translateY(-110%);
+    transition: transform .35s cubic-bezier(.22,.61,.36,1);
+  }
+  .site-header.hdr-visible { transform: translateY(0); }
   :focus-visible { outline: 3px solid var(--green-500); outline-offset: 3px; }
 
   /* ─────────────────────────────  FOOTER  ───────────────────────────── */
@@ -102,7 +112,7 @@
   .hero { position: relative; max-width: 1500px; margin: 0 auto; padding: 0 clamp(24px, 5vw, 72px); }
 
   /* TOP half: message (left, on paper) + team photo fading in from ~30% */
-  .hero-top { position: relative; min-height: 520px; display: flex; align-items: flex-start; padding-top: 74px; }
+  .hero-top { position: relative; min-height: 520px; display: flex; align-items: flex-start; padding-top: 130px; }
   .hero-top-photo {
     position: absolute; top: 34px; bottom: 0; left: 50%; width: 100vw; transform: translateX(-50%);
     z-index: 0; pointer-events: none;
@@ -397,6 +407,24 @@
     -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
   }
   .hbc-body { font-size: 16px; line-height: 1.6; color: var(--muted); }
+  .hero-bottom-cta { cursor: pointer; display: flex; flex-direction: column; align-items: flex-start; }
+  .hbc-arrow {
+    align-self: flex-end; margin-right: 36px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    margin-top: 24px;
+    height: 46px; padding: 0 16px 0 22px; border-radius: 999px;
+    background: var(--green-100); border: 1.5px solid rgba(26,122,70,.20);
+    color: var(--green-700); font-family: 'Sora', sans-serif; font-weight: 600; font-size: 14px;
+    white-space: nowrap;
+    transition: background .2s, border-color .2s;
+    animation: hbc-point 2s ease-in-out infinite;
+  }
+  .hbc-arrow svg { width: 20px; height: 20px; fill: currentColor; flex-shrink: 0; }
+  .hero-bottom-cta:hover .hbc-arrow { background: var(--green-200); border-color: rgba(26,122,70,.4); }
+  @keyframes hbc-point {
+    0%, 100% { transform: translateX(0); }
+    50%       { transform: translateX(10px); }
+  }
   @media (max-width: 980px) { .hero-bottom-cta { display: none; } }
 
   /* ───────────────  INTERACTIVE 4-SLIDE SHOWCASE  ─────────────── */
@@ -736,17 +764,17 @@
   }
   .wa-btn:hover { transform: scale(1.09); }
   .wa-btn svg { width: 30px; height: 30px; fill: #fff; }
-  /* compact state: a small round chat button with WhatsApp beside it */
-  .launcher.is-compact .launcher-orb { width: 84px; height: 84px; filter: drop-shadow(0 12px 22px rgba(11,32,22,.38)); }
-  .launcher.is-compact .launcher-orb .l-pulse { right: 2px; top: 2px; width: 13px; height: 13px; }
-  /* the bubble only appears as a hint on hover/focus of the compact button; beside the
-     "Not sure where to start?" block (full size) that block's own copy does its job */
+  /* compact state: desktop-style blob + rings + same photo zoom, just smaller */
+  .launcher.is-compact .launcher-orb { width: 96px; height: 96px; filter: drop-shadow(0 12px 26px rgba(11,32,22,.42)); }
+  /* blob, rings and photo all inherit desktop defaults — only fine-tune pulse position */
+  .launcher.is-compact .launcher-orb .l-pulse { right: 8px; top: 6px; width: 13px; height: 13px; }
+  /* the bubble only appears as a hint on hover/focus of the compact button */
   .launcher-bubble { opacity: 0; pointer-events: none; transform: translateX(12px); }
-  .launcher.is-compact .launcher-bubble { right: 112px; bottom: 18px; }
+  .launcher.is-compact .launcher-bubble { right: 110px; bottom: 30px; }
   .launcher.is-compact:hover .launcher-bubble, .launcher.is-compact:focus-within .launcher-bubble { opacity: 1; transform: none; }
-  .launcher.is-compact .wa-btn { left: -30px; bottom: -4px; width: 44px; height: 44px; }
+  .launcher.is-compact .wa-btn { left: -22px; bottom: -2px; width: 44px; height: 44px; }
   .launcher.is-compact .wa-btn svg { width: 24px; height: 24px; }
-  body.launcher-compact .co-embed-panel { bottom: 136px !important; height: min(560px, calc(100vh - 168px)) !important; }
+  body.launcher-compact .co-embed-panel { bottom: 120px !important; height: min(560px, calc(100vh - 152px)) !important; }
   @media (max-width: 560px){ .launcher { right: 18px; bottom: 18px; gap: 8px; } .launcher-bubble { display: none; } }
   @media (prefers-reduced-motion: reduce){ .launcher-orb, .launcher .wa-btn, .launcher-bubble { transition: none; } }
 
@@ -801,8 +829,10 @@
     <div class="hero-top">
       <div class="hero-top-photo"></div>
       <div class="copy">
-        <h1 class="reveal d1">You create<span class="accent">value</span></h1>
-        <p class="sub reveal d2">We're building a system to help you realize your true capacity.</p>
+        <div class="copy-inner">
+          <h1 class="reveal d1">You create<span class="accent">value</span></h1>
+          <p class="sub reveal d2">We're building the system to help you realize your true capacity.</p>
+        </div>
       </div>
     </div>
 
@@ -827,13 +857,17 @@
       <div class="hero-bottom-cta reveal d4">
         <p class="hbc-head">Not sure where <span class="accent">to start?</span></p>
         <p class="hbc-body">Tell us what you want to achieve. We'll help you find the next step.</p>
+        <span class="hbc-arrow">
+          Chat with us
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8-8-8z"/></svg>
+        </span>
       </div>
     </div>
   </section>
 
   <!-- SECOND MESSAGE · who we are (summary of the About page) -->
   <section class="proof" id="about">
-    <div class="proof-intro">
+    <div class="proof-intro" data-scroll-scale="1.05" data-scroll-scale-from="0.97">
       <div class="proof-copy reveal d1">
         <h2 class="alchemy">Discover the&nbsp;alchemy <span class="accent">of prosperity</span></h2>
         <p>ProsperGenics is a community of people who want to create value for themselves, for others, and for the communities around them.</p>
@@ -1200,7 +1234,7 @@
   <!-- Floating chat launcher: ProsperGenics coach (CoachOS tenant) + WhatsApp.
        Compact round button by default; full size (orb + bubble) only while the "Not sure where
        to start?" block is on screen on desktop, where space is reserved for it. -->
-  <div class="launcher is-compact">
+  <div class="launcher">
     <div class="launcher-bubble">Chat with ProsperGenics<small>Ask about tools, training &amp; projects</small></div>
     <button class="launcher-orb" aria-label="Open ProsperGenics chat">
       <span class="l-ring"></span><span class="l-ring l-ring2"></span>
@@ -1242,7 +1276,7 @@
     }
     function restart(){ clearInterval(timer); timer = setInterval(()=> show((idx+1)%SLIDES.length), 5000); }
     tabs.forEach((t,i)=>{
-      t.addEventListener('click', e=>{ e.preventDefault(); show(i); restart(); });
+      t.addEventListener('click', ()=>{ window.location.href = SLIDES[i].href; });
       t.addEventListener('mouseenter', ()=>{ show(i); restart(); });
     });
     show(0); restart();
@@ -1421,14 +1455,13 @@
         };
       });
       if (!photo || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-      // scroll effects are desktop-only for now; clear anything set when crossing the breakpoint
+      // photo-parallax + panel effects are desktop-only; scroll-scale grow-in runs on all sizes
       const mobile = window.matchMedia('(max-width: 980px)');
-      function clearEffects() {
+      function clearDesktopEffects() {
         photo.style.top = ''; photo.style.bottom = '';
         if (showcasePanel) { showcasePanel.style.marginTop = ''; showcasePanel.style.marginBottom = ''; showcasePanel.style.marginLeft = ''; showcasePanel.style.marginRight = ''; showcasePanel.style.transform = ''; }
         if (alchemyScale) { alchemyScale.style.transform = ''; }
         alchemistPics.forEach(function (im) { im.style.transform = ''; });
-        scrollScaled.forEach(function (it) { it.el.style.transform = ''; });
       }
       // the base transforms differ per breakpoint (the test panel's skew is off on mobile):
       // re-read them with the inline transform cleared whenever we cross back to desktop,
@@ -1440,43 +1473,43 @@
           it.base = (t && t !== 'none') ? t + ' ' : '';
         });
       }
-      mobile.addEventListener('change', function (e) { if (e.matches) { clearEffects(); } else { recaptureBases(); update(); } });
+      mobile.addEventListener('change', function (e) { if (e.matches) { clearDesktopEffects(); } else { recaptureBases(); } update(); });
       let ticking = false;
       function update() {
-        if (mobile.matches) { clearEffects(); ticking = false; return; }
-        const y = window.scrollY;
-        photo.style.top = (y * 0.5 + 34) + 'px';
-        // bottom edge slides from 0 to -100px over the first 500px of scroll
-        photo.style.bottom = (Math.min(y, 500) / 500 * -100) + 'px';
-        // showcase panel bulge: ramps up over the first 250px of scroll and stays; eases back only when scrolling up
-        if (showcasePanel) {
-          const t = Math.min(y / 250, 1);
-          showcasePanel.style.marginTop = (20 * t) + 'px';
-          showcasePanel.style.marginBottom = (-20 * t) + 'px';
-          showcasePanel.style.marginLeft = (30 * t) + 'px';
-          showcasePanel.style.marginRight = (-30 * t) + 'px';
-          showcasePanel.style.transform = 'scale(' + (1 + 0.07 * t) + ')';
+        if (!mobile.matches) {
+          const y = window.scrollY;
+          photo.style.top = (y * 0.5 + 34) + 'px';
+          // bottom edge slides from 0 to -100px over the first 500px of scroll
+          photo.style.bottom = (Math.min(y, 500) / 500 * -100) + 'px';
+          // showcase panel bulge: ramps up over the first 250px of scroll and stays; eases back only when scrolling up
+          if (showcasePanel) {
+            const t = Math.min(y / 250, 1);
+            showcasePanel.style.marginTop = (20 * t) + 'px';
+            showcasePanel.style.marginBottom = (-20 * t) + 'px';
+            showcasePanel.style.marginLeft = (30 * t) + 'px';
+            showcasePanel.style.marginRight = (-30 * t) + 'px';
+            showcasePanel.style.transform = 'scale(' + (1 + 0.07 * t) + ')';
+          }
+          // alchemy picture: 0.8 while entering at the bottom of the viewport,
+          // grows to full size while visibly scrolling up (done at ~35% viewport height)
+          if (alchemyVisual && alchemyScale) {
+            const vh = window.innerHeight;
+            const top = alchemyVisual.getBoundingClientRect().top;
+            const a = Math.min(1, Math.max(0, (vh * 0.9 - top) / (vh * 0.55)));
+            alchemyScale.style.transform = 'scale(' + (0.8 + 0.2 * a) + ')';
+          }
+          // alchemist portraits zoom from 1 to 1.1 while the voices strip scrolls into view;
+          // the growth spans ~85% of a viewport height of scrolling so it reads as scroll-driven
+          // (the img scales inside the clipped portrait, so the slanted cut stays put)
+          if (voicesSec && alchemistPics.length) {
+            const vh2 = window.innerHeight;
+            const vtop = voicesSec.getBoundingClientRect().top;
+            const v = Math.min(1, Math.max(0, (vh2 - vtop) / (vh2 * 0.85)));
+            const vs = 'scale(' + (1 + 0.1 * v) + ')';
+            alchemistPics.forEach(function (im) { im.style.transform = vs; });
+          }
         }
-        // alchemy picture: 0.8 while entering at the bottom of the viewport,
-        // grows to full size while visibly scrolling up (done at ~35% viewport height)
-        if (alchemyVisual && alchemyScale) {
-          const vh = window.innerHeight;
-          const top = alchemyVisual.getBoundingClientRect().top;
-          const a = Math.min(1, Math.max(0, (vh * 0.9 - top) / (vh * 0.55)));
-          alchemyScale.style.transform = 'scale(' + (0.8 + 0.2 * a) + ')';
-        }
-        // alchemist portraits zoom from 1 to 1.1 while the voices strip scrolls into view;
-        // the growth spans ~85% of a viewport height of scrolling so it reads as scroll-driven
-        // (the img scales inside the clipped portrait, so the slanted cut stays put)
-        if (voicesSec && alchemistPics.length) {
-          const vh2 = window.innerHeight;
-          const vtop = voicesSec.getBoundingClientRect().top;
-          const v = Math.min(1, Math.max(0, (vh2 - vtop) / (vh2 * 0.85)));
-          const vs = 'scale(' + (1 + 0.1 * v) + ')';
-          alchemistPics.forEach(function (im) { im.style.transform = vs; });
-        }
-        // generic scroll-zoom for every [data-scroll-scale] block (team banner, project strips, ...);
-        // one transform per block keeps composites like the duplicated marquee sets seamless
+        // generic scroll-zoom for every [data-scroll-scale] block — runs on all screen sizes
         if (scrollScaled.length) {
           const vh3 = window.innerHeight;
           scrollScaled.forEach(function (it) {
@@ -1495,27 +1528,106 @@
   </script>
 
   <script>
-    // Chat launcher: compact everywhere, except full size while "Not sure where to start?" is on
-    // screen on desktop (the block it was designed to sit beside, with room reserved for it).
+    // Scroll top-fade: gradient mask — the top 15 % of the viewport is a fade zone.
+    // Non-hero + hero-bottom: viewport-relative formula (transparent at 0, opaque at 15 %).
+    // .copy in hero-top: scroll-relative formula (no mask at scrollY=0; grows as user scrolls).
+    // .hero-top itself is excluded because its child is a full-bleed 100vw background image;
+    // masking the parent would clip that image to the container width (visible left/right margins).
+    (function(){
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      const items = Array.from(document.querySelectorAll(
+        'main > section:not(.hero) > *, main > section.hero > .hero-bottom'
+      ));
+      const heroItems = Array.from(document.querySelectorAll('main > section.hero > .hero-top > .copy > .copy-inner'));
+      // Capture initial top for each heroItem at load time so we know whether it already sits
+      // inside the fade zone (desktop) or below it (mobile). fadeStart = min(zone, initialTop):
+      // on mobile initialTop >> zone → behaves like the other items (viewport-relative);
+      // on desktop initialTop < zone → fading starts as soon as the element begins to scroll up.
+      const heroItemsData = heroItems.map(el => ({ el, initialTop: el.getBoundingClientRect().top }));
+      if (!items.length && !heroItemsData.length) return;
+      let ticking = false;
+      function applyFx(el, progress) {
+        // CSS `scale` property is independent of `transform`, so it composes with
+        // the scroll-scale grow-in system without conflict.
+        el.style.filter = `grayscale(${progress * 75}%)`;
+        el.style.scale = String(1 - progress * 0.05);
+      }
+      function clearFx(el) {
+        el.style.filter = '';
+        el.style.scale = '';
+        el.style.maskImage = ''; el.style.webkitMaskImage = '';
+      }
+      function update() {
+        const zone = window.innerHeight * 0.15;
+        items.forEach(el => {
+          const t = el.getBoundingClientRect().top;
+          if (t >= zone) {
+            clearFx(el);
+          } else {
+            const progress = Math.max(0, Math.min(1, (zone - t) / zone));
+            const g = `linear-gradient(to bottom,transparent ${-t}px,#000 ${zone - t}px)`;
+            el.style.maskImage = g; el.style.webkitMaskImage = g;
+            applyFx(el, progress);
+          }
+        });
+        heroItemsData.forEach(({ el, initialTop }) => {
+          const t = el.getBoundingClientRect().top;
+          const fadeStart = Math.min(zone, initialTop);
+          if (t >= fadeStart) {
+            clearFx(el);
+          } else {
+            const progress = Math.max(0, Math.min(1, (zone - t) / zone));
+            const g = `linear-gradient(to bottom,transparent ${-t}px,#000 ${zone - t}px)`;
+            el.style.maskImage = g; el.style.webkitMaskImage = g;
+            applyFx(el, progress);
+          }
+        });
+        ticking = false;
+      }
+      window.addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+      window.addEventListener('resize', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+    })();
+    // Header: hidden by default on all screen sizes; slides in when scrolled past hero + scrolling up.
+    (function(){
+      const header = document.querySelector('.site-header');
+      const heroSection = document.querySelector('section.hero');
+      if (!header || !heroSection) return;
+      let lastY = 0, threshold = 0, ticking = false;
+      function calcThreshold() {
+        threshold = heroSection.getBoundingClientRect().bottom + (window.scrollY || 0);
+      }
+      function update() {
+        const y = window.scrollY || 0;
+        if (y > threshold && y < lastY) {
+          header.classList.add('hdr-visible');
+        } else {
+          header.classList.remove('hdr-visible');
+        }
+        lastY = y; ticking = false;
+      }
+      window.addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+      window.addEventListener('resize', calcThreshold, { passive: true });
+      calcThreshold(); lastY = window.scrollY || 0;
+    })();
+  </script>
+
+  <script>
+    // Chat launcher: full-size on desktop, compact on mobile — never changes on scroll.
+    // Clicking .hero-bottom-cta (the "Not sure where to start?" block) also opens the chat.
     (function () {
       const launcher = document.querySelector('.launcher');
+      const orb = document.querySelector('.launcher-orb');
       const cta = document.querySelector('.hero-bottom-cta');
       if (!launcher) return;
-      const wide = window.matchMedia('(min-width: 981px)');
-      let ctaVisible = false;
+      const mobile = window.matchMedia('(max-width: 880px)');
       function update() {
-        const compact = !(wide.matches && ctaVisible);
+        const compact = mobile.matches;
         launcher.classList.toggle('is-compact', compact);
         document.body.classList.toggle('launcher-compact', compact);
       }
-      if (cta && 'IntersectionObserver' in window) {
-        new IntersectionObserver(function (entries) {
-          ctaVisible = entries[0].isIntersecting;
-          update();
-        }, { threshold: 0.6 }).observe(cta);
-      }
-      wide.addEventListener('change', update);
+      mobile.addEventListener('change', update);
       update();
+      if (cta && orb) cta.addEventListener('click', () => orb.click());
     })();
 
     // Mobile menu: toggle, close on Esc / link click / resize to desktop, focus handling.
