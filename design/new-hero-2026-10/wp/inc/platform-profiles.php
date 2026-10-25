@@ -18,3 +18,18 @@ require $prospergenics_profiles_dir . 'rest.php';               // prospergenics
 require $prospergenics_profiles_dir . 'routes.php';             // /in/{slug}/, /profile/…, templates, assets
 require $prospergenics_profiles_dir . 'render.php';             // markup helpers for the templates
 unset( $prospergenics_profiles_dir );
+
+// Article bylines (#6367) link to the author's profile, when this reader may see it.
+add_filter( 'prospergenics_articles_author_url', function ( $url, $user_id ) {
+    if ( ! $user_id || ! get_userdata( $user_id ) ) {
+        return $url;
+    }
+    $viewer  = get_current_user_id();
+    $visible = prospergenics_profiles_visible_sections(
+        prospergenics_profiles_privacy( $user_id ),
+        $viewer,
+        $user_id,
+        prospergenics_profiles_is_connection( $user_id, $viewer )
+    );
+    return ! empty( $visible['profile'] ) ? prospergenics_profiles_url( $user_id ) : $url;
+}, 10, 2 );
