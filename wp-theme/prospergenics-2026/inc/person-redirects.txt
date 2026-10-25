@@ -1,0 +1,79 @@
+# Person URLs that always redirect (301) to the approved profile under /people/<slug>/.
+#
+# Unlike redirects.txt, these rules apply even when something else answers the URL: the
+# jengo-listings plugin's /members/<slug>/ pages (an old copy of the profiles, audit CON-1 and
+# CON-3), pages imported from the previous site (/lessy-2/, /our-team/, audit CON-5) and media
+# attachments that took a person's slug (/lessy/ answered with Lessy.jpeg, audit CON-6). They
+# run on init, before plugins render and before WordPress guesses a page for a 404 (CON-4).
+#
+# Same format as redirects.txt:  <old path>  <new path>
+# Not here yet, waiting for the owners: Sonia, Timothy and Toperian (production-only profiles).
+
+# Martien de Jong
+members/martien-de-jong      /people/martien/
+team_member/martien-de-jong  /people/martien/
+people/martien-de-jong       /people/martien/
+martien                      /people/martien/
+martien-2                    /people/martien/
+author/martien               /people/martien/
+
+# Simitia Mpoe (Sandra on the old site)
+members/simitia-mpoe         /people/simitia/
+members/sandra               /people/simitia/
+team_member/sandra           /people/simitia/
+people/sandra                /people/simitia/
+sandra                       /people/simitia/
+sandra-2                     /people/simitia/
+author/sandra                /people/simitia/
+
+# Diko Mohamed
+members/diko-mohamed         /people/diko/
+members/diko                 /people/diko/
+diko                         /people/diko/
+diko-2                       /people/diko/
+author/diko                  /people/diko/
+
+# Sjoerd Schepman
+members/sjoerd-schepman      /people/sjoerd/
+team_member/sjoerd-schepman  /people/sjoerd/
+
+# Faith Nkumun
+members/faith-nkumun         /people/faith/
+team_member/faith-nkumun     /people/faith/
+
+# Maxwell
+members/maxwell              /people/maxwell/
+
+# Lesiamon Mpoe (Lessy)
+members/lessy                /people/lessy/
+members/lesiamon-mpoe        /people/lessy/
+lessy                        /people/lessy/
+lessy-2                      /people/lessy/
+author/lessy                 /people/lessy/
+
+# Frank
+members/frank                /people/frank/
+team_member/frank-kobaai     /people/frank/
+frank                        /people/frank/
+frank-2                      /people/frank/
+author/frank                 /people/frank/
+
+# Sophy Nashipae de Jong
+members/sophy-nashipae-de-jong  /people/sophy/
+members/sofy                 /people/sophy/
+
+# Mayiani Nanana Mpoe
+members/mayiani-nanana-mpoe  /people/mayiani/
+
+# Lou Marten
+members/lou-marten           /people/lou/
+
+# Natumi
+members/natumi               /people/natumi/
+
+# Farid Harrak
+members/farid                /people/farid/
+members/farid-harrak         /people/farid/
+
+# The old team page lists outdated names, roles and photos
+our-team                     /community/
