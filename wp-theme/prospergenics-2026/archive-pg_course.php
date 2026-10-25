@@ -69,7 +69,18 @@ global $wp_query;
       <?php echo paginate_links(array('add_args' => array_filter(array('category' => $pgc_filters['category'], 'level' => $pgc_filters['level'], 'sort' => 'newest' !== $pgc_filters['sort'] ? $pgc_filters['sort'] : '')))); ?>
     </nav>
   <?php else : ?>
-    <p class="pgc-empty"><?php echo $pgc_active ? 'No courses match these filters yet. <a href="' . esc_url(home_url('/courses/')) . '">Show all courses</a>.' : 'The first courses are being prepared. Check back soon.'; ?></p>
+    <?php if ($pgc_active) : ?>
+      <p class="pgc-empty">No courses match these filters yet. <a href="<?php echo esc_url(home_url('/courses/')); ?>">Show all courses</a>.</p>
+    <?php else : ?>
+      <?php // a next step that isn't the value test, which itself sends people here (audit NAV-4) ?>
+      <div class="pgc-empty">
+        <p>The first courses open soon. Tell us what you want to learn and we'll let you know when it starts, or meet the members who already teach and build together.</p>
+        <p class="pgc-actions">
+          <a class="pgc-btn" href="<?php echo esc_url(home_url('/contact/?subject=' . rawurlencode('Courses and certification'))); ?>">Tell us what you want to learn</a>
+          <a class="pgc-btn pgc-btn--ghost" href="<?php echo esc_url(home_url('/members/')); ?>">Meet our members</a>
+        </p>
+      </div>
+    <?php endif; ?>
   <?php endif; ?>
 </div>
 

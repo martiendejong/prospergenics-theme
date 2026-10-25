@@ -87,6 +87,20 @@ add_filter( 'post_type_link', function ( $link, $post ) {
 	return home_url( '/courses/' . get_post_field( 'post_name', $course_id ) . '/lessons/' . $post->post_name . '/' );
 }, 10, 2 );
 
+/**
+ * The user behind /courses/instructor/<id>/, or null: only someone who teaches (may edit courses
+ * and has a published course) has a page. Anyone else, an administrator account included, is a
+ * 404 that never shows their name.
+ */
+function prospergenics_courses_public_instructor( $user_id ) {
+	$user = $user_id ? get_userdata( (int) $user_id ) : false;
+	if ( ! $user || ! user_can( $user, 'edit_pg_courses' ) ) {
+		return null;
+	}
+	$has = get_posts( array( 'post_type' => 'pg_course', 'post_status' => 'publish', 'author' => $user->ID, 'posts_per_page' => 1, 'fields' => 'ids' ) );
+	return $has ? $user : null;
+}
+
 /** URL of the public instructor page. */
 function prospergenics_courses_instructor_url( $user_id ) {
 	$user = get_userdata( $user_id );
@@ -234,8 +248,11 @@ add_filter( 'document_title_parts', function ( $parts ) {
 	if ( isset( $titles[ $view ] ) ) {
 		$parts['title'] = $titles[ $view ];
 	} elseif ( 'instructor' === $view ) {
-		$user           = get_userdata( (int) get_query_var( 'pg_courses_user' ) );
-		$parts['title'] = $user ? $user->display_name . ' – Instructor' : 'Instructor';
+		// Not an instructor: the template answers 404 and WordPress' "Page not found" title stays.
+		$user = prospergenics_courses_public_instructor( (int) get_query_var( 'pg_courses_user' ) );
+		if ( $user ) {
+			$parts['title'] = $user->display_name . ' – Instructor';
+		}
 	} elseif ( is_post_type_archive( 'pg_course' ) ) {
 		$parts['title'] = 'Courses';
 	}

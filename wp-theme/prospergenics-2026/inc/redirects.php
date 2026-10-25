@@ -151,4 +151,35 @@ function prospergenics_2026_legacy_url_redirects() {
         exit;
     }
 }
-add_action( 'template_redirect', 'prospergenics_2026_legacy_url_redirects' );
+// Priority 1: before core's redirect_canonical() (priority 10), whose "guess a page for this 404"
+// sent /team_member/lessy/ to the old /lessy-2/ page instead of /people/lessy/ (audit CON-4).
+add_action( 'template_redirect', 'prospergenics_2026_legacy_url_redirects', 1 );
+
+/** The always-on person rules from person-redirects.txt, read once per request. */
+function prospergenics_2026_person_redirect_rules() {
+    static $rules = null;
+    if ( null === $rules ) {
+        $file  = apply_filters( 'prospergenics_2026_person_redirects_file', __DIR__ . '/person-redirects.txt' );
+        $rules = is_readable( $file ) ? prospergenics_2026_parse_redirects( file_get_contents( $file ) ) : array();
+    }
+    return $rules;
+}
+
+/**
+ * Person URLs that other parts of the site still answer with outdated copies of a profile (the
+ * jengo-listings /members/<slug>/ pages, imported -2 pages, media attachments): send them to the
+ * approved /people/<slug>/ page, on init, before a plugin renders them.
+ */
+function prospergenics_2026_person_redirects() {
+    $method = isset( $_SERVER['REQUEST_METHOD'] ) ? strtoupper( (string) $_SERVER['REQUEST_METHOD'] ) : 'GET';
+    if ( is_admin() || ! in_array( $method, array( 'GET', 'HEAD' ), true ) ) {
+        return;
+    }
+    $request_path = isset( $_SERVER['REQUEST_URI'] ) ? (string) parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH ) : '';
+    $target = prospergenics_2026_match_redirect( $request_path, prospergenics_2026_person_redirect_rules() );
+    if ( null !== $target ) {
+        wp_safe_redirect( home_url( $target ), 301 );
+        exit;
+    }
+}
+add_action( 'init', 'prospergenics_2026_person_redirects', 0 );

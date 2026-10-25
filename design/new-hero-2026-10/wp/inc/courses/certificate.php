@@ -8,6 +8,11 @@
  * course is renamed or deleted later. The PDF is generated on request from that record by the
  * small PDF writer in pdf.php (nothing is written to the public uploads folder, so a learner's
  * certificate can only be downloaded by that learner; anyone with the code can verify it).
+ *
+ * Certificates are only issued to accounts with a confirmed email address (when the profiles
+ * track is active), and staff can revoke one from its verification page
+ * (_pg_courses_revoked_at): a revoked certificate no longer verifies or downloads, and is not
+ * issued again.
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -128,6 +133,33 @@ function prospergenics_courses_get_certificate( $user_id, $course_id ) {
 	return $posts ? $posts[0] : null;
 }
 
+/**
+ * Why the user cannot be issued a certificate ('' when nothing blocks it). 'unverified': the
+ * email address is not confirmed yet (profiles track, inc/profiles/verify.php).
+ */
+function prospergenics_courses_certificate_block_reason( $user_id ) {
+	if ( function_exists( 'prospergenics_profiles_is_verified' ) && ! prospergenics_profiles_is_verified( $user_id ) ) {
+		return 'unverified';
+	}
+	return '';
+}
+
+function prospergenics_courses_certificate_is_revoked( $cert ) {
+	return (bool) get_post_meta( $cert->ID, '_pg_courses_revoked_at', true );
+}
+
+/** Revoke a certificate (or, with $revoke = false, make it valid again). */
+function prospergenics_courses_revoke_certificate( $cert, $revoke = true ) {
+	if ( $revoke ) {
+		update_post_meta( $cert->ID, '_pg_courses_revoked_at', time() );
+		update_post_meta( $cert->ID, '_pg_courses_revoked_by', get_current_user_id() );
+	} else {
+		delete_post_meta( $cert->ID, '_pg_courses_revoked_at' );
+		delete_post_meta( $cert->ID, '_pg_courses_revoked_by' );
+	}
+	do_action( 'prospergenics_courses_certificate_revoked', (int) $cert->ID, (bool) $revoke );
+}
+
 /** The learner's name as printed on a certificate: first + last name, else display name. */
 function prospergenics_courses_learner_name( $user ) {
 	$user = is_object( $user ) ? $user : get_userdata( (int) $user );
@@ -151,7 +183,7 @@ function prospergenics_courses_issue_certificate( $user_id, $course_id ) {
 	}
 	$course = get_post( $course_id );
 	$user   = get_userdata( $user_id );
-	if ( ! $course || 'pg_course' !== $course->post_type || ! $user ) {
+	if ( ! $course || 'pg_course' !== $course->post_type || ! $user || '' !== prospergenics_courses_certificate_block_reason( $user_id ) ) {
 		return null;
 	}
 	do {
@@ -190,6 +222,7 @@ function prospergenics_courses_certificate_data( $cert ) {
 		'course_id'  => (int) $cert->post_parent,
 		'instructor' => (string) get_post_meta( $cert->ID, '_pg_courses_instructor', true ),
 		'issued_at'  => (int) get_post_meta( $cert->ID, '_pg_courses_issued_at', true ),
+		'revoked_at' => (int) get_post_meta( $cert->ID, '_pg_courses_revoked_at', true ),
 		'date'       => wp_date( 'j F Y', (int) get_post_meta( $cert->ID, '_pg_courses_issued_at', true ) ),
 		'verify_url' => prospergenics_courses_verify_url( $code ),
 	);
@@ -218,10 +251,16 @@ function prospergenics_courses_serve_certificate( $course ) {
 	if ( ! $cert && prospergenics_courses_is_enrolled( $user_id, $course->ID ) && 100 === prospergenics_courses_progress( $user_id, $course->ID ) ) {
 		$cert = prospergenics_courses_issue_certificate( $user_id, $course->ID );
 	}
-	if ( ! $cert ) {
+	if ( ! $cert || prospergenics_courses_certificate_is_revoked( $cert ) ) {
+		$message = esc_html__( 'There is no certificate for you for this course yet. Complete every lesson to earn it.', 'prospergenics-2026' );
+		if ( $cert ) {
+			$message = esc_html__( 'This certificate was revoked and can no longer be downloaded.', 'prospergenics-2026' );
+		} elseif ( 'unverified' === prospergenics_courses_certificate_block_reason( $user_id ) ) {
+			$message = esc_html__( 'Confirm your email address to receive your certificate: open the link we emailed you, then come back to the course page.', 'prospergenics-2026' );
+		}
 		status_header( 403 );
 		nocache_headers();
-		wp_die( esc_html__( 'There is no certificate for you for this course yet. Complete every lesson to earn it.', 'prospergenics-2026' ), esc_html__( 'No certificate yet', 'prospergenics-2026' ), array( 'response' => 403, 'back_link' => true ) );
+		wp_die( $message, esc_html__( 'No certificate yet', 'prospergenics-2026' ), array( 'response' => 403, 'back_link' => true ) ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped above
 	}
 	$pdf = prospergenics_courses_certificate_pdf( prospergenics_courses_certificate_data( $cert ), get_template_directory() . '/assets/logo.png' );
 	nocache_headers();
@@ -232,3 +271,18 @@ function prospergenics_courses_serve_certificate( $course ) {
 	echo $pdf; // phpcs:ignore WordPress.Security.EscapeOutput -- binary PDF
 	exit;
 }
+
+/* ------------------------------------------------------------------ revoking (staff) */
+
+// Revoke / reinstate, from the form on the verification page.
+add_action( 'admin_post_pg_courses_revoke', function () {
+	$cert_id = isset( $_POST['certificate_id'] ) ? absint( $_POST['certificate_id'] ) : 0;
+	check_admin_referer( 'pg_courses_revoke_' . $cert_id );
+	$cert = get_post( $cert_id );
+	if ( ! $cert || 'pg_certificate' !== $cert->post_type || ! current_user_can( 'edit_others_pg_courses' ) ) {
+		wp_die( esc_html__( 'You cannot change this certificate.', 'prospergenics-2026' ), '', array( 'response' => 403 ) );
+	}
+	$revoke = empty( $_POST['reinstate'] );
+	prospergenics_courses_revoke_certificate( $cert, $revoke );
+	prospergenics_courses_redirect( prospergenics_courses_verify_url( (string) get_post_meta( $cert->ID, '_pg_courses_code', true ) ), $revoke ? 'revoked' : 'reinstated' );
+} );
