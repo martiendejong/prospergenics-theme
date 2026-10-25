@@ -15,7 +15,10 @@ defined( 'ABSPATH' ) || exit;
  * CoachOS chat, jengo-listings and plugins keep working) plus `worker-src blob:` for the
  * WordPress emoji worker it used to block. A strict allowlist ships alongside as
  * Report-Only: browsers log what it *would* block in the console, so it can be checked on
- * test and then promoted to the enforced policy without breaking anything.
+ * test and then promoted to the enforced policy without breaking anything. Its list comes
+ * from the console on test.prospergenics.com: Cloudflare Web Analytics (beacon script and its
+ * reporting endpoint) and the Google Fonts that the jengo-listings plugin loads on /courses/
+ * and /members/. The theme's own fonts are self-hosted.
  *
  * @param bool $is_ssl Whether the request is over HTTPS.
  * @return array<string,string> header name => value
@@ -41,11 +44,11 @@ function prospergenics_2026_security_headers( $is_ssl ) {
         ) ),
         'Content-Security-Policy-Report-Only' => implode( '; ', array(
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' https://coaching.martiendejong.nl",
-            "style-src 'self' 'unsafe-inline'",
+            "script-src 'self' 'unsafe-inline' https://coaching.martiendejong.nl https://static.cloudflareinsights.com",
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
             "img-src 'self' data: blob: https://secure.gravatar.com https://coaching.martiendejong.nl",
-            "font-src 'self' data:",
-            "connect-src 'self' https://coaching.martiendejong.nl https://listings.prospergenics.com",
+            "font-src 'self' data: https://fonts.gstatic.com",
+            "connect-src 'self' https://coaching.martiendejong.nl https://listings.prospergenics.com https://cloudflareinsights.com",
             "frame-src 'self' https://coaching.martiendejong.nl",
             "media-src 'self' https://coaching.martiendejong.nl",
             "worker-src 'self' blob:",
@@ -107,6 +110,17 @@ add_action( 'init', function () {
  * Logged-in users (the editor) keep the users endpoint.
  */
 add_filter( 'xmlrpc_enabled', '__return_false' );
+
+// The emoji script fetches images from s.w.org for characters every current browser draws
+// itself; drop it so the strict CSP doesn't need that origin.
+remove_action( 'wp_head', 'print_emoji_detection_script', 7 );
+remove_action( 'wp_print_styles', 'print_emoji_styles' );
+remove_action( 'admin_print_scripts', 'print_emoji_detection_script' );
+remove_action( 'admin_print_styles', 'print_emoji_styles' );
+remove_filter( 'the_content_feed', 'wp_staticize_emoji' );
+remove_filter( 'comment_text_rss', 'wp_staticize_emoji' );
+remove_filter( 'wp_mail', 'wp_staticize_emoji_for_email' );
+add_filter( 'emoji_svg_url', '__return_false' );
 // xmlrpc_enabled only covers authenticated methods; drop the rest too (system.multicall
 // amplifies password guessing, pingback.ping is abused for DDoS reflection).
 add_filter( 'xmlrpc_methods', '__return_empty_array' );
