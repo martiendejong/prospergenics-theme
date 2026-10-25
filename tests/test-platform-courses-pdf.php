@@ -21,6 +21,7 @@ function ok( $cond, $msg ) {
 
 define( 'ABSPATH', sys_get_temp_dir() . '/pg-courses-pdf-test/' );
 function apply_filters( $hook, $value ) { return $value; }
+function add_action( ...$args ) {} // certificate.php registers its revoke handler
 require $theme . '/inc/courses/helpers.php';
 require $theme . '/inc/courses/pdf.php';
 require $theme . '/inc/courses/certificate.php';
