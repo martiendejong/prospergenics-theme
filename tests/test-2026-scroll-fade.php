@@ -1,14 +1,14 @@
 <?php
 /**
  * Standalone test for the 2026 theme's scroll top-fade (audit UX-1, reported by Lesiamon) and two
- * small audit fixes on the same pages (UX-3, UX-5, NAV-4).
+ * small audit fixes on the same pages (UX-5, NAV-4). The value test is covered by
+ * test-2026-value-test.php.
  *
  * Checks:
  *   - index.html and site_chrome.py carry the same scroll-fade block, and every generated page that
  *     includes it (front page, About, experts, community, people) carries that exact block,
  *   - the fade only masks: no greyscale or scaling of whole sections,
  *   - it stays off for reduced motion, near the top of the page, and on focused content and forms,
- *   - the value test does not move focus on page load,
  *   - the courses empty state offers a next step that is not the value test, and its button text
  *     stays white.
  *
@@ -56,12 +56,6 @@ ok( false !== strpos( $source, 'window.scrollY < 40' ), 'off while the page is a
 ok( false !== strpos( $source, 't >= 0' ), 'only content whose top has scrolled past the viewport edge is masked' );
 ok( (bool) preg_match( '/Math\.min\(window\.innerHeight \* 0\.12, 96\)/', $source ), 'the fade band is at most 12% of the viewport and 96px' );
 ok( false !== strpos( $source, 'document.activeElement' ) && false !== strpos( $source, "'form, .launcher, .co-embed-root, [data-no-fade]'" ), 'never masks focused content, forms or the chat' );
-
-echo "Value test focus (UX-3)\n";
-$home = file_get_contents( $design . '/index.html' );
-ok( false !== strpos( $home, 'if (moveFocus) answerEl.focus(' ), 'the textarea is focused only when asked' );
-ok( (bool) preg_match( '/else \{ render\(\); \}/', $home ), 'the first render on page load does not move focus' );
-ok( 2 === substr_count( $home, 'render(true)' ), 'Next and Back move focus to the answer' );
 
 echo "Courses empty state (UX-5, NAV-4)\n";
 $archive = file_get_contents( $design . '/wp/archive-pg_course.php' );
