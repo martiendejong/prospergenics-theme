@@ -16,7 +16,8 @@
 .pgc-h2{font-family:'Gabarito',sans-serif;font-weight:800;font-size:clamp(22px,2.4vw,28px);letter-spacing:-.01em;margin:0 0 18px;}
 .pgc-muted{color:var(--muted);font-size:15px;line-height:1.6;}
 .pgc-empty{font-size:17px;line-height:1.7;color:#2a3d30;background:#fff;border:1px dashed rgba(15,61,40,.25);border-radius:16px;padding:22px 24px;}
-.pgc-empty a{color:var(--green-700);}
+.pgc-empty a:not(.pgc-btn){color:var(--green-700);}
+.pgc-empty p+p{margin-top:16px;}
 .pgc-links{font-size:14.5px;color:var(--muted);}
 .pgc-links a,.pgc-link-small{color:var(--green-700);font-weight:600;}
 .pgc-link-small{font-size:14px;align-self:center;}

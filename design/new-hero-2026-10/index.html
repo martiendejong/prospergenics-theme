@@ -1311,7 +1311,7 @@
         progress.appendChild(d);
       });
 
-      function render() {
+      function render(moveFocus) {
         const dots = progress.children;
         for (let i = 0; i < dots.length; i++) dots[i].classList.toggle('done', i <= step);
         questionEl.textContent = (step + 1) + '. ' + QUESTIONS[step];
@@ -1319,17 +1319,18 @@
         backBtn.style.visibility = step === 0 ? 'hidden' : 'visible';
         nextBtn.innerHTML = step === QUESTIONS.length - 1 ? 'Reveal my value <span class="arrow">&rarr;</span>' : 'Next <span class="arrow">&rarr;</span>';
         hintEl.textContent = (step + 1) + ' / ' + QUESTIONS.length;
-        answerEl.focus({ preventScroll: true });
+        // only after the visitor pressed Next/Back: on page load focus stays at the top of the page
+        if (moveFocus) answerEl.focus({ preventScroll: true });
       }
 
       backBtn.addEventListener('click', function () {
         answers[step] = answerEl.value;
-        if (step > 0) { step--; render(); }
+        if (step > 0) { step--; render(true); }
       });
 
       nextBtn.addEventListener('click', function () {
         answers[step] = answerEl.value;
-        if (step < QUESTIONS.length - 1) { step++; render(); return; }
+        if (step < QUESTIONS.length - 1) { step++; render(true); return; }
         finish();
       });
 
@@ -1528,65 +1529,39 @@
   </script>
 
   <script>
-    // Scroll top-fade: gradient mask — the top 15 % of the viewport is a fade zone.
-    // Non-hero + hero-bottom: viewport-relative formula (transparent at 0, opaque at 15 %).
-    // .copy in hero-top: scroll-relative formula (no mask at scrollY=0; grows as user scrolls).
-    // .hero-top itself is excluded because its child is a full-bleed 100vw background image;
-    // masking the parent would clip that image to the container width (visible left/right margins).
-    (function(){
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-      const items = Array.from(document.querySelectorAll(
-        'main > section:not(.hero) > *, main > section.hero > .hero-bottom'
-      ));
-      const heroItems = Array.from(document.querySelectorAll('main > section.hero > .hero-top > .copy > .copy-inner'));
-      // Capture initial top for each heroItem at load time so we know whether it already sits
-      // inside the fade zone (desktop) or below it (mobile). fadeStart = min(zone, initialTop):
-      // on mobile initialTop >> zone → behaves like the other items (viewport-relative);
-      // on desktop initialTop < zone → fading starts as soon as the element begins to scroll up.
-      const heroItemsData = heroItems.map(el => ({ el, initialTop: el.getBoundingClientRect().top }));
-      if (!items.length && !heroItemsData.length) return;
-      let ticking = false;
-      function applyFx(el, progress) {
-        // CSS `scale` property is independent of `transform`, so it composes with
-        // the scroll-scale grow-in system without conflict.
-        el.style.filter = `grayscale(${progress * 75}%)`;
-        el.style.scale = String(1 - progress * 0.05);
-      }
-      function clearFx(el) {
-        el.style.filter = '';
-        el.style.scale = '';
-        el.style.maskImage = ''; el.style.webkitMaskImage = '';
-      }
+    // scroll-fade:start (kept identical in index.html and site_chrome.py; tests/test-2026-scroll-fade.php)
+    // Scroll top-fade: content fades out only in a thin band at the top of the viewport, i.e. the part
+    // the reader has already scrolled past. Mask only: no greyscale or scaling of whole sections, never
+    // on forms, the chat or whatever has focus, and off under prefers-reduced-motion.
+    (function () {
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+      var items = Array.prototype.slice.call(document.querySelectorAll(
+        'main > section:not(.hero) > *, main > section.hero > .hero-bottom, main > section.hero > .hero-top > .copy > .copy-inner'));
+      if (!items.length) return;
+      var skip = 'form, .launcher, .co-embed-root, [data-no-fade]';
+      var ticking = false;
+      function clear(el) { el.style.maskImage = ''; el.style.webkitMaskImage = ''; }
       function update() {
-        const zone = window.innerHeight * 0.15;
-        items.forEach(el => {
-          const t = el.getBoundingClientRect().top;
-          if (t >= zone) {
-            clearFx(el);
-          } else {
-            const progress = Math.max(0, Math.min(1, (zone - t) / zone));
-            const g = `linear-gradient(to bottom,transparent ${-t}px,#000 ${zone - t}px)`;
-            el.style.maskImage = g; el.style.webkitMaskImage = g;
-            applyFx(el, progress);
-          }
-        });
-        heroItemsData.forEach(({ el, initialTop }) => {
-          const t = el.getBoundingClientRect().top;
-          const fadeStart = Math.min(zone, initialTop);
-          if (t >= fadeStart) {
-            clearFx(el);
-          } else {
-            const progress = Math.max(0, Math.min(1, (zone - t) / zone));
-            const g = `linear-gradient(to bottom,transparent ${-t}px,#000 ${zone - t}px)`;
-            el.style.maskImage = g; el.style.webkitMaskImage = g;
-            applyFx(el, progress);
-          }
-        });
         ticking = false;
+        var band = Math.min(window.innerHeight * 0.12, 96);
+        var off = reduce.matches || window.scrollY < 40;
+        var focused = document.activeElement;
+        items.forEach(function (el) {
+          var t = el.getBoundingClientRect().top;
+          if (off || t >= 0 || el.matches(skip) || el.querySelector(skip) ||
+              (focused && focused !== document.body && el.contains(focused))) { clear(el); return; }
+          var g = 'linear-gradient(to bottom,transparent ' + (-t) + 'px,#000 ' + (band - t) + 'px)';
+          el.style.maskImage = g; el.style.webkitMaskImage = g;
+        });
       }
-      window.addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
-      window.addEventListener('resize', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+      function request() { if (!ticking) { ticking = true; requestAnimationFrame(update); } }
+      window.addEventListener('scroll', request, { passive: true });
+      window.addEventListener('resize', request, { passive: true });
+      document.addEventListener('focusin', request);
+      if (reduce.addEventListener) reduce.addEventListener('change', request);
+      update();
     })();
+    // scroll-fade:end
     // Header: hidden by default on all screen sizes; slides in when scrolled past hero + scrolling up.
     (function(){
       const header = document.querySelector('.site-header');

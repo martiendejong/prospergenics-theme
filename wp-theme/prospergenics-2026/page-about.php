@@ -582,54 +582,39 @@
       document.addEventListener('click', function (e) { if (!panel.hidden && !e.target.closest('.site-header')) setOpen(false); });
       window.matchMedia('(min-width: 881px)').addEventListener('change', function (e) { if (e.matches) setOpen(false); });
     })();
-    // Scroll top-fade: gradient mask — the top 15 % of the viewport is a fade zone.
-    // Non-hero: viewport-relative formula. Hero children: scroll-relative (no mask at scrollY=0).
+    // scroll-fade:start (kept identical in index.html and site_chrome.py; tests/test-2026-scroll-fade.php)
+    // Scroll top-fade: content fades out only in a thin band at the top of the viewport, i.e. the part
+    // the reader has already scrolled past. Mask only: no greyscale or scaling of whole sections, never
+    // on forms, the chat or whatever has focus, and off under prefers-reduced-motion.
     (function () {
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-      var items = Array.prototype.slice.call(document.querySelectorAll('main > section:not(.hero) > *, main > section.hero > .hero-bottom'));
-      var heroItems = Array.prototype.slice.call(document.querySelectorAll('main > section.hero > .hero-top > .copy > .copy-inner'));
-      var heroItemsData = heroItems.map(function (el) { return { el: el, initialTop: el.getBoundingClientRect().top }; });
-      if (!items.length && !heroItemsData.length) return;
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+      var items = Array.prototype.slice.call(document.querySelectorAll(
+        'main > section:not(.hero) > *, main > section.hero > .hero-bottom, main > section.hero > .hero-top > .copy > .copy-inner'));
+      if (!items.length) return;
+      var skip = 'form, .launcher, .co-embed-root, [data-no-fade]';
       var ticking = false;
-      function applyFx(el, progress) {
-        el.style.filter = 'grayscale(' + (progress * 75) + '%)';
-        el.style.scale = String(1 - progress * 0.05);
-      }
-      function clearFx(el) {
-        el.style.filter = '';
-        el.style.scale = '';
-        el.style.maskImage = ''; el.style.webkitMaskImage = '';
-      }
+      function clear(el) { el.style.maskImage = ''; el.style.webkitMaskImage = ''; }
       function update() {
-        var zone = window.innerHeight * 0.15;
+        ticking = false;
+        var band = Math.min(window.innerHeight * 0.12, 96);
+        var off = reduce.matches || window.scrollY < 40;
+        var focused = document.activeElement;
         items.forEach(function (el) {
           var t = el.getBoundingClientRect().top;
-          if (t >= zone) {
-            clearFx(el);
-          } else {
-            var progress = Math.max(0, Math.min(1, (zone - t) / zone));
-            var g = 'linear-gradient(to bottom,transparent ' + (-t) + 'px,#000 ' + (zone - t) + 'px)';
-            el.style.maskImage = g; el.style.webkitMaskImage = g;
-            applyFx(el, progress);
-          }
+          if (off || t >= 0 || el.matches(skip) || el.querySelector(skip) ||
+              (focused && focused !== document.body && el.contains(focused))) { clear(el); return; }
+          var g = 'linear-gradient(to bottom,transparent ' + (-t) + 'px,#000 ' + (band - t) + 'px)';
+          el.style.maskImage = g; el.style.webkitMaskImage = g;
         });
-        heroItemsData.forEach(function (item) {
-          var t = item.el.getBoundingClientRect().top;
-          var fadeStart = Math.min(zone, item.initialTop);
-          if (t >= fadeStart) {
-            clearFx(item.el);
-          } else {
-            var progress = Math.max(0, Math.min(1, (zone - t) / zone));
-            var g = 'linear-gradient(to bottom,transparent ' + (-t) + 'px,#000 ' + (zone - t) + 'px)';
-            item.el.style.maskImage = g; item.el.style.webkitMaskImage = g;
-            applyFx(item.el, progress);
-          }
-        });
-        ticking = false;
       }
-      window.addEventListener('scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
-      window.addEventListener('resize', function () { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+      function request() { if (!ticking) { ticking = true; requestAnimationFrame(update); } }
+      window.addEventListener('scroll', request, { passive: true });
+      window.addEventListener('resize', request, { passive: true });
+      document.addEventListener('focusin', request);
+      if (reduce.addEventListener) reduce.addEventListener('change', request);
+      update();
     })();
+    // scroll-fade:end
   </script>
   <!-- /site-chrome:js -->
 <?php wp_footer(); ?>
