@@ -69,6 +69,7 @@ function get_permalink( $p ) { $p = get_post( $p ); return $p ? home_url( '/x/' 
 function get_post_field( $f, $p ) { $p = get_post( $p ); return $p ? $p->$f : ''; }
 function wp_nonce_field( $a, $n, $r = true, $e = true ) { return '<input type="hidden" name="' . $n . '" value="nonce" />'; }
 function get_the_title( $p ) { $p = get_post( $p ); return $p ? $p->post_title : ''; }
+function wp_list_pluck( $list, $f ) { return array_map( function ( $o ) use ( $f ) { return $o->$f; }, $list ); }
 function get_post( $p ) {
 	if ( is_object( $p ) ) { return $p; }
 	return isset( $GLOBALS['posts'][ (int) $p ] ) ? $GLOBALS['posts'][ (int) $p ] : null;
@@ -123,6 +124,44 @@ class WP_REST_Request implements ArrayAccess {
 	public function offsetSet( $k, $v ): void { $this->p[ $k ] = $v; }
 	public function offsetUnset( $k ): void { unset( $this->p[ $k ] ); }
 }
+
+/**
+ * $wpdb over the in-memory posts: understands the three counting queries of the courses track
+ * (audit ARC-21) and counts how many queries ran.
+ */
+class Fake_Courses_WPDB {
+	public $posts = 'wp_posts', $postmeta = 'wp_postmeta', $num_queries = 0;
+	public function prepare( $q, ...$args ) {
+		$args = ( 1 === count( $args ) && is_array( $args[0] ) ) ? $args[0] : $args;
+		$i    = 0;
+		return preg_replace_callback( '/%[ds]/', function ( $m ) use ( $args, &$i ) {
+			$v = $args[ $i++ ];
+			return '%d' === $m[0] ? (string) (int) $v : "'" . addslashes( $v ) . "'";
+		}, $q );
+	}
+	private function enrolments( $q ) {
+		preg_match( '/post_parent (?:= (\d+)|IN \(([\d, ]+)\))/', $q, $m );
+		$parents = ! empty( $m[1] ) ? array( (int) $m[1] ) : array_map( 'intval', explode( ',', $m[2] ) );
+		return array_filter( $GLOBALS['posts'], function ( $p ) use ( $parents ) {
+			return 'pg_enrolment' === $p->post_type && 'publish' === $p->post_status && in_array( (int) $p->post_parent, $parents, true );
+		} );
+	}
+	public function get_var( $q ) {
+		$this->num_queries++;
+		$rows = $this->enrolments( $q );
+		if ( false !== strpos( $q, 'COUNT(DISTINCT post_author)' ) ) {
+			return count( array_unique( array_map( function ( $p ) { return (int) $p->post_author; }, $rows ) ) );
+		}
+		return count( $rows );
+	}
+	public function get_row( $q ) {
+		$this->num_queries++;
+		$rows = $this->enrolments( $q );
+		$done = array_filter( $rows, function ( $p ) { $v = get_post_meta( $p->ID, '_pg_courses_completed_at', true ); return '' !== (string) $v && '0' !== (string) $v; } );
+		return (object) array( 'enrolled' => (string) count( $rows ), 'completed' => (string) count( $done ) );
+	}
+}
+$GLOBALS['wpdb'] = new Fake_Courses_WPDB();
 
 require $theme . '/inc/platform-courses.php';
 foreach ( $GLOBALS['hooks']['rest_api_init'] as $cb ) { $cb(); }
@@ -207,6 +246,27 @@ $GLOBALS['transients'] = array();
 for ( $i = 0; $i < 60; $i++ ) { call_user_func( $complete['callback'], new WP_REST_Request( 'DELETE', array( 'id' => 12 ) ) ); }
 $r = call_user_func( $complete['callback'], new WP_REST_Request( 'DELETE', array( 'id' => 12 ) ) );
 ok( $r instanceof WP_Error && 'pg_courses_rate_limited' === $r->code && 429 === $r->data['status'], 'the endpoint answers 429 after 60 requests in a minute' );
+
+echo "Enrolment counts and instructor stats use counting queries (audit ARC-21)\n";
+ok( 1 === (int) get_post_meta( 10, '_pg_courses_enrolment_count', true ), 'enrolling stored the count (1)' );
+add_post( 60, 'pg_enrolment', 10, 8, 'User 8 in course 10' );
+add_post( 61, 'pg_enrolment', 10, 9, 'User 9 in course 10', 'trash' );
+add_post( 62, 'pg_enrolment', 20, 8, 'User 8 in course 20' );
+update_post_meta( 60, '_pg_courses_completed_at', '0' );
+ok( 2 === prospergenics_courses_update_enrolment_count( 10 ), 'the recount counts published enrolments of this course only' );
+$q0 = $GLOBALS['wpdb']->num_queries;
+$st = prospergenics_courses_stats( 10 );
+ok( array( 'enrolled' => 2, 'completed' => 1, 'rate' => 50 ) === $st, 'stats: 2 enrolled, 1 completed (an empty or 0 completion time does not count), 50%' );
+ok( 1 === $GLOBALS['wpdb']->num_queries - $q0, 'stats for a course run one query, however many enrolments it has' );
+add_post( 63, 'pg_enrolment', 10, 9, 'User 9 again' );
+update_post_meta( 63, '_pg_courses_completed_at', time() );
+ok( 2 === prospergenics_courses_stats( 10 )['completed'], 'a completion time counts as completed' );
+$src = file_get_contents( $theme . '/inc/courses/enrolment.php' ) . file_get_contents( $theme . '/inc/courses/render.php' );
+ok( false === strpos( $src, "'post_type' => 'pg_enrolment', 'post_status' => 'publish', 'post_parent' => (int) \$course_id, 'posts_per_page' => -1" ), 'no get_posts( posts_per_page -1 ) over a course\'s enrolments' );
+ok( 2 === preg_match_all( '/\$wpdb->get_(?:var|row)\( \$wpdb->prepare\(/', file_get_contents( $theme . '/inc/courses/enrolment.php' ) ), 'both enrolment queries go through $wpdb->prepare()' );
+ok( false !== strpos( $src, 'COUNT(DISTINCT post_author)' ), 'the instructor summary counts distinct students in SQL' );
+add_post( 64, 'pg_enrolment', 10, 8, 'User 8 twice (should not happen; still one student)' );
+ok( 3 === prospergenics_courses_instructor_summary( 2 )['students'], 'the instructor summary counts each student once (users 5, 8, 9), and not other instructors\' courses' );
 
 echo "Instructor pages only exist for instructors\n";
 ok( null === prospergenics_courses_public_instructor( 1 ), 'an administrator without published courses has no instructor page' );

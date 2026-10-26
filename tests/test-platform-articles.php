@@ -81,6 +81,90 @@ ok( 30 === $allowed, '30 requests a minute are allowed, the rest refused' );
 $r = prospergenics_articles_rate_hit( $state, 1000 + 61 );
 ok( $r['allowed'] && 1 === $r['state']['hits'], 'a new minute starts a new window' );
 
+// Storage (audit ARC-21): the claps table and the running total, against a fake $wpdb that
+// understands the queries claps.php sends (with MySQL's ON DUPLICATE KEY UPDATE semantics).
+echo "Claps storage: {prefix}pg_claps + one total meta (ARC-21)\n";
+$GLOBALS['_meta'] = array();
+function get_post_meta( $id, $k = '', $single = false ) { return isset( $GLOBALS['_meta'][ $id ][ $k ] ) ? $GLOBALS['_meta'][ $id ][ $k ] : ''; }
+function update_post_meta( $id, $k, $v ) { $GLOBALS['_meta'][ $id ][ $k ] = $v; return true; }
+function wp_cache_delete( $k, $g = '' ) { return true; }
+function current_time( $type, $gmt = false ) { return gmdate( 'Y-m-d H:i:s' ); }
+class Fake_Claps_WPDB {
+	public $prefix = 'wp_', $postmeta = 'wp_postmeta', $rows = array(), $log = array();
+	public function prepare( $q, ...$args ) {
+		$args = ( 1 === count( $args ) && is_array( $args[0] ) ) ? $args[0] : $args;
+		$i    = 0;
+		return preg_replace_callback( '/%[ds]/', function ( $m ) use ( $args, &$i ) {
+			$v = $args[ $i++ ];
+			return '%d' === $m[0] ? (string) (int) $v : "'" . addslashes( $v ) . "'";
+		}, $q );
+	}
+	public function query( $q ) {
+		$this->log[] = $q;
+		if ( preg_match( '/^INSERT INTO wp_pg_claps .* VALUES \((\d+), (\d+), (\d+), \'[^\']*\'\) ON DUPLICATE KEY UPDATE n = LEAST\((\d+), n \+ VALUES\(n\)\)/', $q, $m ) ) {
+			$k = $m[1] . ':' . $m[2];
+			$this->rows[ $k ] = array( 'user_id' => (int) $m[1], 'post_id' => (int) $m[2], 'n' => isset( $this->rows[ $k ] ) ? min( (int) $m[4], $this->rows[ $k ]['n'] + (int) $m[3] ) : (int) $m[3] );
+			return 1;
+		}
+		if ( preg_match( "/^UPDATE wp_postmeta SET meta_value = CAST\\(meta_value AS UNSIGNED\\) \\+ (\\d+) WHERE post_id = (\\d+) AND meta_key = '_pg_articles_claps'/", $q, $m ) ) {
+			if ( ! isset( $GLOBALS['_meta'][ (int) $m[2] ]['_pg_articles_claps'] ) ) {
+				return 0;
+			}
+			$GLOBALS['_meta'][ (int) $m[2] ]['_pg_articles_claps'] += (int) $m[1];
+			return 1;
+		}
+		return false;
+	}
+	private function where( $q, $col ) { return preg_match( "/$col = (\\d+)/", $q, $m ) ? (int) $m[1] : null; }
+	public function get_var( $q ) {
+		$this->log[] = $q;
+		$u = $this->where( $q, 'user_id' );
+		$p = $this->where( $q, 'post_id' );
+		if ( 0 === strpos( $q, 'SELECT n FROM wp_pg_claps' ) ) {
+			return isset( $this->rows[ "$u:$p" ] ) ? (string) $this->rows[ "$u:$p" ]['n'] : null;
+		}
+		if ( 0 === strpos( $q, 'SELECT COALESCE(SUM(n), 0) FROM wp_pg_claps' ) ) {
+			return (string) array_sum( array_column( array_filter( $this->rows, function ( $r ) use ( $p ) { return $r['post_id'] === $p; } ), 'n' ) );
+		}
+		return null;
+	}
+	public function get_results( $q ) {
+		$this->log[] = $q;
+		$u = $this->where( $q, 'user_id' );
+		return array_map( function ( $r ) { return (object) $r; }, array_values( array_filter( $this->rows, function ( $r ) use ( $u ) { return $r['user_id'] === $u; } ) ) );
+	}
+	public function delete( $table, $where ) {
+		$this->log[] = "DELETE $table " . json_encode( $where );
+		$col = key( $where );
+		$this->rows = array_filter( $this->rows, function ( $r ) use ( $col, $where ) { return $r[ $col ] !== (int) $where[ $col ]; } );
+		return 1;
+	}
+}
+$GLOBALS['wpdb'] = $wpdb = new Fake_Claps_WPDB();
+ok( 'wp_pg_claps' === prospergenics_articles_claps_table(), 'the table is {prefix}pg_claps' );
+$r = prospergenics_articles_add_claps( 7, 3, 30 );
+ok( array( 'granted' => 30, 'mine' => 30, 'claps' => 30 ) === $r, 'first claps: a row in the table, the total created by a recount (no total stored yet)' );
+$r = prospergenics_articles_add_claps( 7, 3, 30 );
+ok( array( 'granted' => 20, 'mine' => 50, 'claps' => 50 ) === $r, 'the cap holds: 30 + 30 grants 20' );
+ok( 0 === prospergenics_articles_add_claps( 7, 3, 1 )['granted'] && 50 === prospergenics_articles_user_claps( 7, 3 ), 'nothing more after 50' );
+$wpdb->log = array();
+$r = prospergenics_articles_add_claps( 7, 4, 5 );
+ok( 55 === $r['claps'] && 55 === (int) get_post_meta( 7, '_pg_articles_claps', true ), 'a second reader raises the total to 55' );
+$sql = implode( "\n", $wpdb->log );
+ok( false !== strpos( $sql, 'ON DUPLICATE KEY UPDATE n = LEAST(50, n + VALUES(n))' ) && false !== strpos( $sql, 'meta_value = CAST(meta_value AS UNSIGNED) + 5' ), 'one atomic upsert and one n = n + 5 on the total' );
+ok( false === strpos( $sql, 'LIKE' ) && false === strpos( $sql, 'SUM(' ), 'a clap runs no LIKE scan and no recount' );
+ok( 0 === prospergenics_articles_user_claps( 7, 0 ), 'a visitor (user 0) has no claps' );
+prospergenics_articles_add_claps( 8, 3, 2 );
+ok( array( 7 => 50, 8 => 2 ) === prospergenics_articles_claps_by_user( 3 ), 'claps_by_user lists article => claps for the exporter' );
+ok( 2 === prospergenics_articles_erase_claps( 3 ) && array() === prospergenics_articles_claps_by_user( 3 ), 'erasing removes the reader\'s rows' );
+ok( 5 === prospergenics_articles_claps( 7 ) && 0 === prospergenics_articles_claps( 8 ), 'and the totals are recounted from what is left' );
+$csrc = file_get_contents( $theme . '/inc/articles/claps.php' );
+ok( false !== strpos( $csrc, "dbDelta( \"CREATE TABLE {\$table} (" ) && false !== strpos( $csrc, 'PRIMARY KEY  (user_id,post_id)' ) && false !== strpos( $csrc, 'KEY post_id (post_id)' ), 'dbDelta creates the table with (user_id, post_id) as key and an index on post_id' );
+ok( false !== strpos( $csrc, "get_option( 'prospergenics_articles_claps_db' ) >= PROSPERGENICS_ARTICLES_CLAPS_DB" ) && false !== strpos( $csrc, "add_action( 'init', 'prospergenics_articles_claps_install', 5 )" ), 'the install runs once per schema version, early on init' );
+ok( false !== strpos( $csrc, 'ON DUPLICATE KEY UPDATE n = GREATEST(n, VALUES(n))' ) && false !== strpos( $csrc, 'DELETE FROM {$wpdb->postmeta} WHERE meta_id IN (' ), 'the migration upserts the old per-reader meta in batches and deletes what it moved' );
+ok( false === strpos( $csrc, "PROSPERGENICS_ARTICLES_BY_PREFIX . (int) \$user_id" ), 'no per-reader post meta is written or read any more' );
+ok( false !== strpos( $csrc, "add_action( 'deleted_user', 'prospergenics_articles_erase_claps' )" ) && false !== strpos( $csrc, "add_action( 'deleted_post'," ), 'deleting a user or an article removes their rows' );
+
 // ───────────────────────────── Series ─────────────────────────────
 echo "Series (#6370)\n";
 $p = prospergenics_articles_series_position( array( 5, 9, 12 ), 9 );
@@ -138,7 +222,7 @@ ok( false !== strpos( $src, "\$settings['autosaveInterval'] = 30" ), 'autosave e
 ok( false !== strpos( $src, "check_admin_referer( \$action . '_' . \$post_id )" ) && 2 === substr_count( $src, "prospergenics_articles_action_post( 'pg_articles_" ), 'both My articles actions check a per-post nonce' );
 ok( false !== strpos( $src, "current_user_can( \$cap, \$post_id )" ), 'actions check a per-post capability' );
 ok( false !== strpos( $src, "prospergenics_articles_action_post( 'pg_articles_unpublish', 'edit_post' )" ) && false !== strpos( $src, "prospergenics_articles_action_post( 'pg_articles_publish', 'publish_post' )" ), 'unpublish needs edit_post, publish needs publish_post' );
-ok( false !== strpos( $src, '$wpdb->prepare(' ) && false === strpos( $src, '$wpdb->query(' ), 'SQL only through $wpdb->prepare()' );
+ok( false !== strpos( $src, '$wpdb->prepare(' ) && substr_count( $src, '$wpdb->query(' ) === substr_count( $src, '$wpdb->query( $wpdb->prepare(' ), 'SQL only through $wpdb->prepare()' );
 ok( false !== strpos( $src, "add_filter( 'wp_robots', 'wp_robots_no_robots' )" ), 'My articles is noindex' );
 foreach ( array( 'single-pg_article.php', 'archive-pg_article.php', 'taxonomy-pg_article_category.php', 'taxonomy-pg_article_tag.php', 'taxonomy-pg_series.php', 'inc/articles/views/mine.php', 'assets/platform/articles.css', 'assets/platform/articles.js' ) as $f ) {
 	ok( file_exists( $theme . '/' . $f ), "$f is in the generated theme" );
