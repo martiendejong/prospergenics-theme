@@ -15,6 +15,7 @@ require $prospergenics_profiles_dir . 'skills-vocabulary.php';  // #6347 autocom
 require $prospergenics_profiles_dir . 'mail.php';               // ARC-14 sender address, failures returned and logged
 require $prospergenics_profiles_dir . 'data.php';               // #6343 CPTs + user meta, follows, endorsements, photo, featured
 require $prospergenics_profiles_dir . 'verify.php';             // #6339 magic link, #6340 first-login redirect
+require $prospergenics_profiles_dir . 'register.php';           // #6338 /register/: validation, IAM provisioning, member creation
 require $prospergenics_profiles_dir . 'privacy.php';            // ARC-12 export/erase, account deletion clean-up
 require $prospergenics_profiles_dir . 'account.php';            // ARC-5 email and password changes on /profile/settings/
 require $prospergenics_profiles_dir . 'applications.php';       // ARC-8 "Apply to write / teach", Users → Requests

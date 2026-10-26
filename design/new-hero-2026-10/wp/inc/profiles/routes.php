@@ -13,12 +13,13 @@
 
 defined( 'ABSPATH' ) || exit;
 
-const PROSPERGENICS_PROFILES_REWRITE_VERSION = '2';
+const PROSPERGENICS_PROFILES_REWRITE_VERSION = '3';
 
 add_action( 'init', function () {
     add_rewrite_rule( '^in/([^/]+)/?$', 'index.php?pg_profile=$matches[1]', 'top' );
     add_rewrite_rule( '^profile/(settings|following|welcome|verify|deleted)/?$', 'index.php?pg_profile_page=$matches[1]', 'top' );
     add_rewrite_rule( '^profile/?$', 'index.php?pg_profile_page=me', 'top' );
+    add_rewrite_rule( '^register/?$', 'index.php?pg_profile_page=register', 'top' );
     // flush once when the rules change (a cheap option read on every request otherwise)
     if ( get_option( '_pg_profiles_rewrite_version' ) !== PROSPERGENICS_PROFILES_REWRITE_VERSION ) {
         flush_rewrite_rules( false );
@@ -41,7 +42,7 @@ function prospergenics_profiles_route() {
         return 'profile';
     }
     $page = (string) get_query_var( 'pg_profile_page' );
-    return in_array( $page, array( 'me', 'settings', 'following', 'welcome', 'verify', 'deleted' ), true ) ? $page : '';
+    return in_array( $page, array( 'me', 'settings', 'following', 'welcome', 'verify', 'deleted', 'register' ), true ) ? $page : '';
 }
 
 /** The member whose profile is being requested (set in template_redirect). */
@@ -102,6 +103,11 @@ add_action( 'template_redirect', function () {
         exit;
     }
 
+    if ( 'register' === $route ) {
+        prospergenics_profiles_handle_register( $uid );
+        return;
+    }
+
     if ( 'verify' === $route ) {
         prospergenics_profiles_handle_verify();
         return;
@@ -129,6 +135,34 @@ add_action( 'template_redirect', function () {
         prospergenics_profiles_handle_welcome( $uid );
     }
 }, 5 );
+
+/**
+ * /register/ (card #6338): members have nothing to do here; a POST creates the account and goes on to
+ * the wizard; a failed POST renders the form again with the messages next to the fields.
+ */
+function prospergenics_profiles_handle_register( $uid ) {
+    if ( $uid ) {
+        wp_safe_redirect( home_url( '/profile/' ) );
+        exit;
+    }
+    if ( 'POST' !== $_SERVER['REQUEST_METHOD'] ) {
+        return;
+    }
+    $result = prospergenics_register_process( $_POST ); // phpcs:ignore WordPress.Security.NonceVerification -- checked in prospergenics_register_process()
+    if ( is_wp_error( $result ) ) {
+        $data = (array) $result->get_error_data();
+        $GLOBALS['pg_register_error'] = array(
+            $result->get_error_message(),
+            isset( $data['fields'] ) ? (array) $data['fields'] : array(),
+            isset( $data['keep'] ) ? (array) $data['keep'] : array(),
+        );
+        // WP::handle_404() already answered 404 for this POST (no posts behind the route); the form is a page
+        status_header( 200 );
+        return;
+    }
+    wp_safe_redirect( home_url( '/profile/welcome/' ) );
+    exit;
+}
 
 /** Magic link (GET) and "send again" (POST). */
 function prospergenics_profiles_handle_verify() {
@@ -284,6 +318,7 @@ add_filter( 'template_include', function ( $template ) {
         'welcome'   => 'pg-profile-welcome.php',
         'verify'    => 'pg-profile-notice.php',
         'deleted'   => 'pg-profile-notice.php',
+        'register'  => 'pg-register.php',
     );
     if ( isset( $files[ $route ] ) ) {
         $found = locate_template( $files[ $route ] );
@@ -312,6 +347,7 @@ add_filter( 'pre_get_document_title', function ( $title ) {
         'welcome'   => 'Welcome',
         'verify'    => 'Confirm your email address',
         'deleted'   => 'Account deleted',
+        'register'  => 'Create your member account',
     );
     if ( 'profile' === $route && prospergenics_profiles_current_owner() ) {
         $owner = prospergenics_profiles_current_owner();

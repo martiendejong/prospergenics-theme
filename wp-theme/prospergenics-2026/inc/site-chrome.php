@@ -119,7 +119,7 @@ function prospergenics_2026_request_path() {
 /**
  * Account links for the header: Log in + Join for visitors; My profile, My courses, My articles,
  * Instructor dashboard (instructors only), Settings and Log out for members (audit NAV-16: My articles
- * also offers members who cannot write yet the "Apply to write" form). Registration is closed, so Join opens the contact form on "Joining the community".
+ * also offers members who cannot write yet the "Apply to write" form). Join opens /register/ while registration is on (Settings, General, "Anyone can register"), else the contact form on "Joining the community".
  *
  * @return array<int,array{label:string,url:string,key:string}>
  */
@@ -127,7 +127,7 @@ function prospergenics_2026_account_links() {
     if ( ! is_user_logged_in() ) {
         return array(
             array( 'key' => 'login', 'label' => 'Log in', 'url' => wp_login_url( home_url( add_query_arg( array() ) ) ) ),
-            array( 'key' => 'join', 'label' => 'Join', 'url' => prospergenics_2026_contact_url( prospergenics_2026_site_nav()['join_subject'] ) ),
+            array( 'key' => 'join', 'label' => 'Join', 'url' => function_exists( 'prospergenics_register_is_open' ) && prospergenics_register_is_open() ? home_url( '/register/' ) : prospergenics_2026_contact_url( prospergenics_2026_site_nav()['join_subject'] ) ),
         );
     }
     $links = array();
