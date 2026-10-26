@@ -28,7 +28,7 @@ $pga_rel  = prospergenics_articles_related( $pga_post, 3 );
         <p class="ph-excerpt"><?php echo esc_html( get_the_excerpt() ); ?></p>
       <?php endif; ?>
       <div class="pga-byline">
-        <?php echo get_avatar( $pga_post->post_author, 48, '', '', array( 'class' => 'pga-avatar', 'alt' => '' ) ); ?>
+        <?php echo prospergenics_2026_avatar_html( $pga_post->post_author, 48, 'pga-avatar' ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the helper ?>
         <div class="pga-byline-text">
           <?php echo prospergenics_articles_author_name_html( $pga_post->post_author ); ?>
           <span class="pga-byline-facts">

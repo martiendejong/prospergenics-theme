@@ -17,13 +17,18 @@ function prospergenics_courses_progress_bar( $percent, $label = 'Course progress
 	);
 }
 
-/** Course thumbnail, or a branded placeholder. Decorative: the title is always next to it. */
+/**
+ * Course thumbnail, or a branded pattern (one of three, by category) instead of a big letter
+ * (audit UX-8). Decorative: the title is always next to it.
+ */
 function prospergenics_courses_thumb( $course, $size = 'medium_large' ) {
 	if ( has_post_thumbnail( $course ) ) {
 		return get_the_post_thumbnail( $course, $size, array( 'alt' => '', 'loading' => 'lazy', 'class' => 'pgc-thumb-img' ) );
 	}
-	$title = get_the_title( $course );
-	return '<span class="pgc-thumb-placeholder" aria-hidden="true">' . esc_html( mb_strtoupper( mb_substr( $title, 0, 1 ) ) ) . '</span>';
+	$course  = get_post( $course );
+	$terms   = $course ? prospergenics_courses_categories( $course->ID ) : array();
+	$variant = ( $terms ? (int) $terms[0]->term_id : 0 ) % 3 + 1;
+	return '<span class="pgc-thumb-placeholder pg-pattern pg-pattern--' . $variant . '" aria-hidden="true"></span>';
 }
 
 function prospergenics_courses_level_badge( $course_id ) {
@@ -212,7 +217,7 @@ function prospergenics_courses_instructor_block( $user_id ) {
 	}
 	$bio     = get_the_author_meta( 'description', $user->ID );
 	$profile = apply_filters( 'prospergenics_courses_instructor_profile_url', '', $user->ID );
-	$html    = '<div class="pgc-instructor">' . get_avatar( $user->ID, 96, '', '', array( 'class' => 'pgc-avatar' ) );
+	$html    = '<div class="pgc-instructor">' . ( function_exists( 'prospergenics_2026_avatar_html' ) ? prospergenics_2026_avatar_html( $user->ID, 96, 'pgc-avatar' ) : get_avatar( $user->ID, 96, '', '', array( 'class' => 'pgc-avatar' ) ) );
 	$html   .= '<div><h3 class="pgc-instructor-name"><a href="' . esc_url( prospergenics_courses_instructor_url( $user->ID ) ) . '">' . esc_html( $user->display_name ) . '</a></h3>';
 	$html   .= $bio ? '<p>' . esc_html( $bio ) . '</p>' : '<p class="pgc-muted">Instructor at ProsperGenics.</p>';
 	$html   .= '<p class="pgc-links"><a href="' . esc_url( prospergenics_courses_instructor_url( $user->ID ) ) . '">All courses by ' . esc_html( $user->display_name ) . '</a>';

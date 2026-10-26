@@ -14,6 +14,7 @@ TLS session reuse verplicht). FTP root = DA home, so paths start at domains/.
 Uploads:
   wp-theme/prospergenics-2026/  -> public_html/wp-content/themes/prospergenics-2026/
   people/<slug>/index.html      -> public_html/people/<slug>/index.html
+  people/index.html             -> public_html/people/index.html (redirect to the people list)
   experts/index.html            -> public_html/experts/index.html
   community/index.html          -> public_html/community/index.html
                                    (relative asset URLs rewritten to the theme assets URL)
@@ -120,6 +121,11 @@ def main():
         ftp.storbinary(f"STOR {redir_dir}/index.html",
                        io.BytesIO(REDIRECT.format(slug=slug).encode("utf-8")))
         count += 2
+
+    # /people/ itself: a redirect to the people list (build-profiles.py), so it is no 403
+    with open(os.path.join(PEOPLE, "index.html"), "rb") as f:
+        ftp.storbinary(f"STOR {REMOTE_ROOT}/people/index.html", f)
+    count += 1
 
     # list pages (experts/, community/)
     for folder in LISTS:

@@ -42,7 +42,13 @@ get_header();
   <?php if ( is_tax() ) : ?>
     <a class="post-back" href="<?php echo esc_url( get_post_type_archive_link( 'pg_article' ) ); ?>">← All articles</a>
   <?php endif; ?>
-  <?php echo prospergenics_articles_filters(); ?>
+  <?php
+  // An empty /articles/ has nothing to filter or sort (audit UX-7): no chips, no sort pills.
+  $pga_none = ! is_tax() && ! have_posts();
+  if ( ! $pga_none ) {
+      echo prospergenics_articles_filters();
+  }
+  ?>
 
   <?php if ( have_posts() ) : ?>
     <?php $pga_tag = $pga_series ? 'ol' : 'ul'; ?>
@@ -55,8 +61,19 @@ get_header();
     <?php if ( $pga_pages ) : ?>
       <nav class="pagination" aria-label="Pages"><?php echo $pga_pages; ?></nav>
     <?php endif; ?>
+  <?php elseif ( $pga_none ) : ?>
+    <?php // never a link back to this page (audit NAV-9, UX-7): a real next step instead ?>
+    <div class="pga-empty">
+      <p>No articles yet. Our members are writing the first ones. Take the value test for a personal next step, or tell us what you would like to read about.</p>
+      <p class="pga-empty-actions">
+        <a class="pga-btn" href="<?php echo esc_url( home_url( '/#value-test' ) ); ?>">Take the value test</a>
+        <a class="pga-btn pga-btn-ghost" href="<?php echo esc_url( prospergenics_2026_contact_url( 'Something else' ) ); ?>">Tell us what to write about</a>
+      </p>
+    </div>
   <?php else : ?>
-    <p class="empty-note">No articles here yet. <a href="<?php echo esc_url( get_post_type_archive_link( 'pg_article' ) ); ?>">See all articles</a>.</p>
+    <div class="pga-empty">
+      <p>No articles here yet. <a href="<?php echo esc_url( get_post_type_archive_link( 'pg_article' ) ); ?>">See all articles</a>.</p>
+    </div>
   <?php endif; ?>
 </div>
 <?php get_footer(); ?>

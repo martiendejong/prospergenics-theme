@@ -13,7 +13,7 @@
  *     1180px wide (then the menu button), nowrap, admin bar offset; the homepage header is visible
  *     at load and hides only while scrolling down,
  *   - the mobile menu button and panel are wired accessibly, on every page type,
- *   - Log in + Join for visitors; My profile, My courses, Log out for members,
+ *   - Log in + Join for visitors; My profile, My courses, Settings, Log out for members,
  *   - the full footer (with Vacancies and Articles) everywhere,
  *   - jengo-listings pages (saved fixtures) get the site header, footer and menu script, their
  *     "→" buttons go to the contact form with a subject, and anything unexpected is left untouched,
@@ -105,12 +105,16 @@ ok( ! in_array( 'Vacancies', array_column( $nav['main'], 'label' ), true ) && ! 
 
 echo "PHP header, visitor\n";
 $visitor = prospergenics_2026_site_header();
-ok( 0 === strpos( $visitor, '<header class="site-header">' ), 'a <header class="site-header"> bar' );
+ok( 0 === strpos( $visitor, '<a class="skip-link" href="#main">Skip to content</a>' . "\n" . '<header class="site-header">' ), 'a skip link to #main, then a <header class="site-header"> bar (UX-16)' );
 ok( $expected === main_menu( $visitor ), 'main menu in the bar' );
 ok( array_merge( $expected, array( 'Log in', 'Join', 'Take the test' ) ) === labels_in( $visitor, '<nav aria-label="Mobile">' ), 'mobile panel: the same menu, Log in, Join, Take the test' );
 ok( (bool) preg_match( '#<button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-menu" aria-label="Open menu">#', $visitor ), 'menu button is type=button with aria-expanded, aria-controls and aria-label' );
 ok( false !== strpos( $visitor, 'id="mobile-menu" hidden>' ), 'the panel it controls starts hidden' );
 ok( false !== strpos( $visitor, 'href="' . TEST_HOME . '/courses/" aria-current="page">Courses' ), 'the current section is marked (aria-current)' );
+ok( 2 === substr_count( $visitor, 'aria-current="page"' ), 'exactly one link marked in the bar and one in the mobile panel' );
+foreach ( array( '/courses/' => 'Courses', '/members/' => 'Members', '/tools/jengo/' => 'Tools', '/about/' => 'About', '/people/lessy/' => 'Members', '/in/amina-wanjiru/' => 'Members', '/experts/' => 'Members', '/services' => 'Services', '/' => '', '/articles/x/' => '' ) as $p => $label ) {
+	ok( $label === prospergenics_2026_current_nav_label( $p ), "current section of $p is " . ( $label ? $label : 'none' ) . ' (NAV-15)' );
+}
 ok( false !== strpos( $visitor, 'class="nav-account-link" href="' . TEST_HOME . '/wp-login.php?redirect_to=' . rawurlencode( TEST_HOME . '/courses/' ) . '">Log in</a>' ), 'Log in returns to the page you were on' );
 ok( false !== strpos( $visitor, 'nav-account-join" href="' . TEST_HOME . '/contact/?subject=Joining%20the%20community">Join</a>' ), 'Join opens the contact form on "Joining the community"' );
 ok( false === strpos( $visitor, 'Log out' ) && false === strpos( $visitor, 'nav-account-toggle' ), 'no member links for visitors' );
@@ -121,8 +125,8 @@ $GLOBALS['__user'] = 7;
 $member = prospergenics_2026_site_header();
 ok( (bool) preg_match( '#<button class="nav-account-toggle" type="button" aria-expanded="false" aria-controls="account-menu"[^>]*>.*My account</span></button>#', $member ), 'account menu button for members' );
 ok( false !== strpos( $member, '<div class="nav-account-menu" id="account-menu" hidden>' ), 'the account menu it controls starts hidden' );
-ok( (bool) preg_match( '#id="account-menu" hidden>\s*<a [^>]*>My profile</a>\s*<a [^>]*>My courses</a>\s*<a [^>]*>Log out</a>#', $member ), 'account menu: My profile, My courses, Log out' );
-foreach ( array( '/in/amina-otieno/">My profile', '/courses/my/">My courses', 'action=logout&amp;redirect_to=' . rawurlencode( TEST_HOME . '/' ) ) as $needle ) {
+ok( (bool) preg_match( '#id="account-menu" hidden>\s*<a [^>]*>My profile</a>\s*<a [^>]*>My courses</a>\s*<a [^>]*>Settings</a>\s*<a [^>]*>Log out</a>#', $member ), 'account menu: My profile, My courses, Settings, Log out' );
+foreach ( array( '/in/amina-otieno/">My profile', '/courses/my/">My courses', '/profile/settings/">Settings', 'action=logout&amp;redirect_to=' . rawurlencode( TEST_HOME . '/' ) ) as $needle ) {
 	ok( substr_count( $member, $needle ) === 2, "member link $needle in the account menu and the mobile panel" );
 }
 ok( false === strpos( $member, '>Log in<' ) && false === strpos( $member, '>Join<' ), 'no Log in / Join for members' );
@@ -157,7 +161,7 @@ $static = array(
 	'experts/index.html'  => file_get_contents( $design . '/experts/index.html' ),
 	'community/index.html'=> file_get_contents( $design . '/community/index.html' ),
 );
-$header_re = '#<header class="site-header[^"]*">.*?</header>#s';
+$header_re = '#<a class="skip-link" href="\#main">Skip to content</a>\s*<header class="site-header[^"]*">.*?</header>#s';
 $footer_re = '#<footer class="site-footer">.*?</footer>#s';
 $_SERVER['REQUEST_URI'] = '/people/lessy/';
 $php_header = prospergenics_2026_site_header();
@@ -169,14 +173,22 @@ foreach ( $static as $label => $html ) {
 	$h = block( $html, $header_re );
 	ok( $expected === main_menu( $h ), "$label menu is " . implode( ', ', $expected ) );
 	if ( 'index.html' === $label ) {
-		ok( shape( $h ) === shape( prospergenics_2026_site_header( array( 'autohide' => true ) ) ), "$label header markup = the PHP header (visitor)" );
+		ok( shape( $h ) === shape( prospergenics_2026_site_header( array( 'autohide' => true, 'current' => '' ) ) ), "$label header markup = the PHP header (visitor, on /)" );
 	} elseif ( 'about/index.html' === $label ) {
 		ok( shape( $h ) === shape( prospergenics_2026_site_header( array( 'current' => 'About' ) ) ), "$label header markup = the PHP header (visitor)" );
 	} else {
 		ok( shape( $h ) === shape( $php_header ), "$label header markup = the PHP header (visitor)" );
 	}
 	ok( shape( block( $html, $footer_re ) ) === shape( $php_footer ), "$label footer = the PHP footer" );
+	ok( (bool) preg_match( '#<body[^>]*>\s*(<!-- site-chrome:header -->\s*)?<a class="skip-link" href="\#main">#', $html ), "$label: the skip link is the first thing in <body> (UX-16)" );
+	ok( false !== strpos( $html, '<main id="main"' ), "$label: <main id=\"main\"> is the skip link target" );
 }
+foreach ( array( 'people/lessy', 'experts/index.html', 'community/index.html' ) as $label ) {
+	ok( (bool) preg_match( '#<nav class="nav-links" aria-label="Main">(?:(?!</nav>).)*aria-current="page">Members</a>#s', $static[ $label ] ), "$label marks Members as the current section (NAV-15)" );
+}
+ok( (bool) preg_match( '#<nav class="nav-links" aria-label="Main">(?:(?!</nav>).)*aria-current="page">About</a>#s', $static['about/index.html'] ), 'about/index.html marks About as the current section' );
+ok( false === strpos( block( $static['index.html'], $header_re ), 'aria-current' ), 'the homepage marks no section' );
+ok( false !== strpos( $header_php, '<main id="main">' ), 'header.php opens <main id="main"> for every inner template' );
 $_SERVER['REQUEST_URI'] = '/courses/';
 
 echo "one look: full width, one row, sticky\n";
@@ -224,8 +236,19 @@ foreach ( array( 'service-detail' => '/services/coachos/', 'member-detail' => '/
 	ok( (bool) preg_match( '#<style id="prospergenics-site-chrome-css">.*</style>\s*</head>#s', $out ), "$fixture: header CSS printed before </head>, after the plugin's styles" );
 	ok( (bool) preg_match( '#</main>\s*<footer class="site-footer">.*</footer>\s*<script>#s', $out ), "$fixture: site footer and menu script after the content" );
 	ok( false === strpos( $out, 'class="facts-cta" href="' . TEST_HOME . '/"' ), "$fixture: no button left pointing at the homepage" );
+	ok( 1 === substr_count( $out, '<main id="main" class="dir-main">' ), "$fixture: the plugin's <main> gets id=\"main\" for the skip link" );
 	$cta[ $fixture ] = block( $out, '#<a class="facts-cta"[^>]*>[^<]*</a>#' );
+	$outs[ $fixture ] = $out;
 }
+// CoachOS is a tool and a service: each page links the other, as one more fact (CON-12)
+$see = '<div class="fact"><span class="fl">See also</span><a href="' . TEST_HOME . '/tools/coachos/">CoachOS, the platform behind it</a></div>';
+ok( 1 === substr_count( $outs['service-detail'], $see ) && strpos( $outs['service-detail'], $see ) < strpos( $outs['service-detail'], '<a class="facts-cta"' ), '/services/coachos/ links /tools/coachos/ in its facts box, before the button' );
+ok( false === strpos( $outs['member-detail'], '<span class="fl">See also</span>' ), 'pages without a counterpart get no "See also"' );
+$tool_page = str_replace( '/services/coachos/', '/tools/coachos/', $buffer_service = substr( $sp = file_get_contents( __DIR__ . '/fixtures/jengo-listings/service-detail.html' ), 0, strpos( $sp, '<script type="speculationrules">' ) ) );
+$tool_out  = prospergenics_2026_listings_takeover( $tool_page, '/tools/coachos/', $chrome );
+ok( false !== strpos( $tool_out, '<span class="fl">See also</span><a href="' . TEST_HOME . '/services/coachos/">CoachOS as a service for your organisation</a>' ), '/tools/coachos/ links /services/coachos/' );
+$two_boxes = str_replace( '</aside>', '</aside><aside class="dir-facts"></aside>', $buffer_service );
+ok( false === strpos( prospergenics_2026_listings_takeover( $two_boxes, '/services/coachos/', $chrome ), 'See also' ), 'an unexpected page shape gets no "See also"' );
 ok( false !== strpos( $cta['service-detail'], 'href="' . TEST_HOME . '/contact/?subject=Services%20for%20my%20organisation"' ) && false !== strpos( $cta['service-detail'], 'Discuss your project' ), '"Discuss your project →" asks about services' );
 ok( false !== strpos( $cta['member-detail'], '/contact/?subject=Something%20else"' ), '"Get in touch →" on a member opens the form' );
 ok( 'Tools' === prospergenics_2026_listings_cta_subject( 'Ask about this tool →', '/tools/jengo/' ), '"Ask about this tool →" -> Tools' );
@@ -241,6 +264,28 @@ $GLOBALS['__queued'] = array( 'style:jengo-listings:done' );
 ok( prospergenics_2026_is_listings_page(), 'detects a jengo-listings page by its stylesheet' );
 $GLOBALS['__queued'] = array();
 ok( ! prospergenics_2026_is_listings_page(), 'and only then' );
+
+echo "a blog post's back link (NAV-9)\n";
+$GLOBALS['__opt'] = array( 'show_on_front' => 'page', 'page_for_posts' => 11 );
+$GLOBALS['__pages'] = array( 11 => 'publish' );
+$back = prospergenics_2026_posts_listing();
+ok( TEST_HOME . '/blog/' === $back['url'] && 'Back to Blog' === $back['label'], 'goes to the Posts page set under Settings -> Reading' );
+$GLOBALS['__opt'] = array( 'show_on_front' => 'posts', 'page_for_posts' => 11 );
+$back = prospergenics_2026_posts_listing();
+ok( TEST_HOME . '/articles/' === $back['url'] && 'All articles' === $back['label'], 'without a Posts page: the articles listing' );
+$GLOBALS['__no_articles'] = true;
+$back = prospergenics_2026_posts_listing();
+ok( TEST_HOME . '/' === $back['url'], 'without either: the homepage' );
+ok( false !== strpos( file_get_contents( $theme . '/single.php' ), 'prospergenics_2026_posts_listing()' ), 'single.php uses it' );
+
+echo "empty listings never link to themselves (NAV-9, UX-7)\n";
+$arch = file_get_contents( $theme . '/archive-pg_article.php' );
+$empty = block( $arch, '#<\?php elseif \( \$pga_none \) : \?>.*?<\?php else : \?>#s' );
+ok( '' !== $empty && false === strpos( $empty, "get_post_type_archive_link( 'pg_article' )" ), 'an empty /articles/ has no link back to /articles/' );
+ok( false !== strpos( $empty, "home_url( '/#value-test' )" ) && false !== strpos( $empty, 'prospergenics_2026_contact_url(' ), 'it offers the value test and the contact form' );
+ok( 2 === substr_count( $empty, 'class="pga-btn' ), 'both as styled buttons' );
+ok( false !== strpos( $arch, 'if ( ! $pga_none ) {' ), 'no filters or sort pills on an empty /articles/' );
+ok( false !== strpos( file_get_contents( $theme . '/assets/platform/articles.css' ), '.pga-empty a:not(.pga-btn){color:var(--green-700);}' ), 'links in empty notes use the theme colour' );
 
 echo "contact form subject (?subject=)\n";
 $contact = file_get_contents( $theme . '/page-contact.php' );
@@ -265,3 +310,11 @@ ok( isset( $GLOBALS['__hooks']['login_headerurl'], $GLOBALS['__hooks']['login_en
 
 echo $failures ? "\n$failures FAILED\n" : "\nAll assertions passed.\n";
 exit( $failures ? 1 : 0 );
+
+// stubs for prospergenics_2026_posts_listing() (NAV-9)
+function get_option( $k, $d = false ) { return isset( $GLOBALS['__opt'][ $k ] ) ? $GLOBALS['__opt'][ $k ] : $d; }
+function get_post_status( $id ) { return isset( $GLOBALS['__pages'][ $id ] ) ? $GLOBALS['__pages'][ $id ] : false; }
+function get_permalink( $id ) { return TEST_HOME . '/blog/'; }
+function get_the_title( $id ) { return 'Blog'; }
+function post_type_exists( $t ) { return empty( $GLOBALS['__no_articles'] ); }
+function get_post_type_archive_link( $t ) { return TEST_HOME . '/articles/'; }

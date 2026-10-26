@@ -112,7 +112,7 @@ main{flex:1 0 auto;}
 .field .optional{font-weight:400;color:var(--muted);}
 .field input,.field select,.field textarea{font:inherit;font-size:16px;width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid rgba(15,61,40,.22);background:var(--paper);color:var(--ink);}
 .field textarea{resize:vertical;min-height:140px;}
-.field input:focus,.field select:focus,.field textarea:focus{outline:3px solid var(--green-500);outline-offset:1px;border-color:var(--green-700);}
+.field input:focus,.field select:focus,.field textarea:focus{outline:3px solid var(--focus-ring,#1a7a46);outline-offset:1px;border-color:var(--green-700);}
 .form-privacy{font-size:13.5px;color:var(--muted);}
 .form-privacy a{color:var(--green-700);}
 .form-submit{justify-self:start;font-family:'Sora',sans-serif;font-weight:600;font-size:15px;padding:13px 26px;border-radius:999px;border:0;background:var(--green-700);color:#fff;cursor:pointer;}
@@ -128,7 +128,7 @@ main{flex:1 0 auto;}
 .direct-note{font-size:14px;color:var(--muted);}
 @media(max-width:820px){.contact-wrap{grid-template-columns:minmax(0,1fr);}.field-row{grid-template-columns:minmax(0,1fr);}}
 .screen-reader-text{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
-:focus-visible{outline:3px solid var(--green-500);outline-offset:3px;border-radius:6px;}
+:focus-visible{outline:3px solid var(--focus-ring,#1a7a46);outline-offset:3px;border-radius:6px;}
 </style>
 <style id="prospergenics-site-chrome-css">
 <?php echo prospergenics_2026_site_chrome_css(); // phpcs:ignore WordPress.Security.EscapeOutput -- the theme's own stylesheet. ?>

@@ -13,6 +13,9 @@ tests/test-2026-navigation.php checks that every page type shows the same menu a
 
     python site_chrome.py      # rewrites the marked blocks in index.html and about/index.html
 
+The organisation description (footer, About meta) comes from wp/inc/site-chrome/organisation.json,
+the same file inc/site-chrome.php and inc/seo.php read.
+
 people/build-profiles.py imports this module, so rebuilding the profiles picks it up too.
 The static pages can't know who is logged in, so they show the visitor links (Log in, Join);
 in WordPress (homepage, About, every inner page) the header comes from PHP and knows.
@@ -32,6 +35,8 @@ def _read(name):
 
 
 SITE = json.loads(_read("nav.json"))
+# The one organisation description (short: meta, sharing tags, footer; long: structured data).
+ORG = json.loads(_read("organisation.json"))
 # (label, path) of the main menu, e.g. ("Courses", "/courses/")
 NAV = [(item["label"], item["path"]) for item in SITE["main"]]
 
@@ -102,6 +107,17 @@ def _esc(text):
     return text.replace("&", "&amp;").replace('"', "&quot;").replace("<", "&lt;").replace(">", "&gt;")
 
 
+def current_label(path):
+    """Menu label of the section a site path belongs to ("/people/lessy/" -> "Members"), or None.
+    Mirrors prospergenics_2026_current_nav_label() in inc/site-chrome.php (nav.json "also")."""
+    path = "/" + path.strip("/") + "/" if path.strip("/") else "/"
+    for item in SITE["main"]:
+        for prefix in [item["path"]] + item.get("also", []):
+            if prefix != "/" and path.startswith(prefix):
+                return item["label"]
+    return None
+
+
 def _links(root, current, indent):
     out = []
     for label, path in NAV:
@@ -125,9 +141,10 @@ def header(root, current=None, autohide=False):
         f'    <a class="{"nav-account-link nav-account-join" if key == "join" else "nav-account-link"}" href="{_esc(href)}">{label}</a>'
         for key, label, href in _account())
     panel = "\n".join(f'        <a href="{_esc(href)}">{label}</a>' for _key, label, href in _account())
-    return f"""<header class="{cls}">
+    return f"""<a class="skip-link" href="#main">Skip to content</a>
+<header class="{cls}">
   <a class="brand" href="{_href("/", root)}" aria-label="ProsperGenics home">
-    <img src="{root}assets/logo.png" alt="" width="42" height="40" />
+    <img src="{root}assets/logo.webp" alt="" width="42" height="40" />
     <span class="brand-text">ProsperGenics</span>
   </a>
   <nav class="nav-links" aria-label="Main">
@@ -164,8 +181,8 @@ def footer(root):
     return f"""<footer class="site-footer">
   <div class="site-footer-inner">
     <div class="f-brand">
-      <img src="{root}assets/logo.png" alt="ProsperGenics" width="46" height="44" />
-      <p>A community in Kenya and the Netherlands researching and practising how value is created.</p>
+      <img src="{root}assets/logo.webp" alt="ProsperGenics" width="46" height="44" />
+      <p>{_esc(ORG['short'])}</p>
     </div>
 """ + "\n".join(cols) + f"""
   </div>
@@ -199,8 +216,20 @@ def _update(rel, header_html, footer_html, js):
     print(f"updated {rel}")
 
 
+def about_meta():
+    """The About page's description and sharing description: the short organisation text."""
+    d = _esc(ORG["short"])
+    return f'<meta name="description" content="{d}" />\n<meta property="og:description" content="{d}" />'
+
+
 def update_about():
-    _update(os.path.join("about", "index.html"), header("../", current="About"), footer("../"), JS)
+    _update(os.path.join("about", "index.html"), header("../", current=current_label("/about/")), footer("../"), JS)
+    path = os.path.join(HERE, "about", "index.html")
+    with open(path, encoding="utf-8") as f:
+        html = f.read()
+    html = _replace_block(html, "meta", about_meta())
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(html)
 
 
 def update_index():

@@ -58,7 +58,8 @@ function prospergenics_articles_card( $post, $heading = 'h2' ) {
         <?php if ( has_post_thumbnail( $post ) ) : ?>
           <?php echo get_the_post_thumbnail( $post, 'medium_large', array( 'alt' => '', 'loading' => 'lazy', 'sizes' => '(max-width: 700px) 100vw, 400px' ) ); ?>
         <?php else : ?>
-          <span class="pga-card-placeholder" aria-hidden="true"><?php echo esc_html( mb_strtoupper( mb_substr( wp_strip_all_tags( get_the_title( $post ) ), 0, 1 ) ) ); ?></span>
+          <?php // a branded pattern (one of three, by category) instead of a big letter (audit UX-8) ?>
+          <span class="pga-card-placeholder pg-pattern pg-pattern--<?php echo (int) ( ( $cat ? (int) $cat->term_id : 0 ) % 3 + 1 ); ?>" aria-hidden="true"></span>
         <?php endif; ?>
       </div>
       <div class="pga-card-body">
@@ -69,7 +70,7 @@ function prospergenics_articles_card( $post, $heading = 'h2' ) {
         <p class="pga-card-excerpt"><?php echo esc_html( wp_trim_words( get_the_excerpt( $post ), 22 ) ); ?></p>
         <div class="pga-card-meta">
           <span class="pga-card-author">
-            <?php echo get_avatar( $post->post_author, 28, '', '', array( 'class' => 'pga-avatar', 'alt' => '', 'loading' => 'lazy' ) ); ?>
+            <?php echo prospergenics_2026_avatar_html( $post->post_author, 28, 'pga-avatar' ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the helper ?>
             <span><?php echo esc_html( $user ? $user->display_name : 'ProsperGenics' ); ?></span>
           </span>
           <span class="pga-card-facts">
