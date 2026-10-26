@@ -72,6 +72,8 @@
   /* homepage: fixed over the hero, visible at load, hidden while scrolling down (site-chrome.js) */
   .site-header--autohide { position: fixed; left: 0; right: 0; }
   .site-header--autohide.is-hidden { transform: translateY(calc(-100% - 60px)); }
+  /* keyboard users always see where focus is, even before the script runs */
+  .site-header--autohide.is-hidden:focus-within { transform: none; }
   /* below the WordPress admin bar (32px, 46px from 782px down; it scrolls away below 601px) */
   .site-header--adminbar { top: 32px; }
   @media (max-width: 782px) { .site-header--adminbar { top: 46px; } }

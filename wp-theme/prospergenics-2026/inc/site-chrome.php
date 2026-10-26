@@ -146,7 +146,8 @@ function prospergenics_2026_account_links() {
  * The site header with its mobile menu.
  *
  * @param array $args 'current' => menu label to mark (default: from the request path),
- *                    'autohide' => true on the homepage (fixed, hides while scrolling down).
+ *                    'autohide' => true on the homepage (fixed; hidden until the visitor has scrolled
+ *                    past the hero and scrolls back up).
  * @return string HTML
  */
 function prospergenics_2026_site_header( $args = array() ) {
@@ -156,7 +157,8 @@ function prospergenics_2026_site_header( $args = array() ) {
     $cta     = prospergenics_2026_nav_url( $nav['cta'] );
     $classes = 'site-header';
     if ( $args['autohide'] ) {
-        $classes .= ' site-header--autohide';
+        // starts hidden: the homepage hero already shows the menu links (Martien, 26 Oct)
+        $classes .= ' site-header--autohide is-hidden';
     }
     if ( function_exists( 'is_admin_bar_showing' ) && is_admin_bar_showing() ) {
         $classes .= ' site-header--adminbar';

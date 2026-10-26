@@ -204,11 +204,13 @@ ok( false !== strpos( $js, "matchMedia('(min-width: 1181px)')" ), 'the script us
 ok( false === strpos( $css, 'font-weight: 600; box-shadow' ) && false !== strpos( $css, '.site-header .nav-links a[aria-current="page"] { opacity: 1; box-shadow:' ), 'the current link is not bolder (links do not shift between pages)' );
 ok( false !== strpos( $css, '.site-header--adminbar { top: 32px; }' ) && false !== strpos( $css, '.site-header--adminbar { top: 46px; }' ), 'admin bar offset: 32px, 46px from 782px down' );
 
-echo "homepage header (NAV-6)\n";
+echo "homepage header (Martien, 26 Oct: hidden until the visitor scrolls past the hero and back up)\n";
 $home = $static['index.html'];
-ok( false !== strpos( $home, '<header class="site-header site-header--autohide">' ), 'homepage header hides on scroll' );
-ok( false === strpos( $home, 'translateY(-110%)' ) && false === strpos( $home, 'hdr-visible' ) && false === strpos( $front, 'hdr-visible' ), 'it is no longer hidden at load' );
-ok( false !== strpos( $css, '.site-header--autohide.is-hidden { transform:' ) && false !== strpos( $js, "header.classList.add('is-hidden')" ) && false !== strpos( $js, 'y < lastY - 2' ), 'hidden only while scrolling down, back on any scroll up' );
+ok( false !== strpos( $home, '<header class="site-header site-header--autohide is-hidden">' ), 'homepage header starts hidden (the hero already shows the menu links)' );
+ok( false !== strpos( $site_chrome_php = file_get_contents( $theme . '/inc/site-chrome.php' ), "\$classes .= ' site-header--autohide is-hidden';" ), 'the WordPress homepage header starts hidden too' );
+ok( false !== strpos( $js, 'function pastHero(y)' ) && false !== strpos( $js, "} else if (!pastHero(y) || y > lastY + 2) {" ) && false !== strpos( $js, '} else if (y < lastY - 2) {' ), 'shown only past the hero while scrolling up; hidden scrolling down or back in the hero' );
+ok( false !== strpos( $js, "header.querySelector('[aria-expanded=\"true\"]') || keyboardFocusInside()" ), 'an open menu or keyboard focus keeps it visible' );
+ok( false !== strpos( $css, '.site-header--autohide.is-hidden:focus-within { transform: none; }' ), 'keyboard focus reveals it even before the script runs' );
 ok( false !== strpos( $js, "getElementById('mobile-menu')" ) && false !== strpos( $js, "'Escape'" ), 'menu script toggles the panel and handles Escape' );
 
 echo "footer (NAV-8)\n";
