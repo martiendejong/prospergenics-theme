@@ -2,3 +2,6 @@
 
 # Claude Code agent worktrees
 .claude/worktrees/
+
+# Theme backups taken by design/new-hero-2026-10/deploy-wp-theme-vimexx.py
+.deploy-backups/
