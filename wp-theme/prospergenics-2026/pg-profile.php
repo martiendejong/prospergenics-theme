@@ -118,6 +118,12 @@ get_header();
       if ( $is_owner && isset( $_GET['welcome'] ) ) {
           prospergenics_profiles_notice( 'ok', 'Welcome! Your profile is set up. Use “Edit profile” to add more.' );
       }
+      if ( prospergenics_profiles_is_hidden( $owner->ID ) ) {
+          // audit ARC-15: only the owner and staff get this far
+          prospergenics_profiles_notice( 'info', $is_owner
+              ? 'The ProsperGenics team has hidden your profile: only you can see it. Please contact us if you think this is a mistake.'
+              : 'This profile is hidden by the ProsperGenics team: only its owner and staff can see it.' );
+      }
       ?>
 
       <?php if ( $is_owner ) :
@@ -323,6 +329,48 @@ get_header();
           <?php endif; ?>
         </section>
       <?php endif; ?>
+
+      <?php if ( $vis['certificates'] && ! empty( $data['certificates'] ) ) : ?>
+        <section class="pgp-section" id="pgp-certificates" aria-labelledby="pgp-certs-h">
+          <div class="pgp-section-head"><h2 id="pgp-certs-h">Certificates</h2><?php prospergenics_profiles_badge( $data, 'certificates' ); ?></div>
+          <ul class="pgp-list">
+            <?php foreach ( $data['certificates'] as $c ) : ?>
+              <li class="pgp-list-item">
+                <h3><?php if ( '' !== $c['course_url'] ) : ?><a href="<?php echo esc_url( $c['course_url'] ); ?>"><?php echo esc_html( $c['course'] ); ?></a><?php else : ?><?php echo esc_html( $c['course'] ); ?><?php endif; ?></h3>
+                <p class="pgp-entry-dates">Completed <?php echo esc_html( $c['date'] ); ?> · <a href="<?php echo esc_url( $c['verify_url'] ); ?>">Verify<span class="screen-reader-text"> the certificate for <?php echo esc_html( $c['course'] ); ?></span></a></p>
+              </li>
+            <?php endforeach; ?>
+          </ul>
+        </section>
+      <?php endif; ?>
+
+      <?php if ( ! empty( $data['courses'] ) ) : ?>
+        <section class="pgp-section" id="pgp-courses" aria-labelledby="pgp-courses-h">
+          <div class="pgp-section-head"><h2 id="pgp-courses-h"><?php echo $is_owner ? 'Courses you teach' : 'Courses'; ?></h2></div>
+          <ul class="pgp-list">
+            <?php foreach ( $data['courses'] as $c ) : ?>
+              <li class="pgp-list-item"><h3><a href="<?php echo esc_url( $c['url'] ); ?>"><?php echo esc_html( $c['title'] ); ?></a></h3></li>
+            <?php endforeach; ?>
+          </ul>
+          <?php if ( ! empty( $data['instructor_url'] ) ) : ?>
+            <p class="pgp-more-link"><a href="<?php echo esc_url( $data['instructor_url'] ); ?>"><?php echo esc_html( sprintf( 'All courses by %s', $data['name'] ) ); ?></a></p>
+          <?php endif; ?>
+        </section>
+      <?php endif; ?>
+
+      <?php if ( ! empty( $data['articles'] ) ) : ?>
+        <section class="pgp-section" id="pgp-articles" aria-labelledby="pgp-articles-h">
+          <div class="pgp-section-head"><h2 id="pgp-articles-h"><?php echo $is_owner ? 'Your articles' : 'Articles'; ?></h2></div>
+          <ul class="pgp-list">
+            <?php foreach ( $data['articles'] as $a ) : ?>
+              <li class="pgp-list-item"><h3><a href="<?php echo esc_url( $a['url'] ); ?>"><?php echo esc_html( $a['title'] ); ?></a></h3><p class="pgp-entry-dates"><?php echo esc_html( $a['date'] ); ?></p></li>
+            <?php endforeach; ?>
+          </ul>
+          <?php if ( $is_owner ) : ?>
+            <p class="pgp-more-link"><a href="<?php echo esc_url( home_url( '/articles/mine/' ) ); ?>">My articles: drafts, scheduled and published</a></p>
+          <?php endif; ?>
+        </section>
+      <?php endif; ?>
     </div>
 
     <aside class="pgp-side" data-pgp-region="sidebar" aria-label="Profile details">
@@ -377,6 +425,11 @@ get_header();
             <li><a href="<?php echo esc_url( prospergenics_profiles_url( $owner->ID, array( 'view' => 'public' ) ) ); ?>">See what visitors see</a></li>
             <li><a href="<?php echo esc_url( home_url( '/profile/settings/' ) ); ?>">Account and privacy settings</a></li>
             <li><a href="<?php echo esc_url( home_url( '/profile/following/' ) ); ?>">Your connections</a></li>
+            <li><a href="<?php echo esc_url( home_url( '/courses/my/' ) ); ?>">My courses</a></li>
+            <li><a href="<?php echo esc_url( home_url( '/articles/mine/' ) ); ?>">My articles</a></li>
+            <?php if ( function_exists( 'prospergenics_courses_is_instructor' ) && prospergenics_courses_is_instructor() ) : ?>
+              <li><a href="<?php echo esc_url( home_url( '/instructor/dashboard/' ) ); ?>">Instructor dashboard</a></li>
+            <?php endif; ?>
           </ul>
         </div>
       <?php endif; ?>

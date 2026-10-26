@@ -10,7 +10,8 @@ if (!is_user_logged_in()) {
 }
 $pgc_error = '';
 if (!prospergenics_courses_is_instructor()) {
-    $pgc_error = 'The course wizard is for instructors. Ask the ProsperGenics team if you would like to teach a course.';
+    $pgc_error = 'The course wizard is for instructors. Would you like to teach a course? Send the ProsperGenics team a request below.';
+    $pgc_apply = true;
     status_header(403);
 } elseif ($pgc_edit && ('pg_course' !== get_post_type($pgc_edit) || 'trash' === get_post_status($pgc_edit))) {
     $pgc_error = 'This course does not exist (any more).';
@@ -33,7 +34,8 @@ get_header();
 
 <div class="pgc-wrap pgc-narrow">
   <?php if ($pgc_error) : ?>
-    <p class="pgc-empty"><?= esc_html($pgc_error) ?> <a href="<?= esc_url(home_url('/instructor/dashboard/')) ?>">Back to the dashboard</a>.</p>
+    <p class="pgc-empty"><?= esc_html($pgc_error) ?><?php if (empty($pgc_apply)) : ?> <a href="<?= esc_url(home_url('/instructor/dashboard/')) ?>">Back to the dashboard</a>.<?php endif; ?></p>
+    <?php if (!empty($pgc_apply)) { echo prospergenics_profiles_application_box('teach', 'pgc-btn'); } // escaped inside ?>
   <?php else : ?>
   <noscript><p class="pgc-notice pgc-notice--error">The course wizard needs JavaScript. You can also create courses in <a href="<?= esc_url(admin_url('post-new.php?post_type=pg_course')) ?>">WordPress admin</a>.</p></noscript>
 

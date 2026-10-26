@@ -69,6 +69,7 @@ function wp_style_is( $h, $s ) { return in_array( "style:$h:$s", $GLOBALS['__que
 function wp_script_is( $h, $s ) { return in_array( "script:$h:$s", $GLOBALS['__queued'], true ); }
 function prospergenics_profiles_url( $uid ) { return TEST_HOME . '/in/amina-otieno/'; }
 function prospergenics_profiles_photo_url( $uid, $size ) { return ''; }
+function prospergenics_courses_is_instructor() { return 2 === $GLOBALS['__user']; } // user 2 teaches
 $_SERVER['REQUEST_URI'] = '/courses/';
 
 require $theme . '/inc/site-chrome.php';
@@ -125,13 +126,16 @@ $GLOBALS['__user'] = 7;
 $member = prospergenics_2026_site_header();
 ok( (bool) preg_match( '#<button class="nav-account-toggle" type="button" aria-expanded="false" aria-controls="account-menu"[^>]*>.*My account</span></button>#', $member ), 'account menu button for members' );
 ok( false !== strpos( $member, '<div class="nav-account-menu" id="account-menu" hidden>' ), 'the account menu it controls starts hidden' );
-ok( (bool) preg_match( '#id="account-menu" hidden>\s*<a [^>]*>My profile</a>\s*<a [^>]*>My courses</a>\s*<a [^>]*>Settings</a>\s*<a [^>]*>Log out</a>#', $member ), 'account menu: My profile, My courses, Settings, Log out' );
-foreach ( array( '/in/amina-otieno/">My profile', '/courses/my/">My courses', '/profile/settings/">Settings', 'action=logout&amp;redirect_to=' . rawurlencode( TEST_HOME . '/' ) ) as $needle ) {
+ok( (bool) preg_match( '#id="account-menu" hidden>\s*<a [^>]*>My profile</a>\s*<a [^>]*>My courses</a>\s*<a [^>]*>My articles</a>\s*<a [^>]*>Settings</a>\s*<a [^>]*>Log out</a>#', $member ), 'account menu: My profile, My courses, My articles, Settings, Log out (NAV-16)' );
+ok( false === strpos( $member, 'Instructor dashboard' ), 'no Instructor dashboard for a member who does not teach' );
+foreach ( array( '/in/amina-otieno/">My profile', '/courses/my/">My courses', '/articles/mine/">My articles', '/profile/settings/">Settings', 'action=logout&amp;redirect_to=' . rawurlencode( TEST_HOME . '/' ) ) as $needle ) {
 	ok( substr_count( $member, $needle ) === 2, "member link $needle in the account menu and the mobile panel" );
 }
 ok( false === strpos( $member, '>Log in<' ) && false === strpos( $member, '>Join<' ), 'no Log in / Join for members' );
 $GLOBALS['__user'] = 2;
-ok( false !== strpos( prospergenics_2026_site_header(), 'class="site-header site-header--adminbar"' ), 'with the admin bar showing, the header sits below it' );
+$teacher = prospergenics_2026_site_header();
+ok( false !== strpos( $teacher, 'class="site-header site-header--adminbar"' ), 'with the admin bar showing, the header sits below it' );
+ok( (bool) preg_match( '#id="account-menu" hidden>\s*<a [^>]*>My profile</a>\s*<a [^>]*>My courses</a>\s*<a [^>]*>My articles</a>\s*<a [^>]*>Instructor dashboard</a>\s*<a [^>]*>Settings</a>#', $teacher ) && 2 === substr_count( $teacher, '/instructor/dashboard/">Instructor dashboard' ), 'instructors also get Instructor dashboard, in the menu and the mobile panel (NAV-16)' );
 $GLOBALS['__user'] = 0;
 
 echo "every WordPress page type uses it\n";

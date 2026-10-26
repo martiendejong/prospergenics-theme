@@ -482,8 +482,20 @@ function prospergenics_profiles_is_connection( $owner_id, $viewer_id ) {
     return prospergenics_profiles_follows( $owner_id, $viewer_id );
 }
 
-/** Sections the viewer may see on a member's profile ('members' = verified members, ARC-10). */
+/** Whether the ProsperGenics team hid this member's profile (ARC-15; users-admin.php sets it). */
+function prospergenics_profiles_is_hidden( $user_id ) {
+    return (bool) get_user_meta( (int) $user_id, '_pg_profiles_hidden', true );
+}
+
+/**
+ * Sections the viewer may see on a member's profile ('members' = verified members, ARC-10). A
+ * profile hidden by staff (ARC-15) shows nothing to anyone but its owner and staff.
+ */
 function prospergenics_profiles_visibility_for( $owner_id, $viewer_id ) {
+    $staff = $viewer_id && user_can( (int) $viewer_id, 'edit_users' );
+    if ( prospergenics_profiles_hidden_from( prospergenics_profiles_is_hidden( $owner_id ), $viewer_id, $owner_id, $staff ) ) {
+        return array_fill_keys( array_keys( prospergenics_profiles_privacy_defaults() ), false );
+    }
     return prospergenics_profiles_visible_sections(
         prospergenics_profiles_privacy( $owner_id ),
         (int) $viewer_id,
@@ -608,10 +620,11 @@ function prospergenics_profiles_index_min_completion() {
     return (int) apply_filters( 'prospergenics_profiles_index_min_completion', PROSPERGENICS_PROFILES_INDEX_MIN );
 }
 
-/** Whether a member's /in/ page may be indexed: public, verified and complete enough. */
+/** Whether a member's /in/ page may be indexed: public, verified, complete enough and not hidden. */
 function prospergenics_profiles_is_indexable( $user_id ) {
     $user_id = (int) $user_id;
-    return prospergenics_profiles_is_verified( $user_id )
+    return ! prospergenics_profiles_is_hidden( $user_id )
+        && prospergenics_profiles_is_verified( $user_id )
         && 'public' === prospergenics_profiles_privacy( $user_id )['profile']
         && prospergenics_profiles_get_completion( $user_id )['percent'] >= prospergenics_profiles_index_min_completion();
 }
@@ -991,6 +1004,58 @@ function prospergenics_profiles_link_preview( $url ) {
     return $result;
 }
 
+/* ───────────────────────── certificates, courses and articles ───────────────────────── */
+
+/**
+ * The member's valid course certificates (ARC-20), newest first; revoked ones are left out.
+ *
+ * @return array<int,array{course:string,course_url:string,date:string,verify_url:string}>
+ */
+function prospergenics_profiles_certificates( $user_id ) {
+    if ( ! function_exists( 'prospergenics_courses_user_certificates' ) ) {
+        return array();
+    }
+    $out = array();
+    foreach ( prospergenics_courses_user_certificates( (int) $user_id ) as $cert ) {
+        if ( 'publish' !== $cert->post_status || prospergenics_courses_certificate_is_revoked( $cert ) ) {
+            continue;
+        }
+        $c      = prospergenics_courses_certificate_data( $cert );
+        $course = get_post( $c['course_id'] );
+        $out[]  = array(
+            'course'     => $c['course'],
+            'course_url' => $course && 'publish' === $course->post_status ? (string) get_permalink( $course ) : '',
+            'issued_at'  => $c['issued_at'],
+            'date'       => $c['date'],
+            'verify_url' => $c['verify_url'],
+        );
+    }
+    usort( $out, function ( $a, $b ) {
+        return $b['issued_at'] - $a['issued_at'];
+    } );
+    return $out;
+}
+
+/**
+ * The member's published courses or articles (NAV-16), newest first.
+ *
+ * @return array<int,array{title:string,url:string,date:string}>
+ */
+function prospergenics_profiles_published( $user_id, $post_type, $limit = 6 ) {
+    if ( ! post_type_exists( $post_type ) ) {
+        return array();
+    }
+    $out = array();
+    foreach ( get_posts( array( 'post_type' => $post_type, 'post_status' => 'publish', 'author' => (int) $user_id, 'posts_per_page' => $limit, 'orderby' => 'date', 'order' => 'DESC', 'no_found_rows' => true ) ) as $p ) {
+        $out[] = array(
+            'title' => wp_strip_all_tags( get_the_title( $p ) ),
+            'url'   => (string) get_permalink( $p ),
+            'date'  => get_the_date( 'j M Y', $p ),
+        );
+    }
+    return $out;
+}
+
 /* ───────────────────────── the profile as data ───────────────────────── */
 
 /**
@@ -1037,6 +1102,15 @@ function prospergenics_profiles_public_data( $user, $viewer_id ) {
     }
     if ( $vis['featured'] ) {
         $data['featured'] = prospergenics_profiles_featured( $user->ID );
+    }
+    if ( $vis['certificates'] ) {
+        $data['certificates'] = prospergenics_profiles_certificates( $user->ID );
+    }
+    // what they teach and write (NAV-16): published work, public anyway, shown with the profile
+    $data['courses']  = prospergenics_profiles_published( $user->ID, 'pg_course' );
+    $data['articles'] = prospergenics_profiles_published( $user->ID, 'pg_article' );
+    if ( $data['courses'] && function_exists( 'prospergenics_courses_instructor_url' ) ) {
+        $data['instructor_url'] = prospergenics_courses_instructor_url( $user->ID );
     }
     if ( $is_owner ) {
         $data['privacy']    = prospergenics_profiles_privacy( $user->ID );

@@ -31,12 +31,13 @@ get_header();
 <div class="pgc-wrap">
   <?php echo prospergenics_courses_notice_html(); ?>
   <?php if (!$pgc_allowed) : ?>
-    <p class="pgc-empty">The instructor tools are for instructors. Ask the ProsperGenics team if you would like to teach a course.</p>
+    <p class="pgc-empty">The instructor tools are for instructors. Would you like to teach a course? Tell the ProsperGenics team what you would like to teach: once they approve, you can create courses here.</p>
+    <?php echo prospergenics_profiles_application_box('teach', 'pgc-btn'); // escaped inside ?>
   <?php else : ?>
     <?php if (current_user_can('edit_others_pg_courses')) : ?>
       <p class="pgc-scope" aria-label="Which courses">
-        <?php if ($pgc_all) : ?><a href="<?= esc_url(home_url('/instructor/dashboard/')) ?>">My courses</a> · <strong aria-current="page">All courses</strong>
-        <?php else : ?><strong aria-current="page">My courses</strong> · <a href="<?= esc_url(add_query_arg('scope', 'all', home_url('/instructor/dashboard/'))) ?>">All courses</a><?php endif; ?>
+        <?php if ($pgc_all) : ?><a href="<?= esc_url(home_url('/instructor/dashboard/')) ?>">Courses I teach</a> · <strong aria-current="page">All courses</strong>
+        <?php else : ?><strong aria-current="page">Courses I teach</strong> · <a href="<?= esc_url(add_query_arg('scope', 'all', home_url('/instructor/dashboard/'))) ?>">All courses</a><?php endif; ?>
       </p>
     <?php endif; ?>
 

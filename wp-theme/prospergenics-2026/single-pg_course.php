@@ -60,6 +60,8 @@ get_header();
       </section>
     <?php endif; ?>
 
+    <?php if ($pgc_enrolled && 100 === prospergenics_courses_progress($pgc_user, $pgc_course->ID)) { echo prospergenics_courses_next_course_html($pgc_user, $pgc_course->ID); } ?>
+
     <section class="pgc-section" aria-labelledby="pgc-curriculum">
       <h2 id="pgc-curriculum">Curriculum</h2>
       <p class="pgc-muted"><?= esc_html(sprintf(_n('%d module', '%d modules', $pgc_modules, 'prospergenics-2026'), $pgc_modules) . ' · ' . prospergenics_courses_lesson_count_label($pgc_lessons)) ?><?php if (!$pgc_enrolled && $pgc_lessons) : ?> · Enrol to open the lessons.<?php endif; ?></p>

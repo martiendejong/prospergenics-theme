@@ -11,6 +11,8 @@
  *   seo.php      #6365 description / Open Graph / Twitter tags for articles and their lists
  *   mine.php     #6368 the front-end "My articles" page at /articles/mine/
  *   render.php   markup shared by the templates (card, byline, share links, clap button)
+ *   roles.php    ARC-8 the pg_article capability type and the pg_writer role (own media only)
+ *   review.php   ARC-9 emails when an article is submitted for review, published or sent back
  *
  * Templates: single-pg_article.php, archive-pg_article.php and taxonomy-pg_*.php in the theme
  * root. Styles and script: assets/platform/articles.css|js, enqueued only on article pages.
@@ -20,12 +22,14 @@ defined( 'ABSPATH' ) || exit;
 
 define( 'PROSPERGENICS_ARTICLES_VERSION', '1.0.0' );
 
+require __DIR__ . '/articles/roles.php';
 require __DIR__ . '/articles/content.php';
 require __DIR__ . '/articles/query.php';
 require __DIR__ . '/articles/claps.php';
 require __DIR__ . '/articles/seo.php';
 require __DIR__ . '/articles/mine.php';
 require __DIR__ . '/articles/render.php';
+require __DIR__ . '/articles/review.php';
 
 /** Whether the current request shows one of this track's front-end pages. */
 function prospergenics_articles_is_article_page() {

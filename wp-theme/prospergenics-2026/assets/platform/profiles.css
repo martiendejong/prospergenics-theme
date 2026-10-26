@@ -88,6 +88,11 @@
 .pgp-entry-desc{margin-top:8px;}
 .pgp-entry-tools{display:flex;gap:10px;margin-top:6px;}
 .pgp-entry .pgp-form{margin-top:4px;}
+/* certificates, courses and articles (ARC-20, NAV-16) */
+.pgp-list{list-style:none;display:grid;gap:12px;}
+.pgp-list-item h3{font-family:'Sora',sans-serif;font-weight:700;font-size:16px;color:var(--ink);overflow-wrap:anywhere;}
+.pgp-list a,.pgp-more-link a{color:var(--green-700);}
+.pgp-more-link{margin-top:14px;font-weight:600;font-size:15px;}
 
 /* skills */
 .pgp-skills{list-style:none;display:grid;gap:10px;}

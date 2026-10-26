@@ -4,7 +4,7 @@
  *
  * - Tools → Export Personal Data / Erase Personal Data: an exporter and an eraser for the profile
  *   (meta, photo and featured uploads, experience, education, skills), follows, endorsements given
- *   and the on-site notifications. The courses track (enrolments, certificates) and the articles
+ *   and the on-site notifications, and requests to write or teach (applications.php). The courses track (enrolments, certificates) and the articles
  *   track (claps) register their own in inc/courses/privacy.php and inc/articles/claps.php.
  * - Deleting a WordPress user: before the deletion the member's own records (entries, uploads) are
  *   removed, so "attribute all content to" never hands someone's profile to another account; after
@@ -51,6 +51,8 @@ function prospergenics_profiles_personal_data_exporter( $email, $page = 1 ) {
         'Profile photo'      => prospergenics_profiles_photo_url( $uid, 'full' ),
         'Email address confirmed' => prospergenics_profiles_is_verified( $uid ) ? ( $verified_at ? gmdate( 'Y-m-d H:i', $verified_at ) . ' UTC' : 'yes' ) : 'not yet',
         'Onboarding'         => $state['status'],
+        'Hidden by the ProsperGenics team' => get_user_meta( $uid, '_pg_profiles_hidden', true ) ? 'yes, since ' . gmdate( 'Y-m-d H:i', (int) get_user_meta( $uid, '_pg_profiles_hidden', true ) ) . ' UTC' : '',
+        'Instructor access since' => defined( 'PROSPERGENICS_COURSES_INSTRUCTOR_META' ) && get_user_meta( $uid, PROSPERGENICS_COURSES_INSTRUCTOR_META, true ) ? gmdate( 'Y-m-d H:i', (int) get_user_meta( $uid, PROSPERGENICS_COURSES_INSTRUCTOR_META, true ) ) . ' UTC' : '',
         'Previous profile URLs' => array_map( function ( $s ) {
             return home_url( '/in/' . $s . '/' );
         }, (array) get_user_meta( $uid, '_pg_profiles_old_slug', false ) ),
@@ -147,6 +149,9 @@ function prospergenics_profiles_personal_data_exporter( $email, $page = 1 ) {
             ) ),
         );
     }
+
+    // requests to write or teach (audit ARC-8, applications.php)
+    $items = array_merge( $items, prospergenics_profiles_application_export_items( $uid ) );
 
     return array( 'data' => $items, 'done' => true );
 }
@@ -256,8 +261,9 @@ function prospergenics_profiles_erase_references( $user_id ) {
 
 /**
  * Erase the profile data of an account that stays (an erasure request): records, references and
- * every profile field. Kept: the profile URL (it belongs to the account, like its name) and the
- * email verification state (account security). The profile becomes private.
+ * every profile field, requests to write or teach included (_pg_profiles_application_*). Kept: the
+ * profile URL (it belongs to the account, like its name), the email verification state (account
+ * security) and a "hidden" flag set by staff (moderation). The profile becomes private.
  *
  * @return int Items removed.
  */
@@ -265,7 +271,7 @@ function prospergenics_profiles_erase_user_data( $user_id ) {
     global $wpdb;
     $user_id = (int) $user_id;
     $n       = prospergenics_profiles_erase_owned( $user_id ) + prospergenics_profiles_erase_references( $user_id );
-    $keep    = array( '_pg_profiles_slug', '_pg_profiles_verify_pending', '_pg_profiles_verify_hash', '_pg_profiles_verify_expires', '_pg_profiles_verify_sent', '_pg_profiles_email_verified' );
+    $keep    = array( '_pg_profiles_slug', '_pg_profiles_verify_pending', '_pg_profiles_verify_hash', '_pg_profiles_verify_expires', '_pg_profiles_verify_sent', '_pg_profiles_email_verified', '_pg_profiles_hidden' );
     $keys    = $wpdb->get_col( $wpdb->prepare(
         "SELECT DISTINCT meta_key FROM {$wpdb->usermeta} WHERE user_id = %d AND meta_key LIKE %s",
         $user_id,
@@ -293,7 +299,7 @@ function prospergenics_profiles_personal_data_eraser( $email, $page = 1 ) {
     return array(
         'items_removed'  => $n > 0,
         'items_retained' => true,
-        'messages'       => array( 'The profile URL and the email confirmation state were kept, because the account still exists; the profile is now private.' ),
+        'messages'       => array( 'The profile URL, the email confirmation state and a staff "hidden" flag (if any) were kept, because the account still exists; the profile is now private.' ),
         'done'           => true,
     );
 }
@@ -379,9 +385,17 @@ function prospergenics_profiles_send_personal_data( $user_id ) {
     exit;
 }
 
-/** Whether a member may delete their own account here (staff hand content over via an admin). */
+/**
+ * Whether a member may delete their own account here. Anyone who writes or teaches (posts, articles,
+ * courses) hands their content over via an administrator instead, so it is never deleted with them.
+ */
 function prospergenics_profiles_can_self_delete( $user_id ) {
-    return $user_id && ! user_can( (int) $user_id, 'edit_posts' ) && ! is_multisite();
+    foreach ( array( 'edit_posts', 'edit_pg_articles', 'edit_pg_courses' ) as $cap ) {
+        if ( user_can( (int) $user_id, $cap ) ) {
+            return false;
+        }
+    }
+    return $user_id && ! is_multisite();
 }
 
 /**

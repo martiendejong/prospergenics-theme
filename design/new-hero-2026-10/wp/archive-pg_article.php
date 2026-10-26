@@ -29,7 +29,7 @@ get_header();
     <?php if ( $pga_intro ) : ?>
       <p class="ph-excerpt"><?php echo esc_html( $pga_intro ); ?></p>
     <?php endif; ?>
-    <?php if ( current_user_can( 'edit_posts' ) ) : ?>
+    <?php if ( current_user_can( 'edit_pg_articles' ) ) : ?>
       <p class="pga-hero-actions">
         <a class="pga-btn pga-btn-light" href="<?php echo esc_url( admin_url( 'post-new.php?post_type=pg_article' ) ); ?>">Write an article</a>
         <a class="pga-btn pga-btn-outline" href="<?php echo esc_url( prospergenics_articles_mine_url() ); ?>">My articles</a>

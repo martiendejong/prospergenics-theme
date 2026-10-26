@@ -2,7 +2,7 @@
 /**
  * Accounts on the front end (audit ARC-3, ARC-5, NAV-17).
  *
- *   - The WordPress admin bar only for people who edit content (edit_posts); members and
+ *   - The WordPress admin bar only for people who edit content (posts or articles); members and
  *     subscribers see the site header's account menu instead.
  *   - Members who open /wp-admin/ land on their profile (or the homepage). admin-ajax.php,
  *     admin-post.php (the contact form, profile and course actions) and async-upload.php keep working.
@@ -12,9 +12,17 @@
 
 defined( 'ABSPATH' ) || exit;
 
-/** Whether a user is staff (may edit content). */
+/**
+ * Whether a user is staff (may edit content): blog posts, or articles only (writers, the pg_writer
+ * role of audit ARC-8, who write in the block editor).
+ */
 function prospergenics_2026_is_staff( $user_id = null ) {
-    return null === $user_id ? current_user_can( 'edit_posts' ) : user_can( $user_id, 'edit_posts' );
+    foreach ( array( 'edit_posts', 'edit_pg_articles' ) as $cap ) {
+        if ( null === $user_id ? current_user_can( $cap ) : user_can( $user_id, $cap ) ) {
+            return true;
+        }
+    }
+    return false;
 }
 
 add_filter( 'show_admin_bar', function ( $show ) {

@@ -3,8 +3,9 @@
  * Articles: the pg_article post type and its taxonomies (cards #6365, #6368, #6370).
  *
  * - Written in the block editor (Gutenberg, show_in_rest), with excerpt, featured image,
- *   revisions and author support. Capabilities are the core post ones, so authors and editors
- *   can write articles and contributors can submit them for review.
+ *   revisions and author support. Capabilities: their own type (edit_pg_articles, …), granted to
+ *   everyone with the matching core post capability (authors and editors write, contributors
+ *   submit for review) and to the pg_writer role (roles.php, audit ARC-8).
  * - pg_article_category (/articles/category/<slug>/), pg_article_tag (/articles/tag/<slug>/)
  *   and pg_series (/series/<slug>/), all editable from the editor's sidebar.
  * - Reading time is computed from the word count on every save and kept in post meta.
@@ -41,6 +42,7 @@ add_action( 'init', function () {
         'show_in_rest'      => true,
         'show_admin_column' => true,
         'rewrite'           => array( 'slug' => 'articles/category', 'with_front' => false ),
+        'capabilities'      => array( 'assign_terms' => 'edit_pg_articles' ),
     ) );
     register_taxonomy( 'pg_article_tag', array( 'pg_article' ), array(
         'labels'            => array(
@@ -58,6 +60,7 @@ add_action( 'init', function () {
         'show_in_rest'      => true,
         'show_admin_column' => true,
         'rewrite'           => array( 'slug' => 'articles/tag', 'with_front' => false ),
+        'capabilities'      => array( 'assign_terms' => 'edit_pg_articles' ),
     ) );
     register_taxonomy( 'pg_series', array( 'pg_article' ), array(
         'labels'            => array(
@@ -79,6 +82,7 @@ add_action( 'init', function () {
         'show_in_rest'      => true,
         'show_admin_column' => true,
         'rewrite'           => array( 'slug' => 'series', 'with_front' => false ),
+        'capabilities'      => array( 'assign_terms' => 'edit_pg_articles' ),
     ) );
 
     register_post_type( 'pg_article', array(
@@ -114,7 +118,7 @@ add_action( 'init', function () {
         'rest_base'       => 'pg_article',
         'menu_position'   => 6,
         'menu_icon'       => 'dashicons-media-document',
-        'capability_type' => 'post',
+        'capability_type' => array( 'pg_article', 'pg_articles' ),
         'map_meta_cap'    => true,
         'supports'        => array( 'title', 'editor', 'excerpt', 'thumbnail', 'author', 'revisions' ),
         'taxonomies'      => array( 'pg_article_category', 'pg_article_tag', 'pg_series' ),
