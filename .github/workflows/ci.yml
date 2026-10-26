@@ -38,6 +38,9 @@ jobs:
           done
           exit $fail
 
+      - name: Deploy script tests
+        run: python3 tests/test-deploy-script.py
+
       - name: Generated theme matches its design source
         if: hashFiles('design/new-hero-2026-10/build-wp-theme.py') != ''
         run: |
