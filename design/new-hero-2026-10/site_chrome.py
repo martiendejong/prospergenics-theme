@@ -17,7 +17,8 @@ The organisation description (footer, About meta) comes from wp/inc/site-chrome/
 the same file inc/site-chrome.php and inc/seo.php read.
 
 people/build-profiles.py imports this module, so rebuilding the profiles picks it up too.
-The static pages can't know who is logged in, so they show the visitor links (Log in, Join);
+The static pages can't know who is logged in, so they show the visitor links (Log in, Join), and
+site-chrome.js swaps in the account menu when WordPress's pg_member marker cookie is set (#6486);
 in WordPress (homepage, About, every inner page) the header comes from PHP and knows.
 """
 import json
@@ -151,7 +152,7 @@ def header(root, current=None, autohide=False):
   <nav class="nav-links" aria-label="Main">
 {_links(root, current, "    ")}
   </nav>
-  <div class="nav-account">
+  <div class="nav-account" data-static>
 {desk}
   </div>
   <a class="nav-cta" href="{cta_href}">{_esc(cta["label"])}</a>
