@@ -134,7 +134,8 @@ def _account():
 
 def header(root, current=None, autohide=False):
     """root: relative path back to the design root ("", "../" or "../../")."""
-    cls = "site-header site-header--autohide" if autohide else "site-header"
+    # the homepage header starts hidden (the hero already shows the menu links); see site-chrome.js
+    cls = "site-header site-header--autohide is-hidden" if autohide else "site-header"
     cta = SITE["cta"]
     cta_href = _esc(_href(cta["path"], root))
     desk = "\n".join(
