@@ -82,7 +82,7 @@ get_header();
               <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
               <span data-pgp-label><?php echo $editing ? 'Done editing' : 'Edit profile'; ?></span>
             </button>
-            <a class="pgp-btn pgp-btn-light" href="<?php echo esc_url( home_url( '/profile/settings/' ) ); ?>">Privacy</a>
+            <a class="pgp-btn pgp-btn-light" href="<?php echo esc_url( home_url( '/profile/settings/' ) ); ?>">Settings</a>
           <?php elseif ( get_current_user_id() && ! $preview ) : ?>
             <button type="button" class="pgp-btn pgp-btn-on-dark" data-pgp-follow="<?php echo esc_attr( $data['slug'] ); ?>" aria-pressed="<?php echo $data['followed_by_me'] ? 'true' : 'false'; ?>">
               <span data-pgp-label><?php echo $data['followed_by_me'] ? 'Following' : 'Follow'; ?></span><span class="screen-reader-text"> <?php echo esc_html( $data['name'] ); ?></span>
@@ -362,7 +362,7 @@ get_header();
           <h2 class="pgp-card-h">Your profile</h2>
           <ul class="pgp-side-links">
             <li><a href="<?php echo esc_url( prospergenics_profiles_url( $owner->ID, array( 'view' => 'public' ) ) ); ?>">See what visitors see</a></li>
-            <li><a href="<?php echo esc_url( home_url( '/profile/settings/' ) ); ?>">Privacy settings</a></li>
+            <li><a href="<?php echo esc_url( home_url( '/profile/settings/' ) ); ?>">Account and privacy settings</a></li>
             <li><a href="<?php echo esc_url( home_url( '/profile/following/' ) ); ?>">Your connections</a></li>
           </ul>
         </div>

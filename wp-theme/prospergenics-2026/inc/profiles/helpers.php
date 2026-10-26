@@ -19,19 +19,64 @@ function prospergenics_profiles_levels() {
 }
 
 /**
- * Sections a member can set a visibility for, with their defaults (card #6351: profile public,
- * email members only, phone hidden; the rest follows the profile).
+ * Sections a member can set a visibility for, with their defaults. Privacy by default (audit
+ * ARC-10, ARC-11): email and phone are private; the profile itself is only as open as
+ * prospergenics_profiles_default_profile_level() says until the member chooses; the other
+ * sections follow the profile.
+ *
+ * @param string $profile The default level of the profile itself.
  */
-function prospergenics_profiles_privacy_defaults() {
+function prospergenics_profiles_privacy_defaults( $profile = 'members' ) {
     return array(
-        'profile'    => 'public',
-        'email'      => 'members',
+        'profile'    => isset( prospergenics_profiles_levels()[ $profile ] ) ? $profile : 'members',
+        'email'      => 'private',
         'phone'      => 'private',
         'experience' => 'public',
         'education'  => 'public',
         'skills'     => 'public',
         'featured'   => 'public',
     );
+}
+
+/**
+ * Who sees a profile whose owner never chose (audit ARC-11): nobody is published without
+ * consent. Administrators stay private; a member who finished the onboarding wizard is public;
+ * everyone else (existing accounts, members still in the wizard) is visible to verified members
+ * only. Choosing a level on /profile/settings/ overrides this.
+ *
+ * @param bool   $is_admin          The owner can manage the site.
+ * @param string $onboarding_status none|pending|done
+ */
+function prospergenics_profiles_default_profile_level( $is_admin, $onboarding_status ) {
+    if ( $is_admin ) {
+        return 'private';
+    }
+    return 'done' === $onboarding_status ? 'public' : 'members';
+}
+
+/**
+ * The one-off migration of stored settings (audit ARC-10): the old settings form always saved
+ * the old default 'members' for the email, so a stored 'members' cannot be told apart from
+ * "never changed it" and becomes 'private'. Members can open it up again in settings.
+ *
+ * @param mixed $stored
+ * @return mixed The settings to store (unchanged when nothing needs migrating).
+ */
+function prospergenics_profiles_migrate_privacy( $stored ) {
+    if ( is_array( $stored ) && isset( $stored['email'] ) && 'members' === $stored['email'] ) {
+        $stored['email'] = 'private';
+    }
+    return $stored;
+}
+
+const PROSPERGENICS_PROFILES_INDEX_MIN = 40;
+
+/**
+ * Whether a profile page may be indexed (audit ARC-11): only public profiles that are at least
+ * PROSPERGENICS_PROFILES_INDEX_MIN percent complete, so empty pages stay out of search engines.
+ */
+function prospergenics_profiles_indexable( $profile_level, $completion_percent ) {
+    return 'public' === $profile_level && (int) $completion_percent >= PROSPERGENICS_PROFILES_INDEX_MIN;
 }
 
 /** Human labels for the privacy sections. */
@@ -50,11 +95,12 @@ function prospergenics_profiles_privacy_labels() {
 /**
  * Merge stored privacy settings over the defaults, dropping unknown sections and levels.
  *
- * @param mixed $stored Whatever user meta holds.
+ * @param mixed      $stored   Whatever user meta holds.
+ * @param array|null $defaults The owner's defaults (prospergenics_profiles_privacy_defaults()).
  * @return array<string,string>
  */
-function prospergenics_profiles_normalize_privacy( $stored ) {
-    $out    = prospergenics_profiles_privacy_defaults();
+function prospergenics_profiles_normalize_privacy( $stored, $defaults = null ) {
+    $out    = is_array( $defaults ) ? array_merge( prospergenics_profiles_privacy_defaults(), array_intersect_key( $defaults, prospergenics_profiles_privacy_defaults() ) ) : prospergenics_profiles_privacy_defaults();
     $levels = prospergenics_profiles_levels();
     if ( is_array( $stored ) ) {
         foreach ( $out as $section => $default ) {
@@ -69,12 +115,16 @@ function prospergenics_profiles_normalize_privacy( $stored ) {
 /**
  * Whether a viewer may see something shared at $level.
  *
- * @param string $level         public|members|connections|private
- * @param int    $viewer_id     0 for a logged-out visitor.
- * @param int    $owner_id      The profile owner.
- * @param bool   $is_connection Whether the owner follows the viewer.
+ * 'members' means verified members (audit ARC-10): an account whose email address is not
+ * confirmed (anyone can create one once registration opens) sees only what is public.
+ *
+ * @param string $level           public|members|connections|private
+ * @param int    $viewer_id       0 for a logged-out visitor.
+ * @param int    $owner_id        The profile owner.
+ * @param bool   $is_connection   Whether the owner follows the viewer.
+ * @param bool   $viewer_verified Whether the viewer's email address is verified.
  */
-function prospergenics_profiles_level_allows( $level, $viewer_id, $owner_id, $is_connection ) {
+function prospergenics_profiles_level_allows( $level, $viewer_id, $owner_id, $is_connection, $viewer_verified = false ) {
     $viewer_id = (int) $viewer_id;
     if ( $viewer_id > 0 && $viewer_id === (int) $owner_id ) {
         return true;
@@ -83,7 +133,7 @@ function prospergenics_profiles_level_allows( $level, $viewer_id, $owner_id, $is
         case 'public':
             return true;
         case 'members':
-            return $viewer_id > 0;
+            return $viewer_id > 0 && (bool) $viewer_verified;
         case 'connections':
             return $viewer_id > 0 && (bool) $is_connection;
         default:
@@ -96,14 +146,61 @@ function prospergenics_profiles_level_allows( $level, $viewer_id, $owner_id, $is
  *
  * @return array<string,bool>
  */
-function prospergenics_profiles_visible_sections( array $privacy, $viewer_id, $owner_id, $is_connection ) {
+function prospergenics_profiles_visible_sections( array $privacy, $viewer_id, $owner_id, $is_connection, $viewer_verified = false ) {
     $privacy = prospergenics_profiles_normalize_privacy( $privacy );
-    $profile = prospergenics_profiles_level_allows( $privacy['profile'], $viewer_id, $owner_id, $is_connection );
+    $profile = prospergenics_profiles_level_allows( $privacy['profile'], $viewer_id, $owner_id, $is_connection, $viewer_verified );
     $out     = array();
     foreach ( $privacy as $section => $level ) {
-        $out[ $section ] = $profile && prospergenics_profiles_level_allows( $level, $viewer_id, $owner_id, $is_connection );
+        $out[ $section ] = $profile && prospergenics_profiles_level_allows( $level, $viewer_id, $owner_id, $is_connection, $viewer_verified );
     }
     return $out;
+}
+
+/**
+ * Fixed-window rate limit (profile lookups, uploads). Returns the new window state and whether
+ * this hit is allowed.
+ *
+ * @param array|false $state ['start' => int, 'hits' => int] or false when none.
+ * @return array{allowed:bool,state:array{start:int,hits:int},retry:int}
+ */
+function prospergenics_profiles_rate_hit( $state, $now, $limit, $window ) {
+    if ( ! is_array( $state ) || ! isset( $state['start'], $state['hits'] ) || $now - (int) $state['start'] >= $window ) {
+        $state = array( 'start' => (int) $now, 'hits' => 0 );
+    }
+    $allowed = $state['hits'] < $limit;
+    if ( $allowed ) {
+        $state['hits']++;
+    }
+    return array( 'allowed' => $allowed, 'state' => $state, 'retry' => max( 1, (int) $state['start'] + (int) $window - (int) $now ) );
+}
+
+/**
+ * Whether one more upload fits a member's quota (audit ARC-13).
+ *
+ * @param int $files     Files the member has now.
+ * @param int $bytes     Bytes they use now (originals plus generated sizes).
+ * @param int $new_bytes Size of the new upload.
+ * @return string '' when it fits, else 'files' or 'bytes'.
+ */
+function prospergenics_profiles_quota_check( $files, $bytes, $new_bytes, $max_files = 20, $max_bytes = 52428800 ) {
+    if ( (int) $files >= (int) $max_files ) {
+        return 'files';
+    }
+    if ( (int) $bytes + (int) $new_bytes > (int) $max_bytes ) {
+        return 'bytes';
+    }
+    return '';
+}
+
+/**
+ * The sender address platform mail uses (audit ARC-14): noreply@ the site's host, without a
+ * leading "www.". That domain must publish SPF and DKIM for the server that sends (see
+ * DEPLOYMENT_CHECKLIST.md, "Platform mail").
+ */
+function prospergenics_profiles_default_mail_from( $home_url ) {
+    $host = strtolower( (string) parse_url( (string) $home_url, PHP_URL_HOST ) );
+    $host = preg_replace( '/^www\./', '', $host );
+    return 'noreply@' . ( '' !== $host ? $host : 'localhost' );
 }
 
 /**

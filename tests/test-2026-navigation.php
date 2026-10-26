@@ -13,7 +13,7 @@
  *     1180px wide (then the menu button), nowrap, admin bar offset; the homepage header is visible
  *     at load and hides only while scrolling down,
  *   - the mobile menu button and panel are wired accessibly, on every page type,
- *   - Log in + Join for visitors; My profile, My courses, Log out for members,
+ *   - Log in + Join for visitors; My profile, My courses, Settings, Log out for members,
  *   - the full footer (with Vacancies and Articles) everywhere,
  *   - jengo-listings pages (saved fixtures) get the site header, footer and menu script, their
  *     "→" buttons go to the contact form with a subject, and anything unexpected is left untouched,
@@ -121,8 +121,8 @@ $GLOBALS['__user'] = 7;
 $member = prospergenics_2026_site_header();
 ok( (bool) preg_match( '#<button class="nav-account-toggle" type="button" aria-expanded="false" aria-controls="account-menu"[^>]*>.*My account</span></button>#', $member ), 'account menu button for members' );
 ok( false !== strpos( $member, '<div class="nav-account-menu" id="account-menu" hidden>' ), 'the account menu it controls starts hidden' );
-ok( (bool) preg_match( '#id="account-menu" hidden>\s*<a [^>]*>My profile</a>\s*<a [^>]*>My courses</a>\s*<a [^>]*>Log out</a>#', $member ), 'account menu: My profile, My courses, Log out' );
-foreach ( array( '/in/amina-otieno/">My profile', '/courses/my/">My courses', 'action=logout&amp;redirect_to=' . rawurlencode( TEST_HOME . '/' ) ) as $needle ) {
+ok( (bool) preg_match( '#id="account-menu" hidden>\s*<a [^>]*>My profile</a>\s*<a [^>]*>My courses</a>\s*<a [^>]*>Settings</a>\s*<a [^>]*>Log out</a>#', $member ), 'account menu: My profile, My courses, Settings, Log out' );
+foreach ( array( '/in/amina-otieno/">My profile', '/courses/my/">My courses', '/profile/settings/">Settings', 'action=logout&amp;redirect_to=' . rawurlencode( TEST_HOME . '/' ) ) as $needle ) {
 	ok( substr_count( $member, $needle ) === 2, "member link $needle in the account menu and the mobile panel" );
 }
 ok( false === strpos( $member, '>Log in<' ) && false === strpos( $member, '>Join<' ), 'no Log in / Join for members' );

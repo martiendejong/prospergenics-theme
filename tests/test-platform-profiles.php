@@ -23,30 +23,59 @@ function ok( $cond, $msg ) {
 require $theme . '/inc/profiles/helpers.php';
 require $theme . '/inc/profiles/skills-vocabulary.php';
 
-echo "[Test 1] privacy defaults and levels (#6351)\n";
+echo "[Test 1] privacy defaults and levels (#6351, audit ARC-10, ARC-11)\n";
 $d = prospergenics_profiles_privacy_defaults();
-ok( 'public' === $d['profile'] && 'members' === $d['email'] && 'private' === $d['phone'], 'defaults: profile public, email members, phone hidden' );
+ok( 'members' === $d['profile'] && 'private' === $d['email'] && 'private' === $d['phone'], 'defaults: profile members, email and phone private (privacy by default)' );
+ok( 'public' === prospergenics_profiles_privacy_defaults( 'public' )['profile'] && 'members' === prospergenics_profiles_privacy_defaults( 'bogus' )['profile'], 'profile default can be passed, unknown levels fall back to members' );
 $n = prospergenics_profiles_normalize_privacy( array( 'email' => 'public', 'phone' => 'everyone', 'bogus' => 'public', 'skills' => array( 'x' ) ) );
 ok( 'public' === $n['email'] && 'private' === $n['phone'] && ! isset( $n['bogus'] ) && 'public' === $n['skills'], 'unknown levels/sections dropped, valid ones kept' );
 ok( prospergenics_profiles_normalize_privacy( 'garbage' ) === $d, 'non-array falls back to defaults' );
+ok( 'public' === prospergenics_profiles_normalize_privacy( array(), prospergenics_profiles_privacy_defaults( 'public' ) )['profile'], 'owner defaults are used for sections never chosen' );
+ok( 'members' === prospergenics_profiles_normalize_privacy( array( 'profile' => 'members' ), prospergenics_profiles_privacy_defaults( 'public' ) )['profile'], 'a chosen level wins over the owner default' );
+ok( 'private' === prospergenics_profiles_default_profile_level( true, 'done' ), 'administrators: private unless they opt in' );
+ok( 'public' === prospergenics_profiles_default_profile_level( false, 'done' ), 'finished onboarding: public' );
+ok( 'members' === prospergenics_profiles_default_profile_level( false, 'pending' ) && 'members' === prospergenics_profiles_default_profile_level( false, 'none' ), 'existing accounts and members in the wizard: members only' );
+$m = prospergenics_profiles_migrate_privacy( array( 'profile' => 'public', 'email' => 'members' ) );
+ok( 'private' === $m['email'] && 'public' === $m['profile'], 'migration: a stored old default email "members" becomes private, the rest is kept' );
+ok( array( 'email' => 'public' ) === prospergenics_profiles_migrate_privacy( array( 'email' => 'public' ) ) && 'x' === prospergenics_profiles_migrate_privacy( 'x' ), 'migration leaves other choices alone' );
+ok( prospergenics_profiles_indexable( 'public', 40 ) && ! prospergenics_profiles_indexable( 'public', 20 ) && ! prospergenics_profiles_indexable( 'members', 100 ), 'indexable: public and at least 40% complete' );
 
 echo "[Test 2] who sees what\n";
 $owner = 7; $member = 9;
 ok( prospergenics_profiles_level_allows( 'public', 0, $owner, false ), 'public: logged-out visitor' );
 ok( ! prospergenics_profiles_level_allows( 'members', 0, $owner, false ), 'members: not a visitor' );
-ok( prospergenics_profiles_level_allows( 'members', $member, $owner, false ), 'members: any member' );
+ok( prospergenics_profiles_level_allows( 'members', $member, $owner, false, true ), 'members: a verified member' );
+ok( ! prospergenics_profiles_level_allows( 'members', $member, $owner, false, false ) && ! prospergenics_profiles_level_allows( 'members', $member, $owner, false ), 'members: not an unverified account (and unverified is the default)' );
 ok( ! prospergenics_profiles_level_allows( 'connections', $member, $owner, false ), 'connections: not a non-connection' );
 ok( prospergenics_profiles_level_allows( 'connections', $member, $owner, true ), 'connections: a connection' );
 ok( ! prospergenics_profiles_level_allows( 'connections', 0, $owner, true ), 'connections: never a visitor' );
-ok( ! prospergenics_profiles_level_allows( 'private', $member, $owner, true ), 'private: nobody else' );
+ok( ! prospergenics_profiles_level_allows( 'private', $member, $owner, true, true ), 'private: nobody else' );
 ok( prospergenics_profiles_level_allows( 'private', $owner, $owner, false ), 'owner sees everything' );
-ok( ! prospergenics_profiles_level_allows( 'nonsense', $member, $owner, true ), 'unknown level denies' );
+ok( ! prospergenics_profiles_level_allows( 'nonsense', $member, $owner, true, true ), 'unknown level denies' );
 $vis = prospergenics_profiles_visible_sections( array( 'profile' => 'members', 'skills' => 'public' ), 0, $owner, false );
 ok( ! $vis['profile'] && ! $vis['skills'] && ! $vis['email'], 'a hidden profile hides every section, even public ones' );
-$vis = prospergenics_profiles_visible_sections( array(), 0, $owner, false );
-ok( $vis['profile'] && $vis['experience'] && ! $vis['email'] && ! $vis['phone'], 'visitor with defaults: no email, no phone' );
-$vis = prospergenics_profiles_visible_sections( array(), $member, $owner, false );
-ok( $vis['email'] && ! $vis['phone'], 'member with defaults: email yes, phone no' );
+$vis = prospergenics_profiles_visible_sections( array( 'profile' => 'public' ), 0, $owner, false );
+ok( $vis['profile'] && $vis['experience'] && ! $vis['email'] && ! $vis['phone'], 'visitor, public profile: no email, no phone' );
+$vis = prospergenics_profiles_visible_sections( array( 'profile' => 'public' ), $member, $owner, false, true );
+ok( $vis['profile'] && ! $vis['email'] && ! $vis['phone'], 'verified member with defaults: a new member\'s email is hidden (ARC-10)' );
+$vis = prospergenics_profiles_visible_sections( array( 'profile' => 'public', 'email' => 'members' ), $member, $owner, false, false );
+ok( $vis['profile'] && ! $vis['email'], 'email shared with members: never shown to an unverified account' );
+$vis = prospergenics_profiles_visible_sections( array( 'profile' => 'public', 'email' => 'members' ), $member, $owner, false, true );
+ok( $vis['email'], 'email shared with members: shown to a verified member' );
+$vis = prospergenics_profiles_visible_sections( array(), $member, $owner, false, false );
+ok( ! $vis['profile'], 'an existing account (default members) is hidden from unverified accounts' );
+
+echo "[Test 2b] rate limits, upload quota, mail sender (ARC-10, ARC-13, ARC-14)\n";
+$st = false; $allowed = 0; $t0 = 1000;
+for ( $i = 0; $i < 6; $i++ ) { $r = prospergenics_profiles_rate_hit( $st, $t0 + $i, 5, 3600 ); $st = $r['state']; $allowed += $r['allowed'] ? 1 : 0; }
+ok( 5 === $allowed && ! $r['allowed'] && $r['retry'] > 3500, 'the 6th upload within an hour is refused, with a retry time' );
+$r = prospergenics_profiles_rate_hit( $st, $t0 + 3600, 5, 3600 );
+ok( $r['allowed'] && 1 === $r['state']['hits'], 'a new window after an hour' );
+ok( '' === prospergenics_profiles_quota_check( 19, 1000, 1000 ), 'quota: the 20th file fits' );
+ok( 'files' === prospergenics_profiles_quota_check( 20, 1000, 1000 ), 'quota: no 21st file' );
+ok( 'bytes' === prospergenics_profiles_quota_check( 3, 50 * 1048576 - 10, 11 ), 'quota: 50 MB in total' );
+ok( 'noreply@prospergenics.com' === prospergenics_profiles_default_mail_from( 'https://www.prospergenics.com/' ), 'sender: noreply@ the site host without www' );
+ok( 'noreply@test.prospergenics.com' === prospergenics_profiles_default_mail_from( 'https://test.prospergenics.com' ), 'sender on the test site' );
 
 echo "[Test 3] profile URL slugs (#6350)\n";
 ok( 'alice-wanjiru' === prospergenics_profiles_slugify( '  Alice  Wanjiru ' ), 'slugify name' );
@@ -168,6 +197,37 @@ foreach ( array( 'pg-profile.php', 'pg-profile-settings.php', 'pg-profile-welcom
 $tpl = file_get_contents( $theme . '/pg-profile.php' );
 ok( ! preg_match( '/echo\s+\$data\[[^\]]+\]\s*;/', $tpl ), 'profile template never echoes data unescaped' );
 ok( false !== strpos( file_get_contents( $theme . '/pg-profile-settings.php' ), "wp_nonce_field( 'pg_profiles_privacy'" ), 'settings form carries a nonce' );
+
+echo "[Test 11b] privacy, account and mail wiring (ARC-5, ARC-10 to ARC-14)\n";
+$inc = $theme . '/inc/profiles/';
+$privacy_src = file_get_contents( $inc . 'privacy.php' );
+$account_src = file_get_contents( $inc . 'account.php' );
+$verify_src  = file_get_contents( $inc . 'verify.php' );
+$mail_src    = file_get_contents( $inc . 'mail.php' );
+$routes_src  = file_get_contents( $inc . 'routes.php' );
+$courses_privacy = file_get_contents( $theme . '/inc/courses/privacy.php' );
+$claps_src   = file_get_contents( $theme . '/inc/articles/claps.php' );
+$settings_tpl = file_get_contents( $theme . '/pg-profile-settings.php' );
+$loader      = file_get_contents( $theme . '/inc/platform-profiles.php' );
+foreach ( array( 'mail.php', 'privacy.php', 'account.php' ) as $f ) {
+	ok( false !== strpos( $loader, "'$f'" ), "loader requires $f" );
+}
+ok( false !== strpos( $privacy_src, "\$exporters['prospergenics-profile']" ) && false !== strpos( $privacy_src, "\$erasers['prospergenics-profile']" ), 'profile exporter and eraser registered' );
+ok( false !== strpos( $courses_privacy, "\$exporters['prospergenics-courses']" ) && false !== strpos( $courses_privacy, "\$erasers['prospergenics-courses']" ) && false !== strpos( file_get_contents( $theme . '/inc/platform-courses.php' ), "'privacy'" ), 'courses exporter and eraser registered and loaded' );
+ok( false !== strpos( $claps_src, "\$erasers['prospergenics-articles']" ) && false !== strpos( $claps_src, "add_action( 'deleted_user', 'prospergenics_articles_erase_claps' )" ), 'claps exporter/eraser and deleted_user recount' );
+ok( false !== strpos( $privacy_src, "add_action( 'delete_user', 'prospergenics_profiles_erase_owned'" ) && false !== strpos( $privacy_src, "add_action( 'deleted_user', 'prospergenics_profiles_erase_references'" ), 'user deletion: own records first, references after' );
+ok( false !== strpos( $account_src, 'wp_check_password(' ) && substr_count( $account_src, 'prospergenics_profiles_check_current_password(' ) >= 3, 'email and password changes check the current password' );
+ok( false !== strpos( $routes_src, "prospergenics_profiles_check_current_password( \$uid, \$raw( 'current_password' ) )" ) && false !== strpos( $routes_src, "empty( \$_POST['confirm_delete'] )" ), 'account deletion needs the password and the confirmation box' );
+foreach ( array( 'pg_profiles_privacy', 'pg_profiles_email', 'pg_profiles_password', 'pg_profiles_export', 'pg_profiles_delete' ) as $nonce ) {
+	ok( false !== strpos( $settings_tpl, "wp_nonce_field( '$nonce'" ) && false !== strpos( $routes_src, "'$nonce'" ), "settings form $nonce has a nonce that is checked" );
+}
+ok( false !== strpos( $settings_tpl, "add_query_arg( 'delete', '1'" ) && false !== strpos( $settings_tpl, 'Delete my account permanently' ), 'delete has an in-page confirmation step' );
+ok( false !== strpos( $verify_src, 'return $sent;' ) && false !== strpos( $verify_src, "'pg_profiles_mail_failed'" ), 'a failed verification mail is an error, not "We sent…"' );
+ok( false !== strpos( $mail_src, "add_action( 'wp_mail_failed', \$capture )" ) && false !== strpos( $mail_src, 'error_log(' ) && false !== strpos( $mail_src, "add_filter( 'wp_mail_from'" ) && false !== strpos( $mail_src, 'PROSPERGENICS_MAIL_FROM' ), 'mail: failures captured and logged, sender set (constant or filter)' );
+ok( false === strpos( file_get_contents( $inc . 'data.php' ), 'wp_mail(' ) && false === strpos( $verify_src, 'wp_mail(' ), 'all platform mail goes through prospergenics_profiles_send_mail()' );
+ok( (bool) preg_match( "#/profile/featured/media', array\(\s*'methods'\s*=>\s*'POST',\s*'permission_callback' => 'prospergenics_profiles_can_upload_media'#", $rest ), 'featured uploads need a verified email address' );
+ok( false !== strpos( $rest, 'PROSPERGENICS_PROFILES_LOOKUP_LIMIT' ) && false !== strpos( $rest, 'prospergenics_profiles_rest_too_many(' ), '/profile/users/{slug} is rate-limited for logged-in accounts' );
+ok( false !== strpos( $routes_src, 'prospergenics_profiles_indexable(' ), 'robots: thin profiles are noindex' );
 
 echo "[Test 12] wp-admin screens of profile entries are for administrators only\n";
 $GLOBALS['hooks'] = array();

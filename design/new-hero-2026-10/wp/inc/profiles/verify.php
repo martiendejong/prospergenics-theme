@@ -24,17 +24,20 @@ function prospergenics_profiles_is_verified( $user_id ) {
     return ! get_user_meta( (int) $user_id, '_pg_profiles_verify_pending', true );
 }
 
-/** Generate a fresh magic link and email it. */
+/**
+ * Generate a fresh magic link and email it.
+ *
+ * @return true|WP_Error A failed send is a WP_Error (and logged, see mail.php), never success.
+ */
 function prospergenics_profiles_send_verification( $user_id ) {
     $user = get_userdata( (int) $user_id );
     if ( ! $user ) {
-        return false;
+        return new WP_Error( 'pg_profiles_no_user', 'No such member.', array( 'status' => 404 ) );
     }
     $token = wp_generate_password( 40, false, false );
     update_user_meta( $user->ID, '_pg_profiles_verify_pending', 1 );
     update_user_meta( $user->ID, '_pg_profiles_verify_hash', prospergenics_profiles_token_hash( $token ) );
     update_user_meta( $user->ID, '_pg_profiles_verify_expires', time() + PROSPERGENICS_PROFILES_VERIFY_TTL );
-    update_user_meta( $user->ID, '_pg_profiles_verify_sent', time() );
 
     $link = add_query_arg( array( 'u' => $user->ID, 't' => $token ), home_url( '/profile/verify/' ) );
     $body = sprintf(
@@ -42,7 +45,12 @@ function prospergenics_profiles_send_verification( $user_id ) {
         $user->display_name,
         $link
     );
-    return wp_mail( $user->user_email, 'Confirm your email address for ProsperGenics', $body );
+    $sent = prospergenics_profiles_send_mail( $user->user_email, 'Confirm your email address for ProsperGenics', $body, 'verify', $user->ID );
+    if ( true === $sent ) {
+        // the "wait five minutes" pause only starts once a mail really went out
+        update_user_meta( $user->ID, '_pg_profiles_verify_sent', time() );
+    }
+    return $sent;
 }
 
 add_action( 'user_register', function ( $user_id ) {
@@ -95,7 +103,10 @@ function prospergenics_profiles_resend_verification( $user_id ) {
     if ( $sent && time() - $sent < PROSPERGENICS_PROFILES_RESEND_PAUSE ) {
         return new WP_Error( 'pg_profiles_wait', 'We just sent you an email. Please wait a few minutes before asking for another one.', array( 'status' => 429 ) );
     }
-    prospergenics_profiles_send_verification( $user_id );
+    $sent = prospergenics_profiles_send_verification( $user_id );
+    if ( is_wp_error( $sent ) ) {
+        return new WP_Error( 'pg_profiles_mail_failed', 'We could not send the email just now. Please try again in a few minutes; if it keeps failing, contact us.', array( 'status' => 503 ) );
+    }
     return true;
 }
 
@@ -105,10 +116,16 @@ add_action( 'wp_body_open', function () {
     if ( ! $uid || prospergenics_profiles_is_verified( $uid ) ) {
         return;
     }
-    $user = wp_get_current_user();
+    $user   = wp_get_current_user();
+    $mail   = prospergenics_profiles_mail_status( $uid, 'verify' );
+    $failed = $mail && 'failed' === $mail['status'];
     ?>
 <div class="pgp-verify-banner" role="region" aria-label="Email verification">
-  <p>Please confirm your email address: we sent a link to <strong><?php echo esc_html( $user->user_email ); ?></strong>. Until then you can edit your profile, but not follow members or endorse skills.</p>
+  <?php if ( $failed ) : ?>
+  <p>Please confirm your email address. We could not send the confirmation link to <strong><?php echo esc_html( $user->user_email ); ?></strong>: please use “Send the link again”. Until then you can edit your profile, but not follow members, endorse skills or add images to “Featured”.</p>
+  <?php else : ?>
+  <p>Please confirm your email address: we sent a link to <strong><?php echo esc_html( $user->user_email ); ?></strong>. Until then you can edit your profile, but not follow members, endorse skills or add images to “Featured”.</p>
+  <?php endif; ?>
   <form method="post" action="<?php echo esc_url( home_url( '/profile/verify/' ) ); ?>">
     <?php wp_nonce_field( 'pg_profiles_resend', '_pgp_nonce' ); ?>
     <input type="hidden" name="pgp_action" value="resend" />

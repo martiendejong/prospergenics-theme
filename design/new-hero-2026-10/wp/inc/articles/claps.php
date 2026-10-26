@@ -207,6 +207,69 @@ add_action( 'switch_theme', function () {
     wp_clear_scheduled_hook( 'prospergenics_articles_refresh_trends' );
 } );
 
+/* Personal data (audit ARC-12): a reader's claps are exported and erased with the privacy tools,
+ * and removed when the account is deleted; the article totals are recounted from what is left.
+ * (The per-day tally behind "trending" holds no names and keeps its numbers.) */
+
+/** @return array<int,int> article id => claps this reader gave */
+function prospergenics_articles_claps_by_user( $user_id ) {
+    global $wpdb;
+    $rows = $wpdb->get_results( $wpdb->prepare(
+        "SELECT post_id, meta_value FROM {$wpdb->postmeta} WHERE meta_key = %s",
+        PROSPERGENICS_ARTICLES_BY_PREFIX . (int) $user_id
+    ) );
+    $out = array();
+    foreach ( $rows as $row ) {
+        $out[ (int) $row->post_id ] = (int) $row->meta_value;
+    }
+    return $out;
+}
+
+/** Remove a reader's claps everywhere and recount those articles. @return int articles touched */
+function prospergenics_articles_erase_claps( $user_id ) {
+    $claps = prospergenics_articles_claps_by_user( $user_id );
+    foreach ( array_keys( $claps ) as $post_id ) {
+        delete_post_meta( $post_id, PROSPERGENICS_ARTICLES_BY_PREFIX . (int) $user_id );
+        prospergenics_articles_recount( $post_id );
+    }
+    return count( $claps );
+}
+add_action( 'deleted_user', 'prospergenics_articles_erase_claps' );
+
+function prospergenics_articles_personal_data_exporter( $email, $page = 1 ) {
+    $user  = get_user_by( 'email', $email );
+    $items = array();
+    foreach ( $user ? prospergenics_articles_claps_by_user( $user->ID ) : array() as $post_id => $n ) {
+        $items[] = array(
+            'group_id'          => 'prospergenics-claps',
+            'group_label'       => 'Article claps',
+            'group_description' => 'Articles you clapped for.',
+            'item_id'           => 'pg-claps-' . $post_id . '-' . $user->ID,
+            'data'              => array(
+                array( 'name' => 'Article', 'value' => get_the_title( $post_id ) ),
+                array( 'name' => 'URL', 'value' => (string) get_permalink( $post_id ) ),
+                array( 'name' => 'Claps', 'value' => (string) $n ),
+            ),
+        );
+    }
+    return array( 'data' => $items, 'done' => true );
+}
+
+function prospergenics_articles_personal_data_eraser( $email, $page = 1 ) {
+    $user = get_user_by( 'email', $email );
+    $n    = $user ? prospergenics_articles_erase_claps( $user->ID ) : 0;
+    return array( 'items_removed' => $n > 0, 'items_retained' => false, 'messages' => array(), 'done' => true );
+}
+
+add_filter( 'wp_privacy_personal_data_exporters', function ( $exporters ) {
+    $exporters['prospergenics-articles'] = array( 'exporter_friendly_name' => 'ProsperGenics article claps', 'callback' => 'prospergenics_articles_personal_data_exporter' );
+    return $exporters;
+} );
+add_filter( 'wp_privacy_personal_data_erasers', function ( $erasers ) {
+    $erasers['prospergenics-articles'] = array( 'eraser_friendly_name' => 'ProsperGenics article claps', 'callback' => 'prospergenics_articles_personal_data_eraser' );
+    return $erasers;
+} );
+
 // The wp-admin list (Articles > All articles) shows claps and reading time too.
 add_filter( 'manage_pg_article_posts_columns', function ( $columns ) {
     $columns['pg_claps']   = 'Claps';
