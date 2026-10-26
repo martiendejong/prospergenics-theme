@@ -1,8 +1,9 @@
 <?php
 /**
  * Seed the throwaway e2e WordPress (run by tests/e2e/run.sh through `wp eval-file`, after the
- * theme is active): one user per role, a published course with one lesson, an article, a profile
- * entry and a contact message. Prints the IDs and names role-matrix.js needs as JSON.
+ * theme is active): one user per role (a Writer included), a published course with one lesson, an
+ * article, a profile entry, a contact message, an image of the administrator's, and a member with
+ * open requests to write and to teach. Prints the IDs and names role-matrix.js needs as JSON.
  *
  * Idempotent: users and posts are looked up by login / title before they are created, so the
  * script can run again on the same site.
@@ -23,6 +24,9 @@ $pg_e2e_users = array(
     'subscriber' => array( 'e2e_sub', 'subscriber', 'Sami', 'Subscriberova', true ),
     'subscriber2' => array( 'e2e_sub2', 'subscriber', 'Tove', 'Othermember', true ),
     'unverified' => array( 'e2e_new', 'subscriber', 'Nuno', 'Newcomer', false ),
+    'unverified2' => array( 'e2e_new2', 'subscriber', 'Uma', 'Unconfirmed', false ), // the admin marks her verified
+    'writer'     => array( 'e2e_writer', 'pg_writer', 'Wim', 'Writerson', true ),
+    'applicant'  => array( 'e2e_applicant', 'subscriber', 'Aya', 'Applicant', true ), // pending requests
 );
 
 $pg_e2e_out = array( 'password' => $pg_e2e_password, 'users' => array() );
@@ -42,6 +46,9 @@ foreach ( $pg_e2e_users as $key => $u ) {
     if ( is_wp_error( $id ) ) {
         fwrite( STDERR, "could not create $login: " . $id->get_error_message() . "\n" );
         exit( 1 );
+    }
+    if ( $user ) {
+        $user->set_role( $role ); // a second run starts from the seeded role (the applicant gets approved)
     }
     if ( $verified ) {
         delete_user_meta( $id, '_pg_profiles_verify_pending' );
@@ -94,7 +101,31 @@ if ( is_wp_error( $entry ) ) {
     exit( 1 );
 }
 
+// Two open requests from the applicant (Users → Requests): to write and to teach.
+foreach ( array( 'write', 'teach' ) as $type ) {
+    update_user_meta( $pg_e2e_out['users']['applicant']['id'], '_pg_profiles_application_' . $type, array(
+        'status'     => 'pending',
+        'motivation' => "E2E: I would like to $type on ProsperGenics, for the role matrix.",
+        'sample'     => '',
+        'submitted'  => time() - HOUR_IN_SECONDS,
+    ) );
+}
+delete_user_meta( $pg_e2e_out['users']['applicant']['id'], '_pg_courses_instructor' );
+
+// An image in the media library that belongs to the administrator: writers must not see it.
+// (looked up by hand: post_status 'any' leaves out attachments' 'inherit')
+$media = get_posts( array( 'post_type' => 'attachment', 'title' => 'E2E admin image 9c1d', 'post_status' => 'inherit', 'posts_per_page' => 1, 'fields' => 'ids' ) );
+$media = $media ? (int) $media[0] : (int) wp_insert_attachment( array(
+    'post_title'     => 'E2E admin image 9c1d',
+    'post_author'    => $admin->ID,
+    'post_status'    => 'inherit',
+    'post_mime_type' => 'image/png',
+    'guid'           => home_url( '/wp-content/uploads/e2e-admin-9c1d.png' ),
+) );
+
 $pg_e2e_out['course']        = $course;
+$pg_e2e_out['media']         = $media;
+$pg_e2e_out['media_title']   = 'E2E admin image 9c1d';
 $pg_e2e_out['lesson']        = $lesson;
 $pg_e2e_out['lesson_url']    = get_permalink( $lesson );
 $pg_e2e_out['article']       = $article;

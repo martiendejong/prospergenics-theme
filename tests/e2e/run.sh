@@ -61,6 +61,7 @@ sed -e "s#'{SQLITE_IMPLEMENTATION_FOLDER_PATH}'#__DIR__ . '/plugins/sqlite-datab
     echo "define( 'WP_HOME', '$BASE' ); define( 'WP_SITEURL', '$BASE' );"
     echo "define( 'WP_DEBUG', true ); define( 'WP_DEBUG_LOG', '$WORK/debug.log' ); define( 'WP_DEBUG_DISPLAY', false );"
     echo "define( 'DISABLE_WP_CRON', true );"
+    echo "define( 'PG_E2E', true ); // enables tests/e2e/mu-plugin.php"
     echo "\$table_prefix = 'wp_';"
     echo "if ( ! defined( 'ABSPATH' ) ) { define( 'ABSPATH', __DIR__ . '/' ); }"
     echo "require_once ABSPATH . 'wp-settings.php';"
@@ -72,6 +73,8 @@ rm -f "$WORK/debug.log"
 cp -r "$REPO/wp-theme/prospergenics-2026" "$SITE/wp-content/themes/"
 for d in experts community people; do cp -r "$REPO/design/new-hero-2026-10/$d" "$SITE/"; done
 cp "$REPO/tests/e2e/router.php" "$SITE/router.php"
+mkdir -p "$SITE/wp-content/mu-plugins"
+cp "$REPO/tests/e2e/mu-plugin.php" "$SITE/wp-content/mu-plugins/pg-e2e.php"
 
 wp core install --url="$BASE" --title="ProsperGenics e2e" --admin_user=admin \
     --admin_password=e2e-pass-123 --admin_email=admin@example.test --skip-email
