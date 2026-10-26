@@ -35,6 +35,11 @@ it pass.
   role, 401 for a visitor; the owner's own `PATCH` succeeds.
 - `POST prospergenics/v1/courses/lessons/<id>/completion` before the lesson was opened: 403
   `pg_courses_not_opened`; after opening the lesson page it succeeds.
+- Member privacy: a profile whose owner has not finished onboarding is not shown to visitors (a
+  verified member does see it); the member's email address is on neither the `/in/<slug>/` page nor
+  `prospergenics/v1/profile/users/<slug>` for a visitor, a member or an author.
+- `/profile/settings/`: a visitor is sent to the login page; the email, password and delete-account
+  forms are refused (403) without their nonce, and the password still works afterwards.
 - `POST prospergenics/v1/courses` refused for visitor, subscriber, contributor, author; an unverified
   member cannot follow.
 

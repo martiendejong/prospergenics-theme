@@ -160,7 +160,34 @@ function refused(r) {
     check('completion after opening the lesson (control)', 'subscriber2', open.status === 200 && done.status === 200, `lesson page ${open.status}, POST completion ${done.status} ${done.data && done.data.code || ''}`);
   }
 
-  /* 7. A few more writes that must stay closed. */
+  /* 7. Member privacy (ARC-10, ARC-11): email private by default, profiles not public before onboarding. */
+  {
+    const other = U.subscriber2, email = `${other.login}@example.test`;
+    const pv = await visitor.get(`/in/${other.slug}/`, { follow: true });
+    check('profile not public before onboarding', 'visitor', !pv.text.includes(other.name) && !pv.text.includes(email), `status ${pv.status}, title "${title(pv.text)}"`);
+    const pm = await s.subscriber.get(`/in/${other.slug}/`, { follow: true });
+    check('member profile visible to a verified member (control)', 'subscriber', pm.status === 200 && pm.text.includes(other.name), `status ${pm.status}`);
+    check('member email not on the profile page', 'subscriber', !pm.text.includes(email), `status ${pm.status}`);
+    for (const who of ['visitor', 'subscriber', 'author']) {
+      const sess = who === 'visitor' ? visitor : s[who];
+      const r = await sess.get(`${NS}/profile/users/${other.slug}`);
+      check('REST profile hides the member email', who, !r.text.includes(email) && !(r.data && r.data.email), `GET ${r.status}`);
+    }
+  }
+
+  /* 8. /profile/settings/: members only, every form needs its nonce. */
+  {
+    const r = await visitor.get('/profile/settings/');
+    check('settings need a login', 'visitor', r.status === 302 && /wp-login\.php/.test(r.location || ''), `status ${r.status} -> ${r.location ? pathOf(r.location) : '(none)'}`);
+    for (const [action, fields] of [['email', { email: 'taken-over@example.test', current_password: PW }], ['password', { current_password: PW, new_password: 'Hijack-pass-999', confirm_password: 'Hijack-pass-999' }], ['delete', { current_password: PW, confirm: '1' }]]) {
+      const p = await s.subscriber.request('POST', '/profile/settings/', { body: Object.assign({ pgp_action: action }, fields) });
+      check(`settings "${action}" form refused without nonce`, 'subscriber', p.status === 403, `POST ${p.status}`);
+    }
+    const again = await new Session('subscriber-again').login(U.subscriber.login, PW).then(() => true, () => false);
+    check('password unchanged after the refused forms', 'subscriber', again, again ? 'login still works' : 'login failed');
+  }
+
+  /* 9. A few more writes that must stay closed. */
   for (const who of ['visitor', 'subscriber', 'contributor', 'author']) {
     const sess = who === 'visitor' ? visitor : s[who];
     const r = await sess.request('POST', `${NS}/courses`, { json: { title: `E2E course by ${who}`, status: 'draft' } });
