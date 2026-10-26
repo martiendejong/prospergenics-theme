@@ -152,7 +152,8 @@ function apply_filters( $hook, $v ) { return $v; }
 function prospergenics_profiles_privacy( $id ) { return array( 'profile' => isset( $GLOBALS['_meta'][ $id ]['privacy'] ) ? $GLOBALS['_meta'][ $id ]['privacy'] : 'public' ); }
 function prospergenics_profiles_is_verified( $id ) { return empty( $GLOBALS['_meta'][ $id ]['pending'] ); }
 function prospergenics_profiles_get_completion( $id ) { return array( 'percent' => isset( $GLOBALS['_meta'][ $id ]['percent'] ) ? $GLOBALS['_meta'][ $id ]['percent'] : 0, 'missing' => array() ); }
-function prospergenics_profiles_visible_sections( $p, $v, $o, $c ) { return array( 'profile' => 'public' === $p['profile'] ); }
+function prospergenics_profiles_visible_sections( $p, $v, $o, $c, $verified = false ) { return array( 'profile' => 'public' === $p['profile'] ); }
+function prospergenics_profiles_visibility_for( $owner, $viewer ) { return prospergenics_profiles_visible_sections( prospergenics_profiles_privacy( $owner ), $viewer, $owner, false ); }
 function prospergenics_profiles_is_connection( $a, $b ) { return false; }
 function prospergenics_profiles_url( $id ) { return 'https://prospergenics.com/in/user-' . $id . '/'; }
 
@@ -166,6 +167,9 @@ $extract = function ( $file, array $fns ) {
 		eval( str_replace( "__DIR__ . '/people.json'", var_export( dirname( $file ) . '/people.json', true ), $m[1] ) );
 	}
 };
+// the completion threshold is the real constant from helpers.php (one rule for robots and sitemap)
+preg_match( '/const PROSPERGENICS_PROFILES_INDEX_MIN = (\d+);/', file_get_contents( $theme . '/inc/profiles/helpers.php' ), $min );
+define( 'PROSPERGENICS_PROFILES_INDEX_MIN', (int) $min[1] );
 $extract( $theme . '/inc/profiles/data.php', array( 'prospergenics_profiles_index_min_completion', 'prospergenics_profiles_is_indexable' ) );
 $extract( $theme . '/inc/platform-profiles.php', array( 'prospergenics_2026_people', 'prospergenics_profiles_person', 'prospergenics_profiles_public_url_for' ) );
 
@@ -186,12 +190,12 @@ ok( 'https://prospergenics.com/in/user-9/' === prospergenics_profiles_public_url
 ok( 'https://prospergenics.com/people/lessy/' === prospergenics_profiles_public_url_for( '', 11 ), 'a members-only /in/ page: visitors get the public story' );
 
 echo "Which /in/ profiles are indexed and in the sitemap (ARC-22)\n";
-$GLOBALS['_meta'][20] = array( 'percent' => 60 );
-$GLOBALS['_meta'][21] = array( 'percent' => 40 );
+$GLOBALS['_meta'][20] = array( 'percent' => 40 );
+$GLOBALS['_meta'][21] = array( 'percent' => 20 );
 $GLOBALS['_meta'][22] = array( 'percent' => 100, 'privacy' => 'members' );
 $GLOBALS['_meta'][23] = array( 'percent' => 100, 'pending' => 1 );
-ok( prospergenics_profiles_is_indexable( 20 ), 'public, verified, 60% complete: indexed' );
-ok( ! prospergenics_profiles_is_indexable( 21 ), '40% complete: not indexed' );
+ok( prospergenics_profiles_is_indexable( 20 ), 'public, verified, 40% complete: indexed' );
+ok( ! prospergenics_profiles_is_indexable( 21 ), '20% complete: not indexed' );
 ok( ! prospergenics_profiles_is_indexable( 22 ), 'members-only profile: not indexed' );
 ok( ! prospergenics_profiles_is_indexable( 23 ), 'unverified account: not indexed' );
 $routes = file_get_contents( $theme . '/inc/profiles/routes.php' );

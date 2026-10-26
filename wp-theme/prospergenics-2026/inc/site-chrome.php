@@ -117,7 +117,7 @@ function prospergenics_2026_request_path() {
 }
 
 /**
- * Account links for the header: Log in + Join for visitors; My profile, My courses and Log out
+ * Account links for the header: Log in + Join for visitors; My profile, My courses, Settings and Log out
  * for members. Registration is closed, so Join opens the contact form on "Joining the community".
  *
  * @return array<int,array{label:string,url:string,key:string}>
@@ -134,6 +134,10 @@ function prospergenics_2026_account_links() {
         $links[] = array( 'key' => 'profile', 'label' => 'My profile', 'url' => prospergenics_profiles_url( get_current_user_id() ) );
     }
     $links[] = array( 'key' => 'courses', 'label' => 'My courses', 'url' => home_url( '/courses/my/' ) );
+    if ( function_exists( 'prospergenics_profiles_url' ) ) {
+        // email, password, privacy, download or delete my data (audit ARC-5, ARC-12)
+        $links[] = array( 'key' => 'settings', 'label' => 'Settings', 'url' => home_url( '/profile/settings/' ) );
+    }
     $links[] = array( 'key' => 'logout', 'label' => 'Log out', 'url' => wp_logout_url( home_url( '/' ) ) );
     return $links;
 }

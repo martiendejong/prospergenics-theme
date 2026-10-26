@@ -14,6 +14,13 @@ defined( 'ABSPATH' ) || exit;
 
 const PROSPERGENICS_PROFILES_ENTRY_TYPES = array( 'pg_experience', 'pg_education', 'pg_skill' );
 const PROSPERGENICS_PROFILES_MAX_ENTRIES = 50;
+// Uploads (audit ARC-13): at most 20 images / 50 MB per member (originals plus generated sizes),
+// at most 5 uploads an hour, and unused uploads are deleted after a day.
+const PROSPERGENICS_PROFILES_UPLOAD_MAX_FILES = 20;
+const PROSPERGENICS_PROFILES_UPLOAD_MAX_BYTES = 52428800;
+const PROSPERGENICS_PROFILES_UPLOAD_RATE      = 5;
+const PROSPERGENICS_PROFILES_UPLOAD_WINDOW    = 3600;
+const PROSPERGENICS_PROFILES_ORPHAN_AGE       = 86400;
 
 add_action( 'init', function () {
     $common = array(
@@ -72,10 +79,78 @@ function prospergenics_profiles_invalidate( $user_id ) {
     delete_user_meta( (int) $user_id, '_pg_profiles_completion' );
 }
 
-/** Privacy settings of a member, merged over the defaults. */
-function prospergenics_profiles_privacy( $user_id ) {
-    return prospergenics_profiles_normalize_privacy( get_user_meta( (int) $user_id, '_pg_profiles_privacy', true ) );
+/**
+ * The defaults that apply to this member's sections they never chose a level for (audit ARC-11:
+ * administrators private, finished onboarding public, everyone else verified members only).
+ */
+function prospergenics_profiles_member_defaults( $user_id ) {
+    $state = prospergenics_profiles_normalize_onboarding( get_user_meta( (int) $user_id, '_pg_profiles_onboarding', true ) );
+    return prospergenics_profiles_privacy_defaults(
+        prospergenics_profiles_default_profile_level( user_can( (int) $user_id, 'manage_options' ), $state['status'] )
+    );
 }
+
+/** Privacy settings of a member, merged over their defaults. */
+function prospergenics_profiles_privacy( $user_id ) {
+    return prospergenics_profiles_normalize_privacy( get_user_meta( (int) $user_id, '_pg_profiles_privacy', true ), prospergenics_profiles_member_defaults( $user_id ) );
+}
+
+/** Whether the member chose a level for a section themselves (else it follows their defaults). */
+function prospergenics_profiles_privacy_chosen( $user_id, $section ) {
+    $stored = get_user_meta( (int) $user_id, '_pg_profiles_privacy', true );
+    return is_array( $stored ) && isset( $stored[ $section ] );
+}
+
+/**
+ * Store privacy choices. Only the sections in $choices are stored as chosen; the others keep
+ * following the member's defaults (so a REST call that changes the email level doesn't fix the
+ * profile at its current default).
+ *
+ * @param array<string,string> $choices section => level
+ */
+function prospergenics_profiles_save_privacy( $user_id, array $choices ) {
+    $stored = get_user_meta( (int) $user_id, '_pg_profiles_privacy', true );
+    $stored = is_array( $stored ) ? $stored : array();
+    $levels = prospergenics_profiles_levels();
+    foreach ( prospergenics_profiles_privacy_defaults() as $section => $unused ) {
+        if ( isset( $choices[ $section ] ) && is_string( $choices[ $section ] ) && isset( $levels[ $choices[ $section ] ] ) ) {
+            $stored[ $section ] = $choices[ $section ];
+        }
+    }
+    prospergenics_profiles_set_meta( $user_id, 'privacy', array_intersect_key( $stored, prospergenics_profiles_privacy_defaults() ) );
+}
+
+/**
+ * Audit ARC-10, once per site: members who saved the old settings form stored the old email
+ * default ('members'); turn that into 'private' (in batches of 200 per request until done).
+ */
+function prospergenics_profiles_migrate_privacy_settings() {
+    if ( get_option( '_pg_profiles_privacy_v2' ) ) {
+        return;
+    }
+    $ids = get_users( array(
+        'fields'      => 'ID',
+        'number'      => 200,
+        'count_total' => false,
+        'meta_query'  => array(
+            'relation' => 'AND',
+            array( 'key' => '_pg_profiles_privacy', 'compare' => 'EXISTS' ),
+            array( 'key' => '_pg_profiles_privacy_migrated', 'compare' => 'NOT EXISTS' ),
+        ),
+    ) );
+    foreach ( $ids as $id ) {
+        $stored = get_user_meta( (int) $id, '_pg_profiles_privacy', true );
+        $new    = prospergenics_profiles_migrate_privacy( $stored );
+        if ( $new !== $stored ) {
+            update_user_meta( (int) $id, '_pg_profiles_privacy', $new );
+        }
+        update_user_meta( (int) $id, '_pg_profiles_privacy_migrated', time() );
+    }
+    if ( count( $ids ) < 200 ) {
+        update_option( '_pg_profiles_privacy_v2', time(), true );
+    }
+}
+add_action( 'init', 'prospergenics_profiles_migrate_privacy_settings', 21 );
 
 /* ───────────────────────── slugs and /in/{slug} ───────────────────────── */
 
@@ -407,13 +482,14 @@ function prospergenics_profiles_is_connection( $owner_id, $viewer_id ) {
     return prospergenics_profiles_follows( $owner_id, $viewer_id );
 }
 
-/** Sections the viewer may see on a member's profile. */
+/** Sections the viewer may see on a member's profile ('members' = verified members, ARC-10). */
 function prospergenics_profiles_visibility_for( $owner_id, $viewer_id ) {
     return prospergenics_profiles_visible_sections(
         prospergenics_profiles_privacy( $owner_id ),
         (int) $viewer_id,
         (int) $owner_id,
-        $viewer_id ? prospergenics_profiles_is_connection( $owner_id, $viewer_id ) : false
+        $viewer_id ? prospergenics_profiles_is_connection( $owner_id, $viewer_id ) : false,
+        $viewer_id && prospergenics_profiles_is_verified( $viewer_id )
     );
 }
 
@@ -476,7 +552,7 @@ function prospergenics_profiles_notify_endorsement( $skill, $endorser_id ) {
         prospergenics_profiles_url( $owner->ID ),
         prospergenics_profiles_url( $endorser->ID )
     );
-    wp_mail( $owner->user_email, wp_specialchars_decode( $subject ), $body );
+    prospergenics_profiles_send_mail( $owner->user_email, wp_specialchars_decode( $subject ), $body, 'endorsement', $owner->ID );
 }
 
 /** Unread notifications of a member. */
@@ -529,14 +605,14 @@ function prospergenics_profiles_get_completion( $user_id ) {
  * of photo, headline, experience, skills and education.
  */
 function prospergenics_profiles_index_min_completion() {
-    return (int) apply_filters( 'prospergenics_profiles_index_min_completion', 60 );
+    return (int) apply_filters( 'prospergenics_profiles_index_min_completion', PROSPERGENICS_PROFILES_INDEX_MIN );
 }
 
 /** Whether a member's /in/ page may be indexed: public, verified and complete enough. */
 function prospergenics_profiles_is_indexable( $user_id ) {
     $user_id = (int) $user_id;
-    return 'public' === prospergenics_profiles_privacy( $user_id )['profile']
-        && prospergenics_profiles_is_verified( $user_id )
+    return prospergenics_profiles_is_verified( $user_id )
+        && 'public' === prospergenics_profiles_privacy( $user_id )['profile']
         && prospergenics_profiles_get_completion( $user_id )['percent'] >= prospergenics_profiles_index_min_completion();
 }
 
@@ -606,6 +682,10 @@ function prospergenics_profiles_store_image( $file, $user_id, $square ) {
     if ( $square && ( $info[0] < 200 || $info[1] < 200 ) ) {
         return new WP_Error( 'pg_profiles_upload_small', 'The photo must be at least 200 × 200 pixels.', array( 'status' => 400 ) );
     }
+    $allowed = prospergenics_profiles_upload_allowed( $user_id, (int) $file['size'], $square );
+    if ( is_wp_error( $allowed ) ) {
+        return $allowed;
+    }
 
     require_once ABSPATH . 'wp-admin/includes/file.php';
     require_once ABSPATH . 'wp-admin/includes/image.php';
@@ -629,9 +709,12 @@ function prospergenics_profiles_store_image( $file, $user_id, $square ) {
         }
         $tmp = $saved['path'];
     } else {
-        $tmp = wp_tempnam( $name );
-        if ( ! @copy( $file['tmp_name'], $tmp ) ) {
-            return new WP_Error( 'pg_profiles_upload', 'The upload failed.', array( 'status' => 500 ) );
+        $tmp = prospergenics_profiles_reencode( $file['tmp_name'], $ext );
+        if ( '' === $tmp ) {
+            $tmp = wp_tempnam( $name );
+            if ( ! @copy( $file['tmp_name'], $tmp ) ) {
+                return new WP_Error( 'pg_profiles_upload', 'The upload failed.', array( 'status' => 500 ) );
+            }
         }
     }
 
@@ -649,6 +732,170 @@ function prospergenics_profiles_store_image( $file, $user_id, $square ) {
     update_post_meta( $id, '_pg_profiles_owner', (int) $user_id );
     return (int) $id;
 }
+
+/**
+ * Re-encode a featured image (at most 2000px on its longest side) so camera metadata such as GPS
+ * position never reaches the public file. GD drops all metadata when it writes an image, so it
+ * is preferred here; GIFs keep their animation and are stored as uploaded.
+ *
+ * @return string Path of the re-encoded file, or '' to store the original.
+ */
+function prospergenics_profiles_reencode( $path, $ext ) {
+    if ( 'gif' === $ext ) {
+        return '';
+    }
+    $prefer_gd = function ( $editors ) {
+        return array_values( array_unique( array_merge( array( 'WP_Image_Editor_GD' ), (array) $editors ) ) );
+    };
+    add_filter( 'wp_image_editors', $prefer_gd );
+    $editor = wp_get_image_editor( $path );
+    remove_filter( 'wp_image_editors', $prefer_gd );
+    if ( is_wp_error( $editor ) ) {
+        return '';
+    }
+    $size = $editor->get_size();
+    if ( $size['width'] > 2000 || $size['height'] > 2000 ) {
+        $editor->resize( 2000, 2000, false );
+    }
+    $saved = $editor->save( $path . '-re.' . $ext );
+    return is_wp_error( $saved ) || empty( $saved['path'] ) ? '' : (string) $saved['path'];
+}
+
+/** Disk space an attachment takes: the file, a kept original and every generated size. */
+function prospergenics_profiles_attachment_bytes( $attachment_id ) {
+    $file = get_attached_file( (int) $attachment_id );
+    if ( ! $file ) {
+        return 0;
+    }
+    $dir   = dirname( $file );
+    $meta  = wp_get_attachment_metadata( (int) $attachment_id );
+    $files = array( $file );
+    if ( is_array( $meta ) ) {
+        if ( ! empty( $meta['original_image'] ) ) {
+            $files[] = $dir . '/' . $meta['original_image'];
+        }
+        foreach ( isset( $meta['sizes'] ) && is_array( $meta['sizes'] ) ? $meta['sizes'] : array() as $size ) {
+            if ( ! empty( $size['file'] ) ) {
+                $files[] = $dir . '/' . $size['file'];
+            }
+        }
+    }
+    $bytes = 0;
+    foreach ( array_unique( $files ) as $f ) {
+        $bytes += file_exists( $f ) ? (int) filesize( $f ) : 0;
+    }
+    return $bytes;
+}
+
+/** A member's uploads: attachment IDs and the bytes they take. @return array{ids:int[],bytes:int} */
+function prospergenics_profiles_upload_usage( $user_id ) {
+    $ids = array_map( 'intval', get_posts( array(
+        'post_type'        => 'attachment',
+        'post_status'      => 'inherit',
+        'posts_per_page'   => -1,
+        'fields'           => 'ids',
+        'meta_key'         => '_pg_profiles_owner',
+        'meta_value'       => (int) $user_id,
+        'suppress_filters' => true,
+        'no_found_rows'    => true,
+    ) ) );
+    $bytes = 0;
+    foreach ( $ids as $id ) {
+        $bytes += prospergenics_profiles_attachment_bytes( $id );
+    }
+    return array( 'ids' => $ids, 'bytes' => $bytes );
+}
+
+/**
+ * Whether a member may upload one more image now: the hourly rate limit (every attempt counts)
+ * and the quota. A new profile photo replaces the current one, so that one is not counted.
+ *
+ * @return true|WP_Error 429 over the rate, 403 over the quota.
+ */
+function prospergenics_profiles_upload_allowed( $user_id, $new_bytes, $replaces_photo ) {
+    $key  = '_pg_profiles_upload_rl_' . (int) $user_id;
+    $rate = prospergenics_profiles_rate_hit( get_transient( $key ), time(), PROSPERGENICS_PROFILES_UPLOAD_RATE, PROSPERGENICS_PROFILES_UPLOAD_WINDOW );
+    set_transient( $key, $rate['state'], PROSPERGENICS_PROFILES_UPLOAD_WINDOW );
+    if ( ! $rate['allowed'] ) {
+        return new WP_Error(
+            'pg_profiles_upload_rate',
+            sprintf( 'You can upload %d images an hour. Try again in %d minutes.', PROSPERGENICS_PROFILES_UPLOAD_RATE, (int) ceil( $rate['retry'] / 60 ) ),
+            array( 'status' => 429 )
+        );
+    }
+    $usage = prospergenics_profiles_upload_usage( $user_id );
+    $files = count( $usage['ids'] );
+    $bytes = $usage['bytes'];
+    $photo = $replaces_photo ? prospergenics_profiles_photo_id( $user_id ) : 0;
+    if ( $photo && in_array( $photo, $usage['ids'], true ) ) {
+        $files--;
+        $bytes -= prospergenics_profiles_attachment_bytes( $photo );
+    }
+    $over = prospergenics_profiles_quota_check( $files, $bytes, $new_bytes, PROSPERGENICS_PROFILES_UPLOAD_MAX_FILES, PROSPERGENICS_PROFILES_UPLOAD_MAX_BYTES );
+    if ( '' !== $over ) {
+        return new WP_Error(
+            'pg_profiles_upload_quota',
+            'files' === $over
+                ? sprintf( 'You have reached the limit of %d uploaded images. Remove a featured image first.', PROSPERGENICS_PROFILES_UPLOAD_MAX_FILES )
+                : 'Your images use all the space you have (50 MB). Remove a featured image first.',
+            array( 'status' => 403 )
+        );
+    }
+    return true;
+}
+
+/** Whether an uploaded image is still used: the owner's photo or one of their featured items. */
+function prospergenics_profiles_upload_in_use( $attachment_id, $owner_id ) {
+    if ( ! $owner_id || ! get_userdata( (int) $owner_id ) ) {
+        return false;
+    }
+    if ( (int) get_user_meta( (int) $owner_id, '_pg_profiles_photo_id', true ) === (int) $attachment_id ) {
+        return true;
+    }
+    return in_array( (int) $attachment_id, array_map( 'intval', wp_list_pluck( prospergenics_profiles_featured( $owner_id ), 'attachment_id' ) ), true );
+}
+
+/**
+ * Daily: delete member uploads older than a day that are neither the photo nor featured (an image
+ * uploaded for a featured item that was never saved, or a member who no longer exists).
+ *
+ * @return int Number of attachments deleted.
+ */
+function prospergenics_profiles_cleanup_uploads() {
+    global $wpdb;
+    $before  = gmdate( 'Y-m-d H:i:s', time() - PROSPERGENICS_PROFILES_ORPHAN_AGE );
+    $last    = 0;
+    $deleted = 0;
+    for ( $batch = 0; $batch < 50; $batch++ ) {
+        $rows = $wpdb->get_results( $wpdb->prepare(
+            "SELECT p.ID, pm.meta_value AS owner FROM {$wpdb->posts} p INNER JOIN {$wpdb->postmeta} pm ON pm.post_id = p.ID AND pm.meta_key = %s
+             WHERE p.post_type = 'attachment' AND p.post_date_gmt < %s AND p.ID > %d ORDER BY p.ID ASC LIMIT 200",
+            '_pg_profiles_owner',
+            $before,
+            $last
+        ) );
+        if ( ! $rows ) {
+            break;
+        }
+        foreach ( $rows as $row ) {
+            $last = (int) $row->ID;
+            if ( ! prospergenics_profiles_upload_in_use( $last, (int) $row->owner ) && wp_delete_attachment( $last, true ) ) {
+                $deleted++;
+            }
+        }
+    }
+    return $deleted;
+}
+add_action( 'prospergenics_profiles_cleanup_uploads', 'prospergenics_profiles_cleanup_uploads' );
+function prospergenics_profiles_schedule_cleanup() {
+    if ( ! wp_next_scheduled( 'prospergenics_profiles_cleanup_uploads' ) ) {
+        wp_schedule_event( time() + HOUR_IN_SECONDS, 'daily', 'prospergenics_profiles_cleanup_uploads' );
+    }
+}
+add_action( 'init', 'prospergenics_profiles_schedule_cleanup' );
+add_action( 'switch_theme', function () {
+    wp_clear_scheduled_hook( 'prospergenics_profiles_cleanup_uploads' );
+} );
 
 /** Set (or with 0, remove) the photo; the previous photo is deleted from the media library. */
 function prospergenics_profiles_set_photo( $user_id, $attachment_id ) {

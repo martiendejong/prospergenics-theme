@@ -7,7 +7,7 @@
  * X-WP-Nonce, which WordPress checks for every cookie-authenticated REST request), the `read`
  * capability, and ownership of the entry being changed.
  *
- *   GET            /profile/users/{slug}                 profile as the viewer may see it
+ *   GET            /profile/users/{slug}                 profile as the viewer may see it (60/hour per account)
  *   POST|DELETE    /profile/users/{slug}/follow          follow / unfollow (verified members)
  *   GET|PUT        /profile/me                           own basic fields
  *   GET|PUT        /profile/privacy                      own privacy settings
@@ -20,7 +20,7 @@
  *   POST|DELETE    /profile/photo                        upload (multipart "photo") / remove
  *   GET|PUT        /profile/featured                     own featured list (max 3, ordered)
  *   POST           /profile/featured/preview             og:title + og:image of a URL
- *   POST           /profile/featured/media               upload an image for a media item
+ *   POST           /profile/featured/media               upload an image for a media item (verified)
  *   POST           /profile/notifications/read           mark notifications read
  *   POST           /profile/verify/resend                resend the magic link
  *   POST           /profile/onboarding                   save or skip a wizard step
@@ -29,6 +29,10 @@
 defined( 'ABSPATH' ) || exit;
 
 const PROSPERGENICS_PROFILES_REST_NS = 'prospergenics/v1';
+// A logged-in account may look up at most 60 profiles an hour through the API (audit ARC-10:
+// no harvesting of member data; the profile pages themselves don't call this endpoint).
+const PROSPERGENICS_PROFILES_LOOKUP_LIMIT  = 60;
+const PROSPERGENICS_PROFILES_LOOKUP_WINDOW = HOUR_IN_SECONDS;
 
 /** REST collection name => post type. */
 function prospergenics_profiles_rest_types() {
@@ -78,7 +82,29 @@ function prospergenics_profiles_can_interact() {
     return true;
 }
 
+/**
+ * Uploading images for featured items needs a verified email address (audit ARC-13): these
+ * files are public as soon as they are featured and cost disk space.
+ */
+function prospergenics_profiles_can_upload_media() {
+    $ok = prospergenics_profiles_can_edit_own();
+    if ( true !== $ok ) {
+        return $ok;
+    }
+    if ( ! prospergenics_profiles_is_verified( get_current_user_id() ) ) {
+        return new WP_Error( 'rest_forbidden', 'Confirm your email address before uploading images: use the link we emailed you.', array( 'status' => 403 ) );
+    }
+    return true;
+}
+
 /* ───────────────────────── helpers ───────────────────────── */
+
+/** A 429 response with Retry-After. */
+function prospergenics_profiles_rest_too_many( $message, $retry ) {
+    $response = new WP_REST_Response( array( 'code' => 'pg_profiles_rate_limited', 'message' => $message, 'data' => array( 'status' => 429 ) ), 429 );
+    $response->header( 'Retry-After', (string) (int) $retry );
+    return $response;
+}
 
 function prospergenics_profiles_request_entry( WP_REST_Request $request ) {
     $types = prospergenics_profiles_rest_types();
@@ -147,11 +173,20 @@ add_action( 'rest_api_init', function () {
         'methods'             => 'GET',
         'permission_callback' => 'prospergenics_profiles_can_read',
         'callback'            => function ( WP_REST_Request $r ) {
+            $viewer = get_current_user_id();
+            if ( $viewer ) {
+                $key  = '_pg_profiles_lookup_rl_' . $viewer;
+                $rate = prospergenics_profiles_rate_hit( get_transient( $key ), time(), PROSPERGENICS_PROFILES_LOOKUP_LIMIT, PROSPERGENICS_PROFILES_LOOKUP_WINDOW );
+                set_transient( $key, $rate['state'], PROSPERGENICS_PROFILES_LOOKUP_WINDOW );
+                if ( ! $rate['allowed'] ) {
+                    return prospergenics_profiles_rest_too_many( 'Too many profile lookups. Try again later.', $rate['retry'] );
+                }
+            }
             $user = prospergenics_profiles_user_by_slug( $r['slug'] );
             if ( ! $user ) {
                 return new WP_Error( 'rest_not_found', 'No member with this profile URL.', array( 'status' => 404 ) );
             }
-            $data = prospergenics_profiles_public_data( $user, get_current_user_id() );
+            $data = prospergenics_profiles_public_data( $user, $viewer );
             $response = rest_ensure_response( $data );
             $response->header( 'Cache-Control', 'private, no-store' );
             return $response;
@@ -199,15 +234,16 @@ add_action( 'rest_api_init', function () {
             'permission_callback' => 'prospergenics_profiles_can_edit_own',
             'callback'            => function ( WP_REST_Request $r ) {
                 $uid     = get_current_user_id();
-                $current = prospergenics_profiles_privacy( $uid );
                 $in      = $r->get_param( 'privacy' );
                 $in      = is_array( $in ) ? $in : $r->get_params();
-                foreach ( $current as $section => $level ) {
+                $choices = array();
+                foreach ( prospergenics_profiles_privacy( $uid ) as $section => $level ) {
                     if ( isset( $in[ $section ] ) && is_string( $in[ $section ] ) ) {
-                        $current[ $section ] = sanitize_key( $in[ $section ] );
+                        $choices[ $section ] = sanitize_key( $in[ $section ] );
                     }
                 }
-                prospergenics_profiles_set_meta( $uid, 'privacy', prospergenics_profiles_normalize_privacy( $current ) );
+                // only the sections sent are stored as chosen; the rest keep following the defaults
+                prospergenics_profiles_save_privacy( $uid, $choices );
                 return array( 'privacy' => prospergenics_profiles_privacy( $uid ) );
             },
         ),
@@ -382,7 +418,7 @@ add_action( 'rest_api_init', function () {
 
     register_rest_route( $ns, '/profile/featured/media', array(
         'methods'             => 'POST',
-        'permission_callback' => 'prospergenics_profiles_can_edit_own',
+        'permission_callback' => 'prospergenics_profiles_can_upload_media',
         'callback'            => function ( WP_REST_Request $r ) {
             $files = $r->get_file_params();
             $id    = prospergenics_profiles_store_image( isset( $files['media'] ) ? $files['media'] : null, get_current_user_id(), false );

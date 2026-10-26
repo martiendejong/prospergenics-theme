@@ -4,19 +4,20 @@
  *
  *   /in/{slug}/            member profile (card #6350); ?edit=1 edit mode, ?view=public preview
  *   /profile/              your own profile (or the login page)
- *   /profile/settings/     privacy settings (card #6351)
+ *   /profile/settings/     privacy settings (card #6351), email and password (ARC-5), your data (ARC-12)
  *   /profile/following/    the people you follow and your followers (card #6349)
  *   /profile/welcome/      onboarding wizard (card #6340)
  *   /profile/verify/       magic link target and "send again" (card #6339)
+ *   /profile/deleted/      confirmation after "Delete my account" (ARC-12)
  */
 
 defined( 'ABSPATH' ) || exit;
 
-const PROSPERGENICS_PROFILES_REWRITE_VERSION = '1';
+const PROSPERGENICS_PROFILES_REWRITE_VERSION = '2';
 
 add_action( 'init', function () {
     add_rewrite_rule( '^in/([^/]+)/?$', 'index.php?pg_profile=$matches[1]', 'top' );
-    add_rewrite_rule( '^profile/(settings|following|welcome|verify)/?$', 'index.php?pg_profile_page=$matches[1]', 'top' );
+    add_rewrite_rule( '^profile/(settings|following|welcome|verify|deleted)/?$', 'index.php?pg_profile_page=$matches[1]', 'top' );
     add_rewrite_rule( '^profile/?$', 'index.php?pg_profile_page=me', 'top' );
     // flush once when the rules change (a cheap option read on every request otherwise)
     if ( get_option( '_pg_profiles_rewrite_version' ) !== PROSPERGENICS_PROFILES_REWRITE_VERSION ) {
@@ -40,7 +41,7 @@ function prospergenics_profiles_route() {
         return 'profile';
     }
     $page = (string) get_query_var( 'pg_profile_page' );
-    return in_array( $page, array( 'me', 'settings', 'following', 'welcome', 'verify' ), true ) ? $page : '';
+    return in_array( $page, array( 'me', 'settings', 'following', 'welcome', 'verify', 'deleted' ), true ) ? $page : '';
 }
 
 /** The member whose profile is being requested (set in template_redirect). */
@@ -106,6 +107,16 @@ add_action( 'template_redirect', function () {
         return;
     }
 
+    if ( 'deleted' === $route ) {
+        if ( $uid ) {
+            wp_safe_redirect( home_url( '/profile/settings/' ) );
+            exit;
+        }
+        $GLOBALS['pg_profiles_notice_title'] = 'Your account is deleted';
+        $GLOBALS['pg_profiles_notice']       = array( 'ok', 'Your account and your profile data have been deleted, and you are logged out. Thank you for being part of ProsperGenics.' );
+        return;
+    }
+
     // settings, following and welcome are for the logged-in member only
     if ( ! $uid ) {
         wp_safe_redirect( prospergenics_profiles_login_url( home_url( '/profile/' . $route . '/' ) ) );
@@ -150,21 +161,81 @@ function prospergenics_profiles_handle_verify() {
     $GLOBALS['pg_profiles_notice_profile'] = 'already' === $result ? $u : 0;
 }
 
-/** Privacy settings form (works without JavaScript). */
+/**
+ * The forms on /profile/settings/ (all work without JavaScript): privacy (card #6351), email and
+ * password (ARC-5), "Download my data" and "Delete my account" (ARC-12). Each has its own nonce.
+ * An error re-renders the page with the message next to its form; success redirects.
+ */
 function prospergenics_profiles_handle_settings_post( $uid ) {
-    if ( ! isset( $_POST['_pgp_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_pgp_nonce'] ) ), 'pg_profiles_privacy' ) || ! current_user_can( 'read' ) ) {
+    $action  = isset( $_POST['pgp_action'] ) ? sanitize_key( wp_unslash( $_POST['pgp_action'] ) ) : 'privacy';
+    $nonces  = array(
+        'privacy'  => 'pg_profiles_privacy',
+        'email'    => 'pg_profiles_email',
+        'password' => 'pg_profiles_password',
+        'export'   => 'pg_profiles_export',
+        'delete'   => 'pg_profiles_delete',
+    );
+    if ( ! isset( $nonces[ $action ] ) || ! isset( $_POST['_pgp_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_pgp_nonce'] ) ), $nonces[ $action ] ) || ! current_user_can( 'read' ) ) {
         wp_die( 'This form has expired. Please go back, reload the page and try again.', 'Expired', array( 'response' => 403 ) );
     }
-    $in      = isset( $_POST['privacy'] ) && is_array( $_POST['privacy'] ) ? wp_unslash( $_POST['privacy'] ) : array();
-    $privacy = prospergenics_profiles_privacy( $uid );
-    foreach ( $privacy as $section => $level ) {
-        if ( isset( $in[ $section ] ) && is_string( $in[ $section ] ) ) {
-            $privacy[ $section ] = sanitize_key( $in[ $section ] );
-        }
+    $settings = home_url( '/profile/settings/' );
+    // passwords are compared as typed: never run them through a text sanitiser
+    $raw = function ( $key ) {
+        return isset( $_POST[ $key ] ) && is_string( $_POST[ $key ] ) ? wp_unslash( $_POST[ $key ] ) : '';
+    };
+    $fail = function ( $form, WP_Error $error ) {
+        $GLOBALS['pg_profiles_form_error'] = array( $form, $error->get_error_message() );
+    };
+
+    switch ( $action ) {
+        case 'privacy':
+            $in      = isset( $_POST['privacy'] ) && is_array( $_POST['privacy'] ) ? wp_unslash( $_POST['privacy'] ) : array();
+            $choices = array();
+            foreach ( prospergenics_profiles_privacy( $uid ) as $section => $level ) {
+                if ( isset( $in[ $section ] ) && is_string( $in[ $section ] ) ) {
+                    $choices[ $section ] = sanitize_key( $in[ $section ] );
+                }
+            }
+            prospergenics_profiles_save_privacy( $uid, $choices );
+            wp_safe_redirect( add_query_arg( 'saved', 'privacy', $settings ) );
+            exit;
+
+        case 'email':
+            $r = prospergenics_profiles_change_email( $uid, sanitize_email( $raw( 'email' ) ), $raw( 'current_password' ) );
+            if ( is_wp_error( $r ) ) {
+                $fail( 'email', $r );
+                return;
+            }
+            wp_safe_redirect( add_query_arg( 'saved', $r['mail_failed'] ? 'email-mail-failed' : 'email', $settings ) . '#pgp-account' );
+            exit;
+
+        case 'password':
+            $r = prospergenics_profiles_change_password( $uid, $raw( 'current_password' ), $raw( 'new_password' ), $raw( 'confirm_password' ) );
+            if ( is_wp_error( $r ) ) {
+                $fail( 'password', $r );
+                return;
+            }
+            wp_safe_redirect( add_query_arg( 'saved', 'password', $settings ) . '#pgp-account' );
+            exit;
+
+        case 'export':
+            prospergenics_profiles_send_personal_data( $uid );
+            exit;
+
+        case 'delete':
+            if ( empty( $_POST['confirm_delete'] ) ) {
+                $fail( 'delete', new WP_Error( 'pg_profiles_confirm', 'Tick the box to confirm that you want to delete your account.' ) );
+                return;
+            }
+            $ok = prospergenics_profiles_check_current_password( $uid, $raw( 'current_password' ) );
+            $r  = is_wp_error( $ok ) ? $ok : prospergenics_profiles_delete_account( $uid );
+            if ( is_wp_error( $r ) ) {
+                $fail( 'delete', $r );
+                return;
+            }
+            wp_safe_redirect( home_url( '/profile/deleted/' ) );
+            exit;
     }
-    prospergenics_profiles_set_meta( $uid, 'privacy', prospergenics_profiles_normalize_privacy( $privacy ) );
-    wp_safe_redirect( add_query_arg( 'saved', '1', home_url( '/profile/settings/' ) ) );
-    exit;
 }
 
 /** Wizard: mark as shown, handle a submitted step, send finished members to their profile. */
@@ -212,6 +283,7 @@ add_filter( 'template_include', function ( $template ) {
         'following' => 'pg-profile-following.php',
         'welcome'   => 'pg-profile-welcome.php',
         'verify'    => 'pg-profile-notice.php',
+        'deleted'   => 'pg-profile-notice.php',
     );
     if ( isset( $files[ $route ] ) ) {
         $found = locate_template( $files[ $route ] );
@@ -235,10 +307,11 @@ add_filter( 'pre_get_document_title', function ( $title ) {
         return $title;
     }
     $titles = array(
-        'settings'  => 'Privacy settings',
+        'settings'  => 'Account and privacy settings',
         'following' => 'Your connections',
         'welcome'   => 'Welcome',
         'verify'    => 'Confirm your email address',
+        'deleted'   => 'Account deleted',
     );
     if ( 'profile' === $route && prospergenics_profiles_current_owner() ) {
         $owner = prospergenics_profiles_current_owner();
@@ -249,8 +322,9 @@ add_filter( 'pre_get_document_title', function ( $title ) {
 }, 20 );
 
 /**
- * Only public profiles that are filled in enough may be indexed (the same rule as the sitemap,
- * prospergenics_profiles_is_indexable()); settings, wizard and the rest never.
+ * Only public, verified profiles that are filled in enough may be indexed (the same rule as the
+ * sitemap, prospergenics_profiles_is_indexable(); audit ARC-11 and ARC-22); settings, wizard and
+ * the rest never.
  */
 add_filter( 'wp_robots', function ( $robots ) {
     $route = prospergenics_profiles_route();
