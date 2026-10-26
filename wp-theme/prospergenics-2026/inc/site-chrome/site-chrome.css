@@ -3,6 +3,15 @@
      site_chrome.py copies it into index.html, about/index.html and the people/experts/community pages.
      Literal colours and every rule scoped under .site-header / .site-footer, so pages whose own
      stylesheets reuse .pg-nav, .brand, .nav-links or .nav-cta (the jengo-listings plugin) can't change it. */
+  /* the focus ring, one token for every page type (audit UX-9): green-700 is 5.07:1 on paper,
+     5.36:1 on white; dark green surfaces (the footer, the inner-page heroes) switch it to white,
+     >= 4.1:1 on every green they use. Page styles use var(--focus-ring, #1a7a46). */
+  :root { --focus-ring: #1a7a46; }
+  .site-footer, .post-hero { --focus-ring: #fff; }
+  .site-header :focus-visible, .site-footer :focus-visible, .skip-link:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; }
+  /* skip link (audit UX-16): first in <body> on every page, off screen until it has focus */
+  .skip-link { position: fixed; top: calc(12px + var(--wp-admin--admin-bar--height, 0px)); left: 16px; z-index: 100000; padding: 12px 18px; border-radius: 10px; background: #0f3d28; color: #fff; font: 600 15px/1.2 'Inter', system-ui, sans-serif; text-decoration: none; transform: translateY(calc(-100% - 24px)); }
+  .skip-link:focus { transform: none; }
   .site-header { position: sticky; top: 0; z-index: 50; box-sizing: border-box; width: 100%; max-width: none; margin: 0; display: flex; align-items: center; gap: 28px; min-height: 76px; padding: 14px clamp(20px, 5vw, 72px); background: rgba(244,250,246,.94); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border: 0; border-bottom: 1px solid rgba(15,61,40,.12); font-family: 'Inter', system-ui, sans-serif; transition: transform .3s cubic-bezier(.22,.61,.36,1); }
   .site-header *, .site-header *::before, .site-header *::after { box-sizing: border-box; }
   .site-header .brand { display: flex; align-items: center; gap: 10px; flex-shrink: 0; margin: 0 auto 0 0; padding: 0; text-decoration: none; }
@@ -11,8 +20,9 @@
   .site-header .nav-links { display: flex; align-items: center; gap: 28px; margin: 0; padding: 0; }
   .site-header .nav-links a { font-size: 15px; font-weight: 500; line-height: 1.2; color: #0f3d28; text-decoration: none; white-space: nowrap; opacity: .8; padding: 4px 0; box-shadow: none; transition: opacity .2s; }
   .site-header .nav-links a:hover, .site-header .nav-links a:focus-visible { opacity: 1; }
-  /* the current section: underline only, no bolder weight, so links never shift between pages */
-  .site-header .nav-links a[aria-current="page"] { opacity: 1; box-shadow: inset 0 -2px 0 #34c759; }
+  /* the current section (aria-current, set by the shared nav render on every page type): underline
+     only, no bolder weight, so links never shift between pages */
+  .site-header .nav-links a[aria-current="page"] { opacity: 1; box-shadow: inset 0 -2px 0 #1a7a46; }
   .site-header .nav-account { position: relative; display: flex; align-items: center; gap: 18px; flex-shrink: 0; }
   .site-header .nav-account-link { font-size: 15px; font-weight: 500; line-height: 1.2; color: #0f3d28; text-decoration: none; white-space: nowrap; opacity: .8; transition: opacity .2s; }
   .site-header .nav-account-link:hover, .site-header .nav-account-link:focus-visible { opacity: 1; }
@@ -43,7 +53,7 @@
   .site-header .nav-panel nav { display: grid; }
   .site-header .nav-panel a { display: flex; align-items: center; min-height: 48px; padding: 0 14px; border-radius: 12px; font-size: 17px; font-weight: 500; color: #0f3d28; text-decoration: none; opacity: 1; }
   .site-header .nav-panel a:hover, .site-header .nav-panel a:focus-visible { background: #eaf5ee; }
-  .site-header .nav-panel a[aria-current="page"] { background: #eaf5ee; }
+  .site-header .nav-panel a[aria-current="page"] { background: #eaf5ee; box-shadow: inset 3px 0 0 #1a7a46; }
   .site-header .nav-panel .nav-panel-account { display: grid; margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(15,61,40,.12); }
   .site-header .nav-panel .nav-panel-cta { margin-top: 6px; justify-content: center; background: #1a7a46; color: #fff; font-family: 'Sora', sans-serif; font-weight: 600; }
   .site-header .nav-panel .nav-panel-cta:hover { background: #0f3d28; }

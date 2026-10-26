@@ -35,10 +35,15 @@
 /* Card */
 .pga-card{position:relative;display:flex;flex-direction:column;width:100%;background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden;transition:border-color .15s,transform .15s,box-shadow .15s;}
 .pga-card:hover{border-color:var(--green-500);transform:translateY(-2px);box-shadow:0 18px 40px -24px rgba(11,32,22,.35);}
-.pga-card:focus-within{outline:3px solid var(--green-500);outline-offset:3px;}
+.pga-card:focus-within{outline:3px solid var(--focus-ring,#1a7a46);outline-offset:3px;}
 .pga-card-media{aspect-ratio:16/9;background:linear-gradient(140deg,var(--green-900),var(--green-700) 70%,#1d8e4f);overflow:hidden;}
 .pga-card-media img{display:block;width:100%;height:100%;object-fit:cover;}
-.pga-card-placeholder{display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-family:'Gabarito',sans-serif;font-weight:800;font-size:56px;color:rgba(255,255,255,.85);}
+/* branded pattern instead of a single letter when there is no cover image (audit UX-8): the
+   ProsperGenics sprout on the brand green, with one of three textures picked by category */
+.pg-pattern{display:block;width:100%;height:100%;min-height:120px;background-color:var(--green-900);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' fill='none' stroke='white' stroke-opacity='.6' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M32 52V24'/%3E%3Cpath d='M32 34c-9 0-15-6-15-14 9 0 15 6 15 14z'/%3E%3Cpath d='M32 28c0-8 6-14 14-14 0 8-6 14-14 14z'/%3E%3Cpath d='M32 52l-9 5M32 52l9 5M32 52v7'/%3E%3Ccircle cx='22' cy='58' r='1.6'/%3E%3Ccircle cx='42' cy='58' r='1.6'/%3E%3C/svg%3E"),var(--pg-texture),linear-gradient(140deg,var(--green-900),var(--green-700) 70%,#1d8e4f);background-repeat:no-repeat,repeat,no-repeat;background-position:center,0 0,0 0;background-size:clamp(48px,22%,96px) auto,var(--pg-texture-size),cover;}
+.pg-pattern--1{--pg-texture:radial-gradient(rgba(255,255,255,.14) 1.5px,transparent 1.7px);--pg-texture-size:18px 18px;}
+.pg-pattern--2{--pg-texture:repeating-linear-gradient(135deg,rgba(255,255,255,.08) 0 2px,transparent 2px 16px);--pg-texture-size:auto;}
+.pg-pattern--3{--pg-texture:repeating-radial-gradient(circle at 85% 15%,rgba(255,255,255,.09) 0 2px,transparent 2px 22px);--pg-texture-size:auto;}
 .pga-card-body{display:flex;flex-direction:column;gap:8px;flex:1;padding:18px 20px 20px;}
 .pga-card-cat{font-family:'Sora',sans-serif;font-weight:700;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--green-700);}
 .pga-card-title{font-family:'Gabarito',sans-serif;font-weight:800;font-size:clamp(19px,2vw,22px);line-height:1.2;letter-spacing:-.01em;}
@@ -58,6 +63,9 @@
 .pga-article-hero .post-hero-inner{max-width:760px;}
 .pga-byline{display:flex;align-items:center;gap:12px;margin-top:24px;}
 .pga-byline .pga-avatar{width:48px;height:48px;border:2px solid rgba(255,255,255,.5);}
+/* initials placeholder (inc/avatars.php): same look as the profile page photo placeholder */
+.pga-avatar.pg-avatar-ph{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;background:var(--green-100);color:var(--green-900);font-family:"Gabarito",sans-serif;font-weight:800;font-size:11px;line-height:1;}
+.pga-byline .pga-avatar.pg-avatar-ph{width:48px;height:48px;font-size:17px;}
 .pga-byline-text{display:flex;flex-direction:column;gap:2px;}
 .pga-author-name{font-weight:600;font-size:15.5px;color:#fff;text-decoration:none;}
 a.pga-author-name{text-decoration:underline;text-decoration-color:rgba(255,255,255,.45);text-underline-offset:3px;}

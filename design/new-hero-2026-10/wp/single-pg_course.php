@@ -15,7 +15,9 @@ get_header();
 ?>
 
 <div class="post-hero pgc-course-hero">
-  <div class="post-hero-inner pgc-hero-wide pgc-hero-grid">
+  <?php // no cover image: no media column, so the title comes first on mobile (audit UX-8) ?>
+  <?php $pgc_has_cover = has_post_thumbnail($pgc_course); ?>
+  <div class="post-hero-inner pgc-hero-wide pgc-hero-grid<?= $pgc_has_cover ? '' : ' pgc-hero-grid--text' ?>">
     <div class="pgc-hero-text">
       <div class="ph-eyebrow"><span class="dot"></span><a href="<?= esc_url(home_url('/courses/')) ?>">Courses</a><?php if ($pgc_cats) : ?> · <?= esc_html($pgc_cats[0]->name) ?><?php endif; ?></div>
       <h1><?php the_title(); ?></h1>
@@ -34,7 +36,9 @@ get_header();
         <p class="pgc-preview-note">Preview: this course is not published.</p>
       <?php endif; ?>
     </div>
+    <?php if ($pgc_has_cover) : ?>
     <div class="pgc-hero-media"><?php echo prospergenics_courses_thumb($pgc_course, 'large'); ?></div>
+    <?php endif; ?>
   </div>
 </div>
 

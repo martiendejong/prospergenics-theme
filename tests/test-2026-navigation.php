@@ -105,12 +105,16 @@ ok( ! in_array( 'Vacancies', array_column( $nav['main'], 'label' ), true ) && ! 
 
 echo "PHP header, visitor\n";
 $visitor = prospergenics_2026_site_header();
-ok( 0 === strpos( $visitor, '<header class="site-header">' ), 'a <header class="site-header"> bar' );
+ok( 0 === strpos( $visitor, '<a class="skip-link" href="#main">Skip to content</a>' . "\n" . '<header class="site-header">' ), 'a skip link to #main, then a <header class="site-header"> bar (UX-16)' );
 ok( $expected === main_menu( $visitor ), 'main menu in the bar' );
 ok( array_merge( $expected, array( 'Log in', 'Join', 'Take the test' ) ) === labels_in( $visitor, '<nav aria-label="Mobile">' ), 'mobile panel: the same menu, Log in, Join, Take the test' );
 ok( (bool) preg_match( '#<button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-menu" aria-label="Open menu">#', $visitor ), 'menu button is type=button with aria-expanded, aria-controls and aria-label' );
 ok( false !== strpos( $visitor, 'id="mobile-menu" hidden>' ), 'the panel it controls starts hidden' );
 ok( false !== strpos( $visitor, 'href="' . TEST_HOME . '/courses/" aria-current="page">Courses' ), 'the current section is marked (aria-current)' );
+ok( 2 === substr_count( $visitor, 'aria-current="page"' ), 'exactly one link marked in the bar and one in the mobile panel' );
+foreach ( array( '/courses/' => 'Courses', '/members/' => 'Members', '/tools/jengo/' => 'Tools', '/about/' => 'About', '/people/lessy/' => 'Members', '/in/amina-wanjiru/' => 'Members', '/experts/' => 'Members', '/services' => 'Services', '/' => '', '/articles/x/' => '' ) as $p => $label ) {
+	ok( $label === prospergenics_2026_current_nav_label( $p ), "current section of $p is " . ( $label ? $label : 'none' ) . ' (NAV-15)' );
+}
 ok( false !== strpos( $visitor, 'class="nav-account-link" href="' . TEST_HOME . '/wp-login.php?redirect_to=' . rawurlencode( TEST_HOME . '/courses/' ) . '">Log in</a>' ), 'Log in returns to the page you were on' );
 ok( false !== strpos( $visitor, 'nav-account-join" href="' . TEST_HOME . '/contact/?subject=Joining%20the%20community">Join</a>' ), 'Join opens the contact form on "Joining the community"' );
 ok( false === strpos( $visitor, 'Log out' ) && false === strpos( $visitor, 'nav-account-toggle' ), 'no member links for visitors' );
@@ -157,7 +161,7 @@ $static = array(
 	'experts/index.html'  => file_get_contents( $design . '/experts/index.html' ),
 	'community/index.html'=> file_get_contents( $design . '/community/index.html' ),
 );
-$header_re = '#<header class="site-header[^"]*">.*?</header>#s';
+$header_re = '#<a class="skip-link" href="\#main">Skip to content</a>\s*<header class="site-header[^"]*">.*?</header>#s';
 $footer_re = '#<footer class="site-footer">.*?</footer>#s';
 $_SERVER['REQUEST_URI'] = '/people/lessy/';
 $php_header = prospergenics_2026_site_header();
@@ -169,14 +173,22 @@ foreach ( $static as $label => $html ) {
 	$h = block( $html, $header_re );
 	ok( $expected === main_menu( $h ), "$label menu is " . implode( ', ', $expected ) );
 	if ( 'index.html' === $label ) {
-		ok( shape( $h ) === shape( prospergenics_2026_site_header( array( 'autohide' => true ) ) ), "$label header markup = the PHP header (visitor)" );
+		ok( shape( $h ) === shape( prospergenics_2026_site_header( array( 'autohide' => true, 'current' => '' ) ) ), "$label header markup = the PHP header (visitor, on /)" );
 	} elseif ( 'about/index.html' === $label ) {
 		ok( shape( $h ) === shape( prospergenics_2026_site_header( array( 'current' => 'About' ) ) ), "$label header markup = the PHP header (visitor)" );
 	} else {
 		ok( shape( $h ) === shape( $php_header ), "$label header markup = the PHP header (visitor)" );
 	}
 	ok( shape( block( $html, $footer_re ) ) === shape( $php_footer ), "$label footer = the PHP footer" );
+	ok( (bool) preg_match( '#<body[^>]*>\s*(<!-- site-chrome:header -->\s*)?<a class="skip-link" href="\#main">#', $html ), "$label: the skip link is the first thing in <body> (UX-16)" );
+	ok( false !== strpos( $html, '<main id="main"' ), "$label: <main id=\"main\"> is the skip link target" );
 }
+foreach ( array( 'people/lessy', 'experts/index.html', 'community/index.html' ) as $label ) {
+	ok( (bool) preg_match( '#<nav class="nav-links" aria-label="Main">(?:(?!</nav>).)*aria-current="page">Members</a>#s', $static[ $label ] ), "$label marks Members as the current section (NAV-15)" );
+}
+ok( (bool) preg_match( '#<nav class="nav-links" aria-label="Main">(?:(?!</nav>).)*aria-current="page">About</a>#s', $static['about/index.html'] ), 'about/index.html marks About as the current section' );
+ok( false === strpos( block( $static['index.html'], $header_re ), 'aria-current' ), 'the homepage marks no section' );
+ok( false !== strpos( $header_php, '<main id="main">' ), 'header.php opens <main id="main"> for every inner template' );
 $_SERVER['REQUEST_URI'] = '/courses/';
 
 echo "one look: full width, one row, sticky\n";
@@ -224,6 +236,7 @@ foreach ( array( 'service-detail' => '/services/coachos/', 'member-detail' => '/
 	ok( (bool) preg_match( '#<style id="prospergenics-site-chrome-css">.*</style>\s*</head>#s', $out ), "$fixture: header CSS printed before </head>, after the plugin's styles" );
 	ok( (bool) preg_match( '#</main>\s*<footer class="site-footer">.*</footer>\s*<script>#s', $out ), "$fixture: site footer and menu script after the content" );
 	ok( false === strpos( $out, 'class="facts-cta" href="' . TEST_HOME . '/"' ), "$fixture: no button left pointing at the homepage" );
+	ok( 1 === substr_count( $out, '<main id="main" class="dir-main">' ), "$fixture: the plugin's <main> gets id=\"main\" for the skip link" );
 	$cta[ $fixture ] = block( $out, '#<a class="facts-cta"[^>]*>[^<]*</a>#' );
 	$outs[ $fixture ] = $out;
 }
