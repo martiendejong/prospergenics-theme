@@ -1,18 +1,21 @@
 <?php
 /**
- * Standalone test for the homepage value test "Find your next step" (audit UX-2 and UX-3,
- * reported by Lesiamon; card #6532), in design/new-hero-2026-10/index.html and the generated
- * front-page.php.
+ * Standalone test for the homepage value test "How valuable are you?", in
+ * design/new-hero-2026-10/index.html and the generated front-page.php.
+ *
+ * Martien asked (26 Oct) for the original test to be fully restored: five open questions,
+ * then an email address, and the value profile from CoachOS (tenant prospergenics, context
+ * value-test) after the visitor confirms by email. It replaces the tap-question version from
+ * card #6532 (commit e874e78). Only screen-reader labels were added to the original.
  *
  * Checks:
- *   - the questions are mostly tap answers: seven choice questions plus one optional one-liner,
- *   - the result is shown on the page without an email, and every link it can give exists,
- *   - with no published courses, the result never sends people to an empty /courses/,
- *   - the email for the deeper profile comes only after the result, with a visible label, the
- *     privacy notice directly under its button and errors announced (role=alert, aria-invalid),
- *   - each question is a fieldset with a legend, progress is announced in a polite live region,
- *   - nothing takes focus on page load, a tap only moves on by itself without reduced motion,
- *   - the email confirmation flow (?vt=<token>) still works against the same CoachOS endpoints.
+ *   - the five original questions, in order, one per screen with progress, Back and Next,
+ *   - the email step, the privacy notice and the CoachOS double opt-in (aanvraag, then bevestig
+ *     from the ?vt=<token> link in the mail),
+ *   - the result: profile name, explanation and the courses button,
+ *   - the answer box, the email field and the errors can be read by a screen reader,
+ *   - nothing takes focus on page load,
+ *   - the generated front-page.php carries this test and not the tap version.
  *
  * Run with: php tests/test-2026-value-test.php
  */
@@ -28,56 +31,47 @@ function ok( $cond, $msg ) {
 }
 
 $home = file_get_contents( $design . '/index.html' );
-ok( (bool) preg_match( '#// ── Value test "Find your next step".*?\n    \}\)\(\);#s', $home, $m ), 'the value test script is present' );
+ok( (bool) preg_match( '#// ── Value test: five open questions.*?\n    \}\)\(\);#s', $home, $m ), 'the value test script is present' );
 $js = $m[0] ?? '';
 ok( (bool) preg_match( '#<section class="vtest" id="value-test">.*?</section>#s', $home, $mm ), 'the value test section is present' );
 $section = $mm[0] ?? '';
 
-echo "Questions\n";
-preg_match_all( "#\{ id: '([a-z]+)', type: '([a-z]+)'#", $js, $steps, PREG_SET_ORDER );
-$types = array_column( $steps, 2, 1 );
-ok( 8 === count( $types ), '8 questions (' . implode( ', ', array_keys( $types ) ) . ')' );
-ok( 7 === count( array_filter( $types, function ( $t ) { return 'text' !== $t; } ) ), '7 of them are answered by tapping' );
-ok( 'text' === ( $types['dream'] ?? '' ) && false !== strpos( $js, "optional: true, q: 'In one line" ), 'the one free-text question is optional' );
-ok( false !== strpos( $js, "type: 'multi', max: 3" ), 'skills: pick up to 3' );
-ok( false !== strpos( $js, 'You can pick up to \' + s.max + \'. Unpick one to choose another.' ), 'a fourth pick is refused with an explanation' );
-ok( 'Eight quick questions, about a minute.' === ( preg_match( '#<p>(Eight quick questions, about a minute\.)#', $section, $c ) ? $c[1] : '' ), 'the intro states the real number of questions' );
+echo "The original test\n";
+ok( false !== strpos( $section, '<h2>How valuable <span class="accent">are you?</span></h2>' ), 'heading "How valuable are you?"' );
+ok( false !== strpos( $section, '<p>Five honest questions. Take the test and find out where your value lies.</p>' ), 'the original intro' );
+$questions = array(
+	'What could you talk about for hours without getting tired?',
+	'What do people around you keep asking your help with?',
+	'What did you recently make, fix or organise that you were quietly proud of?',
+	'If money did not matter for a year, how would you spend your days?',
+	'What about the world annoys you so much that you would love to change it?',
+);
+preg_match( '#const QUESTIONS = \[(.*?)\];#s', $js, $q );
+preg_match_all( '#"([^"]+)"#', $q[1] ?? '', $found );
+ok( $questions === $found[1], 'the five original questions, in order' );
+ok( false !== strpos( $section, '<textarea class="vt-answer" id="vtAnswer" rows="4"' ), 'open answers in a text box' );
+ok( false !== strpos( $js, "'Reveal my value <span class=\"arrow\">&rarr;</span>'" ) && false !== strpos( $js, "hintEl.textContent = (step + 1) + ' / ' + QUESTIONS.length;" ), 'progress, and "Reveal my value" on the last question' );
+ok( false !== strpos( $section, 'data-scroll-scale="1.2" data-scroll-scale-window="0.65"' ), 'the test box grows in on scroll, as before' );
 
-echo "Result\n";
-ok( false !== strpos( $js, "connect: ['Connector'" ) && false !== strpos( $js, "explain: ['Explainer'" ) && false !== strpos( $js, "make:    ['Maker'" ) && false !== strpos( $js, "build:   ['Builder'" ), 'four profiles' );
-ok( false !== strpos( $js, "paid <= 2 ? 'explore' : (paid <= 4 ? 'test' : 'grow')" ), 'stage from "would people pay for that today?"' );
-ok( false !== strpos( $js, "renderResult();" ) && strpos( $js, 'function renderResult' ) < strpos( $js, 'function deeperHtml' ), 'the result is rendered in the browser, before any email step' );
-preg_match_all( "#href: '([^']+)'#", $js, $hrefs );
-$targets = array_unique( $hrefs[1] );
-foreach ( $targets as $href ) {
-	ok( in_array( $href, array( '/members/', '/courses/', '/tools/', '/services/' ), true ) || 0 === strpos( $href, '/contact/' ), "result link $href is an existing page" );
-}
-ok( false !== strpos( $js, "if (coursesOpen) return { label: 'Browse the courses', href: '/courses/' };" ), 'courses are offered only when the catalogue has a course' );
-ok( false !== strpos( $js, "return { label: 'Tell us what you want to learn', href: '/contact/?subject=' + encodeURIComponent('Courses and certification') };" ), 'otherwise the contact form, with the subject preselected' );
-ok( false !== strpos( $js, "fetch('/wp-json/prospergenics/v1/courses?per_page=1')" ), 'the course check uses the public catalogue endpoint' );
-ok( false !== strpos( $js, "answers.goal === 'organisation') { renderOrganisation(); return; }" ), 'organisations get their own result after the first question' );
-
-echo "Email and privacy\n";
-$deeper = substr( $js, strpos( $js, 'function deeperHtml' ), strpos( $js, 'function wireDeeper' ) - strpos( $js, 'function deeperHtml' ) );
-ok( false !== strpos( $deeper, '<label class="vt-label" for="vtEmail">Your email</label>' ), 'the email field has a visible label' );
-ok( strpos( $deeper, 'Email me my profile' ) < strpos( $deeper, 'vt-privacy' ), 'the privacy notice sits directly under the button' );
-ok( false !== strpos( $deeper, 'href="/privacy-policy/"' ), 'and links to the privacy policy' );
-ok( false !== strpos( $deeper, 'role="alert"' ) && false !== strpos( $js, "email.setAttribute('aria-invalid', 'true')" ), 'email errors are announced' );
-ok( false === stripos( $js, 'checkbox" name="vt-marketing' ) && false === stripos( $js, 'newsletter' ), 'no marketing opt-in the back end cannot honour' );
-ok( false !== strpos( $js, "'/api/leadtest/aanvraag'" ) && false !== strpos( $js, "'/api/leadtest/bevestig'" ) && false !== strpos( $js, "contextSlug: 'value-test'" ), 'the CoachOS double opt-in is kept' );
+echo "Email and profile\n";
+ok( false !== strpos( $js, 'Almost there - where can we send your value profile?' ), 'the email step follows the questions' );
+ok( false !== strpos( $js, 'href="/privacy-policy/">Privacy policy</a>' ), 'the privacy notice links to the privacy policy' );
+ok( false !== strpos( $js, "const API_BASE = \"https://coaching.martiendejong.nl/coaching\";" ), 'the CoachOS endpoint' );
+ok( false !== strpos( $js, "'/api/leadtest/aanvraag'" ) && false !== strpos( $js, "contextSlug: 'value-test'" ) && false !== strpos( $js, "'X-Tenant': 'prospergenics'" ), 'the answers and email go to the value-test context' );
+ok( false !== strpos( $js, "'/api/leadtest/bevestig'" ) && false !== strpos( $js, "get('vt')" ), 'the confirmation link (?vt=<token>) runs the analysis' );
+ok( false !== strpos( $js, "url.searchParams.delete('vt');" ), 'and the token is removed from the address bar' );
+ok( false !== strpos( $js, "'<div class=\"vt-profile\"></div>'" ) && false !== strpos( $js, 'Start developing your value' ), 'the result: profile name, explanation and the courses button' );
+ok( false !== strpos( $js, ".textContent = profile;" ) && false !== strpos( $js, ".textContent = rest;" ), 'the AI text is inserted as text, never as HTML' );
 
 echo "Accessibility\n";
-ok( false !== strpos( $js, '<fieldset class="vt-step"' ) && false !== strpos( $js, '<legend class="vt-question" tabindex="-1">' ), 'each question is a fieldset with a legend' );
-ok( false !== strpos( $section, 'id="vtLive" aria-live="polite"' ) && false !== strpos( $js, "announce('Question ' + (step + 1) + ' of ' + total" ), 'progress is announced in a polite live region' );
-ok( false !== strpos( $js, "kind = s.type === 'multi' ? 'checkbox' : 'radio'" ), 'answers are native radios and checkboxes' );
-ok( false !== strpos( $js, 'if (lastPointer && !reduceMotion.matches) setTimeout' ), 'a tap moves on by itself only for pointer users and not under reduced motion' );
-ok( false !== strpos( $js, "if (vtToken) { confirmFlow(vtToken); } else { wireStart(); }" ), 'page load only wires the Start button: nothing takes focus' );
-ok( false === strpos( $section, 'autofocus' ) && false === strpos( $section, 'data-scroll-scale' ), 'no autofocus and no scroll zoom on the test box' );
-ok( false !== strpos( $section, '<noscript>' ), 'a way forward without JavaScript' );
+ok( false !== strpos( $section, 'id="vtAnswer" rows="4" aria-labelledby="vtQuestion"' ), 'the answer box is labelled by the question' );
+ok( false !== strpos( $js, 'id="vtEmail" aria-label="Your email address"' ), 'the email field has a label' );
+ok( false !== strpos( $section, 'id="vtError" role="alert"' ) && false !== strpos( $js, 'id="vtErr2" role="alert"' ), 'errors are announced' );
+ok( false !== strpos( $js, 'if (vtToken) { confirmFlow(vtToken); } else { render(); }' ) && false !== strpos( $js, 'if (moveFocus) answerEl.focus' ), 'nothing takes focus on page load' );
 
 echo "Generated theme\n";
 $front = file_get_contents( $root . '/wp-theme/prospergenics-2026/front-page.php' );
-ok( false !== strpos( $front, '// ── Value test "Find your next step"' ) && false === strpos( $front, 'vtAnswer' ), 'front-page.php carries the new test and not the old one' );
+ok( false !== strpos( $front, '// ── Value test: five open questions' ) && false !== strpos( $front, 'vtAnswer' ) && false === strpos( $front, 'Find your next step' ), 'front-page.php carries the original test and not the tap version' );
 
 echo $failures ? "\n$failures FAILED\n" : "\nAll passed\n";
 exit( $failures ? 1 : 0 );
