@@ -198,6 +198,61 @@ function refused(r) {
     check('unverified member cannot follow', 'unverified', r.status === 403, `POST follow ${r.status} ${r.data && r.data.code || ''}`);
   }
 
+  /* 10. Registration at /register/ (card #6338): the form checks, nobody is created by a refused post,
+        WordPress' own registration URL leads here, and a good post makes a plain, logged-in member. */
+  {
+    const hidden = html => {
+      const f = {};
+      for (const n of ['_pgr_nonce', 'pg_form_time', 'pg_form_token']) {
+        const m = new RegExp(`name="${n}" value="([^"]*)"`).exec(html);
+        f[n] = m ? m[1] : '';
+      }
+      return f;
+    };
+    const wait = ms => new Promise(res => setTimeout(res, ms));
+    const loggedIn = sess => [...sess.jar.keys()].some(k => k.startsWith('wordpress_logged_in_'));
+    const reg = new Session('registrant');
+    const page = await reg.get('/register/');
+    check('register page: form for visitors', 'visitor', page.status === 200 && /name="password"/.test(page.text) && /autocomplete="new-password"/.test(page.text) && /noindex/.test(page.text), `GET ${page.status}`);
+    const core = await new Session('core-register').get('/wp-login.php?action=register');
+    check('wp-login.php?action=register leads to /register/', 'visitor', core.status === 302 && pathOf(core.location) === '/register/', `status ${core.status} -> ${core.location ? pathOf(core.location) : '(none)'}`);
+    const member = await s.subscriber.get('/register/');
+    check('register page sends members to their profile', 'subscriber', member.status === 302 && pathOf(member.location) === '/profile/', `status ${member.status} -> ${member.location ? pathOf(member.location) : '(none)'}`);
+
+    await wait(2500); // the form refuses a post in under two seconds
+    const f = hidden(page.text);
+    const good = { name: 'Rita Registrant', email: 'rita.registrant@example.test', password: 'blue lanterns drift home' };
+    const tries = [
+      ['without the nonce', Object.assign({}, f, good, { _pgr_nonce: '' }), /expired/i],
+      ['with a forged form token', Object.assign({}, f, good, { pg_form_token: 'forged' }), /Something went wrong/i],
+      ['with the honeypot filled', Object.assign({}, f, good, { pg_website_url: 'http://spam.example' }), /Something went wrong/i],
+      ['with a weak password', Object.assign({}, f, good, { password: 'password123' }), /most common/i],
+      ['with a bad email', Object.assign({}, f, good, { email: 'not-an-email' }), /valid email/i],
+      ['with an email that is taken', Object.assign({}, f, good, { email: U.subscriber.login + '@example.test' }), /already an account/i],
+    ];
+    for (const [label, body, expect] of tries) {
+      const r = await reg.request('POST', '/register/', { body });
+      check(`register ${label} is refused`, 'visitor', r.status === 200 && expect.test(r.text) && !loggedIn(reg) && !/name="password"[^>]*value="[^"]+"/.test(r.text), `POST ${r.status}${loggedIn(reg) ? ' LOGGED IN' : ''}`);
+    }
+
+    const ok = await reg.request('POST', '/register/', { body: Object.assign({}, f, good) });
+    check('register with good details logs in and goes to the wizard', 'visitor', ok.status === 302 && pathOf(ok.location) === '/profile/welcome/' && loggedIn(reg), `POST ${ok.status} -> ${ok.location ? pathOf(ok.location) : '(none)'}`);
+    const welcome = await reg.get('/profile/welcome/');
+    check('the new member sees the onboarding wizard and the verification banner', 'new member', welcome.status === 200 && /Set up your profile/.test(welcome.text) && /Please confirm your email address/.test(welcome.text), `GET ${welcome.status}`);
+    const own = await reg.get('/profile/');
+    check('the new member has a profile page', 'new member', own.status === 302 && /^\/in\/rita-registrant[^/]*\/$/.test(pathOf(own.location)), `status ${own.status} -> ${own.location ? pathOf(own.location) : '(none)'}`);
+    const admin = await reg.get('/wp-admin/edit.php?post_type=pg_contact_msg');
+    check('the new member is a plain member (no editor screens)', 'new member', refused(admin) && !admin.text.includes(FX.contact_title), `status ${admin.status}`);
+    const again = await new Session('rita-login').login('rita-registrant', good.password).then(() => 'ok', () => 'no');
+    const byEmail = again === 'ok' ? 'ok' : await new Session('rita-login-email').login(good.email, good.password).then(() => 'ok', () => 'no');
+    check('the new member can log in again with the chosen password', 'new member', byEmail === 'ok', byEmail === 'ok' ? 'login works' : 'login failed');
+    const twice = await new Session('registrant-2').get('/register/');
+    const f2 = hidden(twice.text);
+    await wait(2500);
+    const dup = await new Session('registrant-2').request('POST', '/register/', { body: Object.assign({}, f2, good) });
+    check('registering the same email again is refused', 'visitor', dup.status === 200 && /already an account/i.test(dup.text), `POST ${dup.status}`);
+  }
+
   /* report */
   const w = Math.max(...results.map(r => r.rule.length)) + 2;
   for (const r of results) console.log(`${r.pass ? 'PASS' : 'FAIL'}  ${r.rule.padEnd(w)}${r.who.padEnd(13)}${r.detail}`);

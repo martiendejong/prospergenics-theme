@@ -15,6 +15,9 @@ add_filter( 'pre_wp_mail', '__return_true' );
 
 $pg_e2e_password = 'e2e-pass-123'; // throwaway site on localhost only
 
+// "Anyone can register" (Settings, General): switches /register/ on (card #6338)
+update_option( 'users_can_register', 1 );
+
 $pg_e2e_users = array(
     // key           login           role           first     last         verified
     'editor'     => array( 'e2e_editor', 'editor', 'Ines', 'Instructor', true ),

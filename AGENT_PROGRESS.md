@@ -457,3 +457,13 @@ Left: Martien's review; port the copy to the live WordPress About page only
 after approval (production not touched). Knowledge docs 554/154/526 could not
 be opened here (JK MCP needs OAuth) - copy taken from the approved draft.
 
+## 2026-10-26 - task 6338 (feature/6338-member-registration, PR #37 into design/new-hero-2026-10)
+Done: /register/ (name, email, password): validation, spam checks, IAM-first provisioning seam, WordPress
+member (subscriber) created and logged in, redirect to /profile/welcome/. Off until "Anyone can register"
+is ticked; core wp-login.php?action=register now redirects here. Docs: docs/REGISTRATION.md.
+Verified: tests/test-platform-register.php 87/87; role matrix on a real WordPress 64/64 (15 new checks);
+Playwright 1440 and 390 px: no overflow, axe 0 violations, no console errors. Existing suite unchanged
+(test-platform-profiles accents and test-2026-people-sync fail on this Windows host, same on clean branch).
+Left: the IAM provisioning endpoint does not exist yet (IAM has public registration off); until it does
+members are flagged _pg_register_iam=pending. Martien: tick "Anyone can register" on test to try it.
+
