@@ -35,6 +35,8 @@ function prospergenics_profiles_privacy_defaults( $profile = 'members' ) {
         'education'  => 'public',
         'skills'     => 'public',
         'featured'   => 'public',
+        // ARC-20: earned course certificates, like education: as open as the profile itself
+        'certificates' => 'public',
     );
 }
 
@@ -89,6 +91,7 @@ function prospergenics_profiles_privacy_labels() {
         'education'  => 'Education',
         'skills'     => 'Skills',
         'featured'   => 'Featured',
+        'certificates' => 'Certificates (courses you completed)',
     );
 }
 
@@ -154,6 +157,17 @@ function prospergenics_profiles_visible_sections( array $privacy, $viewer_id, $o
         $out[ $section ] = $profile && prospergenics_profiles_level_allows( $level, $viewer_id, $owner_id, $is_connection, $viewer_verified );
     }
     return $out;
+}
+
+/**
+ * Whether a profile that the ProsperGenics team hid (audit ARC-15) stays hidden from a viewer:
+ * from everyone except its owner and staff who manage members.
+ */
+function prospergenics_profiles_hidden_from( $hidden, $viewer_id, $owner_id, $viewer_is_staff ) {
+    if ( ! $hidden ) {
+        return false;
+    }
+    return ! ( ( (int) $viewer_id > 0 && (int) $viewer_id === (int) $owner_id ) || $viewer_is_staff );
 }
 
 /**

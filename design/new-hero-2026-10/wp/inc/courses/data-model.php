@@ -19,7 +19,10 @@
  * from card #6341 exists (blocked on jengo-iam), administrators and editors get all of them via
  * a user_has_cap filter (nothing is written to the roles table). A future instructor role only
  * needs edit_pg_courses, publish_pg_courses, edit_published_pg_courses, delete_pg_courses and
- * delete_published_pg_courses.
+ * delete_published_pg_courses: in the meantime, members whose "Apply to teach" request an
+ * administrator approved (audit ARC-8, inc/profiles/applications.php) carry the user meta
+ * _pg_courses_instructor, and the same filter gives them exactly those five. This is interim:
+ * when jengo-iam (#6341) brings the instructor role, the flag becomes that role.
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -33,20 +36,33 @@ function prospergenics_courses_primitive_caps() {
 	);
 }
 
+/** The capabilities an approved instructor gets (their own courses, nobody else's). */
+function prospergenics_courses_instructor_caps() {
+	return array( 'edit_pg_courses', 'publish_pg_courses', 'edit_published_pg_courses', 'delete_pg_courses', 'delete_published_pg_courses' );
+}
+
+/** User meta that marks an approved instructor (interim, until jengo-iam #6341). */
+const PROSPERGENICS_COURSES_INSTRUCTOR_META = '_pg_courses_instructor';
+
 /** Whether the user may use the instructor features (wizard, dashboard). */
 function prospergenics_courses_is_instructor( $user_id = 0 ) {
 	return $user_id ? user_can( $user_id, 'edit_pg_courses' ) : current_user_can( 'edit_pg_courses' );
 }
 
-add_filter( 'user_has_cap', function ( $allcaps ) {
+add_filter( 'user_has_cap', function ( $allcaps, $caps = array(), $args = array(), $user = null ) {
 	// Administrators and editors (everyone who may edit others' posts) teach for now.
 	if ( ! empty( $allcaps['edit_others_posts'] ) ) {
 		foreach ( prospergenics_courses_primitive_caps() as $cap ) {
 			$allcaps[ $cap ] = true;
 		}
+	} elseif ( is_object( $user ) && ! empty( $user->ID ) && get_user_meta( (int) $user->ID, PROSPERGENICS_COURSES_INSTRUCTOR_META, true ) ) {
+		// approved instructors (ARC-8): their own courses only
+		foreach ( prospergenics_courses_instructor_caps() as $cap ) {
+			$allcaps[ $cap ] = true;
+		}
 	}
 	return $allcaps;
-} );
+}, 10, 4 );
 
 add_action( 'init', function () {
 	$caps = array(
