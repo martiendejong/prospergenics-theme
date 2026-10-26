@@ -199,7 +199,7 @@ ok( false === strpos( $php_header, 'data-static' ), 'the PHP header knows the lo
 
 echo "member links on the static pages (#6486)\n";
 ok( false !== strpos( $js, ".nav-account[data-static]" ) && false !== strpos( $js, 'pg_member=1' ), 'site-chrome.js swaps the static account links when the pg_member marker is set' );
-foreach ( array( "['My profile', '/profile/']", "['My courses', '/courses/my/']", "['Settings', '/profile/settings/']", "['Log out', '/wp-login.php?action=logout']" ) as $needle ) {
+foreach ( array( "['My profile', '/profile/']", "['My courses', '/courses/my/']", "['My articles', '/articles/mine/']", "['Settings', '/profile/settings/']", "['Log out', '/wp-login.php?action=logout']" ) as $needle ) {
 	ok( false !== strpos( $js, $needle ), "static member link $needle" );
 }
 ok( false !== strpos( $js, "querySelector('.nav-panel-account')" ), 'the mobile panel gets the member links too' );
