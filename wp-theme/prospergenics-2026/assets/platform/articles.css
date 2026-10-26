@@ -155,3 +155,7 @@ a.pga-author-name:hover{text-decoration-color:#fff;}
   .pga-card:hover{transform:none;}
   .pga-clap-btn.is-bumped .pga-icon{animation:none;}
 }
+/* empty listings (audit UX-7): a framed note with real next steps, links in the theme colour */
+.pga-empty{font-size:17px;line-height:1.7;color:#2a3d30;background:#fff;border:1px dashed rgba(15,61,40,.25);border-radius:16px;padding:22px 24px;}
+.pga-empty a:not(.pga-btn){color:var(--green-700);}
+.pga-empty-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:16px;}

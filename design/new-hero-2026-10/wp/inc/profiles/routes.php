@@ -248,14 +248,17 @@ add_filter( 'pre_get_document_title', function ( $title ) {
     return ( isset( $titles[ $route ] ) ? $titles[ $route ] : 'Profile' ) . ' – ProsperGenics';
 }, 20 );
 
-/** Only public profiles may be indexed; settings, wizard and the rest never. */
+/**
+ * Only public profiles that are filled in enough may be indexed (the same rule as the sitemap,
+ * prospergenics_profiles_is_indexable()); settings, wizard and the rest never.
+ */
 add_filter( 'wp_robots', function ( $robots ) {
     $route = prospergenics_profiles_route();
     if ( '' === $route ) {
         return $robots;
     }
     $owner = prospergenics_profiles_current_owner();
-    if ( 'profile' !== $route || ! $owner || 'public' !== prospergenics_profiles_privacy( $owner->ID )['profile'] ) {
+    if ( 'profile' !== $route || ! $owner || ! prospergenics_profiles_is_indexable( $owner->ID ) ) {
         $robots['noindex']  = true;
         $robots['nofollow'] = true;
     }
@@ -271,6 +274,10 @@ add_action( 'wp_head', function () {
     echo '<link rel="canonical" href="' . esc_url( prospergenics_profiles_url( $owner->ID ) ) . "\" />\n";
     if ( $vis['profile'] ) {
         $headline = (string) prospergenics_profiles_meta( $owner->ID, 'headline' );
+        $person   = function_exists( 'prospergenics_profiles_person' ) ? prospergenics_profiles_person( $owner->ID ) : null;
+        if ( '' === $headline && $person ) {
+            $headline = $person['role']; // the /people/ role stands in, as on the page (CON-11)
+        }
         $desc     = $owner->display_name . ( '' !== $headline ? ' – ' . $headline : '' ) . ' on ProsperGenics.';
         echo '<meta name="description" content="' . esc_attr( $desc ) . "\" />\n";
     }

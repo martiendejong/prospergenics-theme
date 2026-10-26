@@ -946,9 +946,10 @@
     </div>
   </section>
 
-  <!-- COMMUNITY VOICES · flowing banner. PLACEHOLDER quotes: swap for real Google Reviews
-       once the ProsperGenics Business Profile is live. Keep the number of cards per
-       .flow-set a multiple of 3 (see the bob keyframes note in the CSS). -->
+  <!-- COMMUNITY VOICES · flowing banner. The cards between the people:slider markers are generated
+       by people/build-profiles.py from PROFILES (the "slider" flag): edit them there, never here.
+       Two identical .flow-sets make the loop seamless; each holds a multiple of 3 cards (see the
+       bob keyframes note in the CSS). -->
   <section class="voices" id="voices">
     <div class="voices-head">
       <h2>Meet the <span class="accent">alchemists</span></h2>
@@ -959,6 +960,7 @@
       <div class="flow-tri" aria-hidden="true"><span><i></i></span></div>
       <div class="flow-tri flow-tri2" aria-hidden="true"><span><i></i></span></div>
       <div class="flow-track">
+        <!-- people:slider -->
         <div class="flow-set">
           <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/martien/">
             <span class="fc-ring" aria-hidden="true"></span>
@@ -1131,6 +1133,7 @@
             <p class="fc-quote">"People invested in me. I grew my herd and the results now pay the school fees."</p>
           </a>
         </div>
+        <!-- /people:slider -->
       </div>
       <div class="flow-lens" aria-hidden="true"></div>
     </div>

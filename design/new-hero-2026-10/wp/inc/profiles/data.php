@@ -523,6 +523,45 @@ function prospergenics_profiles_get_completion( $user_id ) {
     return $result;
 }
 
+/**
+ * Completion a public profile needs before search engines are invited to it (audit ARC-22): below
+ * this an /in/ page is mostly empty, so it is noindex and left out of the sitemap. 60% = three
+ * of photo, headline, experience, skills and education.
+ */
+function prospergenics_profiles_index_min_completion() {
+    return (int) apply_filters( 'prospergenics_profiles_index_min_completion', 60 );
+}
+
+/** Whether a member's /in/ page may be indexed: public, verified and complete enough. */
+function prospergenics_profiles_is_indexable( $user_id ) {
+    $user_id = (int) $user_id;
+    return 'public' === prospergenics_profiles_privacy( $user_id )['profile']
+        && prospergenics_profiles_is_verified( $user_id )
+        && prospergenics_profiles_get_completion( $user_id )['percent'] >= prospergenics_profiles_index_min_completion();
+}
+
+/**
+ * Sitemap entries for the indexable /in/ profiles (inc/sitemap.php lists them).
+ *
+ * @return array<int,array{loc:string}>
+ */
+function prospergenics_profiles_sitemap_urls() {
+    $ids  = get_users( array(
+        'fields'      => 'ID',
+        'number'      => 2000,
+        'count_total' => false,
+        'orderby'     => 'ID',
+        'meta_query'  => array( array( 'key' => '_pg_profiles_slug', 'compare' => 'EXISTS' ) ),
+    ) );
+    $urls = array();
+    foreach ( $ids as $id ) {
+        if ( prospergenics_profiles_is_indexable( (int) $id ) ) {
+            $urls[] = array( 'loc' => prospergenics_profiles_url( (int) $id ) );
+        }
+    }
+    return $urls;
+}
+
 /* ───────────────────────── photo (card #6344) ───────────────────────── */
 
 /** The member's photo attachment ID, or 0. */

@@ -5,11 +5,13 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>About ProsperGenics — exploring how value is created</title>
-<meta name="description" content="ProsperGenics is a community researching and practising value creation. We build, learn and measure through real projects to find out how value is actually created." />
+<!-- site-chrome:meta -->
+<meta name="description" content="A community in Kenya and the Netherlands that creates value together: courses and certification, AI tools, services and the people behind them." />
+<meta property="og:description" content="A community in Kenya and the Netherlands that creates value together: courses and certification, AI tools, services and the people behind them." />
+  <!-- /site-chrome:meta -->
 <!-- test/preview environment: keep out of search indexes (production About page lives on prospergenics.com) -->
 <meta property="og:type" content="website" />
 <meta property="og:title" content="About ProsperGenics — exploring how value is created" />
-<meta property="og:description" content="A community researching and practising value creation: learning by doing, empowering people, and building prosperity together." />
 <meta property="og:image" content="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/hero-top.jpg" />
 <link rel="icon" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/logo.png" />
 <link rel="stylesheet" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/fonts/fonts.css" />

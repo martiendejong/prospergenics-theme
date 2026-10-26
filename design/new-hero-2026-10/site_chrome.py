@@ -13,6 +13,9 @@ tests/test-2026-navigation.php checks that every page type shows the same menu a
 
     python site_chrome.py      # rewrites the marked blocks in index.html and about/index.html
 
+The organisation description (footer, About meta) comes from wp/inc/site-chrome/organisation.json,
+the same file inc/site-chrome.php and inc/seo.php read.
+
 people/build-profiles.py imports this module, so rebuilding the profiles picks it up too.
 The static pages can't know who is logged in, so they show the visitor links (Log in, Join);
 in WordPress (homepage, About, every inner page) the header comes from PHP and knows.
@@ -32,6 +35,8 @@ def _read(name):
 
 
 SITE = json.loads(_read("nav.json"))
+# The one organisation description (short: meta, sharing tags, footer; long: structured data).
+ORG = json.loads(_read("organisation.json"))
 # (label, path) of the main menu, e.g. ("Courses", "/courses/")
 NAV = [(item["label"], item["path"]) for item in SITE["main"]]
 
@@ -165,7 +170,7 @@ def footer(root):
   <div class="site-footer-inner">
     <div class="f-brand">
       <img src="{root}assets/logo.png" alt="ProsperGenics" width="46" height="44" />
-      <p>A community in Kenya and the Netherlands researching and practising how value is created.</p>
+      <p>{_esc(ORG['short'])}</p>
     </div>
 """ + "\n".join(cols) + f"""
   </div>
@@ -199,8 +204,20 @@ def _update(rel, header_html, footer_html, js):
     print(f"updated {rel}")
 
 
+def about_meta():
+    """The About page's description and sharing description: the short organisation text."""
+    d = _esc(ORG["short"])
+    return f'<meta name="description" content="{d}" />\n<meta property="og:description" content="{d}" />'
+
+
 def update_about():
     _update(os.path.join("about", "index.html"), header("../", current="About"), footer("../"), JS)
+    path = os.path.join(HERE, "about", "index.html")
+    with open(path, encoding="utf-8") as f:
+        html = f.read()
+    html = _replace_block(html, "meta", about_meta())
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(html)
 
 
 def update_index():

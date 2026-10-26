@@ -16,7 +16,10 @@
  *   article:tag (tags), twitter:* and an Article JSON-LD block.
  *
  * The article list pages (/articles/, categories, tags, series) get a description and sharing
- * tags too; inc/seo.php prints nothing for non-singular pages, so nothing is doubled there.
+ * tags too; inc/seo.php prints nothing for non-singular pages, so nothing is doubled there. They
+ * also get a canonical (WordPress prints one for singular pages only): the unfiltered listing,
+ * page number kept, so /articles/?sort=trending points at /articles/; sorted views are noindex
+ * (audit ARC-22).
  * When a real SEO plugin (Yoast, Rank Math, ...) is active this module prints nothing at all.
  */
 
@@ -201,3 +204,39 @@ add_action( 'wp_head', function () {
             . '</script>' . "\n";
     }
 }, 3 );
+
+/** Whether this is an article list page (/articles/, a category, tag or series). */
+function prospergenics_articles_is_listing() {
+    return is_post_type_archive( 'pg_article' ) || is_tax( array( 'pg_article_category', 'pg_article_tag', 'pg_series' ) );
+}
+
+/** Canonical URL of the current article list page: no sort or other query string, page kept. */
+function prospergenics_articles_listing_canonical() {
+    if ( ! prospergenics_articles_is_listing() ) {
+        return '';
+    }
+    $base = is_tax() ? get_term_link( get_queried_object() ) : get_post_type_archive_link( 'pg_article' );
+    if ( ! $base || is_wp_error( $base ) ) {
+        return '';
+    }
+    $paged = max( 1, (int) get_query_var( 'paged' ) );
+    return function_exists( 'prospergenics_2026_paged_url' ) ? prospergenics_2026_paged_url( $base, $paged ) : $base;
+}
+
+add_action( 'wp_head', function () {
+    if ( prospergenics_articles_other_seo_active() ) {
+        return;
+    }
+    $canonical = prospergenics_articles_listing_canonical();
+    if ( '' !== $canonical ) {
+        echo '<link rel="canonical" href="' . esc_url( $canonical ) . '" />' . "\n";
+    }
+}, 3 );
+
+// A sorted view lists the same articles as the canonical listing: keep it out of the index.
+add_filter( 'wp_robots', function ( $robots ) {
+    if ( prospergenics_articles_is_listing() && 'newest' !== prospergenics_articles_sort() ) {
+        $robots['noindex'] = true;
+    }
+    return $robots;
+}, 20 );

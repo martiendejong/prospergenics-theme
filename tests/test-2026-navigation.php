@@ -225,7 +225,17 @@ foreach ( array( 'service-detail' => '/services/coachos/', 'member-detail' => '/
 	ok( (bool) preg_match( '#</main>\s*<footer class="site-footer">.*</footer>\s*<script>#s', $out ), "$fixture: site footer and menu script after the content" );
 	ok( false === strpos( $out, 'class="facts-cta" href="' . TEST_HOME . '/"' ), "$fixture: no button left pointing at the homepage" );
 	$cta[ $fixture ] = block( $out, '#<a class="facts-cta"[^>]*>[^<]*</a>#' );
+	$outs[ $fixture ] = $out;
 }
+// CoachOS is a tool and a service: each page links the other, as one more fact (CON-12)
+$see = '<div class="fact"><span class="fl">See also</span><a href="' . TEST_HOME . '/tools/coachos/">CoachOS, the platform behind it</a></div>';
+ok( 1 === substr_count( $outs['service-detail'], $see ) && strpos( $outs['service-detail'], $see ) < strpos( $outs['service-detail'], '<a class="facts-cta"' ), '/services/coachos/ links /tools/coachos/ in its facts box, before the button' );
+ok( false === strpos( $outs['member-detail'], '<span class="fl">See also</span>' ), 'pages without a counterpart get no "See also"' );
+$tool_page = str_replace( '/services/coachos/', '/tools/coachos/', $buffer_service = substr( $sp = file_get_contents( __DIR__ . '/fixtures/jengo-listings/service-detail.html' ), 0, strpos( $sp, '<script type="speculationrules">' ) ) );
+$tool_out  = prospergenics_2026_listings_takeover( $tool_page, '/tools/coachos/', $chrome );
+ok( false !== strpos( $tool_out, '<span class="fl">See also</span><a href="' . TEST_HOME . '/services/coachos/">CoachOS as a service for your organisation</a>' ), '/tools/coachos/ links /services/coachos/' );
+$two_boxes = str_replace( '</aside>', '</aside><aside class="dir-facts"></aside>', $buffer_service );
+ok( false === strpos( prospergenics_2026_listings_takeover( $two_boxes, '/services/coachos/', $chrome ), 'See also' ), 'an unexpected page shape gets no "See also"' );
 ok( false !== strpos( $cta['service-detail'], 'href="' . TEST_HOME . '/contact/?subject=Services%20for%20my%20organisation"' ) && false !== strpos( $cta['service-detail'], 'Discuss your project' ), '"Discuss your project →" asks about services' );
 ok( false !== strpos( $cta['member-detail'], '/contact/?subject=Something%20else"' ), '"Get in touch →" on a member opens the form' );
 ok( 'Tools' === prospergenics_2026_listings_cta_subject( 'Ask about this tool →', '/tools/jengo/' ), '"Ask about this tool →" -> Tools' );
@@ -241,6 +251,28 @@ $GLOBALS['__queued'] = array( 'style:jengo-listings:done' );
 ok( prospergenics_2026_is_listings_page(), 'detects a jengo-listings page by its stylesheet' );
 $GLOBALS['__queued'] = array();
 ok( ! prospergenics_2026_is_listings_page(), 'and only then' );
+
+echo "a blog post's back link (NAV-9)\n";
+$GLOBALS['__opt'] = array( 'show_on_front' => 'page', 'page_for_posts' => 11 );
+$GLOBALS['__pages'] = array( 11 => 'publish' );
+$back = prospergenics_2026_posts_listing();
+ok( TEST_HOME . '/blog/' === $back['url'] && 'Back to Blog' === $back['label'], 'goes to the Posts page set under Settings -> Reading' );
+$GLOBALS['__opt'] = array( 'show_on_front' => 'posts', 'page_for_posts' => 11 );
+$back = prospergenics_2026_posts_listing();
+ok( TEST_HOME . '/articles/' === $back['url'] && 'All articles' === $back['label'], 'without a Posts page: the articles listing' );
+$GLOBALS['__no_articles'] = true;
+$back = prospergenics_2026_posts_listing();
+ok( TEST_HOME . '/' === $back['url'], 'without either: the homepage' );
+ok( false !== strpos( file_get_contents( $theme . '/single.php' ), 'prospergenics_2026_posts_listing()' ), 'single.php uses it' );
+
+echo "empty listings never link to themselves (NAV-9, UX-7)\n";
+$arch = file_get_contents( $theme . '/archive-pg_article.php' );
+$empty = block( $arch, '#<\?php elseif \( \$pga_none \) : \?>.*?<\?php else : \?>#s' );
+ok( '' !== $empty && false === strpos( $empty, "get_post_type_archive_link( 'pg_article' )" ), 'an empty /articles/ has no link back to /articles/' );
+ok( false !== strpos( $empty, "home_url( '/#value-test' )" ) && false !== strpos( $empty, 'prospergenics_2026_contact_url(' ), 'it offers the value test and the contact form' );
+ok( 2 === substr_count( $empty, 'class="pga-btn' ), 'both as styled buttons' );
+ok( false !== strpos( $arch, 'if ( ! $pga_none ) {' ), 'no filters or sort pills on an empty /articles/' );
+ok( false !== strpos( file_get_contents( $theme . '/assets/platform/articles.css' ), '.pga-empty a:not(.pga-btn){color:var(--green-700);}' ), 'links in empty notes use the theme colour' );
 
 echo "contact form subject (?subject=)\n";
 $contact = file_get_contents( $theme . '/page-contact.php' );
@@ -265,3 +297,11 @@ ok( isset( $GLOBALS['__hooks']['login_headerurl'], $GLOBALS['__hooks']['login_en
 
 echo $failures ? "\n$failures FAILED\n" : "\nAll assertions passed.\n";
 exit( $failures ? 1 : 0 );
+
+// stubs for prospergenics_2026_posts_listing() (NAV-9)
+function get_option( $k, $d = false ) { return isset( $GLOBALS['__opt'][ $k ] ) ? $GLOBALS['__opt'][ $k ] : $d; }
+function get_post_status( $id ) { return isset( $GLOBALS['__pages'][ $id ] ) ? $GLOBALS['__pages'][ $id ] : false; }
+function get_permalink( $id ) { return TEST_HOME . '/blog/'; }
+function get_the_title( $id ) { return 'Blog'; }
+function post_type_exists( $t ) { return empty( $GLOBALS['__no_articles'] ); }
+function get_post_type_archive_link( $t ) { return TEST_HOME . '/articles/'; }

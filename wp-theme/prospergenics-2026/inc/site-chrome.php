@@ -30,6 +30,23 @@ function prospergenics_2026_site_nav() {
     return $nav;
 }
 
+/**
+ * The organisation description, defined once in inc/site-chrome/organisation.json (audit CON-13):
+ * 'short' for meta descriptions, sharing tags and the footer, 'long' for the Organization JSON-LD.
+ * site_chrome.py reads the same file for the static pages and the About page.
+ */
+function prospergenics_2026_org_description( $length = 'short' ) {
+    static $org = null;
+    if ( null === $org ) {
+        $org = json_decode( (string) file_get_contents( __DIR__ . '/site-chrome/organisation.json' ), true );
+        if ( ! is_array( $org ) ) {
+            $org = array();
+        }
+    }
+    $key = 'long' === $length ? 'long' : 'short';
+    return isset( $org[ $key ] ) ? (string) $org[ $key ] : '';
+}
+
 /** Absolute URL for a nav.json item ({label, path} or {label, url}). */
 function prospergenics_2026_nav_url( array $item ) {
     return isset( $item['url'] ) ? $item['url'] : home_url( $item['path'] );
@@ -67,6 +84,24 @@ function prospergenics_2026_contact_subjects() {
 /** /contact/ with a subject preselected. */
 function prospergenics_2026_contact_url( $subject ) {
     return add_query_arg( 'subject', rawurlencode( $subject ), home_url( '/contact/' ) );
+}
+
+/**
+ * Where a blog post's back link goes (audit NAV-9): the posts listing set under Settings ->
+ * Reading -> "Posts page" (/blog/), else the articles listing, else the homepage.
+ *
+ * @return array{url:string,label:string}
+ */
+function prospergenics_2026_posts_listing() {
+    $page = (int) get_option( 'page_for_posts' );
+    if ( $page && 'page' === get_option( 'show_on_front' ) && 'publish' === get_post_status( $page ) ) {
+        return array( 'url' => get_permalink( $page ), 'label' => 'Back to ' . wp_strip_all_tags( get_the_title( $page ) ) );
+    }
+    $articles = post_type_exists( 'pg_article' ) ? get_post_type_archive_link( 'pg_article' ) : '';
+    if ( $articles ) {
+        return array( 'url' => $articles, 'label' => 'All articles' );
+    }
+    return array( 'url' => home_url( '/' ), 'label' => 'Back to ProsperGenics' );
 }
 
 /** The current request path, e.g. '/members/lessy/'. */
@@ -176,7 +211,7 @@ function prospergenics_2026_site_footer() {
     $f   = '<footer class="site-footer">' . "\n" . '  <div class="site-footer-inner">' . "\n";
     $f  .= '    <div class="f-brand">' . "\n";
     $f  .= '      <img src="' . esc_url( get_template_directory_uri() . '/assets/logo.png' ) . '" alt="ProsperGenics" width="46" height="44" />' . "\n";
-    $f  .= "      <p>A community in Kenya and the Netherlands researching and practising how value is created.</p>\n";
+    $f  .= '      <p>' . esc_html( prospergenics_2026_org_description( 'short' ) ) . "</p>\n";
     $f  .= "    </div>\n";
     foreach ( $nav['footer'] as $column ) {
         $f .= "    <div>\n      <h2>" . esc_html( $column['title'] ) . "</h2>\n      <ul>\n";
@@ -239,6 +274,20 @@ function prospergenics_2026_listings_cta_subject( $label, $path ) {
 }
 
 /**
+ * Cross-links between listings detail pages that describe the same thing from two sides (audit
+ * CON-12): CoachOS is both a tool and a service. Added as one more "At a glance" fact, in the
+ * plugin's own markup, so it needs no styles of its own.
+ *
+ * @return array<string,array{label:string,path:string}> request path => link
+ */
+function prospergenics_2026_listings_see_also() {
+    return (array) apply_filters( 'prospergenics_2026_listings_see_also', array(
+        '/tools/coachos/'    => array( 'label' => 'CoachOS as a service for your organisation', 'path' => '/services/coachos/' ),
+        '/services/coachos/' => array( 'label' => 'CoachOS, the platform behind it', 'path' => '/tools/coachos/' ),
+    ) );
+}
+
+/**
  * Rewrite one buffered jengo-listings page (pure: no output, no globals).
  *
  * @param string $html   Everything printed between the end of wp_head and the start of wp_footer.
@@ -271,6 +320,16 @@ function prospergenics_2026_listings_takeover( $html, $path, array $chrome ) {
         },
         $out
     );
+
+    // "See also" on pages with a counterpart: before the main button in the facts box, only when
+    // that box is there exactly once; otherwise the page stays as the plugin made it.
+    $see = prospergenics_2026_listings_see_also();
+    $key = trailingslashit( '/' . ltrim( (string) $path, '/' ) );
+    if ( isset( $see[ $key ] ) && 1 === substr_count( $out, '<aside class="dir-facts">' ) ) {
+        $fact = '<div class="fact"><span class="fl">See also</span><a href="' . esc_url( home_url( $see[ $key ]['path'] ) ) . '">' . esc_html( $see[ $key ]['label'] ) . '</a></div>';
+        $new  = preg_replace_callback( '#(<aside class="dir-facts">.*?)(<a class="facts-cta"|</aside>)#s', function ( $m ) use ( $fact ) { return $m[1] . $fact . $m[2]; }, $out, 1 );
+        $out  = null === $new ? $out : $new;
+    }
 
     return rtrim( $out ) . "\n\n" . $chrome['footer'] . "\n" . $chrome['script'] . "\n";
 }
