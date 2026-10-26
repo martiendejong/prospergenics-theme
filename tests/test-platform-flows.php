@@ -148,7 +148,17 @@ foreach ( array( 'manage_users_columns', 'manage_users_custom_column', 'user_row
 	ok( false !== strpos( $ua, "'$hook'" ), "hooked: $hook" );
 }
 ok( array( 'resend', 'verify', 'hide', 'unhide' ) === array_keys( prospergenics_profiles_user_actions() ), 'row actions: resend link, mark verified, hide, show' );
-ok( false !== strpos( $ua, 'check_admin_referer( prospergenics_profiles_user_action_nonce( $do, $user_id ) )' ) && false !== strpos( $ua, "current_user_can( 'edit_user', \$user_id )" ) && false !== strpos( $ua, 'wp_nonce_url(' ), 'row actions: nonce per action and member, edit_user' );
+ok( false !== strpos( $ua, 'check_admin_referer( prospergenics_profiles_user_action_nonce( $do, $user_id ) )' ) && false !== strpos( $ua, 'if ( ! prospergenics_profiles_can_manage_member( $user_id ) ) {' ) && false !== strpos( $ua, '! prospergenics_profiles_can_manage_member( $user->ID )' ) && false !== strpos( $ua, 'wp_nonce_url(' ), 'row actions (links and handler): nonce per action and member, then prospergenics_profiles_can_manage_member()' );
+// WordPress' own rule: edit_user is granted for your own account; edit_users only to staff who manage users.
+$GLOBALS['_me'] = 5; $GLOBALS['_caps'] = array();
+function current_user_can( $cap, $id = null ) {
+	if ( 'edit_user' === $cap ) { return (int) $id === $GLOBALS['_me'] || ! empty( $GLOBALS['_caps']['edit_users'] ); }
+	return ! empty( $GLOBALS['_caps'][ $cap ] );
+}
+ok( ! prospergenics_profiles_can_manage_member( 5 ), 'a member cannot use the row actions on themselves (mark verified, show a hidden profile) (e2e found this)' );
+ok( ! prospergenics_profiles_can_manage_member( 9 ), '… nor on someone else' );
+$GLOBALS['_caps'] = array( 'edit_users' => true );
+ok( prospergenics_profiles_can_manage_member( 9 ) && prospergenics_profiles_can_manage_member( 5 ), 'an administrator (edit_users) can, on anyone' );
 ok( false !== strpos( $data, 'prospergenics_profiles_hidden_from( prospergenics_profiles_is_hidden( $owner_id )' ) && false !== strpos( $data, "! prospergenics_profiles_is_hidden( \$user_id )\n" ), 'the flag is honoured by the visibility check (page, REST, bylines) and the index rule (robots, sitemap)' );
 ok( false !== strpos( $src( 'inc/profiles/privacy.php' ), "'_pg_profiles_hidden' );" ), 'erasing a member\'s data keeps the staff flag' );
 
