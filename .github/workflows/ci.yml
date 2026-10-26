@@ -2,7 +2,7 @@ name: CI
 
 # Lint + tests on every pull request and on pushes to the two long-lived branches.
 # The test files are standalone PHP scripts (no WordPress install needed): each exits non-zero
-# on a failed assertion.
+# on a failed assertion. The wordpress-roles job checks permissions against a real WordPress.
 on:
   pull_request:
   push:
@@ -38,6 +38,9 @@ jobs:
           done
           exit $fail
 
+      - name: Deploy script tests
+        run: python3 tests/test-deploy-script.py
+
       - name: Generated theme matches its design source
         if: hashFiles('design/new-hero-2026-10/build-wp-theme.py') != ''
         run: |
@@ -52,3 +55,47 @@ jobs:
             git diff --stat
             exit 1
           fi
+
+  # The tests above stub WordPress, so they cannot see real roles, capabilities or REST permission
+  # callbacks (audit ARC-18). This job boots WordPress 6.8 on SQLite with the built theme, seeds one
+  # user per role and runs the role/permission matrix in tests/e2e/role-matrix.js; any unexpected
+  # allow fails the job. Locally: bash tests/e2e/run.sh (see tests/e2e/README.md).
+  wordpress-roles:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_sqlite, sqlite3, mbstring, gd
+          coverage: none
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Cache the pinned WordPress, SQLite plugin and WP-CLI downloads
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/pg-e2e-cache
+          key: pg-e2e-${{ hashFiles('tests/e2e/run.sh') }}
+
+      - name: Boot WordPress, seed roles, run the role matrix
+        env:
+          E2E_DIR: ${{ runner.temp }}/pg-e2e
+          E2E_CACHE: ${{ runner.temp }}/pg-e2e-cache
+          E2E_PORT: '8096'
+        run: bash tests/e2e/run.sh
+
+      - name: Keep the server and debug logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wordpress-roles-logs
+          path: |
+            ${{ runner.temp }}/pg-e2e/server.log
+            ${{ runner.temp }}/pg-e2e/debug.log
+            ${{ runner.temp }}/pg-e2e/fixtures.json
+          if-no-files-found: ignore
