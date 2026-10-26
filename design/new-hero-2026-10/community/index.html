@@ -14,7 +14,7 @@
 <meta property="og:url" content="https://test.prospergenics.com/community/" />
 <meta property="og:image" content="https://test.prospergenics.com/wp-content/themes/prospergenics-2026/assets/og-image.jpg" />
 <meta name="twitter:card" content="summary_large_image" />
-<link rel="icon" href="../assets/logo.png" />
+<link rel="icon" href="../assets/logo.webp" />
 <link rel="stylesheet" href="../assets/fonts/fonts.css" />
 <script type="application/ld+json">
 {
@@ -294,7 +294,7 @@
   h1,h2,h3 { font-family:'Gabarito',sans-serif; }
   h1,h2,h3,p { text-shadow:0px 2px 0 rgba(70,70,70,.05),2px 2px 0 rgba(70,70,70,.05),0px -1px 0 rgba(70,70,70,.05),2px -1px 0 rgba(70,70,70,.05); }
   .wrap { max-width:1080px; margin:0 auto; padding:0 var(--gutter); }
-  :focus-visible { outline:3px solid var(--green-500); outline-offset:3px; border-radius:8px; }
+  :focus-visible { outline:3px solid var(--focus-ring, #1a7a46); outline-offset:3px; border-radius:8px; }
   .eyebrow { display:inline-flex; align-items:center; gap:10px; font-family:'Sora',sans-serif; font-weight:600; font-size:13px; letter-spacing:.08em; text-transform:uppercase; color:var(--green-700); padding:8px 14px 8px 10px; border-radius:999px; background:var(--green-100); border:1px solid rgba(34,166,90,.2); }
   .eyebrow .dot { width:7px; height:7px; border-radius:50%; background:var(--green-500); box-shadow:0 0 0 4px rgba(52,199,89,.22); }
   .chips { display:flex; flex-wrap:wrap; gap:10px; }
@@ -304,7 +304,7 @@
   .l-hero::before { content:""; position:absolute; width:620px; height:620px; right:-240px; top:-80px; border-radius:50%; background:radial-gradient(circle,var(--green-100),transparent 65%); opacity:.7; pointer-events:none; }
   .l-hero .wrap { position:relative; z-index:2; }
   h1 { font-weight:800; font-size:clamp(38px,6vw,76px); line-height:1; letter-spacing:-.03em; margin-top:22px; max-width:20ch; }
-  h1 .accent { background:linear-gradient(100deg,var(--green-700) 0%,var(--green-500) 55%,var(--green-300) 100%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+  h1 .accent { background:linear-gradient(100deg,var(--green-700) 0%,#1f9a55 100%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
   .lede { margin-top:22px; max-width:56ch; font-size:clamp(16.5px,1.8vw,19.5px); line-height:1.6; color:var(--body); }
   .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:clamp(18px,2.5vw,28px); padding:clamp(34px,5vw,56px) 0 0; }
   .pcard { display:block; text-decoration:none; background:#fff; border:1px solid var(--line); border-radius:22px; overflow:hidden; box-shadow:0 18px 44px -30px rgba(11,32,22,.4); transition:transform .25s var(--ease), box-shadow .25s var(--ease); }
@@ -324,6 +324,15 @@
      site_chrome.py copies it into index.html, about/index.html and the people/experts/community pages.
      Literal colours and every rule scoped under .site-header / .site-footer, so pages whose own
      stylesheets reuse .pg-nav, .brand, .nav-links or .nav-cta (the jengo-listings plugin) can't change it. */
+  /* the focus ring, one token for every page type (audit UX-9): green-700 is 5.07:1 on paper,
+     5.36:1 on white; dark green surfaces (the footer, the inner-page heroes) switch it to white,
+     >= 4.1:1 on every green they use. Page styles use var(--focus-ring, #1a7a46). */
+  :root { --focus-ring: #1a7a46; }
+  .site-footer, .post-hero { --focus-ring: #fff; }
+  .site-header :focus-visible, .site-footer :focus-visible, .skip-link:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; }
+  /* skip link (audit UX-16): first in <body> on every page, off screen until it has focus */
+  .skip-link { position: fixed; top: calc(12px + var(--wp-admin--admin-bar--height, 0px)); left: 16px; z-index: 100000; padding: 12px 18px; border-radius: 10px; background: #0f3d28; color: #fff; font: 600 15px/1.2 'Inter', system-ui, sans-serif; text-decoration: none; transform: translateY(calc(-100% - 24px)); }
+  .skip-link:focus { transform: none; }
   .site-header { position: sticky; top: 0; z-index: 50; box-sizing: border-box; width: 100%; max-width: none; margin: 0; display: flex; align-items: center; gap: 28px; min-height: 76px; padding: 14px clamp(20px, 5vw, 72px); background: rgba(244,250,246,.94); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border: 0; border-bottom: 1px solid rgba(15,61,40,.12); font-family: 'Inter', system-ui, sans-serif; transition: transform .3s cubic-bezier(.22,.61,.36,1); }
   .site-header *, .site-header *::before, .site-header *::after { box-sizing: border-box; }
   .site-header .brand { display: flex; align-items: center; gap: 10px; flex-shrink: 0; margin: 0 auto 0 0; padding: 0; text-decoration: none; }
@@ -332,8 +341,9 @@
   .site-header .nav-links { display: flex; align-items: center; gap: 28px; margin: 0; padding: 0; }
   .site-header .nav-links a { font-size: 15px; font-weight: 500; line-height: 1.2; color: #0f3d28; text-decoration: none; white-space: nowrap; opacity: .8; padding: 4px 0; box-shadow: none; transition: opacity .2s; }
   .site-header .nav-links a:hover, .site-header .nav-links a:focus-visible { opacity: 1; }
-  /* the current section: underline only, no bolder weight, so links never shift between pages */
-  .site-header .nav-links a[aria-current="page"] { opacity: 1; box-shadow: inset 0 -2px 0 #34c759; }
+  /* the current section (aria-current, set by the shared nav render on every page type): underline
+     only, no bolder weight, so links never shift between pages */
+  .site-header .nav-links a[aria-current="page"] { opacity: 1; box-shadow: inset 0 -2px 0 #1a7a46; }
   .site-header .nav-account { position: relative; display: flex; align-items: center; gap: 18px; flex-shrink: 0; }
   .site-header .nav-account-link { font-size: 15px; font-weight: 500; line-height: 1.2; color: #0f3d28; text-decoration: none; white-space: nowrap; opacity: .8; transition: opacity .2s; }
   .site-header .nav-account-link:hover, .site-header .nav-account-link:focus-visible { opacity: 1; }
@@ -364,7 +374,7 @@
   .site-header .nav-panel nav { display: grid; }
   .site-header .nav-panel a { display: flex; align-items: center; min-height: 48px; padding: 0 14px; border-radius: 12px; font-size: 17px; font-weight: 500; color: #0f3d28; text-decoration: none; opacity: 1; }
   .site-header .nav-panel a:hover, .site-header .nav-panel a:focus-visible { background: #eaf5ee; }
-  .site-header .nav-panel a[aria-current="page"] { background: #eaf5ee; }
+  .site-header .nav-panel a[aria-current="page"] { background: #eaf5ee; box-shadow: inset 3px 0 0 #1a7a46; }
   .site-header .nav-panel .nav-panel-account { display: grid; margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(15,61,40,.12); }
   .site-header .nav-panel .nav-panel-cta { margin-top: 6px; justify-content: center; background: #1a7a46; color: #fff; font-family: 'Sora', sans-serif; font-weight: 600; }
   .site-header .nav-panel .nav-panel-cta:hover { background: #0f3d28; }
@@ -412,14 +422,15 @@
 </head>
 <body>
 
-  <header class="site-header">
+  <a class="skip-link" href="#main">Skip to content</a>
+<header class="site-header">
   <a class="brand" href="../" aria-label="ProsperGenics home">
-    <img src="../assets/logo.png" alt="" width="42" height="40" />
+    <img src="../assets/logo.webp" alt="" width="42" height="40" />
     <span class="brand-text">ProsperGenics</span>
   </a>
   <nav class="nav-links" aria-label="Main">
     <a href="/courses/">Courses</a>
-    <a href="/members/">Members</a>
+    <a href="/members/" aria-current="page">Members</a>
     <a href="/tools/">Tools</a>
     <a href="/services/">Services</a>
     <a href="/partners/">Partners</a>
@@ -436,7 +447,7 @@
   <div class="nav-panel" id="mobile-menu" hidden>
     <nav aria-label="Mobile">
       <a href="/courses/">Courses</a>
-      <a href="/members/">Members</a>
+      <a href="/members/" aria-current="page">Members</a>
       <a href="/tools/">Tools</a>
       <a href="/services/">Services</a>
       <a href="/partners/">Partners</a>
@@ -450,7 +461,7 @@
   </div>
 </header>
 
-  <main>
+  <main id="main">
     <section class="l-hero">
       <div class="wrap">
         <p class="eyebrow"><span class="dot"></span>Community stories</p>
@@ -615,8 +626,8 @@
   <footer class="site-footer">
   <div class="site-footer-inner">
     <div class="f-brand">
-      <img src="../assets/logo.png" alt="ProsperGenics" width="46" height="44" />
-      <p>A community in Kenya and the Netherlands researching and practising how value is created.</p>
+      <img src="../assets/logo.webp" alt="ProsperGenics" width="46" height="44" />
+      <p>A community in Kenya and the Netherlands that creates value together: courses and certification, AI tools, services and the people behind them.</p>
     </div>
     <div>
       <h2>Explore</h2>

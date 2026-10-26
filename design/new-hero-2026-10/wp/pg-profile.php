@@ -10,6 +10,10 @@ $preview   = get_current_user_id() === $owner->ID && ! $is_owner;
 $editing   = $is_owner && isset( $_GET['edit'] );
 $vis       = $data['visible'];
 $profile_url = prospergenics_profiles_url( $owner->ID );
+// The curated /people/ story this member is linked to (user meta _pg_people_slug, audit CON-11):
+// linked from here, and its photo and role stand in while the account has none of its own.
+$person      = prospergenics_profiles_person( $owner->ID );
+$story_link  = $person ? '<a class="pgp-btn pgp-btn-light" href="' . esc_url( $person['url'] ) . '">' . esc_html( sprintf( 'Read %s’s story', $person['first_name'] ) ) . '</a>' : '';
 get_header();
 ?>
 <div class="pgp-root<?php echo $editing ? ' is-editing' : ''; ?>" data-pgp-root data-slug="<?php echo esc_attr( $data['slug'] ); ?>">
@@ -35,6 +39,9 @@ get_header();
     </div>
   </div>
   <div class="post-wrap">
+    <?php if ( $person ) : ?>
+      <p class="empty-note"><a href="<?php echo esc_url( $person['url'] ); ?>"><?php echo esc_html( sprintf( 'Read %s’s story', $person['first_name'] ) ); ?></a></p>
+    <?php endif; ?>
     <?php if ( ! get_current_user_id() ) : ?>
       <p class="empty-note"><a class="pgp-btn pgp-btn-primary" href="<?php echo esc_url( prospergenics_profiles_login_url( $profile_url ) ); ?>">Log in to see more</a></p>
     <?php else : ?>
@@ -48,6 +55,8 @@ get_header();
       <div class="pgp-photo-wrap">
         <?php if ( ! empty( $data['photo'] ) ) : ?>
           <img class="pgp-photo" src="<?php echo esc_url( $data['photo'] ); ?>" alt="<?php echo esc_attr( $data['name'] ); ?>" width="160" height="160" />
+        <?php elseif ( $person && '' !== $person['photo'] ) : ?>
+          <img class="pgp-photo" src="<?php echo esc_url( $person['photo'] ); ?>" alt="<?php echo esc_attr( $data['name'] ); ?>" width="160" height="160" style="object-fit: cover; object-position: <?php echo esc_attr( $person['pos'] ); ?>" />
         <?php else : ?>
           <span class="pgp-photo pgp-photo-ph" aria-hidden="true"><?php echo esc_html( prospergenics_profiles_initials( $data['name'] ) ); ?></span>
         <?php endif; ?>
@@ -68,6 +77,8 @@ get_header();
           <p class="pgp-headline"><?php echo esc_html( $data['headline'] ); ?></p>
         <?php elseif ( $is_owner ) : ?>
           <p class="pgp-headline pgp-muted-light">Add a headline so people know what you do.</p>
+        <?php elseif ( $person ) : ?>
+          <p class="pgp-headline"><?php echo esc_html( $person['role'] ); ?></p>
         <?php endif; ?>
         <?php if ( '' !== $data['location'] ) : ?>
           <p class="pgp-location"><?php echo esc_html( $data['location'] ); ?></p>
@@ -82,7 +93,8 @@ get_header();
               <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
               <span data-pgp-label><?php echo $editing ? 'Done editing' : 'Edit profile'; ?></span>
             </button>
-            <a class="pgp-btn pgp-btn-light" href="<?php echo esc_url( home_url( '/profile/settings/' ) ); ?>">Privacy</a>
+            <a class="pgp-btn pgp-btn-light" href="<?php echo esc_url( home_url( '/profile/settings/' ) ); ?>">Settings</a>
+            <?php echo $story_link; // escaped above ?>
           <?php elseif ( get_current_user_id() && ! $preview ) : ?>
             <button type="button" class="pgp-btn pgp-btn-on-dark" data-pgp-follow="<?php echo esc_attr( $data['slug'] ); ?>" aria-pressed="<?php echo $data['followed_by_me'] ? 'true' : 'false'; ?>">
               <span data-pgp-label><?php echo $data['followed_by_me'] ? 'Following' : 'Follow'; ?></span><span class="screen-reader-text"> <?php echo esc_html( $data['name'] ); ?></span>
@@ -90,6 +102,7 @@ get_header();
           <?php elseif ( ! $preview ) : ?>
             <a class="pgp-btn pgp-btn-on-dark" href="<?php echo esc_url( prospergenics_profiles_login_url( $profile_url ) ); ?>">Log in to follow</a>
           <?php endif; ?>
+          <?php if ( ! $is_owner ) { echo $story_link; } // escaped above ?>
         </div>
       </div>
     </div>
@@ -362,7 +375,7 @@ get_header();
           <h2 class="pgp-card-h">Your profile</h2>
           <ul class="pgp-side-links">
             <li><a href="<?php echo esc_url( prospergenics_profiles_url( $owner->ID, array( 'view' => 'public' ) ) ); ?>">See what visitors see</a></li>
-            <li><a href="<?php echo esc_url( home_url( '/profile/settings/' ) ); ?>">Privacy settings</a></li>
+            <li><a href="<?php echo esc_url( home_url( '/profile/settings/' ) ); ?>">Account and privacy settings</a></li>
             <li><a href="<?php echo esc_url( home_url( '/profile/following/' ) ); ?>">Your connections</a></li>
           </ul>
         </div>

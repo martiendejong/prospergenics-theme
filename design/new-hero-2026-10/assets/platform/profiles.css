@@ -15,11 +15,14 @@
 .pgp-btn-light{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.6);color:#fff;}
 .pgp-btn-light:hover{background:rgba(255,255,255,.22);}
 .pgp-btn[disabled]{opacity:.6;cursor:progress;}
+.pgp-btn.pgp-danger{border-color:#a3271d;color:#a3271d;}
+.pgp-btn.pgp-btn-danger{background:#a3271d;border-color:#a3271d;color:#fff;}
+.pgp-btn.pgp-btn-danger:hover{background:#7a1d16;}
 .pgp-link-btn{background:none;border:0;padding:6px 4px;min-height:32px;font:inherit;font-size:14px;font-weight:600;color:var(--green-700);text-decoration:underline;text-underline-offset:3px;cursor:pointer;}
 .pgp-link-btn[disabled]{color:var(--muted);text-decoration:none;cursor:default;opacity:.6;}
 .pgp-danger{color:#a3271d;}
-:where(.pgp-root,.pgp-narrow) :focus-visible{outline:3px solid var(--green-500);outline-offset:2px;}
-.post-hero :focus-visible{outline-color:#fff;}
+:where(.pgp-root,.pgp-narrow) :focus-visible{outline:3px solid var(--focus-ring,#1a7a46);outline-offset:2px;}
+.post-hero :focus-visible{outline-color:var(--focus-ring,#fff);}
 
 /* hero */
 .pgp-hero-inner{max-width:1100px;margin:0 auto;position:relative;z-index:1;display:flex;gap:clamp(20px,4vw,40px);align-items:center;}
@@ -128,7 +131,7 @@
 .pgp-field input[type=file]{padding:8px;}
 .pgp-field textarea{resize:vertical;min-height:110px;}
 .pgp-field [aria-invalid="true"]{border-color:#b3261e!important;}
-.pgp-field input:focus,.pgp-field select:focus,.pgp-field textarea:focus{outline:3px solid var(--green-500);outline-offset:1px;border-color:var(--green-700);}
+.pgp-field input:focus,.pgp-field select:focus,.pgp-field textarea:focus{outline:3px solid var(--focus-ring,#1a7a46);outline-offset:1px;border-color:var(--green-700);}
 .pgp-form-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
 .pgp-form-error{color:#7a1d16;background:#fbe4e2;border-radius:10px;padding:10px 12px;font-size:14.5px;}
 .pgp-saving{font-size:13px;color:var(--muted);}
@@ -157,6 +160,8 @@
 .pgp-avatar-ph{display:flex;align-items:center;justify-content:center;background:var(--green-100);color:var(--green-900);font-weight:800;}
 .pgp-member-head{display:block;font-size:14px;color:var(--muted);}
 .pgp-narrow .pgp-section{margin-bottom:18px;}
+.pgp-narrow .pgp-section > .pgp-form + .pgp-form{border-top:1px solid var(--line);padding-top:20px;margin-top:22px;}
+.pgp-narrow .pgp-section .pgp-hint + .pgp-notice,.pgp-narrow .pgp-section h2 + .pgp-notice{margin-top:10px;}
 
 /* privacy settings */
 .pgp-privacy{gap:16px;}

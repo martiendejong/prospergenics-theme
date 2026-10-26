@@ -266,9 +266,25 @@ add_filter( 'wp_robots', function ( $robots ) {
 		$robots['noindex']  = true;
 		$robots['nofollow'] = true;
 		unset( $robots['max-image-preview'] );
+	} elseif ( is_post_type_archive( 'pg_course' ) && prospergenics_courses_filters_active( prospergenics_courses_current_filters() ) ) {
+		// a filtered or re-sorted /courses/ is a subset of the canonical archive (audit ARC-22)
+		$robots['noindex'] = true;
 	}
 	return $robots;
 }, 20 );
+
+/** Whether the archive filters narrow or re-sort the list (?category=, ?level=, ?sort=popular). */
+function prospergenics_courses_filters_active( array $f ) {
+	return '' !== $f['category'] || '' !== $f['level'] || 'newest' !== $f['sort'];
+}
+
+/** Canonical of the /courses/ archive: without filters, page number kept (audit ARC-22). */
+function prospergenics_courses_archive_canonical() {
+	$base  = get_post_type_archive_link( 'pg_course' );
+	$base  = $base ? $base : home_url( '/courses/' );
+	$paged = max( 1, (int) get_query_var( 'paged' ) );
+	return function_exists( 'prospergenics_2026_paged_url' ) ? prospergenics_2026_paged_url( $base, $paged ) : $base;
+}
 
 // Lesson pages: no sharing/description tags from inc/seo.php, which would print the start of
 // the (gated) lesson text into the page head.
@@ -291,10 +307,11 @@ add_action( 'wp_enqueue_scripts', function () {
 	}
 } );
 
-/** Description and schema.org Course for /courses/ and course pages. */
+/** Description and canonical for /courses/; schema.org Course for course pages. */
 add_action( 'wp_head', function () {
 	if ( is_post_type_archive( 'pg_course' ) && function_exists( 'prospergenics_2026_seo_plugin_active' ) && ! prospergenics_2026_seo_plugin_active() ) {
 		echo '<meta name="description" content="' . esc_attr( 'Courses from the ProsperGenics community: learn by doing, track your progress and earn a verifiable certificate.' ) . '" />' . "\n";
+		echo '<link rel="canonical" href="' . esc_url( prospergenics_courses_archive_canonical() ) . '" />' . "\n";
 	}
 	if ( ! is_singular( 'pg_course' ) ) {
 		return;

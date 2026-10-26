@@ -18,6 +18,7 @@ TLS session reuse verplicht). FTP root = DA home, so paths start at domains/.
 Uploads:
   wp-theme/prospergenics-2026/  -> public_html/wp-content/themes/prospergenics-2026/
   people/<slug>/index.html      -> public_html/people/<slug>/index.html
+  people/index.html             -> public_html/people/index.html (redirect to the people list)
   experts/index.html            -> public_html/experts/index.html
   community/index.html          -> public_html/community/index.html
                                    (relative asset URLs rewritten to the theme assets URL)
@@ -422,6 +423,9 @@ def deploy_static(ftp, dry):
         pages.append((f"{REMOTE_ROOT}/people/{slug}/index.html", html))
         # the profiles briefly lived under /team/<slug>/ (18-10): leave a redirect
         pages.append((f"{REMOTE_ROOT}/team/{slug}/index.html", REDIRECT.format(slug=slug)))
+    # /people/ itself: a redirect to the people list (build-profiles.py), so it is no 403
+    with open(os.path.join(PEOPLE, "index.html"), encoding="utf-8") as f:
+        pages.append((f"{REMOTE_ROOT}/people/index.html", f.read()))
     for folder in LISTS:
         with open(os.path.join(HERE, folder, "index.html"), encoding="utf-8") as f:
             html = f.read().replace("../assets/", THEME_ASSETS)
