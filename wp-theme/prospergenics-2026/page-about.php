@@ -11,7 +11,7 @@
 <meta property="og:title" content="About ProsperGenics — exploring how value is created" />
 <meta property="og:description" content="A community researching and practising value creation: learning by doing, empowering people, and building prosperity together." />
 <meta property="og:image" content="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/hero-top.jpg" />
-<link rel="icon" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/logo.png" />
+<link rel="icon" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/logo.webp" />
 <link rel="stylesheet" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/fonts/fonts.css" />
 <script>document.documentElement.className = 'js';</script>
 <style>
@@ -24,6 +24,7 @@
     --green-500:  #34c759;
     --green-300:  #86e0a6;
     --green-100:  #d9f5e3;
+    --accent-end: #1f9a55;   /* lightest stop of the accent heading gradient: 3.4:1 on paper (UX-15; #86e0a6 was 1.5:1) */
     --paper:      #f4faf6;
     --paper-2:    #eaf5ee;
     --line:       rgba(15,61,40,.12);
@@ -49,7 +50,8 @@
   a { color: inherit; }
   .wrap { max-width: 1240px; margin: 0 auto; padding: 0 var(--gutter); }
   .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-  :focus-visible { outline: 3px solid var(--green-500); outline-offset: 3px; border-radius: 8px; }
+  :focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; border-radius: 8px; }
+  .genetics, .finale { --focus-ring: #fff; } /* dark green panels: white ring (UX-9) */
 
   /* ─────────────  TOP BAR  ───────────── */
 
@@ -77,7 +79,7 @@
   }
   h1 .accent {
     display: block;
-    background: linear-gradient(100deg, var(--green-700) 0%, var(--green-500) 55%, var(--green-300) 100%);
+    background: linear-gradient(100deg, var(--green-700) 0%, var(--accent-end) 100%);
     -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
     padding-bottom: .08em;
   }
@@ -116,10 +118,10 @@
     padding: clamp(28px, 4vw, 52px); box-shadow: var(--shadow);
   }
   .question-card::before { content:""; position:absolute; inset: 0 0 auto 0; height: 5px; background: linear-gradient(90deg, var(--green-600), var(--green-300)); }
-  .question-card .q-label { font-family:'Sora',sans-serif; font-weight:600; font-size:13px; letter-spacing:.08em; text-transform:uppercase; color: var(--green-600); margin-bottom: 14px; }
+  .question-card .q-label { font-family:'Sora',sans-serif; font-weight:600; font-size:13px; letter-spacing:.08em; text-transform:uppercase; color: var(--green-700); margin-bottom: 14px; }
   .question-card .q {
     font-family: 'Sora', sans-serif; font-weight: 800; font-size: clamp(30px, 4.2vw, 52px); line-height: 1.04; letter-spacing: -.03em;
-    background: linear-gradient(100deg, var(--green-700) 0%, var(--green-500) 70%, var(--green-300) 100%);
+    background: linear-gradient(100deg, var(--green-700) 0%, var(--accent-end) 100%);
     -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; padding-bottom: .06em;
   }
   .question-card .q-examples { margin-top: 22px; font-size: clamp(16px, 1.45vw, 18px); line-height: 1.62; color: var(--body); }
@@ -148,7 +150,7 @@
   }
   .exchange::before { content:""; position:absolute; inset: 0 0 auto 0; height: 5px; background: linear-gradient(90deg, var(--green-600), var(--green-300)); }
   .exchange .pair { display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; font-family:'Sora',sans-serif; font-weight:800; font-size: clamp(20px, 2.4vw, 27px); letter-spacing: -.02em; color: var(--green-900); }
-  .exchange .pair .sw { color: var(--green-500); font-size: clamp(24px, 2.8vw, 34px); font-weight: 600; }
+  .exchange .pair .sw { color: var(--green-700); font-size: clamp(24px, 2.8vw, 34px); font-weight: 600; }
   .exchange p { margin-top: 16px; color: var(--muted); font-size: 15px; line-height: 1.6; }
 
   /* the learning cycle */
@@ -168,7 +170,7 @@
     font-size: 14px; font-weight: 700; color: #fff; background: linear-gradient(135deg, var(--green-700), var(--green-500));
   }
   ol.cycle li:not(:last-child)::after {
-    content: "→"; position: absolute; right: 4px; top: 8px; font-size: 22px; font-weight: 600; color: var(--green-500);
+    content: "→"; position: absolute; right: 4px; top: 8px; font-size: 22px; font-weight: 600; color: var(--green-700);
   }
   ol.cycle li.again { color: var(--green-700); }
   ol.cycle li.again::before { content: "↺"; font-size: 19px; background: var(--green-900); }
@@ -192,7 +194,7 @@
     background: rgba(255,255,255,.92); border: 1px solid var(--line); border-radius: 999px; padding: 10px 16px;
   }
   .values span::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--green-500); box-shadow: 0 0 0 4px rgba(52,199,89,.2); }
-  .values-label { margin-top: 30px; font-family:'Sora',sans-serif; font-weight:600; font-size:13px; letter-spacing:.08em; text-transform:uppercase; color: var(--green-600); }
+  .values-label { margin-top: 30px; font-family:'Sora',sans-serif; font-weight:600; font-size:13px; letter-spacing:.08em; text-transform:uppercase; color: var(--green-700); }
   .values-label + .values { margin-top: 12px; }
 
   .tool-note {
@@ -247,7 +249,7 @@
   .card .k { width: 42px; height: 42px; border-radius: 12px; display:grid; place-items:center; font-size:20px; background: var(--green-100); margin-bottom: 16px; }
   .card h3 { font-family:'Sora',sans-serif; font-weight:700; font-size:17px; color:var(--green-900); margin-bottom: 7px; }
   .card p { font-size: 13.5px; line-height: 1.5; color: var(--muted); }
-  .card .tag { margin-top: 14px; font-size: 11.5px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color: var(--green-600); }
+  .card .tag { margin-top: 14px; font-size: 11.5px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color: var(--green-700); }
   .card::before { content:""; position:absolute; inset:auto 0 0 0; height:3px; background: linear-gradient(90deg,var(--green-600),var(--green-300)); transform: scaleX(0); transform-origin:left; transition: transform .3s var(--ease); }
   .card:hover::before { transform: scaleX(1); }
   /* footer */
@@ -270,6 +272,15 @@
      site_chrome.py copies it into index.html, about/index.html and the people/experts/community pages.
      Literal colours and every rule scoped under .site-header / .site-footer, so pages whose own
      stylesheets reuse .pg-nav, .brand, .nav-links or .nav-cta (the jengo-listings plugin) can't change it. */
+  /* the focus ring, one token for every page type (audit UX-9): green-700 is 5.07:1 on paper,
+     5.36:1 on white; dark green surfaces (the footer, the inner-page heroes) switch it to white,
+     >= 4.1:1 on every green they use. Page styles use var(--focus-ring, #1a7a46). */
+  :root { --focus-ring: #1a7a46; }
+  .site-footer, .post-hero { --focus-ring: #fff; }
+  .site-header :focus-visible, .site-footer :focus-visible, .skip-link:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; }
+  /* skip link (audit UX-16): first in <body> on every page, off screen until it has focus */
+  .skip-link { position: fixed; top: calc(12px + var(--wp-admin--admin-bar--height, 0px)); left: 16px; z-index: 100000; padding: 12px 18px; border-radius: 10px; background: #0f3d28; color: #fff; font: 600 15px/1.2 'Inter', system-ui, sans-serif; text-decoration: none; transform: translateY(calc(-100% - 24px)); }
+  .skip-link:focus { transform: none; }
   .site-header { position: sticky; top: 0; z-index: 50; box-sizing: border-box; width: 100%; max-width: none; margin: 0; display: flex; align-items: center; gap: 28px; min-height: 76px; padding: 14px clamp(20px, 5vw, 72px); background: rgba(244,250,246,.94); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border: 0; border-bottom: 1px solid rgba(15,61,40,.12); font-family: 'Inter', system-ui, sans-serif; transition: transform .3s cubic-bezier(.22,.61,.36,1); }
   .site-header *, .site-header *::before, .site-header *::after { box-sizing: border-box; }
   .site-header .brand { display: flex; align-items: center; gap: 10px; flex-shrink: 0; margin: 0 auto 0 0; padding: 0; text-decoration: none; }
@@ -278,8 +289,9 @@
   .site-header .nav-links { display: flex; align-items: center; gap: 28px; margin: 0; padding: 0; }
   .site-header .nav-links a { font-size: 15px; font-weight: 500; line-height: 1.2; color: #0f3d28; text-decoration: none; white-space: nowrap; opacity: .8; padding: 4px 0; box-shadow: none; transition: opacity .2s; }
   .site-header .nav-links a:hover, .site-header .nav-links a:focus-visible { opacity: 1; }
-  /* the current section: underline only, no bolder weight, so links never shift between pages */
-  .site-header .nav-links a[aria-current="page"] { opacity: 1; box-shadow: inset 0 -2px 0 #34c759; }
+  /* the current section (aria-current, set by the shared nav render on every page type): underline
+     only, no bolder weight, so links never shift between pages */
+  .site-header .nav-links a[aria-current="page"] { opacity: 1; box-shadow: inset 0 -2px 0 #1a7a46; }
   .site-header .nav-account { position: relative; display: flex; align-items: center; gap: 18px; flex-shrink: 0; }
   .site-header .nav-account-link { font-size: 15px; font-weight: 500; line-height: 1.2; color: #0f3d28; text-decoration: none; white-space: nowrap; opacity: .8; transition: opacity .2s; }
   .site-header .nav-account-link:hover, .site-header .nav-account-link:focus-visible { opacity: 1; }
@@ -310,7 +322,7 @@
   .site-header .nav-panel nav { display: grid; }
   .site-header .nav-panel a { display: flex; align-items: center; min-height: 48px; padding: 0 14px; border-radius: 12px; font-size: 17px; font-weight: 500; color: #0f3d28; text-decoration: none; opacity: 1; }
   .site-header .nav-panel a:hover, .site-header .nav-panel a:focus-visible { background: #eaf5ee; }
-  .site-header .nav-panel a[aria-current="page"] { background: #eaf5ee; }
+  .site-header .nav-panel a[aria-current="page"] { background: #eaf5ee; box-shadow: inset 3px 0 0 #1a7a46; }
   .site-header .nav-panel .nav-panel-account { display: grid; margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(15,61,40,.12); }
   .site-header .nav-panel .nav-panel-cta { margin-top: 6px; justify-content: center; background: #1a7a46; color: #fff; font-family: 'Sora', sans-serif; font-weight: 600; }
   .site-header .nav-panel .nav-panel-cta:hover { background: #0f3d28; }
@@ -363,7 +375,7 @@
   <!-- site-chrome:header (inc/site-chrome.php) -->
   <?php echo prospergenics_2026_site_header( array( 'current' => 'About' ) ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 
-  <main>
+  <main id="main">
     <!-- HERO -->
     <section class="hero">
       <div class="wrap">

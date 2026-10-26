@@ -48,12 +48,19 @@ function prospergenics_2026_main_nav_items() {
     return $items;
 }
 
-/** Label of the main-menu section a path belongs to ('/services/coachos/' -> 'Services'), or ''. */
+/**
+ * Label of the main-menu section a path belongs to ('/services/coachos/' -> 'Services',
+ * '/people/lessy/' -> 'Members' through the item's "also" prefixes in nav.json), or ''.
+ * site_chrome.py current_label() mirrors this for the static pages (audit NAV-15).
+ */
 function prospergenics_2026_current_nav_label( $path ) {
-    $path = '/' . ltrim( (string) $path, '/' );
+    $path = trailingslashit( '/' . ltrim( (string) $path, '/' ) );
     foreach ( prospergenics_2026_site_nav()['main'] as $item ) {
-        if ( 0 === strpos( trailingslashit( $path ), $item['path'] ) ) {
-            return $item['label'];
+        $prefixes = array_merge( array( $item['path'] ), isset( $item['also'] ) ? (array) $item['also'] : array() );
+        foreach ( $prefixes as $prefix ) {
+            if ( '/' !== $prefix && 0 === strpos( $path, $prefix ) ) {
+                return $item['label'];
+            }
         }
     }
     return '';
@@ -126,9 +133,11 @@ function prospergenics_2026_site_header( $args = array() ) {
     };
     $account = prospergenics_2026_account_links();
 
-    $h  = '<header class="' . esc_attr( $classes ) . '">' . "\n";
+    // the skip link comes first, so it is the first thing in <body> and the first Tab stop (UX-16)
+    $h  = '<a class="skip-link" href="#main">Skip to content</a>' . "\n";
+    $h .= '<header class="' . esc_attr( $classes ) . '">' . "\n";
     $h .= '  <a class="brand" href="' . esc_url( home_url( '/' ) ) . '" aria-label="ProsperGenics home">' . "\n";
-    $h .= '    <img src="' . esc_url( get_template_directory_uri() . '/assets/logo.png' ) . '" alt="" width="42" height="40" />' . "\n";
+    $h .= '    <img src="' . esc_url( get_template_directory_uri() . '/assets/logo.webp' ) . '" alt="" width="42" height="40" />' . "\n";
     $h .= '    <span class="brand-text">ProsperGenics</span>' . "\n";
     $h .= "  </a>\n";
     $h .= '  <nav class="nav-links" aria-label="Main">' . "\n" . $links( '    ' ) . "  </nav>\n";
@@ -175,7 +184,7 @@ function prospergenics_2026_site_footer() {
     $nav = prospergenics_2026_site_nav();
     $f   = '<footer class="site-footer">' . "\n" . '  <div class="site-footer-inner">' . "\n";
     $f  .= '    <div class="f-brand">' . "\n";
-    $f  .= '      <img src="' . esc_url( get_template_directory_uri() . '/assets/logo.png' ) . '" alt="ProsperGenics" width="46" height="44" />' . "\n";
+    $f  .= '      <img src="' . esc_url( get_template_directory_uri() . '/assets/logo.webp' ) . '" alt="ProsperGenics" width="46" height="44" />' . "\n";
     $f  .= "      <p>A community in Kenya and the Netherlands researching and practising how value is created.</p>\n";
     $f  .= "    </div>\n";
     foreach ( $nav['footer'] as $column ) {
@@ -260,6 +269,11 @@ function prospergenics_2026_listings_takeover( $html, $path, array $chrome ) {
     $css = '<style id="prospergenics-site-chrome-css">' . "\n" . $chrome['css'] . "</style>\n";
     $at  = stripos( $out, '</head>' );
     $out = false !== $at ? substr_replace( $out, $css, $at, 0 ) : str_replace( $header, $css . $header, $out );
+
+    // The header's skip link targets #main: give the plugin's first <main> that id.
+    if ( false === strpos( $out, 'id="main"' ) ) {
+        $out = preg_replace( '#<main(?![^>]*\bid=)(?=[\s>])#', '<main id="main"', $out, 1 );
+    }
 
     // Detail pages: the main button links to the homepage; send it to the contact form instead.
     $home = preg_quote( untrailingslashit( home_url() ), '#' );

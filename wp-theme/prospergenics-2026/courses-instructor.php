@@ -24,7 +24,7 @@ get_header();
 
 <div class="post-hero">
   <div class="post-hero-inner pgc-hero-wide pgc-instructor-hero">
-    <?php echo get_avatar($pgc_user->ID, 120, '', '', array('class' => 'pgc-avatar pgc-avatar--lg')); ?>
+    <?php echo prospergenics_2026_avatar_html($pgc_user->ID, 120, 'pgc-avatar pgc-avatar--lg'); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the helper ?>
     <div>
       <div class="ph-eyebrow"><span class="dot"></span><a href="<?= esc_url(home_url('/courses/')) ?>">Courses</a> · Instructor</div>
       <h1><?= esc_html($pgc_user->display_name) ?></h1>

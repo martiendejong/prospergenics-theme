@@ -346,7 +346,7 @@ STYLE = """  :root {
   h1,h2,h3 { font-family:'Gabarito',sans-serif; }
   h1,h2,h3,p { text-shadow:0px 2px 0 rgba(70,70,70,.05),2px 2px 0 rgba(70,70,70,.05),0px -1px 0 rgba(70,70,70,.05),2px -1px 0 rgba(70,70,70,.05); }
   .wrap { max-width:1080px; margin:0 auto; padding:0 var(--gutter); }
-  :focus-visible { outline:3px solid var(--green-500); outline-offset:3px; border-radius:8px; }
+  :focus-visible { outline:3px solid var(--focus-ring, #1a7a46); outline-offset:3px; border-radius:8px; }
   .eyebrow { display:inline-flex; align-items:center; gap:10px; font-family:'Sora',sans-serif; font-weight:600; font-size:13px; letter-spacing:.08em; text-transform:uppercase; color:var(--green-700); padding:8px 14px 8px 10px; border-radius:999px; background:var(--green-100); border:1px solid rgba(34,166,90,.2); }
   .eyebrow .dot { width:7px; height:7px; border-radius:50%; background:var(--green-500); box-shadow:0 0 0 4px rgba(52,199,89,.22); }
   .chips { display:flex; flex-wrap:wrap; gap:10px; }
@@ -361,7 +361,7 @@ PROFILE_PAGE = """<!DOCTYPE html>
 <title>{name} · ProsperGenics</title>
 <meta name="description" content="{name}, {role}. Story, value contributions and expertise at ProsperGenics." />
 {head_meta}
-<link rel="icon" href="../../assets/logo.png" />
+<link rel="icon" href="../../assets/logo.webp" />
 <link rel="stylesheet" href="../../assets/fonts/fonts.css" />
 <script type="application/ld+json">
 {jsonld}
@@ -385,7 +385,7 @@ PROFILE_PAGE = """<!DOCTYPE html>
   .pv {{ padding:clamp(20px,3vw,36px) 0 0; }}
   .pv-block {{ margin-top:clamp(34px,4.5vw,56px); }}
   .pv-block h2 {{ font-weight:800; font-size:clamp(22px,2.8vw,32px); letter-spacing:-.02em; color:var(--ink); margin-bottom:18px; }}
-  .pv-block h2 .accent {{ color:var(--green-600); }}
+  .pv-block h2 .accent {{ color:var(--green-700); }}
   .prose p {{ font-size:clamp(16px,1.5vw,18.5px); line-height:1.68; color:var(--body); max-width:62ch; }}
   .cards {{ list-style:none; display:grid; gap:14px; }}
   .card {{ background:#fff; border:1px solid var(--line); border-radius:18px; padding:18px 22px; max-width:720px; box-shadow:0 14px 34px -26px rgba(11,32,22,.35); }}
@@ -405,7 +405,7 @@ PROFILE_PAGE = """<!DOCTYPE html>
 
   {site_header}
 
-  <main>
+  <main id="main">
     <section class="p-hero">
       <div class="wrap">
         <div class="p-portrait{initial_class}">{portrait}</div>
@@ -473,7 +473,7 @@ LIST_PAGE = """<!DOCTYPE html>
 <title>{title} · ProsperGenics</title>
 <meta name="description" content="{meta_desc}" />
 {head_meta}
-<link rel="icon" href="../assets/logo.png" />
+<link rel="icon" href="../assets/logo.webp" />
 <link rel="stylesheet" href="../assets/fonts/fonts.css" />
 <script type="application/ld+json">
 {jsonld}
@@ -484,7 +484,7 @@ LIST_PAGE = """<!DOCTYPE html>
   .l-hero::before {{ content:""; position:absolute; width:620px; height:620px; right:-240px; top:-80px; border-radius:50%; background:radial-gradient(circle,var(--green-100),transparent 65%); opacity:.7; pointer-events:none; }}
   .l-hero .wrap {{ position:relative; z-index:2; }}
   h1 {{ font-weight:800; font-size:clamp(38px,6vw,76px); line-height:1; letter-spacing:-.03em; margin-top:22px; max-width:20ch; }}
-  h1 .accent {{ background:linear-gradient(100deg,var(--green-700) 0%,var(--green-500) 55%,var(--green-300) 100%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }}
+  h1 .accent {{ background:linear-gradient(100deg,var(--green-700) 0%,#1f9a55 100%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }}
   .lede {{ margin-top:22px; max-width:56ch; font-size:clamp(16.5px,1.8vw,19.5px); line-height:1.6; color:var(--body); }}
   .grid {{ display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:clamp(18px,2.5vw,28px); padding:clamp(34px,5vw,56px) 0 0; }}
   .pcard {{ display:block; text-decoration:none; background:#fff; border:1px solid var(--line); border-radius:22px; overflow:hidden; box-shadow:0 18px 44px -30px rgba(11,32,22,.4); transition:transform .25s var(--ease), box-shadow .25s var(--ease); }}
@@ -505,7 +505,7 @@ LIST_PAGE = """<!DOCTYPE html>
 
   {site_header}
 
-  <main>
+  <main id="main">
     <section class="l-hero">
       <div class="wrap">
         <p class="eyebrow"><span class="dot"></span>{eyebrow}</p>
@@ -577,7 +577,7 @@ def build_profiles():
         url = f"{SITE}/people/{m['slug']}/"
         image = f"{SITE}/wp-content/themes/prospergenics-2026/assets/{m['img']}" if m.get("img") else f"{SITE}/wp-content/themes/prospergenics-2026/assets/og-image.jpg"
         html = PROFILE_PAGE.format(
-            site_header=site_chrome.header("../../"), site_footer=site_chrome.footer("../../"),
+            site_header=site_chrome.header("../../", current=site_chrome.current_label("/people/")), site_footer=site_chrome.footer("../../"),
             chrome_css=site_chrome.CSS, chrome_js=site_chrome.JS,
             head_meta=head_meta(url, f"{m['name']} · ProsperGenics", f"{m['name']}, {m['role']}. Story, value contributions and expertise at ProsperGenics.", image),
             style=STYLE,
@@ -627,7 +627,7 @@ def build_list(folder, tag, title, eyebrow, heading, lede, meta_desc):
         ],
     }
     html = LIST_PAGE.format(
-        site_header=site_chrome.header("../"), site_footer=site_chrome.footer("../"),
+        site_header=site_chrome.header("../", current=site_chrome.current_label(f"/{folder}/")), site_footer=site_chrome.footer("../"),
         chrome_css=site_chrome.CSS, chrome_js=site_chrome.JS,
         head_meta=head_meta(f"{SITE}/{folder}/", f"{title} · ProsperGenics", meta_desc, f"{SITE}/wp-content/themes/prospergenics-2026/assets/og-image.jpg"),
         style=STYLE, title=title, meta_desc=meta_desc, eyebrow=eyebrow,

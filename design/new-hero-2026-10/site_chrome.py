@@ -102,6 +102,17 @@ def _esc(text):
     return text.replace("&", "&amp;").replace('"', "&quot;").replace("<", "&lt;").replace(">", "&gt;")
 
 
+def current_label(path):
+    """Menu label of the section a site path belongs to ("/people/lessy/" -> "Members"), or None.
+    Mirrors prospergenics_2026_current_nav_label() in inc/site-chrome.php (nav.json "also")."""
+    path = "/" + path.strip("/") + "/" if path.strip("/") else "/"
+    for item in SITE["main"]:
+        for prefix in [item["path"]] + item.get("also", []):
+            if prefix != "/" and path.startswith(prefix):
+                return item["label"]
+    return None
+
+
 def _links(root, current, indent):
     out = []
     for label, path in NAV:
@@ -125,9 +136,10 @@ def header(root, current=None, autohide=False):
         f'    <a class="{"nav-account-link nav-account-join" if key == "join" else "nav-account-link"}" href="{_esc(href)}">{label}</a>'
         for key, label, href in _account())
     panel = "\n".join(f'        <a href="{_esc(href)}">{label}</a>' for _key, label, href in _account())
-    return f"""<header class="{cls}">
+    return f"""<a class="skip-link" href="#main">Skip to content</a>
+<header class="{cls}">
   <a class="brand" href="{_href("/", root)}" aria-label="ProsperGenics home">
-    <img src="{root}assets/logo.png" alt="" width="42" height="40" />
+    <img src="{root}assets/logo.webp" alt="" width="42" height="40" />
     <span class="brand-text">ProsperGenics</span>
   </a>
   <nav class="nav-links" aria-label="Main">
@@ -164,7 +176,7 @@ def footer(root):
     return f"""<footer class="site-footer">
   <div class="site-footer-inner">
     <div class="f-brand">
-      <img src="{root}assets/logo.png" alt="ProsperGenics" width="46" height="44" />
+      <img src="{root}assets/logo.webp" alt="ProsperGenics" width="46" height="44" />
       <p>A community in Kenya and the Netherlands researching and practising how value is created.</p>
     </div>
 """ + "\n".join(cols) + f"""
@@ -200,7 +212,7 @@ def _update(rel, header_html, footer_html, js):
 
 
 def update_about():
-    _update(os.path.join("about", "index.html"), header("../", current="About"), footer("../"), JS)
+    _update(os.path.join("about", "index.html"), header("../", current=current_label("/about/")), footer("../"), JS)
 
 
 def update_index():
