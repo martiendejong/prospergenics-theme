@@ -7,6 +7,8 @@
  *   - Members who open /wp-admin/ land on their profile (or the homepage). admin-ajax.php,
  *     admin-post.php (the contact form, profile and course actions) and async-upload.php keep working.
  *   - The login page carries the ProsperGenics logo (linking home) and colours.
+ *   - A pg_member marker cookie while someone is logged in, so the static pages (people, experts,
+ *     community) can show the member links too (audit #6486). It holds no name or ID.
  * The header's Log in / Join / account links themselves are in inc/site-chrome.php.
  */
 
@@ -75,4 +77,38 @@ body.login.wp-core-ui .button-secondary,body.login .button.wp-hide-pw{color:#1a7
 .login .message,.login .notice,.login .success{border-left-color:#34c759;}
 </style>
     <?php
+} );
+
+/**
+ * Set or clear the pg_member marker cookie. It only says "someone is logged in in this browser":
+ * site-chrome.js reads it on the static pages, which Apache serves without WordPress, to swap
+ * Log in / Join for the account menu. Every page those links open checks the real login itself.
+ *
+ * @param bool $on     Set (true) or clear (false).
+ * @param int  $expire Unix time it expires, 0 for the browser session (as the login cookie).
+ */
+function prospergenics_2026_member_marker( $on, $expire = 0 ) {
+    if ( headers_sent() ) {
+        return;
+    }
+    setcookie( 'pg_member', $on ? '1' : '', array(
+        'expires'  => $on ? (int) $expire : time() - YEAR_IN_SECONDS,
+        'path'     => '/',
+        'secure'   => is_ssl(),
+        'httponly' => false, // read by site-chrome.js
+        'samesite' => 'Lax',
+    ) );
+}
+
+add_action( 'set_logged_in_cookie', function ( $cookie, $expire ) {
+    prospergenics_2026_member_marker( true, $expire );
+}, 10, 2 );
+add_action( 'clear_auth_cookie', function () {
+    prospergenics_2026_member_marker( false );
+} );
+// keeps the marker in step for logins from before it existed and for expired logins
+add_action( 'init', function () {
+    if ( is_user_logged_in() !== isset( $_COOKIE['pg_member'] ) ) {
+        prospergenics_2026_member_marker( is_user_logged_in() );
+    }
 } );

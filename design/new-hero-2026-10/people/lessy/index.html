@@ -209,7 +209,7 @@
     <a href="/partners/">Partners</a>
     <a href="../../about/">About</a>
   </nav>
-  <div class="nav-account">
+  <div class="nav-account" data-static>
     <a class="nav-account-link" href="/wp-login.php">Log in</a>
     <a class="nav-account-link nav-account-join" href="/contact/?subject=Joining%20the%20community">Join</a>
   </div>
@@ -370,6 +370,19 @@
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !panel.hidden) setOpen(false, true); });
     document.addEventListener('click', function (e) { if (!panel.hidden && !btn.contains(e.target) && !panel.contains(e.target)) setOpen(false); });
     return setOpen;
+  }
+  // Static pages (people, experts, community) are served without WordPress, so they show Log in /
+  // Join. When WordPress's pg_member marker cookie says someone is logged in, swap in the member
+  // links (#6486); each page they open checks the real login.
+  var spot = header.querySelector('.nav-account[data-static]');
+  if (spot && /(?:^|;\s*)pg_member=1(?:;|$)/.test(document.cookie)) {
+    var mine = [['My profile', '/profile/'], ['My courses', '/courses/my/'], ['Settings', '/profile/settings/'], ['Log out', '/wp-login.php?action=logout']];
+    var html = mine.map(function (l) { return '<a href="' + l[1] + '">' + l[0] + '</a>'; }).join('');
+    spot.innerHTML = '<button class="nav-account-toggle" type="button" aria-expanded="false" aria-controls="account-menu">' +
+      '<span class="nav-account-initial" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="5" r="3"/><path d="M2 15c0-3.3 2.7-5 6-5s6 1.7 6 5z"/></svg></span>' +
+      '<span>My account</span></button><div class="nav-account-menu" id="account-menu" hidden>' + html + '</div>';
+    var panelAccount = header.querySelector('.nav-panel-account');
+    if (panelAccount) panelAccount.innerHTML = html;
   }
   var mobile = menu(header.querySelector('.nav-toggle'), document.getElementById('mobile-menu'), ['Open menu', 'Close menu']);
   var account = menu(header.querySelector('.nav-account-toggle'), document.getElementById('account-menu'), null);

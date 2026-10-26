@@ -86,7 +86,8 @@ function labels_in( $html, $open_re ) {
 function main_menu( $html ) { return labels_in( $html, '<nav class="nav-links" aria-label="Main">' ); }
 /** Markup with URLs and whitespace stripped: what must be identical between renderers. */
 function shape( $html ) {
-	$html = preg_replace( '#\s(href|src)="[^"]*"#', '', $html );
+	// data-static marks the static pages' account links for site-chrome.js (#6486)
+	$html = preg_replace( '#\s(href|src)="[^"]*"|\sdata-static#', '', $html );
 	return preg_replace( '#>\s+<#', '><', trim( $html ) );
 }
 function block( $html, $re ) { return preg_match( $re, $html, $m ) ? $m[0] : ''; }
@@ -182,6 +183,7 @@ foreach ( $static as $label => $html ) {
 	ok( shape( block( $html, $footer_re ) ) === shape( $php_footer ), "$label footer = the PHP footer" );
 	ok( (bool) preg_match( '#<body[^>]*>\s*(<!-- site-chrome:header -->\s*)?<a class="skip-link" href="\#main">#', $html ), "$label: the skip link is the first thing in <body> (UX-16)" );
 	ok( false !== strpos( $html, '<main id="main"' ), "$label: <main id=\"main\"> is the skip link target" );
+	ok( false !== strpos( $h, '<div class="nav-account" data-static>' ), "$label marks its account links as static, for the member swap" );
 }
 foreach ( array( 'people/lessy', 'experts/index.html', 'community/index.html' ) as $label ) {
 	ok( (bool) preg_match( '#<nav class="nav-links" aria-label="Main">(?:(?!</nav>).)*aria-current="page">Members</a>#s', $static[ $label ] ), "$label marks Members as the current section (NAV-15)" );
@@ -189,6 +191,19 @@ foreach ( array( 'people/lessy', 'experts/index.html', 'community/index.html' ) 
 ok( (bool) preg_match( '#<nav class="nav-links" aria-label="Main">(?:(?!</nav>).)*aria-current="page">About</a>#s', $static['about/index.html'] ), 'about/index.html marks About as the current section' );
 ok( false === strpos( block( $static['index.html'], $header_re ), 'aria-current' ), 'the homepage marks no section' );
 ok( false !== strpos( $header_php, '<main id="main">' ), 'header.php opens <main id="main"> for every inner template' );
+ok( false === strpos( $php_header, 'data-static' ), 'the PHP header knows the login, so it is not marked static' );
+
+echo "member links on the static pages (#6486)\n";
+ok( false !== strpos( $js, ".nav-account[data-static]" ) && false !== strpos( $js, 'pg_member=1' ), 'site-chrome.js swaps the static account links when the pg_member marker is set' );
+foreach ( array( "['My profile', '/profile/']", "['My courses', '/courses/my/']", "['Settings', '/profile/settings/']", "['Log out', '/wp-login.php?action=logout']" ) as $needle ) {
+	ok( false !== strpos( $js, $needle ), "static member link $needle" );
+}
+ok( false !== strpos( $js, "querySelector('.nav-panel-account')" ), 'the mobile panel gets the member links too' );
+ok( strpos( $js, "querySelector('.nav-account[data-static]')" ) < strpos( $js, "menu(header.querySelector('.nav-account-toggle')" ), 'the swap runs before the account menu is wired up' );
+$account_php = file_get_contents( $theme . '/inc/account.php' );
+ok( false !== strpos( $account_php, "add_action( 'set_logged_in_cookie'" ) && false !== strpos( $account_php, "add_action( 'clear_auth_cookie'" ), 'the marker is set at login and cleared at logout' );
+ok( false !== strpos( $account_php, "'httponly' => false" ) && false !== strpos( $account_php, "'samesite' => 'Lax'" ) && false !== strpos( $account_php, 'setcookie( \'pg_member\', $on ? \'1\' : \'\'' ), 'the marker holds only "1", no name or ID' );
+ok( false !== strpos( $account_php, 'is_user_logged_in() !== isset( $_COOKIE[\'pg_member\'] )' ), 'the marker follows logins from before it existed and expired logins' );
 $_SERVER['REQUEST_URI'] = '/courses/';
 
 echo "one look: full width, one row, sticky\n";

@@ -55,7 +55,7 @@ expect_redirect() { # PATH CODE LOCATION-REGEX
 }
 
 # Theme pages and the static pages next to WordPress
-expect_page / "Find your next step"            # the value test anchor on the homepage
+expect_page / "How valuable"                   # the value test on the homepage
 expect_page /about/
 expect_page /contact/
 expect_page /courses/

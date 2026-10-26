@@ -525,7 +525,8 @@
   }
 
   /* ───────────────  VALUE TEST · "How valuable are you?"  ─────────────── */
-  /* bottom padding keeps the banner heading below at a calm distance from the test panel */
+  /* bottom padding reserves room for the 1.2 scroll-zoom (origin top, box grows downward)
+     so the banner heading below never collides with the scaled test panel */
   .vtest { max-width: 1500px; margin: 0 auto; padding: clamp(28px, 3.6vw, 52px) clamp(24px, 5vw, 72px) clamp(40px, 8vw, 130px); }
   .vtest .projects-head { text-align: center; }
   .vtest .projects-head p { margin-left: auto; margin-right: auto; }
@@ -535,91 +536,53 @@
     box-shadow: 0 30px 70px -50px rgba(11,32,22,.45);
   }
   .vtest-in { display: block; transform: skewX(3deg); padding: clamp(28px, 4vw, 56px) clamp(24px, 5vw, 72px); }
-  .vt-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
   .vt-progress { display: flex; gap: 8px; margin-bottom: 22px; }
-  .vt-progress:empty { display: none; }
   .vt-dot { width: 34px; height: 5px; background: var(--green-100); transition: background .3s; }
-  .vt-dot.done { background: var(--green-600); }
-  .vt-form, .vt-step { margin: 0; padding: 0; border: 0; min-width: 0; }
-  .vt-question { display: block; float: none; width: 100%; padding: 0; font-family:'Sora',sans-serif; font-weight: 800; font-size: clamp(22px, 2.6vw, 36px); line-height: 1.15; letter-spacing: -.02em; color: var(--ink); max-width: 28ch; }
-  .vt-question:focus { outline: none; }
-  .vt-question:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 4px; }
-  .vt-help { margin-top: 10px; font-size: 15.5px; line-height: 1.6; color: var(--muted); max-width: 60ch; }
-  .vt-help a { color: var(--green-700); }
-  /* answer cards: native radios and checkboxes, visually hidden but still focusable */
-  .vt-options { margin-top: 22px; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
-  .vt-options.vt-multi { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
-  .vt-options.vt-scale { grid-template-columns: repeat(5, minmax(0, 1fr)); }
-  .vt-opt { position: relative; display: block; cursor: pointer; }
-  .vt-opt input { position: absolute; opacity: 0; width: 1px; height: 1px; }
-  .vt-opt span {
-    display: flex; align-items: center; height: 100%; min-height: 52px; padding: 12px 16px;
-    font-size: 15.5px; font-weight: 500; line-height: 1.35; color: var(--ink);
-    background: var(--paper); border: 1.5px solid var(--line); transition: border-color .15s, background .15s;
-  }
-  .vt-opt:hover span { border-color: var(--green-600); }
-  .vt-opt input:checked + span { background: var(--green-100); border-color: var(--green-700); font-weight: 600; }
-  .vt-opt input:checked + span::before { content: "\2713"; margin-right: 10px; color: var(--green-700); font-weight: 700; }
-  .vt-opt input:focus-visible + span { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
-  .vt-scale .vt-opt span { justify-content: center; text-align: center; }
+  .vt-dot.done { background: var(--green-500); }
+  .vt-question { font-family:'Sora',sans-serif; font-weight: 800; font-size: clamp(22px, 2.6vw, 36px); line-height: 1.15; letter-spacing: -.02em; color: var(--ink); max-width: 28ch; }
+  .vt-email { min-height: 0; }
+  /* the field BOX is skewed like the panel, but the typed text stays straight: the wrapper
+     carries the skew + styling, the textarea inside is counter-skewed and invisible */
   .vt-field {
     margin-top: 22px; transform: skewX(-3deg);
     background: var(--paper); border: 1.5px solid var(--line); transition: border-color .2s;
   }
-  .vt-field:focus-within { border-color: var(--green-700); }
+  .vt-field:focus-within { border-color: var(--green-600); }
   .vt-answer {
     display: block; transform: skewX(3deg);
-    width: calc(100% - 12px); margin: 0 auto;
+    width: calc(100% - 12px); margin: 0 auto; min-height: 110px; resize: vertical;
     font-family: 'Inter', system-ui, sans-serif; font-size: 16.5px; line-height: 1.6; color: var(--ink);
-    padding: 14px 18px; background: transparent; border: none; border-radius: 0; outline: none;
+    padding: 16px 18px; background: transparent; border: none; border-radius: 0; outline: none;
   }
-  .vt-label { display: block; margin-top: 22px; font-family:'Sora',sans-serif; font-weight: 600; font-size: 15px; color: var(--ink); }
-  .vt-label + .vt-field { margin-top: 8px; }
-  .vt-nav { margin-top: 22px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-  .vt-nav .btn-primary[disabled] { opacity: .45; cursor: not-allowed; transform: none; box-shadow: none; }
-  .vt-back, .vt-skip, .vt-link { background: none; border: none; cursor: pointer; font-family:'Sora',sans-serif; font-weight: 600; font-size: 14px; color: var(--muted); padding: 10px 0; }
-  .vt-back:hover, .vt-skip:hover, .vt-link:hover { color: var(--green-700); }
-  .vt-hint { margin: -12px 0 14px; font-size: 13px; color: var(--muted); }
-  .vt-limit { margin-top: 12px; font-size: 14px; color: var(--green-900); }
-  .vt-limit:empty { display: none; }
+  .vt-nav { margin-top: 22px; display: flex; align-items: center; gap: 14px; }
+  .vt-back { background: none; border: none; cursor: pointer; font-family:'Sora',sans-serif; font-weight: 600; font-size: 14px; color: var(--muted); padding: 10px 0; }
+  .vt-back:hover { color: var(--green-700); }
+  .vt-hint { margin-left: auto; font-size: 13px; color: var(--muted); }
   .vt-busy { display: flex; align-items: center; gap: 16px; padding: 26px 0 10px; font-family:'Sora',sans-serif; font-weight: 600; font-size: 17px; color: var(--green-900); }
   .vt-busy .l-blob { position: relative; inset: auto; width: 46px; height: 46px; flex: none; animation: morph 4s var(--ease) infinite; }
   .vt-profile {
     font-family:'Sora',sans-serif; font-weight: 800; font-size: clamp(34px, 4vw, 58px); line-height: 1.02; letter-spacing: -.03em;
-    color: var(--green-700); padding-bottom: .08em;
+    background: linear-gradient(100deg, var(--green-700) 0%, var(--accent-end) 100%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    padding-bottom: .08em;
   }
-  .vt-profile:focus { outline: none; }
-  .vt-tagline { margin-top: 6px; font-family:'Sora',sans-serif; font-weight: 600; font-size: clamp(17px, 1.6vw, 21px); color: var(--green-900); }
   .vt-result-text { margin-top: 14px; font-size: clamp(16.5px, 1.5vw, 19px); line-height: 1.65; color: var(--ink); max-width: 62ch; }
-  .vt-next-title { margin-top: 26px; font-family:'Sora',sans-serif; font-weight: 700; font-size: 17px; color: var(--ink); }
-  .vt-steps { margin: 10px 0 0; padding: 0; list-style: none; display: grid; gap: 8px; max-width: 62ch; counter-reset: vtstep; }
-  .vt-steps li { counter-increment: vtstep; display: flex; gap: 12px; align-items: baseline; font-size: 16px; line-height: 1.55; }
-  .vt-steps li::before { content: counter(vtstep); flex: none; width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--green-100); color: var(--green-900); font-family:'Sora',sans-serif; font-weight: 700; font-size: 13px; }
-  .vt-steps a, .vt-steps button { color: var(--green-700); font-weight: 600; }
-  .vt-steps button { background: none; border: none; padding: 0; font: inherit; font-weight: 600; cursor: pointer; text-decoration: underline; }
   .vt-cta { margin-top: 26px; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
   .vt-cta .btn-primary {
-    display: inline-flex; align-items: center; gap: 10px; text-decoration: none; border: none; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 10px; text-decoration: none;
     font-family:'Sora',sans-serif; font-weight: 600; font-size: 16px; padding: 16px 26px; border-radius: 999px;
     color: #fff; background: linear-gradient(100deg, var(--green-700), var(--green-600));
     box-shadow: 0 14px 30px -12px var(--green-600); transition: transform .2s var(--ease);
   }
   .vt-cta .btn-primary:hover { transform: translateY(-2px); }
-  .vt-deeper { margin-top: 34px; padding-top: 26px; border-top: 1px solid var(--line); max-width: 62ch; }
-  .vt-deeper-title { font-family:'Sora',sans-serif; font-weight: 700; font-size: 19px; color: var(--ink); }
-  .vt-error { margin-top: 12px; font-size: 14px; color: #a33; }
-  .vt-error:empty { display: none; }
-  .vt-privacy { margin-top: 12px; font-size: 13px; line-height: 1.5; color: var(--muted); }
+  .vt-cta-note { font-size: 14.5px; color: var(--muted); max-width: 40ch; }
+  .vt-error { margin-top: 16px; font-size: 14px; color: #a33; }
+  .vt-privacy { margin-top: 14px; font-size: 13px; line-height: 1.5; color: var(--muted); }
   .vt-privacy a { color: var(--green-700); }
   @media (max-width: 640px){
     .vtest-box, .vtest-in, .vt-field, .vt-answer { transform: none; }
     .vtest-in { padding: 24px 18px; }
     .vt-answer { width: 100%; }
-    .vt-options, .vt-options.vt-multi, .vt-options.vt-scale { grid-template-columns: 1fr; }
-    .vt-options.vt-multi { grid-template-columns: 1fr 1fr; }
-  }
-  @media (prefers-reduced-motion: reduce){
-    .vt-dot, .vt-opt span, .vt-cta .btn-primary { transition: none; }
   }
 
   /* ───────────────  COMMUNITY VOICES · flowing review banner  ─────────────── */
@@ -897,7 +860,7 @@
     <a href="/partners/">Partners</a>
     <a href="about/">About</a>
   </nav>
-  <div class="nav-account">
+  <div class="nav-account" data-static>
     <a class="nav-account-link" href="/wp-login.php">Log in</a>
     <a class="nav-account-link nav-account-join" href="/contact/?subject=Joining%20the%20community">Join</a>
   </div>
@@ -983,27 +946,26 @@
     </div>
   </section>
 
-  <!-- VALUE TEST · "Find your next step": eight quick questions (seven taps and an optional
-       one-liner) with an instant result in the browser, routed to a next step on the site. The
-       deeper AI profile (CoachOS 'value-test' context, tenant prospergenics) is optional and
-       only offered after the result. Audit UX-2, reported by Lesiamon; card #6532. -->
+  <!-- VALUE TEST · five open questions, analysed by the CoachOS 'value-test' context on the
+       prospergenics tenant (coaching.martiendejong.nl); everyone comes out valuable, each in
+       their own way. Result ends with a CTA to the courses signup. -->
   <section class="vtest" id="value-test">
     <div class="projects-head">
-      <h2>Where does your <span class="accent">value lie?</span></h2>
-      <p>Eight quick questions, about a minute. You get a personal next step right away: a course, people to meet, or a coach to talk to.</p>
+      <h2>How valuable <span class="accent">are you?</span></h2>
+      <p>Five honest questions. Take the test and find out where your value lies.</p>
     </div>
-    <div class="vtest-box">
+    <div class="vtest-box" data-scroll-scale="1.2" data-scroll-scale-window="0.65">
       <div class="vtest-in" id="vtStage">
-        <div class="vt-intro">
-          <p class="vt-question">Find your next step</p>
-          <p class="vt-help">No sign-up needed. Your answers stay in your browser unless you choose to send them.</p>
-          <div class="vt-nav">
-            <button class="btn btn-primary" id="vtStart" type="button">Start the test <span class="arrow">&rarr;</span></button>
-          </div>
-          <noscript><p class="vt-help">The test needs JavaScript. You can also <a href="/contact/">tell us about yourself</a>.</p></noscript>
+        <div class="vt-progress" id="vtProgress" aria-hidden="true"></div>
+        <div class="vt-question" id="vtQuestion"></div>
+        <div class="vt-field"><textarea class="vt-answer" id="vtAnswer" rows="4" aria-labelledby="vtQuestion" placeholder="Just write what comes up - there are no wrong answers."></textarea></div>
+        <div class="vt-nav">
+          <button class="vt-back" id="vtBack" type="button" style="visibility:hidden">&larr; Back</button>
+          <button class="btn btn-primary" id="vtNext" type="button">Next <span class="arrow">&rarr;</span></button>
+          <span class="vt-hint" id="vtHint"></span>
         </div>
+        <div class="vt-error" id="vtError" role="alert" style="display:none"></div>
       </div>
-      <p class="vt-sr" id="vtLive" aria-live="polite"></p>
     </div>
   </section>
 
@@ -1410,314 +1372,127 @@
       });
     })();
 
-    // ── Value test "Find your next step" (audit UX-2, card #6532). Eight quick questions, an
-    //    instant result computed here in the browser, and a next step that exists on the site.
-    //    The deeper AI profile is optional and comes after the result: CoachOS (tenant
-    //    prospergenics, context value-test), confirmed by email (?vt=<token>), as before.
+    // ── Value test: five open questions, analysed by CoachOS (tenant prospergenics,
+    //    context value-test). The answer format is fixed by the context prompt:
+    //    first line = profile name, blank line, then the explanation.
     (function () {
+      const QUESTIONS = [
+        "What could you talk about for hours without getting tired?",
+        "What do people around you keep asking your help with?",
+        "What did you recently make, fix or organise that you were quietly proud of?",
+        "If money did not matter for a year, how would you spend your days?",
+        "What about the world annoys you so much that you would love to change it?"
+      ];
       const API_BASE = "https://coaching.martiendejong.nl/coaching";
       const stage = document.getElementById('vtStage');
-      const live = document.getElementById('vtLive');
+      const progress = document.getElementById('vtProgress');
+      const questionEl = document.getElementById('vtQuestion');
+      const answerEl = document.getElementById('vtAnswer');
+      const backBtn = document.getElementById('vtBack');
+      const nextBtn = document.getElementById('vtNext');
+      const hintEl = document.getElementById('vtHint');
+      const errorEl = document.getElementById('vtError');
       if (!stage) return;
-      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+      const answers = QUESTIONS.map(function () { return ''; });
+      let step = 0;
 
-      // [value, label] or, for skills, [value, label, group]
-      const STEPS = [
-        { id: 'goal', type: 'single', q: 'What do you want most right now?', options: [
-          ['first-money', 'Earn my first money from a skill'],
-          ['earn-more', 'Earn more from what I already do'],
-          ['new-skill', 'Learn a new skill people pay for'],
-          ['find-people', 'Find people to build something with'],
-          ['organisation', 'Get help for my organisation'] ] },
-        { id: 'skills', type: 'multi', max: 3, q: 'What are you good at, or love doing?', help: 'Pick up to 3.', options: [
-          ['talking', 'Talking with people', 'connect'], ['selling', 'Selling', 'connect'],
-          ['organising', 'Organising and planning', 'connect'], ['caring', 'Caring for people', 'connect'],
-          ['writing', 'Writing', 'explain'], ['teaching', 'Teaching and explaining', 'explain'], ['languages', 'Languages', 'explain'],
-          ['design', 'Design and visuals', 'make'], ['fixing', 'Fixing and making things', 'make'], ['farming', 'Farming and food', 'make'],
-          ['code', 'Building with code', 'build'], ['numbers', 'Numbers and money', 'build'] ] },
-        { id: 'paid', type: 'scale', q: 'Would people pay for that today?', help: "Be honest. There's no wrong answer.", options: [
-          ['1', 'Not yet'], ['2', "Maybe, I'm not sure"], ['3', 'Friends ask me for help'],
-          ['4', "I've been paid once or twice"], ['5', 'People pay me regularly'] ] },
-        { id: 'time', type: 'single', q: 'How much time can you give each week?', options: [
-          ['lt2', 'Under 2 hours'], ['2-5', '2 to 5 hours'], ['5-10', '5 to 10 hours'], ['gt10', 'More than 10 hours'] ] },
-        { id: 'learn', type: 'single', q: 'How do you learn best?', options: [
-          ['lessons', 'Short lessons, step by step'], ['project', 'By doing a real project'],
-          ['coach', 'With a coach I can ask questions'], ['group', 'Together with a group'] ] },
-        { id: 'ai', type: 'single', q: 'How do you use AI today?', help: 'AI is a tool here, not a requirement.', options: [
-          ['never', 'Never tried it'], ['tried', 'Tried it a few times'], ['weekly', 'Use it every week'], ['build', 'Build things with it'] ] },
-        { id: 'work', type: 'single', q: 'What kind of work would you enjoy most?', options: [
-          ['freelance', 'Jobs for clients, as a freelancer'], ['business', 'My own small business'],
-          ['team', 'A job in a team'], ['community', 'Projects that help my community'] ] },
-        { id: 'dream', type: 'text', optional: true, q: 'In one line: what would you love to be paid for?',
-          help: 'Optional.', placeholder: 'For example: designing logos for shops in Narok' }
-      ];
-      const PROFILES = {
-        connect: ['Connector', 'You turn relationships into value.'],
-        explain: ['Explainer', 'You make things clear for others.'],
-        make:    ['Maker', 'You turn materials and ideas into things people use.'],
-        build:   ['Builder', 'You build systems and numbers that work.']
-      };
-      const STAGES = {
-        explore: "you're still finding out if people would pay for it. That's the perfect place to start.",
-        test:    "people already come to you for help. Now it's time to ask for something in return.",
-        grow:    "people already pay you. Let's help you earn more from it."
-      };
-      const LEARNING = {
-        lessons: 'Short lessons suit you: one small step a day adds up fast.',
-        project: 'You learn by doing, so pick one real project and start this week.',
-        coach:   'A coach will help you most: someone to ask questions as you go.',
-        group:   'You learn best with others who are on the same path.'
-      };
+      QUESTIONS.forEach(function () {
+        const d = document.createElement('span');
+        d.className = 'vt-dot';
+        progress.appendChild(d);
+      });
 
-      let answers = {};
-      let step = -1;
-      let lastPointer = false;
-      let coursesOpen = null; // unknown until the catalogue answers
-
-      function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
-      function announce(text) { live.textContent = ''; setTimeout(function () { live.textContent = text; }, 40); }
-      function track(name, data) {
-        const detail = Object.assign({ event: name }, data || {});
-        (window.dataLayer = window.dataLayer || []).push(detail);
-        try { window.dispatchEvent(new CustomEvent('pg:valuetest', { detail: detail })); } catch (e) { /* old browsers */ }
-      }
-      function label(s, value) { const o = s.options.find(function (x) { return x[0] === value; }); return o ? o[1] : ''; }
-      function answered(s) {
-        const a = answers[s.id];
-        if (s.optional) return true;
-        return s.type === 'multi' ? !!(a && a.length) : !!a;
-      }
-      function bringIntoView() {
-        const top = stage.getBoundingClientRect().top;
-        if (top < 0 || top > window.innerHeight * 0.6) stage.scrollIntoView({ block: 'start', behavior: reduceMotion.matches ? 'auto' : 'smooth' });
+      function render(moveFocus) {
+        const dots = progress.children;
+        for (let i = 0; i < dots.length; i++) dots[i].classList.toggle('done', i <= step);
+        questionEl.textContent = (step + 1) + '. ' + QUESTIONS[step];
+        answerEl.value = answers[step];
+        backBtn.style.visibility = step === 0 ? 'hidden' : 'visible';
+        nextBtn.innerHTML = step === QUESTIONS.length - 1 ? 'Reveal my value <span class="arrow">&rarr;</span>' : 'Next <span class="arrow">&rarr;</span>';
+        hintEl.textContent = (step + 1) + ' / ' + QUESTIONS.length;
+        // only after the visitor pressed Next/Back: on page load focus stays at the top of the page
+        if (moveFocus) answerEl.focus({ preventScroll: true });
       }
 
-      function renderStep() {
-        const s = STEPS[step], total = STEPS.length;
-        const dots = STEPS.map(function (_, i) { return '<span class="vt-dot' + (i <= step ? ' done' : '') + '"></span>'; }).join('');
-        let body;
-        if (s.type === 'text') {
-          body = '<label class="vt-sr" for="vtText">' + esc(s.q) + '</label>' +
-            '<div class="vt-field"><input class="vt-answer" id="vtText" type="text" maxlength="120" autocomplete="off" placeholder="' + esc(s.placeholder) + '" value="' + esc(answers[s.id] || '') + '"></div>';
-        } else {
-          const kind = s.type === 'multi' ? 'checkbox' : 'radio';
-          const chosen = s.type === 'multi' ? (answers[s.id] || []) : [answers[s.id]];
-          body = '<div class="vt-options vt-' + s.type + '">' + s.options.map(function (o) {
-            return '<label class="vt-opt"><input type="' + kind + '" name="vt-' + s.id + '" value="' + o[0] + '"' + (chosen.indexOf(o[0]) > -1 ? ' checked' : '') + '><span>' + esc(o[1]) + '</span></label>';
-          }).join('') + '</div><p class="vt-limit" id="vtLimit"></p>';
-        }
+      backBtn.addEventListener('click', function () {
+        answers[step] = answerEl.value;
+        if (step > 0) { step--; render(true); }
+      });
+
+      nextBtn.addEventListener('click', function () {
+        answers[step] = answerEl.value;
+        if (step < QUESTIONS.length - 1) { step++; render(true); return; }
+        finish();
+      });
+
+      function renderResult(text) {
+        const br = text.indexOf('\n');
+        const profile = br > 0 ? text.slice(0, br).trim() : 'The Alchemist';
+        const rest = br > 0 ? text.slice(br).trim() : text;
         stage.innerHTML =
-          '<div class="vt-progress" aria-hidden="true">' + dots + '</div>' +
-          '<p class="vt-hint" aria-hidden="true">Question ' + (step + 1) + ' of ' + total + '</p>' +
-          '<form class="vt-form" novalidate><fieldset class="vt-step"' + (s.help ? ' aria-describedby="vtHelp"' : '') + '>' +
-          '<legend class="vt-question" tabindex="-1">' + esc(s.q) + '</legend>' +
-          (s.help ? '<p class="vt-help" id="vtHelp">' + esc(s.help) + '</p>' : '') + body + '</fieldset>' +
+          '<div class="vt-profile"></div>' +
+          '<div class="vt-result-text"></div>' +
+          '<div class="vt-cta">' +
+          '  <a class="btn-primary" href="/courses/">Start developing your value <span class="arrow">&rarr;</span></a>' +
+          '  <span class="vt-cta-note">Your value is real. Our courses help you turn it into skills, income and impact - sign up and start today.</span>' +
+          '</div>';
+        stage.querySelector('.vt-profile').textContent = profile;
+        stage.querySelector('.vt-result-text').textContent = rest;
+      }
+
+      // After the five questions: ask for an email address. The AI analysis only runs after
+      // the visitor clicks the confirmation link (abuse brake + confirmed lead).
+      function finish() {
+        const compiled = "My answers to the value test:\n" + QUESTIONS.map(function (q, i) {
+          return (i + 1) + '. ' + q + '\n- ' + (answers[i].trim() || '(no answer)');
+        }).join('\n');
+        stage.innerHTML =
+          '<div class="vt-question">Almost there - where can we send your value profile?</div>' +
+          '<div class="vt-field"><input type="email" class="vt-answer vt-email" id="vtEmail" aria-label="Your email address" placeholder="you@example.com" autocomplete="email"></div>' +
           '<div class="vt-nav">' +
-          '<button class="vt-back" type="button">&larr; Back</button>' +
-          '<button class="btn btn-primary vt-next" type="submit">' + (step === total - 1 ? 'See my result' : 'Next') + ' <span class="arrow">&rarr;</span></button>' +
-          (s.optional ? '<button class="vt-skip" type="button">Skip this one</button>' : '') + '</div></form>';
-
-        const form = stage.querySelector('form');
-        const next = stage.querySelector('.vt-next');
-        next.disabled = !answered(s);
-        form.addEventListener('pointerdown', function () { lastPointer = true; });
-        form.addEventListener('keydown', function () { lastPointer = false; });
-        form.addEventListener('change', function (e) {
-          const t = e.target;
-          if (s.type === 'multi') {
-            const picked = (answers[s.id] || []).filter(function (v) { return v !== t.value; });
-            if (t.checked) {
-              if (picked.length >= s.max) {
-                t.checked = false;
-                stage.querySelector('#vtLimit').textContent = 'You can pick up to ' + s.max + '. Unpick one to choose another.';
-                announce('You can pick up to ' + s.max + '. Unpick one to choose another.');
-                return;
-              }
-              picked.push(t.value);
-            }
-            stage.querySelector('#vtLimit').textContent = '';
-            answers[s.id] = picked;
-          } else if (s.type !== 'text') {
-            answers[s.id] = t.value;
-            // a tap moves on by itself; keyboard users choose with the arrows and press Next
-            if (lastPointer && !reduceMotion.matches) setTimeout(function () { if (STEPS[step] === s) advance(); }, 250);
-          }
-          next.disabled = !answered(s);
-        });
-        const text = stage.querySelector('#vtText');
-        if (text) text.addEventListener('input', function () { answers[s.id] = text.value.trim(); });
-        form.addEventListener('submit', function (e) { e.preventDefault(); if (answered(s)) advance(); });
-        stage.querySelector('.vt-back').addEventListener('click', function () {
-          if (step > 0) { step--; renderStep(); } else { step = -1; renderIntro(true); }
-        });
-        const skip = stage.querySelector('.vt-skip');
-        if (skip) skip.addEventListener('click', function () { answers[s.id] = ''; advance(); });
-
-        stage.querySelector('legend').focus({ preventScroll: true });
-        bringIntoView();
-        announce('Question ' + (step + 1) + ' of ' + total + ': ' + s.q);
-      }
-
-      function advance() {
-        track('vt_step_' + (step + 1), { step: STEPS[step].id });
-        if (step === 0 && answers.goal === 'organisation') { renderOrganisation(); return; }
-        if (step < STEPS.length - 1) { step++; renderStep(); return; }
-        renderResult();
-      }
-
-      function primaryStep() {
-        if (answers.goal === 'find-people') return { label: 'Meet members who share your skills', href: '/members/' };
-        if (answers.learn === 'coach' && document.querySelector('.launcher-orb')) return { label: 'Talk it through with our coach', chat: true };
-        if (coursesOpen) return { label: 'Browse the courses', href: '/courses/' };
-        return { label: 'Tell us what you want to learn', href: '/contact/?subject=' + encodeURIComponent('Courses and certification') };
-      }
-      function stepHtml(s) {
-        return s.chat ? '<button type="button" class="vt-chat">' + esc(s.label) + '</button>' : '<a href="' + esc(s.href) + '">' + esc(s.label) + '</a>';
-      }
-      function wireChat(root) {
-        root.querySelectorAll('.vt-chat').forEach(function (b) {
-          b.addEventListener('click', function () { track('vt_cta_chat'); const orb = document.querySelector('.launcher-orb'); if (orb) orb.click(); });
-        });
-      }
-
-      function renderResult() {
-        const skills = STEPS[1];
-        const picked = answers.skills || [];
-        const counts = {};
-        picked.forEach(function (v) { const g = skills.options.find(function (o) { return o[0] === v; })[2]; counts[g] = (counts[g] || 0) + 1; });
-        // most picks wins; a tie goes to the group of the first skill picked
-        let group = skills.options.find(function (o) { return o[0] === picked[0]; })[2];
-        Object.keys(counts).forEach(function (g) { if (counts[g] > counts[group]) group = g; });
-        const profile = PROFILES[group];
-        const paid = parseInt(answers.paid, 10);
-        const stageKey = paid <= 2 ? 'explore' : (paid <= 4 ? 'test' : 'grow');
-        const names = picked.map(function (v) { return label(skills, v).toLowerCase(); });
-        const listed = names.length > 1 ? names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1] : names[0];
-        const primary = primaryStep();
-        const steps = [primary];
-        if (answers.goal !== 'find-people') steps.push({ label: 'Meet members with skills like yours', href: '/members/' });
-        steps.push(answers.ai === 'never' || answers.ai === 'tried'
-          ? { label: 'See the AI tools our members use', href: '/tools/' }
-          : { label: 'See the AI tools we build', href: '/tools/' });
-
-        stage.innerHTML =
-          '<p class="vt-profile" tabindex="-1">You’re ' + (/^[AEIOU]/.test(profile[0]) ? 'an ' : 'a ') + esc(profile[0]) + '</p>' +
-          '<p class="vt-tagline">' + esc(profile[1]) + '</p>' +
-          '<p class="vt-result-text">You picked ' + esc(listed) + ', and ' + esc(STAGES[stageKey]) + ' ' + esc(LEARNING[answers.learn]) +
-          (answers.time === 'lt2' ? ' Under 2 hours a week is enough to start: most steps take about 15 minutes.' : '') + '</p>' +
-          '<p class="vt-next-title">Your next 3 steps</p>' +
-          '<ol class="vt-steps">' + steps.map(function (s) { return '<li>' + stepHtml(s) + '</li>'; }).join('') + '</ol>' +
-          '<div class="vt-cta">' + (primary.chat
-            ? '<button type="button" class="btn-primary vt-chat">' + esc(primary.label) + ' <span class="arrow">&rarr;</span></button>'
-            : '<a class="btn-primary" href="' + esc(primary.href) + '">' + esc(primary.label) + ' <span class="arrow">&rarr;</span></a>') +
-          '<button type="button" class="vt-link vt-retake">Retake the test</button></div>' +
-          deeperHtml();
-        wireChat(stage);
-        stage.querySelector('.vt-retake').addEventListener('click', restart);
-        stage.querySelectorAll('.vt-steps a, .vt-cta a').forEach(function (a) { a.addEventListener('click', function () { track('vt_cta', { href: a.getAttribute('href') }); }); });
-        wireDeeper(profile[0]);
-        stage.querySelector('.vt-profile').focus({ preventScroll: true });
-        bringIntoView();
-        announce('Your result: ' + profile[0] + '.');
-        track('vt_complete', { profile: group, stage: stageKey });
-      }
-
-      function renderOrganisation() {
-        stage.innerHTML =
-          '<p class="vt-profile" tabindex="-1">Let’s look at your organisation together</p>' +
-          '<p class="vt-result-text">We help organisations with AI tools, coaching and software built around how they work. Tell us what you need, or see what we already do for others.</p>' +
-          '<div class="vt-cta"><a class="btn-primary" href="/contact/?subject=' + encodeURIComponent('Services for my organisation') + '">Tell us what you need <span class="arrow">&rarr;</span></a>' +
-          '<a class="vt-link" href="/services/">See our services</a>' +
-          '<button type="button" class="vt-link vt-retake">Retake the test</button></div>';
-        stage.querySelector('.vt-retake').addEventListener('click', restart);
-        stage.querySelector('.vt-profile').focus({ preventScroll: true });
-        bringIntoView();
-        announce('Your result: let’s look at your organisation together.');
-        track('vt_complete', { profile: 'organisation' });
-      }
-
-      // Optional, after the result: the longer AI-written profile, sent by email after a
-      // confirmation click (abuse brake + confirmed address).
-      function deeperHtml() {
-        return '<form class="vt-deeper" novalidate>' +
-          '<p class="vt-deeper-title">Want a deeper, personal profile?</p>' +
-          '<p class="vt-help">Our AI coach reads your answers and writes a longer profile with a 7-day plan. We’ll email it to you.</p>' +
-          '<label class="vt-label" for="vtEmail">Your email</label>' +
-          '<div class="vt-field"><input class="vt-answer" id="vtEmail" type="email" autocomplete="email" aria-describedby="vtEmailErr"></div>' +
-          '<div class="vt-nav"><button class="btn btn-primary" type="submit">Email me my profile <span class="arrow">&rarr;</span></button></div>' +
-          '<p class="vt-privacy">We use your email and answers only to write and send your profile. Our CoachOS assistant processes your answers. You can ask us to delete them at any time. <a href="/privacy-policy/">Privacy policy</a></p>' +
-          '<p class="vt-error" id="vtEmailErr" role="alert"></p></form>';
-      }
-      function wireDeeper(profileName) {
-        const form = stage.querySelector('.vt-deeper');
-        const email = form.querySelector('#vtEmail');
-        const err = form.querySelector('#vtEmailErr');
-        const button = form.querySelector('button[type="submit"]');
-        form.addEventListener('submit', function (e) {
-          e.preventDefault();
-          const value = email.value.trim();
-          if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value)) {
-            email.setAttribute('aria-invalid', 'true');
-            err.textContent = 'That email address looks incomplete. Check for a missing @ or dot.';
-            email.focus();
+          '  <button class="btn btn-primary" id="vtSend" type="button">Send my confirmation link <span class="arrow">&rarr;</span></button>' +
+          '  <span class="vt-hint">One email, no spam. Your profile unlocks after you confirm.</span>' +
+          '</div>' +
+          '<p class="vt-privacy">We only use your email and answers to create and send your value profile. ' +
+          'They are processed on our CoachOS platform. <a href="/privacy-policy/">Privacy policy</a></p>' +
+          '<div class="vt-error" id="vtErr2" role="alert" style="display:none"></div>';
+        const emailEl = document.getElementById('vtEmail');
+        const sendBtn = document.getElementById('vtSend');
+        const errEl = document.getElementById('vtErr2');
+        emailEl.focus({ preventScroll: true });
+        sendBtn.addEventListener('click', function () {
+          const email = emailEl.value.trim();
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+            errEl.textContent = 'That email address does not look right yet.';
+            errEl.style.display = 'block';
             return;
           }
-          email.removeAttribute('aria-invalid');
-          err.textContent = '';
-          button.disabled = true;
-          const compiled = 'My answers to the value test (quick result: ' + profileName + '):\n' + STEPS.map(function (s, i) {
-            let a = answers[s.id];
-            if (s.type === 'multi') a = (a || []).map(function (v) { return label(s, v); }).join(', ');
-            else if (s.type !== 'text') a = label(s, a);
-            return (i + 1) + '. ' + s.q + '\n- ' + (a || '(no answer)');
-          }).join('\n');
+          sendBtn.disabled = true;
+          errEl.style.display = 'none';
           fetch(API_BASE + '/api/leadtest/aanvraag', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-Tenant': 'prospergenics' },
-            body: JSON.stringify({ email: value, antwoorden: compiled, contextSlug: 'value-test' })
+            body: JSON.stringify({ email: email, antwoorden: compiled, contextSlug: 'value-test' })
           }).then(function (r) {
             if (!r.ok) throw new Error('HTTP ' + r.status);
             return r.json();
           }).then(function () {
-            form.innerHTML = '<p class="vt-deeper-title">Check your inbox</p><p class="vt-help">We sent a link to <strong></strong>. Click it and your personal profile appears here. No email? Check your spam folder.</p>';
-            form.querySelector('strong').textContent = value;
-            announce('Check your inbox. We sent a link to ' + value + '.');
-            track('vt_email_submit');
+            stage.innerHTML =
+              '<div class="vt-question">Check your inbox!</div>' +
+              '<div class="vt-result-text">We sent a confirmation link to <strong></strong>. ' +
+              'Click it and your personal value profile appears right here. (No mail? Check your spam folder.)</div>';
+            stage.querySelector('strong').textContent = email;
           }).catch(function () {
-            button.disabled = false;
-            err.textContent = 'We couldn’t send the email just now. Your result is still here. Try again in a minute.';
+            sendBtn.disabled = false;
+            errEl.textContent = 'Sending the confirmation mail did not work. Please try again in a minute.';
+            errEl.style.display = 'block';
           });
-        });
-      }
-
-      function restart() { answers = {}; step = 0; renderStep(); }
-
-      function renderIntro(focus) {
-        stage.innerHTML =
-          '<div class="vt-intro"><p class="vt-question" tabindex="-1">Find your next step</p>' +
-          '<p class="vt-help">No sign-up needed. Your answers stay in your browser unless you choose to send them.</p>' +
-          '<div class="vt-nav"><button class="btn btn-primary" id="vtStart" type="button">Start the test <span class="arrow">&rarr;</span></button></div></div>';
-        wireStart();
-        if (focus) stage.querySelector('.vt-question').focus({ preventScroll: true });
-      }
-      function wireStart() {
-        const start = document.getElementById('vtStart');
-        if (!start) return;
-        start.addEventListener('click', function () {
-          track('vt_start');
-          // is there a course to send people to? (the theme's public catalogue)
-          if (coursesOpen === null) {
-            fetch('/wp-json/prospergenics/v1/courses?per_page=1').then(function (r) { return r.ok ? r.json() : []; })
-              .then(function (list) { coursesOpen = Array.isArray(list) && list.length > 0; })
-              .catch(function () { coursesOpen = false; });
-          }
-          answers = {}; step = 0; renderStep();
         });
       }
 
       // Returning from the confirmation mail: ?vt=<token> -> run the analysis and show the result.
       function confirmFlow(token) {
-        stage.innerHTML = '<div class="vt-busy"><span class="l-blob"></span>Email confirmed. Reading your answers&hellip; this takes about 20 seconds.</div>';
+        stage.innerHTML = '<div class="vt-busy"><span class="l-blob"></span>Email confirmed - the alchemists are weighing your answers&hellip;</div>';
         setTimeout(function () { document.getElementById('value-test').scrollIntoView({ block: 'center' }); }, 300);
         fetch(API_BASE + '/api/leadtest/bevestig', {
           method: 'POST',
@@ -1727,19 +1502,10 @@
           if (!r.ok) throw new Error('HTTP ' + r.status);
           return r.json();
         }).then(function (data) {
-          const text = (data && data.resultaat) ? data.resultaat.trim() : '';
-          const br = text.indexOf('\n');
-          stage.innerHTML =
-            '<p class="vt-profile" tabindex="-1"></p><div class="vt-result-text"></div>' +
-            '<div class="vt-cta"><a class="btn-primary" href="/members/">Meet the members <span class="arrow">&rarr;</span></a>' +
-            '<a class="vt-link" href="/courses/">Explore the courses</a></div>';
-          stage.querySelector('.vt-profile').textContent = br > 0 ? text.slice(0, br).trim() : 'Your value profile';
-          stage.querySelector('.vt-result-text').textContent = br > 0 ? text.slice(br).trim() : text;
-          stage.querySelector('.vt-profile').focus({ preventScroll: true });
+          renderResult((data && data.resultaat) ? data.resultaat.trim() : '');
         }).catch(function () {
-          stage.innerHTML = '<div class="vt-result-text">This link has expired. Your answers aren’t lost: take the test again in one minute and we’ll send a new link.</div>' +
-            '<div class="vt-cta"><button class="btn-primary" id="vtStart" type="button">Take the test again <span class="arrow">&rarr;</span></button></div>';
-          wireStart();
+          stage.innerHTML = '<div class="vt-result-text">This confirmation link is not valid (anymore), or the alchemists are momentarily overwhelmed. Take the test again or try the link once more in a minute.</div>' +
+            '<div class="vt-cta"><a class="btn-primary" href="/courses/">Explore the courses <span class="arrow">&rarr;</span></a></div>';
         });
         if (window.history && history.replaceState) {
           const url = new URL(window.location.href);
@@ -1749,7 +1515,7 @@
       }
 
       const vtToken = new URLSearchParams(window.location.search).get('vt');
-      if (vtToken) { confirmFlow(vtToken); } else { wireStart(); }
+      if (vtToken) { confirmFlow(vtToken); } else { render(); }
     })();
 
     // Parallax: set top = scrollY * 0.5 + 34px so the element moves at half scroll speed
@@ -1931,6 +1697,19 @@
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !panel.hidden) setOpen(false, true); });
     document.addEventListener('click', function (e) { if (!panel.hidden && !btn.contains(e.target) && !panel.contains(e.target)) setOpen(false); });
     return setOpen;
+  }
+  // Static pages (people, experts, community) are served without WordPress, so they show Log in /
+  // Join. When WordPress's pg_member marker cookie says someone is logged in, swap in the member
+  // links (#6486); each page they open checks the real login.
+  var spot = header.querySelector('.nav-account[data-static]');
+  if (spot && /(?:^|;\s*)pg_member=1(?:;|$)/.test(document.cookie)) {
+    var mine = [['My profile', '/profile/'], ['My courses', '/courses/my/'], ['Settings', '/profile/settings/'], ['Log out', '/wp-login.php?action=logout']];
+    var html = mine.map(function (l) { return '<a href="' + l[1] + '">' + l[0] + '</a>'; }).join('');
+    spot.innerHTML = '<button class="nav-account-toggle" type="button" aria-expanded="false" aria-controls="account-menu">' +
+      '<span class="nav-account-initial" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="5" r="3"/><path d="M2 15c0-3.3 2.7-5 6-5s6 1.7 6 5z"/></svg></span>' +
+      '<span>My account</span></button><div class="nav-account-menu" id="account-menu" hidden>' + html + '</div>';
+    var panelAccount = header.querySelector('.nav-panel-account');
+    if (panelAccount) panelAccount.innerHTML = html;
   }
   var mobile = menu(header.querySelector('.nav-toggle'), document.getElementById('mobile-menu'), ['Open menu', 'Close menu']);
   var account = menu(header.querySelector('.nav-account-toggle'), document.getElementById('account-menu'), null);
