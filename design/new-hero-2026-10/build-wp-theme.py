@@ -35,6 +35,11 @@ def convert(html, asset_prefix):
     html = html.replace('<html lang="en" class="no-js">',
                         '<html class="no-js" <?php language_attributes(); ?>>', 1)
     html = html.replace("</head>", "<?php wp_head(); ?>\n</head>", 1)
+    # wp_body_open right after <body>, as in header.php (plugins hook in there; ARC-19)
+    # (the tag on its own line: "<body>" also appears inside a CSS comment)
+    html, found = re.subn(r"^<body>$", "<body>\n<?php wp_body_open(); ?>", html, count=1, flags=re.M)
+    if not found:
+        raise SystemExit("<body> line not found")
     html = html.replace("</body>", "<?php wp_footer(); ?>\n</body>", 1)
     # asset URLs -> theme directory (src/href/CSS url()/JS string literals)
     html = html.replace("https://test.prospergenics.com/assets/", f"{TPL}/assets/")
@@ -52,7 +57,9 @@ def php_chrome(html, header_args):
         if not pattern.search(text):
             raise SystemExit(f"site-chrome:{name} block not found")
         return pattern.sub(lambda _m: f"<!-- site-chrome:{name} (inc/site-chrome.php) -->\n  {php}", text, count=1)
-    html = swap(html, "header", f"<?php echo prospergenics_2026_site_header( {header_args} ); // phpcs:ignore WordPress.Security.EscapeOutput ?>")
+    # after the header (so the skip link stays the first Tab stop): member notices such as the
+    # email-verification banner, the same hook header.php fires (ARC-19)
+    html = swap(html, "header", f"<?php echo prospergenics_2026_site_header( {header_args} ); // phpcs:ignore WordPress.Security.EscapeOutput ?>\n  <?php do_action( 'prospergenics_2026_after_site_header' ); ?>")
     return swap(html, "footer", "<?php echo prospergenics_2026_site_footer(); // phpcs:ignore WordPress.Security.EscapeOutput ?>")
 
 

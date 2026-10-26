@@ -846,9 +846,11 @@
 <?php wp_head(); ?>
 </head>
 <body>
+<?php wp_body_open(); ?>
 
   <!-- site-chrome:header (inc/site-chrome.php) -->
   <?php echo prospergenics_2026_site_header( array( 'autohide' => true ) ); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+  <?php do_action( 'prospergenics_2026_after_site_header' ); ?>
 
   <main id="main">
 

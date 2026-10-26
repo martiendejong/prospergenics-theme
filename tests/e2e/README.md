@@ -18,6 +18,7 @@ no Docker, no npm packages.
 | `seed.php` | `wp eval-file` script: one user per role (editor = instructor, author, contributor, two verified subscribers, one unverified), a published course with one lesson, an article, a contact message and a profile entry. Prints the IDs as JSON for the matrix. |
 | `role-matrix.js` | Logs in as each user (plain HTTP with a cookie jar) and checks the rules below. Exit code 1 on any failure. |
 | `router.php` | Router for `php -S`. |
+| `mu-plugin.php` | Copied into the throwaway site's `mu-plugins/` only (with `PG_E2E` set in its `wp-config.php`): `admin-ajax.php?action=pg_e2e_nonce&for=<action>` hands the logged-in user a valid nonce, so a refusal proves the capability check behind `check_admin_referer()`, not just the nonce; and `wp_mail()` succeeds without sending. Never part of the theme. |
 
 ## Rules checked
 
@@ -42,6 +43,22 @@ it pass.
   forms are refused (403) without their nonce, and the password still works afterwards.
 - `POST prospergenics/v1/courses` refused for visitor, subscriber, contributor, author; an unverified
   member cannot follow.
+- The Writer role (`pg_writer`): creates a draft article and submits it for review (controls), but
+  cannot publish it (REST, or My articles' publish action with a valid nonce), cannot edit or
+  unpublish someone else's article, uploads an image (control) and sees only its own uploads (REST
+  media list, the media modal, Media screen), cannot edit someone else's image, and is refused the
+  contact messages and Users screens.
+- Users → Requests: the screen is refused for everyone without `promote_users` (editor, author,
+  contributor, writer, members); approving without the nonce, or with a valid nonce but without
+  `promote_users` (editor, a member, the applicant themself), is 403. Controls: the admin sees both
+  open requests, approves "write" (the applicant can then open the article editor) and declines
+  "teach".
+- Users screen row actions (Resend, Mark verified, Hide/Show): `users.php` refused for editor, author,
+  members; the handler refuses a missing nonce (even for the admin), and a valid nonce without
+  `edit_users` + `edit_user` (editor, author, writer, members), including members acting on
+  themselves (an unverified member marking themselves verified, a hidden member showing their own
+  profile). Controls: the admin resends the link, marks the member verified (who can then follow),
+  hides the profile (members no longer see it) and shows it again.
 
 ## Adding a rule
 

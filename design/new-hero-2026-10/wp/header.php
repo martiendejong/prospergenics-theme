@@ -139,4 +139,5 @@ main{flex:1 0 auto;}
 <?php wp_body_open(); ?>
 
 <?php echo prospergenics_2026_site_header(); // phpcs:ignore WordPress.Security.EscapeOutput -- built from escaped parts in inc/site-chrome.php. ?>
+<?php do_action( 'prospergenics_2026_after_site_header' ); // member notices (email verification), after the skip link ?>
 <main id="main">
