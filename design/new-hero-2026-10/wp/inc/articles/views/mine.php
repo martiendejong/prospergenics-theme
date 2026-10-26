@@ -6,10 +6,11 @@
 defined( 'ABSPATH' ) || exit;
 
 $pga_user    = wp_get_current_user();
-$pga_can     = current_user_can( 'edit_posts' );
+$pga_can     = current_user_can( 'edit_pg_articles' );
 $pga_filters = prospergenics_articles_mine_filters();
 $pga_filter  = prospergenics_articles_mine_filter();
 $pga_paged   = isset( $_GET['pg'] ) ? max( 1, absint( $_GET['pg'] ) ) : 1;
+$pga_queue   = prospergenics_articles_mine_filter_is_queue( $pga_filter );
 
 $pga_counts = array();
 $pga_claps  = 0;
@@ -27,7 +28,7 @@ if ( $pga_can ) {
         $pga_counts[ $pga_status ] = ( isset( $pga_counts[ $pga_status ] ) ? $pga_counts[ $pga_status ] : 0 ) + 1;
         $pga_claps                += prospergenics_articles_claps( $pga_id );
     }
-    $pga_query = new WP_Query( array(
+    $pga_args = array(
         'post_type'      => 'pg_article',
         'post_status'    => $pga_filters[ $pga_filter ][1],
         'author'         => $pga_user->ID,
@@ -35,7 +36,16 @@ if ( $pga_can ) {
         'paged'          => $pga_paged,
         'orderby'        => 'modified',
         'order'          => 'DESC',
-    ) );
+    );
+    if ( isset( $pga_filters['review'] ) ) {
+        // the review queue: everyone's pending articles, oldest submission first
+        $pga_review_n = count( get_posts( array( 'post_type' => 'pg_article', 'post_status' => 'pending', 'posts_per_page' => -1, 'fields' => 'ids', 'no_found_rows' => true ) ) );
+        if ( $pga_queue ) {
+            unset( $pga_args['author'] );
+            $pga_args['order'] = 'ASC';
+        }
+    }
+    $pga_query = new WP_Query( $pga_args );
 }
 $pga_notices = array(
     'unpublished' => array( 'ok', 'The article is a draft again and no longer visible to readers.' ),
@@ -63,13 +73,17 @@ get_header();
   <?php endif; ?>
 
   <?php if ( ! $pga_can ) : ?>
-    <p class="empty-note">Your account cannot write articles yet. Ask a ProsperGenics editor to give you author access, then your articles will appear here.</p>
+    <p class="empty-note">Your account cannot write articles yet. Tell the ProsperGenics team what you would like to write about: once they approve, you can write here and send your articles for review.</p>
+    <?php echo prospergenics_profiles_application_box( 'write', 'pga-btn' ); // escaped inside ?>
   <?php else : ?>
     <nav class="pga-chips" aria-label="Filter by status">
       <?php foreach ( $pga_filters as $pga_key => $pga_f ) :
           $pga_n = 0;
           foreach ( $pga_f[1] as $pga_s ) {
               $pga_n += isset( $pga_counts[ $pga_s ] ) ? $pga_counts[ $pga_s ] : 0;
+          }
+          if ( prospergenics_articles_mine_filter_is_queue( $pga_key ) ) {
+              $pga_n = $pga_review_n;
           }
           ?>
         <a class="pga-chip" href="<?php echo esc_url( prospergenics_articles_mine_url( 'all' === $pga_key ? array() : array( 'status' => $pga_key ) ) ); ?>"<?php echo $pga_key === $pga_filter ? ' aria-current="page"' : ''; ?>><?php echo esc_html( $pga_f[0] ); ?> <span class="pga-chip-count">(<?php echo esc_html( number_format_i18n( $pga_n ) ); ?>)</span></a>
@@ -88,6 +102,9 @@ get_header();
               <span class="pga-status pga-status-<?php echo esc_attr( $pga_status ); ?>"><?php echo esc_html( prospergenics_articles_status_label( $pga_status ) ); ?></span>
               <h2 class="pga-mine-title"><?php echo esc_html( $pga_title ); ?></h2>
               <p class="pga-mine-facts">
+                <?php if ( (int) $pga_post->post_author !== (int) $pga_user->ID ) : $pga_author = get_userdata( (int) $pga_post->post_author ); ?>
+                  By <?php echo esc_html( $pga_author ? $pga_author->display_name : '?' ); ?> <span aria-hidden="true">·</span>
+                <?php endif; ?>
                 <?php if ( 'future' === $pga_status ) : ?>
                   Publishes <time datetime="<?php echo esc_attr( get_post_time( 'c', true, $pga_post ) ); ?>"><?php echo esc_html( get_post_time( 'j M Y, H:i', false, $pga_post ) ); ?></time>
                 <?php elseif ( 'publish' === $pga_status ) : ?>
@@ -140,6 +157,8 @@ get_header();
           ?>
         </nav>
       <?php endif; ?>
+    <?php elseif ( $pga_queue ) : ?>
+      <p class="empty-note">No articles are waiting for review.</p>
     <?php else : ?>
       <p class="empty-note">Nothing here yet. <a href="<?php echo esc_url( admin_url( 'post-new.php?post_type=pg_article' ) ); ?>">Write your first article</a>: it saves as a draft while you write.</p>
     <?php endif; ?>

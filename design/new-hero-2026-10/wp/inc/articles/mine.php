@@ -10,6 +10,9 @@
  * scheduling (date/time picker, published by WP-Cron) stay in the block editor, which the page
  * links to. The wp-admin list (Articles > All articles) shows the same claps column.
  *
+ * Members who cannot write yet get the "Apply to write" form here instead (audit ARC-8,
+ * inc/profiles/applications.php).
+ *
  * Actions (POST to admin-post.php, each with its own nonce and capability check):
  *   pg_articles_unpublish  published or scheduled -> draft     needs edit_post
  *   pg_articles_publish    draft/pending/scheduled -> live now  needs publish_post
@@ -30,14 +33,26 @@ function prospergenics_articles_mine_url( $args = array() ) {
     return add_query_arg( $args, home_url( '/articles/mine/' ) );
 }
 
-/** Status filters on the page: key => [label, post statuses]. */
+/**
+ * Status filters on the page: key => [label, post statuses]. Editors (who may edit others'
+ * articles) also get "Waiting for review": everyone's pending articles (audit ARC-9).
+ */
 function prospergenics_articles_mine_filters() {
-    return array(
+    $filters = array(
         'all'       => array( 'All', array( 'draft', 'pending', 'future', 'publish' ) ),
         'draft'     => array( 'Drafts', array( 'draft', 'pending' ) ),
         'future'    => array( 'Scheduled', array( 'future' ) ),
         'publish'   => array( 'Published', array( 'publish' ) ),
     );
+    if ( current_user_can( 'edit_others_pg_articles' ) ) {
+        $filters['review'] = array( 'Waiting for review', array( 'pending' ) );
+    }
+    return $filters;
+}
+
+/** Whether a filter lists everyone's articles (the review queue) rather than the reader's own. */
+function prospergenics_articles_mine_filter_is_queue( $filter ) {
+    return 'review' === $filter;
 }
 
 /** The selected filter key from the request. */

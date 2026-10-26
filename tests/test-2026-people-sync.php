@@ -170,7 +170,7 @@ $extract = function ( $file, array $fns ) {
 // the completion threshold is the real constant from helpers.php (one rule for robots and sitemap)
 preg_match( '/const PROSPERGENICS_PROFILES_INDEX_MIN = (\d+);/', file_get_contents( $theme . '/inc/profiles/helpers.php' ), $min );
 define( 'PROSPERGENICS_PROFILES_INDEX_MIN', (int) $min[1] );
-$extract( $theme . '/inc/profiles/data.php', array( 'prospergenics_profiles_index_min_completion', 'prospergenics_profiles_is_indexable' ) );
+$extract( $theme . '/inc/profiles/data.php', array( 'prospergenics_profiles_index_min_completion', 'prospergenics_profiles_is_hidden', 'prospergenics_profiles_is_indexable' ) );
 $extract( $theme . '/inc/platform-profiles.php', array( 'prospergenics_2026_people', 'prospergenics_profiles_person', 'prospergenics_profiles_public_url_for' ) );
 
 $GLOBALS['_meta'] = array(
@@ -198,6 +198,8 @@ ok( prospergenics_profiles_is_indexable( 20 ), 'public, verified, 40% complete: 
 ok( ! prospergenics_profiles_is_indexable( 21 ), '20% complete: not indexed' );
 ok( ! prospergenics_profiles_is_indexable( 22 ), 'members-only profile: not indexed' );
 ok( ! prospergenics_profiles_is_indexable( 23 ), 'unverified account: not indexed' );
+$GLOBALS['_meta'][24] = array( 'percent' => 100, '_pg_profiles_hidden' => 1793000000 );
+ok( ! prospergenics_profiles_is_indexable( 24 ), 'a profile hidden by staff (ARC-15): not indexed, not in the sitemap' );
 $routes = file_get_contents( $theme . '/inc/profiles/routes.php' );
 ok( false !== strpos( $routes, '! prospergenics_profiles_is_indexable( $owner->ID )' ), '/in/ robots use the same rule as the sitemap' );
 
