@@ -13,6 +13,7 @@
  *   render.php   markup shared by the templates (card, byline, share links, clap button)
  *   roles.php    ARC-8 the pg_article capability type and the pg_writer role (own media only)
  *   review.php   ARC-9 emails when an article is submitted for review, published or sent back
+ *   hidden.php   #6472 articles hidden by moderation: gone for everyone but their author and staff
  *
  * Templates: single-pg_article.php, archive-pg_article.php and taxonomy-pg_*.php in the theme
  * root. Styles and script: assets/platform/articles.css|js, enqueued only on article pages.
@@ -30,6 +31,7 @@ require __DIR__ . '/articles/seo.php';
 require __DIR__ . '/articles/mine.php';
 require __DIR__ . '/articles/render.php';
 require __DIR__ . '/articles/review.php';
+require __DIR__ . '/articles/hidden.php';
 
 /** Whether the current request shows one of this track's front-end pages. */
 function prospergenics_articles_is_article_page() {

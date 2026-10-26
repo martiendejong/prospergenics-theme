@@ -70,7 +70,8 @@ add_filter( 'manage_users_custom_column', function ( $output, $column, $user_id 
             $levels = prospergenics_profiles_levels();
             $level  = prospergenics_profiles_privacy( $user_id )['profile'];
             $out    = (int) prospergenics_profiles_get_completion( $user_id )['percent'] . '%<br /><span class="description">' . esc_html( $levels[ $level ] ) . '</span>';
-            return $out . ( prospergenics_profiles_is_hidden( $user_id ) ? '<br /><strong>Hidden by staff</strong>' : '' );
+            $out .= prospergenics_profiles_is_hidden( $user_id ) ? '<br /><strong>Hidden by staff</strong>' : '';
+            return $out . ( function_exists( 'prospergenics_profiles_is_suspended' ) && prospergenics_profiles_is_suspended( $user_id ) ? '<br /><strong>Suspended</strong> (Reports → Suspended members)' : '' );
         case 'pg_enrolments':
             return function_exists( 'prospergenics_courses_user_enrolments' ) ? (string) count( prospergenics_courses_user_enrolments( $user_id ) ) : '–';
         case 'pg_certificates':

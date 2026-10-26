@@ -140,7 +140,8 @@ function prospergenics_articles_clap_permission() {
 function prospergenics_articles_rest_clap( WP_REST_Request $request ) {
     $post_id = (int) $request['id'];
     $post    = get_post( $post_id );
-    if ( ! $post || 'pg_article' !== $post->post_type || 'publish' !== $post->post_status || post_password_required( $post ) ) {
+    if ( ! $post || 'pg_article' !== $post->post_type || 'publish' !== $post->post_status || post_password_required( $post )
+        || ( prospergenics_articles_is_hidden( $post_id ) && ! prospergenics_articles_can_see_hidden( $post, get_current_user_id() ) ) ) { // #6472
         return new WP_Error( 'pg_articles_not_found', 'Article not found.', array( 'status' => 404 ) );
     }
     $user_id = get_current_user_id();

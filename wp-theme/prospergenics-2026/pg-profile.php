@@ -103,6 +103,7 @@ get_header();
             <a class="pgp-btn pgp-btn-on-dark" href="<?php echo esc_url( prospergenics_profiles_login_url( $profile_url ) ); ?>">Log in to follow</a>
           <?php endif; ?>
           <?php if ( ! $is_owner ) { echo $story_link; } // escaped above ?>
+          <?php if ( ! $is_owner && ! $preview && function_exists( 'prospergenics_profiles_report_html' ) ) { echo prospergenics_profiles_report_html( 'profile', $owner->ID ); } // #6472, escaped in the helper ?>
         </div>
       </div>
     </div>
