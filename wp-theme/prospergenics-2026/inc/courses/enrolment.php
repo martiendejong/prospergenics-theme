@@ -61,9 +61,13 @@ function prospergenics_courses_enrol_block_reason( $user_id, $course_id ) {
 	return '';
 }
 
-/** Recount a course's enrolments into _pg_courses_enrolment_count (used by "popular"). */
+/** Recount a course's enrolments into _pg_courses_enrolment_count (used by "popular"): one COUNT query. */
 function prospergenics_courses_update_enrolment_count( $course_id ) {
-	$n = count( get_posts( array( 'post_type' => 'pg_enrolment', 'post_status' => 'publish', 'post_parent' => (int) $course_id, 'posts_per_page' => -1, 'fields' => 'ids', 'suppress_filters' => true ) ) );
+	global $wpdb;
+	$n = (int) $wpdb->get_var( $wpdb->prepare(
+		"SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = 'pg_enrolment' AND post_status = 'publish' AND post_parent = %d",
+		$course_id
+	) );
 	update_post_meta( $course_id, '_pg_courses_enrolment_count', $n );
 	return $n;
 }
@@ -263,16 +267,24 @@ function prospergenics_courses_user_enrolments( $user_id ) {
 	) );
 }
 
-/** @return array{enrolled:int,completed:int,rate:int} */
+/**
+ * Enrolled and completed counts in one query per course (not one get_post_meta per enrolment).
+ *
+ * @return array{enrolled:int,completed:int,rate:int}
+ */
 function prospergenics_courses_stats( $course_id ) {
-	$ids       = get_posts( array( 'post_type' => 'pg_enrolment', 'post_status' => 'publish', 'post_parent' => (int) $course_id, 'posts_per_page' => -1, 'fields' => 'ids', 'suppress_filters' => true ) );
-	$completed = 0;
-	foreach ( $ids as $id ) {
-		if ( get_post_meta( $id, '_pg_courses_completed_at', true ) ) {
-			$completed++;
-		}
-	}
-	return array( 'enrolled' => count( $ids ), 'completed' => $completed, 'rate' => prospergenics_courses_rate( $completed, count( $ids ) ) );
+	global $wpdb;
+	$row       = $wpdb->get_row( $wpdb->prepare(
+		"SELECT COUNT(DISTINCT p.ID) AS enrolled,
+			COUNT(DISTINCT CASE WHEN m.meta_value IS NOT NULL AND m.meta_value NOT IN ('', '0') THEN p.ID END) AS completed
+		FROM {$wpdb->posts} p
+		LEFT JOIN {$wpdb->postmeta} m ON m.post_id = p.ID AND m.meta_key = '_pg_courses_completed_at'
+		WHERE p.post_type = 'pg_enrolment' AND p.post_status = 'publish' AND p.post_parent = %d",
+		$course_id
+	) );
+	$enrolled  = $row ? (int) $row->enrolled : 0;
+	$completed = $row ? (int) $row->completed : 0;
+	return array( 'enrolled' => $enrolled, 'completed' => $completed, 'rate' => prospergenics_courses_rate( $completed, $enrolled ) );
 }
 
 /* ------------------------------------------------------------------ form handlers (no-JS path) */

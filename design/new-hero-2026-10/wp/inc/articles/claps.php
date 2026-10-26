@@ -7,10 +7,15 @@
  * IP based cap for anonymous visitors is trivially reset and would make the count meaningless.
  * Authors cannot clap for their own articles.
  *
- * Storage (post meta, no custom table):
- *   _pg_articles_clap_by_<user_id>  one row per reader: that reader's claps (1-50)
- *   _pg_articles_claps              total, recomputed from the per-reader rows on every clap,
- *                                   so concurrent claps from different readers never lose counts
+ * Storage (audit ARC-21: no per-reader rows in postmeta, so an article's meta stays small however
+ * many people clap, and no LIKE scans):
+ *   {prefix}pg_claps                one row per reader and article: (user_id, post_id) => n claps
+ *                                   (1-50) and when they last clapped. Created with dbDelta behind
+ *                                   the prospergenics_articles_claps_db option; the first run moves
+ *                                   the old _pg_articles_clap_by_<user_id> post meta into it.
+ *   _pg_articles_claps              total, raised with one atomic UPDATE (n = n + granted), so
+ *                                   concurrent claps from different readers never lose counts;
+ *                                   recounted from the table by the daily job and after an erasure
  *   _pg_articles_clap_days          claps per day (Y-m-d => n) for the last 30 days
  *   _pg_articles_trend              claps in the last 30 days: the "trending" sort key, refreshed
  *                                   on every clap and once a day by WP-Cron
@@ -27,7 +32,8 @@ const PROSPERGENICS_ARTICLES_MAX_CLAPS   = 50;
 const PROSPERGENICS_ARTICLES_CLAPS_META  = '_pg_articles_claps';
 const PROSPERGENICS_ARTICLES_TREND_META  = '_pg_articles_trend';
 const PROSPERGENICS_ARTICLES_DAYS_META   = '_pg_articles_clap_days';
-const PROSPERGENICS_ARTICLES_BY_PREFIX   = '_pg_articles_clap_by_';
+const PROSPERGENICS_ARTICLES_BY_PREFIX   = '_pg_articles_clap_by_'; // before ARC-21; only the migration reads it
+const PROSPERGENICS_ARTICLES_CLAPS_DB    = 1; // schema version of {prefix}pg_claps
 const PROSPERGENICS_ARTICLES_TREND_DAYS  = 30;
 const PROSPERGENICS_ARTICLES_RATE_LIMIT  = 30;
 const PROSPERGENICS_ARTICLES_RATE_WINDOW = 60;
@@ -91,21 +97,138 @@ function prospergenics_articles_claps( $post_id ) {
     return (int) get_post_meta( $post_id, PROSPERGENICS_ARTICLES_CLAPS_META, true );
 }
 
-/** Claps one reader gave an article. */
-function prospergenics_articles_user_claps( $post_id, $user_id ) {
-    return $user_id ? (int) get_post_meta( $post_id, PROSPERGENICS_ARTICLES_BY_PREFIX . (int) $user_id, true ) : 0;
+/** The claps table: {prefix}pg_claps. */
+function prospergenics_articles_claps_table() {
+    global $wpdb;
+    return $wpdb->prefix . 'pg_claps';
 }
 
-/** Recompute an article's total from the per-reader rows. */
+/**
+ * Create or upgrade the claps table, then move the old per-reader post meta into it. Runs once
+ * per schema version: the option is only stored when everything went through, so an interrupted
+ * run continues on the next request (every step is safe to repeat).
+ */
+function prospergenics_articles_claps_install() {
+    global $wpdb;
+    if ( (int) get_option( 'prospergenics_articles_claps_db' ) >= PROSPERGENICS_ARTICLES_CLAPS_DB ) {
+        return;
+    }
+    $table = prospergenics_articles_claps_table();
+    require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+    dbDelta( "CREATE TABLE {$table} (
+  user_id bigint(20) unsigned NOT NULL,
+  post_id bigint(20) unsigned NOT NULL,
+  n smallint(5) unsigned NOT NULL DEFAULT 0,
+  updated datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  PRIMARY KEY  (user_id,post_id),
+  KEY post_id (post_id)
+) " . $wpdb->get_charset_collate() . ';' );
+    if ( $table !== $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table ) ) ) ) {
+        return; // could not create it; try again on the next request
+    }
+    $posts = prospergenics_articles_claps_migrate_meta();
+    if ( false === $posts ) {
+        return;
+    }
+    foreach ( $posts as $post_id ) {
+        prospergenics_articles_recount( $post_id );
+    }
+    update_option( 'prospergenics_articles_claps_db', PROSPERGENICS_ARTICLES_CLAPS_DB, true );
+}
+add_action( 'init', 'prospergenics_articles_claps_install', 5 );
+
+/**
+ * Move the old _pg_articles_clap_by_<user_id> post meta into the table, 500 rows at a time: each
+ * batch is upserted (keeping the higher count if the row is already there), then deleted.
+ *
+ * @return int[]|false ids of the articles whose claps moved, or false when a batch failed
+ */
+function prospergenics_articles_claps_migrate_meta() {
+    global $wpdb;
+    $table  = prospergenics_articles_claps_table();
+    $prefix = PROSPERGENICS_ARTICLES_BY_PREFIX;
+    $now    = current_time( 'mysql', true );
+    $posts  = array();
+    do {
+        $rows = (array) $wpdb->get_results( $wpdb->prepare(
+            "SELECT meta_id, post_id, meta_key, meta_value FROM {$wpdb->postmeta} WHERE meta_key LIKE %s ORDER BY meta_id LIMIT 500",
+            $wpdb->esc_like( $prefix ) . '%'
+        ) );
+        if ( ! $rows ) {
+            break;
+        }
+        $values = array();
+        $args   = array();
+        $ids    = array();
+        foreach ( $rows as $row ) {
+            $ids[]   = (int) $row->meta_id;
+            $user_id = substr( $row->meta_key, strlen( $prefix ) );
+            $n       = min( PROSPERGENICS_ARTICLES_MAX_CLAPS, max( 0, (int) $row->meta_value ) );
+            if ( ! ctype_digit( $user_id ) || ! (int) $user_id || ! $n ) {
+                continue; // not a reader row, or nothing to keep: only delete it
+            }
+            $values[] = '(%d, %d, %d, %s)';
+            array_push( $args, (int) $user_id, (int) $row->post_id, $n, $now );
+            $posts[ (int) $row->post_id ] = (int) $row->post_id;
+        }
+        if ( $values && false === $wpdb->query( $wpdb->prepare(
+            "INSERT INTO {$table} (user_id, post_id, n, updated) VALUES " . implode( ', ', $values ) . ' ON DUPLICATE KEY UPDATE n = GREATEST(n, VALUES(n))',
+            $args
+        ) ) ) {
+            return false;
+        }
+        $deleted = $wpdb->query( $wpdb->prepare(
+            "DELETE FROM {$wpdb->postmeta} WHERE meta_id IN (" . implode( ', ', array_fill( 0, count( $ids ), '%d' ) ) . ')',
+            $ids
+        ) );
+        if ( ! $deleted ) {
+            return false; // nothing deleted: stop instead of reading the same rows again
+        }
+    } while ( 500 === count( $rows ) );
+    foreach ( $posts as $post_id ) {
+        wp_cache_delete( $post_id, 'post_meta' );
+    }
+    return array_values( $posts );
+}
+
+/** Claps one reader gave an article. */
+function prospergenics_articles_user_claps( $post_id, $user_id ) {
+    global $wpdb;
+    if ( ! $user_id ) {
+        return 0;
+    }
+    return (int) $wpdb->get_var( $wpdb->prepare(
+        'SELECT n FROM ' . prospergenics_articles_claps_table() . ' WHERE user_id = %d AND post_id = %d',
+        $user_id,
+        $post_id
+    ) );
+}
+
+/** Recompute an article's total from the claps table (one SUM over the post_id index). */
 function prospergenics_articles_recount( $post_id ) {
     global $wpdb;
     $total = (int) $wpdb->get_var( $wpdb->prepare(
-        "SELECT COALESCE(SUM(CAST(meta_value AS UNSIGNED)), 0) FROM {$wpdb->postmeta} WHERE post_id = %d AND meta_key LIKE %s",
-        $post_id,
-        $wpdb->esc_like( PROSPERGENICS_ARTICLES_BY_PREFIX ) . '%'
+        'SELECT COALESCE(SUM(n), 0) FROM ' . prospergenics_articles_claps_table() . ' WHERE post_id = %d',
+        $post_id
     ) );
     update_post_meta( $post_id, PROSPERGENICS_ARTICLES_CLAPS_META, $total );
     return $total;
+}
+
+/** Add $n to an article's total in one statement (no read-modify-write). @return int the new total */
+function prospergenics_articles_bump_total( $post_id, $n ) {
+    global $wpdb;
+    $updated = $wpdb->query( $wpdb->prepare(
+        "UPDATE {$wpdb->postmeta} SET meta_value = CAST(meta_value AS UNSIGNED) + %d WHERE post_id = %d AND meta_key = %s",
+        $n,
+        $post_id,
+        PROSPERGENICS_ARTICLES_CLAPS_META
+    ) );
+    wp_cache_delete( $post_id, 'post_meta' );
+    if ( ! $updated ) {
+        return prospergenics_articles_recount( $post_id ); // no total stored yet
+    }
+    return prospergenics_articles_claps( $post_id );
 }
 
 /**
@@ -114,14 +237,26 @@ function prospergenics_articles_recount( $post_id ) {
  * @return array{granted:int,mine:int,claps:int}
  */
 function prospergenics_articles_add_claps( $post_id, $user_id, $requested ) {
+    global $wpdb;
+    $post_id = (int) $post_id;
+    $user_id = (int) $user_id;
     $already = prospergenics_articles_user_claps( $post_id, $user_id );
     $grant   = prospergenics_articles_clap_grant( $already, $requested );
     if ( $grant > 0 ) {
-        update_post_meta( $post_id, PROSPERGENICS_ARTICLES_BY_PREFIX . (int) $user_id, $already + $grant );
+        // One atomic upsert; LEAST() keeps the cap even when one reader sends two requests at once.
+        $wpdb->query( $wpdb->prepare(
+            'INSERT INTO ' . prospergenics_articles_claps_table() . ' (user_id, post_id, n, updated) VALUES (%d, %d, %d, %s)'
+            . ' ON DUPLICATE KEY UPDATE n = LEAST(%d, n + VALUES(n)), updated = VALUES(updated)',
+            $user_id,
+            $post_id,
+            $grant,
+            current_time( 'mysql', true ),
+            PROSPERGENICS_ARTICLES_MAX_CLAPS
+        ) );
         $days = prospergenics_articles_add_to_days( get_post_meta( $post_id, PROSPERGENICS_ARTICLES_DAYS_META, true ), gmdate( 'Y-m-d' ), $grant );
         update_post_meta( $post_id, PROSPERGENICS_ARTICLES_DAYS_META, $days );
         update_post_meta( $post_id, PROSPERGENICS_ARTICLES_TREND_META, prospergenics_articles_trend_score( $days ) );
-        $total = prospergenics_articles_recount( $post_id );
+        $total = prospergenics_articles_bump_total( $post_id, $grant );
     } else {
         $total = prospergenics_articles_claps( $post_id );
     }
@@ -195,6 +330,7 @@ function prospergenics_articles_refresh_trends() {
         $days = prospergenics_articles_prune_days( get_post_meta( $id, PROSPERGENICS_ARTICLES_DAYS_META, true ), $today );
         update_post_meta( $id, PROSPERGENICS_ARTICLES_DAYS_META, $days );
         update_post_meta( $id, PROSPERGENICS_ARTICLES_TREND_META, prospergenics_articles_trend_score( $days ) );
+        prospergenics_articles_recount( $id ); // re-sync the running total with the table
     }
 }
 add_action( 'prospergenics_articles_refresh_trends', 'prospergenics_articles_refresh_trends' );
@@ -215,26 +351,35 @@ add_action( 'switch_theme', function () {
 function prospergenics_articles_claps_by_user( $user_id ) {
     global $wpdb;
     $rows = $wpdb->get_results( $wpdb->prepare(
-        "SELECT post_id, meta_value FROM {$wpdb->postmeta} WHERE meta_key = %s",
-        PROSPERGENICS_ARTICLES_BY_PREFIX . (int) $user_id
+        'SELECT post_id, n FROM ' . prospergenics_articles_claps_table() . ' WHERE user_id = %d',
+        $user_id
     ) );
     $out = array();
-    foreach ( $rows as $row ) {
-        $out[ (int) $row->post_id ] = (int) $row->meta_value;
+    foreach ( (array) $rows as $row ) {
+        $out[ (int) $row->post_id ] = (int) $row->n;
     }
     return $out;
 }
 
 /** Remove a reader's claps everywhere and recount those articles. @return int articles touched */
 function prospergenics_articles_erase_claps( $user_id ) {
+    global $wpdb;
     $claps = prospergenics_articles_claps_by_user( $user_id );
-    foreach ( array_keys( $claps ) as $post_id ) {
-        delete_post_meta( $post_id, PROSPERGENICS_ARTICLES_BY_PREFIX . (int) $user_id );
-        prospergenics_articles_recount( $post_id );
+    if ( $claps ) {
+        $wpdb->delete( prospergenics_articles_claps_table(), array( 'user_id' => (int) $user_id ), array( '%d' ) );
+        foreach ( array_keys( $claps ) as $post_id ) {
+            prospergenics_articles_recount( $post_id );
+        }
     }
     return count( $claps );
 }
 add_action( 'deleted_user', 'prospergenics_articles_erase_claps' );
+
+/** A deleted article takes its clap rows along (its post meta goes with the post, the table does not). */
+add_action( 'deleted_post', function ( $post_id ) {
+    global $wpdb;
+    $wpdb->delete( prospergenics_articles_claps_table(), array( 'post_id' => (int) $post_id ), array( '%d' ) );
+} );
 
 function prospergenics_articles_personal_data_exporter( $email, $page = 1 ) {
     $user  = get_user_by( 'email', $email );

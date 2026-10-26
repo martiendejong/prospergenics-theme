@@ -30,7 +30,7 @@ class Session {
       if (/expires=Thu, 01[- ]Jan[- ]1970/i.test(c) || v === 'deleted' || v === '') this.jar.delete(k); else this.jar.set(k, v);
     }
   }
-  async request(method, path, { body, json, follow = false, headers = {} } = {}) {
+  async request(method, path, { body, json, raw, follow = false, headers = {} } = {}) {
     let url = path.startsWith('http') ? path : BASE + path;
     const chain = [];
     for (let hop = 0; hop < 8; hop++) {
@@ -38,6 +38,7 @@ class Session {
       let payload;
       if (json !== undefined) { h['Content-Type'] = 'application/json'; payload = JSON.stringify(json); }
       else if (body !== undefined) { h['Content-Type'] = 'application/x-www-form-urlencoded'; payload = new URLSearchParams(body).toString(); }
+      else if (raw !== undefined) { payload = raw; } // a file upload: the caller sets Content-Type
       if (this.nonce && url.includes('/wp-json/')) h['X-WP-Nonce'] = this.nonce;
       const res = await fetch(url, { method, headers: h, body: payload, redirect: 'manual' });
       this.store(res);
@@ -45,7 +46,7 @@ class Session {
       const location = res.headers.get('location');
       chain.push({ status: res.status, url, location });
       if (follow && location && res.status >= 300 && res.status < 400) {
-        url = new URL(location, url).toString(); method = 'GET'; body = json = undefined;
+        url = new URL(location, url).toString(); method = 'GET'; body = json = raw = undefined;
         continue;
       }
       let data = null; try { data = JSON.parse(text); } catch (e) { /* html */ }
@@ -77,12 +78,21 @@ function refused(r) {
   if (r.status >= 300 && r.status < 400 && r.location && !pathOf(r.location).startsWith('/wp-admin/')) return true;
   return /Sorry, you are not allowed/i.test(r.text);
 }
+// A valid nonce for this user (tests/e2e/mu-plugin.php, throwaway site only): with it a refusal
+// proves the capability check behind check_admin_referer(), not just the nonce.
+async function mint(sess, action) {
+  const r = await sess.get(`/wp-admin/admin-ajax.php?action=pg_e2e_nonce&for=${encodeURIComponent(action)}`);
+  return r.status === 200 && /^[0-9a-f]{10}$/.test(r.text.trim()) ? r.text.trim() : '';
+}
+const ids = r => (Array.isArray(r.data) ? r.data : (r.data && Array.isArray(r.data.data) ? r.data.data : [])).map(m => m.id);
+const decode = h => h.replace(/&#0?38;|&amp;/g, '&');
+const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64');
 
 (async () => {
   const U = FX.users, PW = FX.password;
   const visitor = new Session('visitor');
   const s = {};
-  for (const key of ['admin', 'editor', 'author', 'contributor', 'subscriber', 'subscriber2', 'unverified']) {
+  for (const key of ['admin', 'editor', 'author', 'contributor', 'subscriber', 'subscriber2', 'unverified', 'unverified2', 'writer', 'applicant']) {
     s[key] = await new Session(key).login(U[key].login, PW);
   }
 
@@ -196,6 +206,131 @@ function refused(r) {
   {
     const r = await s.unverified.request('POST', `${NS}/profile/users/${U.editor.slug}/follow`);
     check('unverified member cannot follow', 'unverified', r.status === 403, `POST follow ${r.status} ${r.data && r.data.code || ''}`);
+  }
+
+  /* 10. pg_writer (inc/articles/roles.php): writes and submits articles, uploads own images; nothing else. */
+  {
+    const W = s.writer;
+    const draft = await W.request('POST', '/wp-json/wp/v2/pg_article', { json: { title: 'E2E writer draft', content: 'Written by the writer.', status: 'draft' } });
+    const mine = draft.data && draft.data.id;
+    check('writer creates a draft article (control)', 'writer', draft.status === 201 && mine, `POST pg_article ${draft.status} ${draft.data && draft.data.code || ''}`);
+    const submit = await W.request('POST', `/wp-json/wp/v2/pg_article/${mine}`, { json: { status: 'pending' } });
+    check('writer submits it for review (control)', 'writer', submit.status === 200 && submit.data.status === 'pending', `status ${submit.status} -> ${submit.data && submit.data.status}`);
+    const pub = await W.request('POST', `/wp-json/wp/v2/pg_article/${mine}`, { json: { status: 'publish' } });
+    check('writer cannot publish over REST', 'writer', pub.status === 403, `POST status=publish ${pub.status} ${pub.data && pub.data.code || ''}`);
+    const pubNew = await W.request('POST', '/wp-json/wp/v2/pg_article', { json: { title: 'E2E writer straight to publish', status: 'publish' } });
+    check('writer cannot create a published article', 'writer', pubNew.status === 403, `POST ${pubNew.status} ${pubNew.data && pubNew.data.code || ''}`);
+    const pn = await mint(W, `pg_articles_publish_${mine}`);
+    const pubAction = await W.request('POST', '/wp-admin/admin-post.php', { body: { action: 'pg_articles_publish', post_id: String(mine), _wpnonce: pn } });
+    check('writer cannot publish from My articles, even with a valid nonce', 'writer', pn && pubAction.status === 403, `POST ${pubAction.status}`);
+    const still = await s.admin.get(`/wp-json/wp/v2/pg_article/${mine}?context=edit`);
+    check('the writer\'s article is still pending review', 'admin', still.status === 200 && still.data.status === 'pending', `status ${still.data && still.data.status}`);
+
+    const other = await W.request('POST', `/wp-json/wp/v2/pg_article/${FX.article}`, { json: { title: 'Hijacked by writer' } });
+    check('writer cannot edit someone else\'s article (REST)', 'writer', other.status === 403, `POST ${other.status} ${other.data && other.data.code || ''}`);
+    const otherScreen = await W.get(`/wp-admin/post.php?post=${FX.article}&action=edit`);
+    check('writer cannot open someone else\'s article in the editor', 'writer', refused(otherScreen), `status ${otherScreen.status}`);
+    const un = await mint(W, `pg_articles_unpublish_${FX.article}`);
+    const unAction = await W.request('POST', '/wp-admin/admin-post.php', { body: { action: 'pg_articles_unpublish', post_id: String(FX.article), _wpnonce: un } });
+    check('writer cannot unpublish someone else\'s article, even with a valid nonce', 'writer', un && unAction.status === 403, `POST ${unAction.status}`);
+
+    const up = await W.request('POST', '/wp-json/wp/v2/media', { raw: PNG, headers: { 'Content-Type': 'image/png', 'Content-Disposition': 'attachment; filename="e2e-writer.png"' } });
+    const img = up.data && up.data.id;
+    check('writer uploads an image (control)', 'writer', up.status === 201 && img, `POST media ${up.status} ${up.data && up.data.code || ''}`);
+    const lib = await W.get('/wp-json/wp/v2/media?per_page=100');
+    check('writer\'s media library (REST): own image only', 'writer', lib.status === 200 && ids(lib).includes(img) && !ids(lib).includes(FX.media), `GET ${lib.status}, ids ${ids(lib).join(',')}`);
+    const modal = await W.request('POST', '/wp-admin/admin-ajax.php', { body: { action: 'query-attachments', 'query[posts_per_page]': '100' } });
+    check('writer\'s media modal: own image only', 'writer', modal.data && modal.data.success && ids(modal).includes(img) && !ids(modal).includes(FX.media), `ids ${ids(modal).join(',')}`);
+    const screen = await W.get('/wp-admin/upload.php?mode=list');
+    check('writer\'s Media screen: not the admin\'s image', 'writer', screen.status === 200 && !screen.text.includes(FX.media_title), `status ${screen.status}`);
+    const alt = await W.request('POST', `/wp-json/wp/v2/media/${FX.media}`, { json: { alt_text: 'Hijacked by writer' } });
+    check('writer cannot edit someone else\'s image', 'writer', alt.status === 403, `POST ${alt.status} ${alt.data && alt.data.code || ''}`);
+    const adminLib = await s.admin.get('/wp-json/wp/v2/media?per_page=100');
+    check('the admin sees every image (control)', 'admin', ids(adminLib).includes(FX.media) && ids(adminLib).includes(img), `ids ${ids(adminLib).join(',')}`);
+
+    const cm = await W.get(contactList);
+    check('contact messages screen refused', 'writer', refused(cm) && !cm.text.includes(FX.contact_title), `status ${cm.status}${cm.location ? ' -> ' + pathOf(cm.location) : ''}`);
+    const users = await W.get('/wp-admin/users.php');
+    check('Users screen refused', 'writer', refused(users) && !users.text.includes(U.subscriber2.name), `status ${users.status}`);
+  }
+
+  /* 11. Users → Requests (inc/profiles/applications.php): promote_users only, nonce + edit_user. */
+  {
+    const A = U.applicant, reqScreen = '/wp-admin/users.php?page=pg-applications';
+    for (const who of ['editor', 'author', 'contributor', 'writer', 'subscriber', 'applicant']) {
+      const r = await s[who].get(reqScreen);
+      check('Requests screen refused', who, refused(r) && !r.text.includes('E2E: I would like to'), `status ${r.status}${r.location ? ' -> ' + pathOf(r.location) : ''}`);
+    }
+    const screen = await s.admin.get(reqScreen);
+    check('Requests screen lists the open requests (control)', 'admin', screen.status === 200 && screen.text.includes(A.name) && screen.text.includes('E2E: I would like to write') && screen.text.includes('E2E: I would like to teach'), `status ${screen.status}`);
+    const decide = (sess, type, decision, extra = {}) => sess.request('POST', '/wp-admin/admin-post.php', { body: Object.assign({ action: 'pg_profiles_decide', user_id: String(A.id), type, decision }, extra) });
+    for (const who of ['editor', 'subscriber', 'applicant']) {
+      const plain = await decide(s[who], 'write', 'approve');
+      check('approving a request without the nonce is refused', who, plain.status === 403, `POST ${plain.status}`);
+      const n = await mint(s[who], `pg_profiles_decide_${A.id}_write`);
+      const r = await decide(s[who], 'write', 'approve', { _wpnonce: n });
+      check('approving a request with a valid nonce but no promote_users is refused', who, n && r.status === 403, `POST ${r.status}`);
+    }
+    const before = await s.applicant.get('/wp-admin/post-new.php?post_type=pg_article');
+    check('the applicant cannot write yet', 'applicant', refused(before), `status ${before.status}${before.location ? ' -> ' + pathOf(before.location) : ''}`);
+
+    const nonceOf = (html, type) => { const m = new RegExp(`name="user_id" value="${A.id}" />\\s*<input type="hidden" name="type" value="${type}" />[\\s\\S]*?name="_wpnonce" value="([0-9a-f]+)"`).exec(html); return m ? m[1] : ''; };
+    const ok = await decide(s.admin, 'write', 'approve', { _wpnonce: nonceOf(screen.text, 'write') });
+    check('the admin approves "write" (control)', 'admin', ok.status === 302 && /pg_done=approved/.test(ok.location || ''), `POST ${ok.status} -> ${ok.location || ''}`);
+    const after = await s.applicant.get('/wp-admin/post-new.php?post_type=pg_article');
+    check('approved: the applicant can write now (pg_writer)', 'applicant', after.status === 200, `status ${after.status}`);
+    const no = await decide(s.admin, 'teach', 'decline', { _wpnonce: nonceOf(screen.text, 'teach'), note: 'E2E: not yet' });
+    check('the admin declines "teach" (control)', 'admin', no.status === 302 && /pg_done=declined/.test(no.location || ''), `POST ${no.status} -> ${no.location || ''}`);
+    const dash = await s.applicant.get('/instructor/dashboard/');
+    check('declined: the applicant has no instructor tools', 'applicant', !/Create your first course|Courses I teach/.test(dash.text), `status ${dash.status}`);
+  }
+
+  /* 12. Users screen row actions (inc/profiles/users-admin.php): nonce + edit_user for that member. */
+  {
+    const T = U.unverified2;
+    const act = (sess, d, uid, nonce) => sess.get(`/wp-admin/admin-post.php?action=pg_profiles_user&do=${d}&user_id=${uid}${nonce ? `&_wpnonce=${nonce}` : ''}`);
+    for (const who of ['editor', 'author', 'subscriber']) {
+      const r = await s[who].get('/wp-admin/users.php');
+      check('Users screen refused', who, refused(r) && !r.text.includes(T.name), `status ${r.status}${r.location ? ' -> ' + pathOf(r.location) : ''}`);
+    }
+    for (const who of ['admin', 'editor']) {
+      const r = await act(s[who], 'verify', T.id);
+      check('"Mark verified" without the nonce is refused', who, r.status === 403, `GET ${r.status}`);
+    }
+    for (const [who, d, target] of [['editor', 'verify', T], ['author', 'hide', U.subscriber2], ['subscriber', 'hide', U.subscriber2], ['writer', 'resend', T]]) {
+      const n = await mint(s[who], `pg_profiles_user_${d}_${target.id}`);
+      const r = await act(s[who], d, target.id, n);
+      check(`"${d}" on another member with a valid nonce but no edit_user is refused`, who, n && r.status === 403, `GET ${r.status}`);
+    }
+    // on themselves: edit_user is true for your own account, so the handler must ask for more
+    {
+      const n = await mint(s.unverified, `pg_profiles_user_verify_${U.unverified.id}`);
+      const r = await act(s.unverified, 'verify', U.unverified.id, n);
+      const f = await s.unverified.request('POST', `${NS}/profile/users/${U.editor.slug}/follow`);
+      check('an unverified member cannot mark themselves verified', 'unverified', n && r.status === 403 && f.status === 403, `GET ${r.status}, then follow ${f.status}`);
+    }
+
+    const list = await s.admin.get('/wp-admin/users.php');
+    const link = d => { const m = new RegExp(`href="([^"]*action=pg_profiles_user(?:&#0?38;|&amp;|&)do=${d}(?:&#0?38;|&amp;|&)user_id=${T.id}(?:&#0?38;|&amp;|&)_wpnonce=[0-9a-f]+)"`).exec(list.text); return m ? decode(m[1]) : ''; };
+    check('the Users screen offers Resend / Mark verified / Hide for the member (control)', 'admin', list.status === 200 && link('resend') && link('verify') && link('hide'), `status ${list.status}`);
+    const resend = await s.admin.get(link('resend'));
+    check('the admin resends the confirmation link (control)', 'admin', resend.status === 302 && /pg_user_done=sent/.test(resend.location || ''), `GET ${resend.status} -> ${resend.location || ''}`);
+    const beforeF = await s.unverified2.request('POST', `${NS}/profile/users/${U.editor.slug}/follow`);
+    const verify = await s.admin.get(link('verify'));
+    const afterF = await s.unverified2.request('POST', `${NS}/profile/users/${U.editor.slug}/follow`);
+    check('the admin marks the member verified (control)', 'admin', verify.status === 302 && /pg_user_done=verified/.test(verify.location || '') && beforeF.status === 403 && afterF.status === 200, `GET ${verify.status}, follow before ${beforeF.status}, after ${afterF.status}`);
+
+    const seenBefore = await s.subscriber.get(`/in/${T.slug}/`, { follow: true });
+    const hide = await s.admin.get(link('hide'));
+    const seen = await s.subscriber.get(`/in/${T.slug}/`, { follow: true });
+    check('the admin hides the profile (control)', 'admin', seenBefore.text.includes(T.name) && hide.status === 302 && /pg_user_done=hidden/.test(hide.location || '') && !seen.text.includes(T.name), `member saw it before: ${seenBefore.text.includes(T.name)}, GET ${hide.status}, after: ${seen.text.includes(T.name)}`);
+    const n = await mint(s.unverified2, `pg_profiles_user_unhide_${T.id}`);
+    const self = await act(s.unverified2, 'unhide', T.id, n);
+    const list2 = await s.admin.get('/wp-admin/users.php');
+    const m = new RegExp(`href="([^"]*action=pg_profiles_user(?:&#0?38;|&amp;|&)do=unhide(?:&#0?38;|&amp;|&)user_id=${T.id}(?:&#0?38;|&amp;|&)_wpnonce=[0-9a-f]+)"`).exec(list2.text);
+    check('a hidden member cannot show their own profile again', 'unverified2', n && self.status === 403 && m, `GET ${self.status}, still hidden: ${!!m}`);
+    const show = m ? await s.admin.get(decode(m[1])) : { status: 0 };
+    check('the admin shows the profile again (control)', 'admin', show.status === 302 && /pg_user_done=shown/.test(show.location || ''), `GET ${show.status} -> ${show.location || ''}`);
   }
 
   /* report */

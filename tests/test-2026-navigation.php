@@ -150,6 +150,15 @@ $about = file_get_contents( $theme . '/page-about.php' );
 ok( false !== strpos( $front, "prospergenics_2026_site_header( array( 'autohide' => true ) )" ) && false !== strpos( $front, 'prospergenics_2026_site_footer()' ), 'homepage renders the shared header (hide on scroll) and footer' );
 ok( false !== strpos( $about, "prospergenics_2026_site_header( array( 'current' => 'About' ) )" ) && false !== strpos( $about, 'prospergenics_2026_site_footer()' ), 'About renders the shared header and footer' );
 ok( ! preg_match( '#<header class="site-header|<footer class="site-footer"#', $front . $about ), 'no static header/footer left in the homepage or About templates' );
+// ARC-19: the generated templates fire the same hooks as header.php, in the same order: wp_body_open
+// right after <body>, then the header (skip link first), then the member notices, then <main>.
+$hooks_re = '#<body(?: <\?php body_class\(\); \?>)?>\s*<\?php wp_body_open\(\); \?>\s*(<!-- site-chrome:header[^>]*-->\s*)?<\?php echo prospergenics_2026_site_header\([^;]*\); [^?]*\?>\s*<\?php do_action\( \'prospergenics_2026_after_site_header\' \);[^?]*\?>\s*<main id="main"#';
+foreach ( array( 'front-page.php' => $front, 'page-about.php' => $about, 'header.php' => $header_php ) as $label => $tpl ) {
+	ok( (bool) preg_match( $hooks_re, $tpl ), "$label: <body>, wp_body_open(), the header, the after-header hook, <main> (ARC-19)" );
+	ok( 1 === substr_count( $tpl, 'wp_body_open()' ), "$label calls wp_body_open() once" );
+}
+$verify_php = file_get_contents( $theme . '/inc/profiles/verify.php' );
+ok( false !== strpos( $verify_php, "add_action( 'prospergenics_2026_after_site_header', function () {" ) && false === strpos( $verify_php, "add_action( 'wp_body_open'" ), 'the verification banner hangs below the header (after the skip link), not on wp_body_open' );
 $functions = file_get_contents( $theme . '/functions.php' );
 ok( false !== strpos( $functions, "/inc/site-chrome.php'" ) && false !== strpos( $functions, "/inc/account.php'" ), 'functions.php loads inc/site-chrome.php and inc/account.php' );
 
