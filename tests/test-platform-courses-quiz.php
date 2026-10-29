@@ -136,6 +136,23 @@ class WP_REST_Request implements ArrayAccess {
 	public function offsetUnset( $k ): void { unset( $this->p[ $k ] ); }
 }
 
+/** $wpdb for the enrolment count (enrolment.php counts with one query): published enrolments of a course. */
+class Fake_Quiz_WPDB {
+	public $posts = 'wp_posts', $postmeta = 'wp_postmeta';
+	public function prepare( $q, ...$args ) {
+		$args = ( 1 === count( $args ) && is_array( $args[0] ) ) ? $args[0] : $args;
+		$i    = 0;
+		return preg_replace_callback( '/%[ds]/', function ( $m ) use ( $args, &$i ) { return (string) (int) $args[ $i++ ]; }, $q );
+	}
+	public function get_var( $q ) {
+		preg_match( '/post_parent = (\d+)/', $q, $m );
+		return count( array_filter( $GLOBALS['posts'], function ( $p ) use ( $m ) {
+			return 'pg_enrolment' === $p->post_type && 'publish' === $p->post_status && isset( $m[1] ) && (int) $p->post_parent === (int) $m[1];
+		} ) );
+	}
+}
+$GLOBALS['wpdb'] = new Fake_Quiz_WPDB();
+
 require $theme . '/inc/platform-courses.php';
 foreach ( $GLOBALS['hooks']['rest_api_init'] as $cb ) { $cb(); }
 $route = function ( $r ) { return $GLOBALS['routes'][ 'prospergenics/v1' . $r ]; };
