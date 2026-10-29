@@ -5,7 +5,7 @@
  *   - UX-15: no low-contrast green labels on About; the accent gradient's lightest stop is >= 3:1 on paper,
  *   - UX-16: the homepage H1 reads "You create value" (skip links: tests/test-2026-navigation.php),
  *   - UX-10: showcase tabs are links that preview on focus, autoplay off under reduced motion and
- *            paused/stopped on hover, focus and interaction, a pause button; the member stream
+ *            paused/stopped on hover, focus and interaction (no visible button, card #6554); the member stream
  *            pauses on focus-within and has a pause button,
  *   - UX-8:  no "Pending · coming soon" partners; a branded pattern instead of letter tiles; no
  *            empty media column on a course without a cover,
@@ -89,7 +89,7 @@ ok( false !== strpos( $home, '<h1 class="reveal d1">You create <span class="acce
 echo "UX-10 showcase and member stream\n";
 ok( 5 === preg_match_all( '#<a class="sc-tab( active)?" href="/(courses|members|tools|services|partners)/" data-i="\d">#', $home ), 'the five showcase tabs are links' );
 ok( false === strpos( $home, '<button class="sc-tab' ), 'no button tabs left' );
-ok( (bool) preg_match( '#<button class="sc-toggle" id="scToggle" type="button">.*?Pause slideshow</span></button>#', $home ), 'a visible pause/play button' );
+ok( false === strpos( $home, 'id="scToggle"' ) && false === strpos( $home, 'Pause slideshow' ), 'no visible slideshow pause button (Martien, card #6554); it pauses on hover, focus and interaction instead' );
 ok( false !== strpos( $home, "stopped = scReduce.matches" ), 'autoplay starts stopped under prefers-reduced-motion' );
 ok( false !== strpos( $home, "t.addEventListener('focus', ()=>{ show(i); stop(); });" ), 'focusing a tab previews its slide and stops autoplay' );
 ok( false !== strpos( $home, "showcase.addEventListener('focusin'" ) && false !== strpos( $home, "showcase.addEventListener('mouseenter'" ), 'paused while hovered or focused' );

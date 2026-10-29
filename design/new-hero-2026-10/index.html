@@ -484,15 +484,8 @@
   .sc-tab.active { background: var(--green-700); color: #fff; box-shadow: 0 16px 30px -14px var(--green-700); } /* green-700: 5.3:1 with white (green-600 was 3.1:1) */
   .sc-tab.active svg { fill: #fff; }
   .sc-tab.active .arr { opacity: 1; transform: none; }
-  /* pause/play for the 5s autoplay (audit UX-10, WCAG 2.2.2); autoplay is off under reduced motion */
-  .sc-toggle {
-    display: inline-flex; align-items: center; gap: 8px; align-self: flex-start; margin-top: 4px; padding: 8px 12px;
-    border: 1.5px solid var(--line); border-radius: 999px; background: transparent; cursor: pointer;
-    font-family:'Sora',sans-serif; font-weight: 600; font-size: 13px; color: var(--green-900);
-  }
-  .sc-toggle:hover { border-color: var(--green-700); }
+  /* pause icon, used by the member stream's pause button (.flow-toggle) */
   .sc-toggle-icon { width: 10px; height: 12px; flex: none; border-left: 3px solid currentColor; border-right: 3px solid currentColor; }
-  .sc-toggle.is-stopped .sc-toggle-icon { width: 0; height: 0; border-style: solid; border-width: 6px 0 6px 10px; border-color: transparent transparent transparent currentColor; }
   /* the panel is clipped (clip-path), so its ring sits inside: white on a dark band, whatever the photo */
   .showcase-panel:focus-visible { outline-color: #fff; outline-offset: -6px; box-shadow: inset 0 0 0 12px rgba(11,32,22,.9); }
   /* right panel: parallelogram with subtly slanted left + right edges */
@@ -518,7 +511,6 @@
     .showcase-menu { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .sc-tab { justify-content: flex-start; white-space: nowrap; font-size: 14px; padding: 12px 14px; }
     .sc-tab .arr { display: none; }
-    .sc-toggle { align-self: stretch; justify-content: center; margin-top: 0; }
     .showcase-panel { flex: none; width: 100%; height: 300px; clip-path: polygon(18px 0, 100% 0, calc(100% - 18px) 100%, 0 100%); }
     .sc-caption { height: 44%; padding: 0 46px 18px 22px; }
     .sc-caption h2 { font-size: 20px; }
@@ -909,7 +901,6 @@
           <a class="sc-tab" href="/tools/" data-i="2"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M13 13v8h8v-8h-8zM3 21h8v-8H3v8zM3 3v8h8V3H3zm13.66-1.31L11 7.34 16.66 13l5.66-5.66-5.66-5.65z"/></svg><span>Tools</span><span class="arr">→</span></a>
           <a class="sc-tab" href="/services/" data-i="3"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg><span>Services</span><span class="arr">→</span></a>
           <a class="sc-tab" href="/partners/" data-i="4"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg><span>Partners</span><span class="arr">→</span></a>
-          <button class="sc-toggle" id="scToggle" type="button"><span class="sc-toggle-icon" aria-hidden="true"></span><span class="sc-toggle-label">Pause slideshow</span></button>
         </div>
         <a class="showcase-panel" id="scPanel" href="/courses/">
           <div class="sc-caption">
@@ -1322,13 +1313,13 @@
     ];
     // Showcase (audit UX-10): advances every 5s, but never under prefers-reduced-motion, never while
     // the pointer or keyboard focus is inside it (so the panel link can't change under the pointer),
-    // and not again after any interaction (previewing a tab or the pause button). The tabs are links:
-    // hovering or focusing one previews its slide, activating it opens the section.
+    // and not again after any interaction (previewing a tab). The tabs are links: hovering or
+    // focusing one previews its slide, activating it opens the section. No visible pause button:
+    // Martien asked for it to be removed (meeting 26 Oct, card #6554).
     const showcase = document.querySelector('.showcase');
     const panel = document.getElementById('scPanel');
     const title = document.getElementById('scTitle');
     const desc  = document.getElementById('scDesc');
-    const toggle = document.getElementById('scToggle');
     const tabs  = Array.from(document.querySelectorAll('.sc-tab'));
     const scReduce = window.matchMedia('(prefers-reduced-motion: reduce)');
     let idx = 0, timer = null, stopped = scReduce.matches, hovering = false, focused = false;
@@ -1343,15 +1334,12 @@
     function sync(){
       clearInterval(timer); timer = null;
       if (!stopped && !hovering && !focused) timer = setInterval(()=> show((idx+1)%SLIDES.length), 5000);
-      toggle.classList.toggle('is-stopped', stopped);
-      toggle.querySelector('.sc-toggle-label').textContent = stopped ? 'Play slideshow' : 'Pause slideshow';
     }
     function stop(){ if (!stopped) { stopped = true; sync(); } }
     tabs.forEach((t,i)=>{
       t.addEventListener('mouseenter', ()=>{ show(i); stop(); });
       t.addEventListener('focus', ()=>{ show(i); stop(); });
     });
-    toggle.addEventListener('click', ()=>{ stopped = !stopped; sync(); });
     showcase.addEventListener('mouseenter', ()=>{ hovering = true; sync(); });
     showcase.addEventListener('mouseleave', ()=>{ hovering = false; sync(); });
     showcase.addEventListener('focusin', ()=>{ focused = true; sync(); });
