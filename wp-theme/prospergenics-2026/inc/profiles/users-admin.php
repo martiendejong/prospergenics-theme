@@ -4,7 +4,8 @@
  *
  * Columns: Verified (email confirmed, and when), Profile (completion %, who may see it, hidden),
  * Enrolments and Certificates (valid, plus revoked). Row actions, each a nonce-checked link to
- * admin-post.php that needs edit_user for that member:
+ * admin-post.php that needs edit_users and edit_user for that member (edit_user alone is true for
+ * your own account, which would let a member mark themselves verified or show a profile staff hid):
  *
  *   Resend confirmation link   a fresh magic link (unverified members only)
  *   Mark verified              confirm the address by hand (e.g. after a check by phone)
@@ -29,6 +30,15 @@ function prospergenics_profiles_user_actions() {
 /** The nonce action of a row action for a member. */
 function prospergenics_profiles_user_action_nonce( $do, $user_id ) {
     return 'pg_profiles_user_' . $do . '_' . (int) $user_id;
+}
+
+/**
+ * Whether the current user may use the row actions on a member: staff who manage users
+ * (edit_users) and may edit this one. edit_user on its own is not enough: WordPress grants it
+ * for your own account.
+ */
+function prospergenics_profiles_can_manage_member( $user_id ) {
+    return current_user_can( 'edit_users' ) && current_user_can( 'edit_user', (int) $user_id );
 }
 
 /** Mark a member's email address as confirmed. */
@@ -92,7 +102,7 @@ add_filter( 'manage_users_custom_column', function ( $output, $column, $user_id 
 }, 10, 3 );
 
 add_filter( 'user_row_actions', function ( $actions, $user ) {
-    if ( ! $user instanceof WP_User || ! current_user_can( 'edit_user', $user->ID ) ) {
+    if ( ! $user instanceof WP_User || ! prospergenics_profiles_can_manage_member( $user->ID ) ) {
         return $actions;
     }
     $labels = prospergenics_profiles_user_actions();
@@ -117,7 +127,7 @@ add_action( 'admin_post_pg_profiles_user', function () {
         wp_die( 'Unknown action.', 400 );
     }
     check_admin_referer( prospergenics_profiles_user_action_nonce( $do, $user_id ) );
-    if ( ! current_user_can( 'edit_user', $user_id ) ) {
+    if ( ! prospergenics_profiles_can_manage_member( $user_id ) ) {
         wp_die( 'Sorry, you are not allowed to change this member.', 403 );
     }
     $result = 'done';

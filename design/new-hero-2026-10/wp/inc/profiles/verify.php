@@ -110,8 +110,12 @@ function prospergenics_profiles_resend_verification( $user_id ) {
     return true;
 }
 
-/** The "please verify" banner, on every page that calls wp_body_open() (header.php does). */
-add_action( 'wp_body_open', function () {
+/**
+ * The "please verify" banner, right below the site header on every page that renders it:
+ * header.php and the generated homepage and About templates fire this hook after the header,
+ * so the skip link stays the first Tab stop (audit ARC-19, UX-16).
+ */
+add_action( 'prospergenics_2026_after_site_header', function () {
     $uid = get_current_user_id();
     if ( ! $uid || prospergenics_profiles_is_verified( $uid ) ) {
         return;

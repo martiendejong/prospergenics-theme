@@ -230,14 +230,17 @@ function prospergenics_courses_instructor_block( $user_id ) {
 /** Instructor statistics for the public page: published courses and distinct students. */
 function prospergenics_courses_instructor_summary( $user_id ) {
 	$courses  = get_posts( array( 'post_type' => 'pg_course', 'post_status' => 'publish', 'author' => (int) $user_id, 'posts_per_page' => 100, 'orderby' => 'date', 'order' => 'DESC' ) );
-	$students = array();
+	$students = 0;
 	if ( $courses ) {
-		$enrolments = get_posts( array( 'post_type' => 'pg_enrolment', 'post_status' => 'publish', 'post_parent__in' => wp_list_pluck( $courses, 'ID' ), 'posts_per_page' => -1, 'suppress_filters' => true ) );
-		foreach ( $enrolments as $e ) {
-			$students[ (int) $e->post_author ] = true;
-		}
+		// One COUNT(DISTINCT) instead of loading every enrolment post.
+		global $wpdb;
+		$ids      = array_map( 'intval', wp_list_pluck( $courses, 'ID' ) );
+		$students = (int) $wpdb->get_var( $wpdb->prepare(
+			"SELECT COUNT(DISTINCT post_author) FROM {$wpdb->posts} WHERE post_type = 'pg_enrolment' AND post_status = 'publish' AND post_parent IN (" . implode( ', ', array_fill( 0, count( $ids ), '%d' ) ) . ')',
+			$ids
+		) );
 	}
-	return array( 'courses' => $courses, 'students' => count( $students ) );
+	return array( 'courses' => $courses, 'students' => $students );
 }
 
 /** Reusable "courses taught" panel (instructor page; a profile's instructor tab). */
