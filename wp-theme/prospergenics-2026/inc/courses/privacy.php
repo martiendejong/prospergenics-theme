@@ -2,7 +2,8 @@
 /**
  * Courses track: personal data (audit ARC-12).
  *
- * An exporter and an eraser for a learner's enrolments (with progress) and certificates, for
+ * An exporter and an eraser for a learner's enrolments (with progress and quiz attempts, which
+ * are stored on the enrolment, card #6461) and certificates, for
  * Tools → Export / Erase Personal Data and the profile's "Download my data" / "Delete my account".
  * Erasing deletes the records, so a certificate's public verification link stops working; the
  * enrolment counts of the courses are recounted. Deleting a WordPress user removes these records
@@ -59,6 +60,43 @@ function prospergenics_courses_personal_data_exporter( $email, $page = 1 ) {
 				'Course completed'  => $date( get_post_meta( $enrolment->ID, '_pg_courses_completed_at', true ) ),
 			) ),
 		);
+		// Quiz attempts (card #6461) live on the enrolment: one item per attempt kept.
+		foreach ( prospergenics_courses_quiz_records( $enrolment->ID ) as $lesson_id => $record ) {
+			if ( ! is_array( $record ) || empty( $record['attempts'] ) ) {
+				continue;
+			}
+			$lesson = get_post( (int) $lesson_id );
+			$quiz   = prospergenics_courses_get_quiz( (int) $lesson_id, true );
+			$byid   = array();
+			foreach ( $quiz ? $quiz['questions'] : array() as $q ) {
+				$byid[ $q['id'] ] = $q;
+			}
+			foreach ( array_values( $record['attempts'] ) as $n => $attempt ) {
+				$answers = array();
+				foreach ( isset( $attempt['answers'] ) && is_array( $attempt['answers'] ) ? $attempt['answers'] : array() as $qid => $given ) {
+					$q         = isset( $byid[ $qid ] ) ? $byid[ $qid ] : null;
+					$text      = $q ? prospergenics_courses_quiz_given_text( $q, $given ) : ( is_array( $given ) ? implode( ', ', $given ) : (string) $given );
+					$right     = ! empty( $attempt['results'][ $qid ] ) ? 'correct' : 'not correct';
+					$answers[] = ( $q ? $q['prompt'] : $qid ) . ': ' . ( '' !== $text ? $text : '(no answer)' ) . ' (' . $right . ')';
+				}
+				$items[] = array(
+					'group_id'          => 'prospergenics-quiz-attempts',
+					'group_label'       => 'Quiz attempts',
+					'group_description' => 'Your answers to lesson quizzes and the scores they got.',
+					'item_id'           => 'pg-quiz-' . (int) $enrolment->ID . '-' . (int) $lesson_id . '-' . $n,
+					'data'              => $pairs( array(
+						'Course'     => $course ? get_the_title( $course ) : '(deleted course)',
+						'Lesson'     => $lesson ? get_the_title( $lesson ) : '(deleted lesson)',
+						'Attempt at' => $date( isset( $attempt['at'] ) ? $attempt['at'] : 0 ),
+						'Score'      => (int) ( isset( $attempt['score'] ) ? $attempt['score'] : 0 ) . '%',
+						'Passed'     => ! empty( $attempt['passed'] ) ? 'yes' : 'no',
+						'Answers'    => implode( "\n", $answers ),
+						'Attempts in total for this lesson' => (int) $record['count'],
+						'Best score' => (int) $record['best'] . '%',
+					) ),
+				);
+			}
+		}
 	}
 	foreach ( prospergenics_courses_user_certificates( $user->ID ) as $cert ) {
 		$c       = prospergenics_courses_certificate_data( $cert );

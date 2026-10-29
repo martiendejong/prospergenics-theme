@@ -19,7 +19,9 @@
  * The current user's own learning (logged in; always acts on the current user)
  *   GET|POST|DELETE    /courses/{id}/enrolment
  *   POST|DELETE        /courses/lessons/{id}/completion   (POST only for a lesson the learner opened;
- *                                                      at most 60 requests a minute per learner)
+ *                                                      at most 60 requests a minute per learner;
+ *                                                      refused for a quiz lesson until it is passed)
+ *   POST               /courses/lessons/{id}/quiz   grade quiz answers on the server (quiz.php, #6461)
  *   GET                /courses/{id}/certificate
  *   GET                /courses/me
  * Public
@@ -126,8 +128,15 @@ function prospergenics_courses_rest_lesson( WP_Post $l, $full = false ) {
 		if ( $can ) {
 			$out['video_url'] = (string) get_post_meta( $l->ID, '_pg_courses_video_url', true );
 			$out['content']   = array( 'rendered' => apply_filters( 'the_content', $l->post_content ) );
+			$out['notes_url'] = prospergenics_courses_notes_url( $l );
+			// A quiz's questions and answers only for editors; learners answer it on the lesson page.
+			$out['has_quiz'] = prospergenics_courses_lesson_has_quiz( $l->ID );
+			if ( $out['has_quiz'] && $user_id ) {
+				$out['quiz_passed'] = prospergenics_courses_quiz_passed( $user_id, $l->ID );
+			}
 			if ( current_user_can( 'edit_post', $l->ID ) ) {
 				$out['content']['raw'] = $l->post_content;
+				$out['quiz']           = prospergenics_courses_get_quiz( $l->ID, true );
 			}
 		}
 	}
@@ -292,6 +301,9 @@ function prospergenics_courses_rest_save_child( $type, $parent_id, array $fields
 		$url = esc_url_raw( trim( (string) $fields['video_url'] ) );
 		update_post_meta( $saved, '_pg_courses_video_url', wp_slash( prospergenics_courses_sanitize_video_url( $url ) ) );
 	}
+	if ( 'pg_lesson' === $type && array_key_exists( 'quiz', $fields ) ) {
+		prospergenics_courses_save_quiz( $saved, is_array( $fields['quiz'] ) || is_string( $fields['quiz'] ) ? $fields['quiz'] : array() );
+	}
 	return (int) $saved;
 }
 
@@ -334,12 +346,16 @@ function prospergenics_courses_sync_curriculum( $course_id, array $modules ) {
 			}
 			$lid = isset( $l['id'] ) ? absint( $l['id'] ) : 0;
 			$lid = isset( $existing_lessons[ $lid ] ) ? $lid : 0;
-			$lid = prospergenics_courses_rest_save_child( 'pg_lesson', $mid, array(
+			$lfields = array(
 				'title'     => isset( $l['title'] ) ? $l['title'] : '',
 				'content'   => isset( $l['content'] ) ? $l['content'] : '',
 				'video_url' => isset( $l['video_url'] ) ? $l['video_url'] : '',
 				'order'     => $li,
-			), $lid );
+			);
+			if ( array_key_exists( 'quiz', $l ) ) {
+				$lfields['quiz'] = $l['quiz']; // only when sent: older clients keep the quiz as it is
+			}
+			$lid = prospergenics_courses_rest_save_child( 'pg_lesson', $mid, $lfields, $lid );
 			if ( is_wp_error( $lid ) ) {
 				return $lid;
 			}
@@ -574,7 +590,7 @@ add_action( 'rest_api_init', function () {
 					$parent = $to;
 				}
 				$fields = array();
-				foreach ( array( 'title', 'content', 'video_url', 'order' ) as $f ) {
+				foreach ( array( 'title', 'content', 'video_url', 'order', 'quiz' ) as $f ) {
 					if ( null !== $request[ $f ] ) {
 						$fields[ $f ] = $request[ $f ];
 					}
@@ -589,6 +605,7 @@ add_action( 'rest_api_init', function () {
 				'video_url' => array( 'type' => 'string' ),
 				'order'     => array( 'type' => 'integer' ),
 				'module'    => array( 'type' => 'integer' ),
+				'quiz'      => array( 'type' => 'object' ), // {pass_mark, questions}, see quiz.php
 			),
 		),
 		array(

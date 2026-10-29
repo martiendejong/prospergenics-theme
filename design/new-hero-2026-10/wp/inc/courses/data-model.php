@@ -8,10 +8,12 @@
  *               Thumbnail = featured image. Taxonomy pg_course_category.
  *   pg_module   post_parent = course, order = menu_order.
  *   pg_lesson   post_parent = module, order = menu_order, served at
- *               /courses/<course>/lessons/<lesson>/. Meta: _pg_courses_video_url (YouTube/Vimeo).
+ *               /courses/<course>/lessons/<lesson>/. Meta: _pg_courses_video_url (YouTube/Vimeo,
+ *               or a video file on this site), _pg_courses_quiz (JSON, quiz.php; never in REST).
+ *               Notes PDF at /courses/<course>/lessons/<lesson>/notes/ (notes.php).
  *   pg_enrolment  (internal) post_author = learner, post_parent = course, post_date = enrolled_at.
  *                 Meta: _pg_courses_completed (lesson id => unix time), _pg_courses_last_lesson,
- *                 _pg_courses_completed_at.
+ *                 _pg_courses_completed_at, _pg_courses_quiz_attempts (lesson id => attempts).
  *   pg_certificate (internal) see certificate.php.
  *
  * Capabilities: the three content types share the capability type pg_course/pg_courses
@@ -429,7 +431,16 @@ function prospergenics_courses_lesson_box( $post ) {
 		printf( '<option value="%d"%s>%s</option>', $m->ID, selected( $post->post_parent, $m->ID, false ), esc_html( $course . ' → ' . get_the_title( $m ) ) );
 	}
 	echo '</select></p>';
-	printf( '<p><label for="pg-courses-video"><strong>Video URL</strong> (YouTube or Vimeo)</label><br /><input id="pg-courses-video" type="url" name="pg_courses_video_url" value="%s" style="width:100%%" /></p>', esc_attr( get_post_meta( $post->ID, '_pg_courses_video_url', true ) ) );
+	printf( '<p><label for="pg-courses-video"><strong>Video URL</strong> (YouTube, Vimeo or a video file from the media library)</label><br /><input id="pg-courses-video" type="url" name="pg_courses_video_url" value="%s" style="width:100%%" /></p>', esc_attr( get_post_meta( $post->ID, '_pg_courses_video_url', true ) ) );
+	// Quiz (card #6461): edited in the course wizard, which has the question editor.
+	$quiz   = prospergenics_courses_get_quiz( $post->ID, true );
+	$course = prospergenics_courses_course_of( $post );
+	$count  = $quiz ? count( $quiz['questions'] ) : 0;
+	echo '<p><strong>Quiz</strong><br />' . esc_html( $count ? sprintf( _n( '%1$d question, pass mark %2$d%%.', '%1$d questions, pass mark %2$d%%.', $count, 'prospergenics-2026' ), $count, $quiz['pass_mark'] ) : 'No quiz.' );
+	if ( $course ) {
+		echo ' <a href="' . esc_url( prospergenics_courses_wizard_url( $course ) ) . '">' . esc_html( $count ? 'Edit the quiz in the course wizard' : 'Add a quiz in the course wizard' ) . '</a>';
+	}
+	echo '</p>';
 }
 
 // Save the meta boxes. post_parent goes in through wp_insert_post_data so it is saved with the post.
