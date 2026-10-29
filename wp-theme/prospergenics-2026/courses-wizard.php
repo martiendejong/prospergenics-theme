@@ -89,7 +89,7 @@ get_header();
 
     <section class="pgc-step" data-step="2" aria-labelledby="pgc-step2-title" hidden>
       <h2 id="pgc-step2-title" class="pgc-h2" tabindex="-1">2. Curriculum</h2>
-      <p class="pgc-help">A course has modules; each module has lessons. A lesson can have a YouTube or Vimeo video and text.</p>
+      <p class="pgc-help">A course has modules; each module has lessons. A lesson has text, and can have a video (YouTube, Vimeo or a file uploaded to this site) and a quiz that learners pass to complete it.</p>
       <div id="pgc-modules" class="pgc-modules"></div>
       <button type="button" class="pgc-btn pgc-btn--ghost" data-action="add-module">+ Add a module</button>
     </section>

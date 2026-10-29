@@ -1,9 +1,10 @@
 <?php
 /**
  * Courses track: a deliberately small, dependency-free PDF writer for the course certificate
- * (card #6361). It writes one-page PDF 1.4 files with the standard Helvetica fonts (no font
- * embedding needed, WinAnsi encoding), filled/stroked rectangles, lines, text, one PNG image
- * (with alpha as a soft mask) and link annotations. That is all a certificate needs, and it
+ * (card #6361) and the lesson notes (card #6469, notes.php). It writes PDF 1.4 files with the
+ * standard Helvetica fonts (no font embedding needed, WinAnsi encoding), filled/stroked
+ * rectangles, lines, text, one PNG image (with alpha as a soft mask) and link annotations, on
+ * one or more pages (add_page()). That is all a certificate or a page of notes needs, and it
  * runs on any host with zlib: no Composer packages, no external service, no headless browser.
  *
  * Unit-tested in tests/test-platform-courses-pdf.php (structure, xref offsets, PNG decoding).
@@ -32,11 +33,25 @@ class Prospergenics_Courses_Pdf {
 	private $image = null;
 	/** @var array */
 	private $info = array();
+	/** @var array[] finished pages: ['ops' => string[], 'links' => array[]] */
+	private $pages = array();
 
 	/** @param float $w Page width in points. @param float $h Page height in points. */
 	public function __construct( $w = 842.0, $h = 595.0 ) {
 		$this->w = (float) $w;
 		$this->h = (float) $h;
+	}
+
+	/** Start a new page of the same size; everything drawn after this goes on it. */
+	public function add_page() {
+		$this->pages[] = array( 'ops' => $this->ops, 'links' => $this->links );
+		$this->ops     = array();
+		$this->links   = array();
+	}
+
+	/** Number of pages so far (the one being drawn included). */
+	public function page_count() {
+		return count( $this->pages ) + 1;
 	}
 
 	/** Document info (Title, Author, Subject, ...). */
@@ -354,29 +369,32 @@ class Prospergenics_Courses_Pdf {
 			$im   = $add( $stream( '/Type /XObject /Subtype /Image /Width ' . $img['w'] . ' /Height ' . $img['h'] . ' /ColorSpace /' . $img['cs'] . ' /BitsPerComponent 8 /Filter /FlateDecode' . $smask, $img['data'] ) );
 			$xobj = ' /XObject << /Im1 ' . $im . ' 0 R >>';
 		}
-		$content = implode( "\n", $this->ops );
-		if ( function_exists( 'gzcompress' ) ) {
-			$contents = $add( $stream( '/Filter /FlateDecode', gzcompress( $content, 9 ) ) );
-		} else {
-			$contents = $add( $stream( '', $content ) );
-		}
-		$annots = array();
-		foreach ( $this->links as $l ) {
-			$annots[] = $add( '<< /Type /Annot /Subtype /Link /Rect [' . self::n( $l[0] ) . ' ' . self::n( $l[1] ) . ' ' . self::n( $l[0] + $l[2] ) . ' ' . self::n( $l[1] + $l[3] ) . '] /Border [0 0 0] /A << /S /URI /URI (' . self::escape( $l[4] ) . ') >> >>' );
-		}
 		$font_res = '';
 		foreach ( $fonts as $name => $num ) {
 			$font_res .= ' /' . $name . ' ' . $num . ' 0 R';
 		}
-		$page = $add(
-			'<< /Type /Page /Parent ' . $pages . ' 0 R /MediaBox [0 0 ' . self::n( $this->w ) . ' ' . self::n( $this->h ) . ']'
-			. ' /Resources << /Font <<' . $font_res . ' >>' . $xobj . ' /ProcSet [/PDF /Text /ImageB /ImageC] >>'
-			. ' /Contents ' . $contents . ' 0 R'
-			. ( $annots ? ' /Annots [' . implode( ' ', array_map( function ( $a ) { return $a . ' 0 R'; }, $annots ) ) . ']' : '' )
-			. ' >>'
-		);
+		$kids = array();
+		foreach ( array_merge( $this->pages, array( array( 'ops' => $this->ops, 'links' => $this->links ) ) ) as $pg ) {
+			$content = implode( "\n", $pg['ops'] );
+			if ( function_exists( 'gzcompress' ) ) {
+				$contents = $add( $stream( '/Filter /FlateDecode', gzcompress( $content, 9 ) ) );
+			} else {
+				$contents = $add( $stream( '', $content ) );
+			}
+			$annots = array();
+			foreach ( $pg['links'] as $l ) {
+				$annots[] = $add( '<< /Type /Annot /Subtype /Link /Rect [' . self::n( $l[0] ) . ' ' . self::n( $l[1] ) . ' ' . self::n( $l[0] + $l[2] ) . ' ' . self::n( $l[1] + $l[3] ) . '] /Border [0 0 0] /A << /S /URI /URI (' . self::escape( $l[4] ) . ') >> >>' );
+			}
+			$kids[] = $add(
+				'<< /Type /Page /Parent ' . $pages . ' 0 R /MediaBox [0 0 ' . self::n( $this->w ) . ' ' . self::n( $this->h ) . ']'
+				. ' /Resources << /Font <<' . $font_res . ' >>' . $xobj . ' /ProcSet [/PDF /Text /ImageB /ImageC] >>'
+				. ' /Contents ' . $contents . ' 0 R'
+				. ( $annots ? ' /Annots [' . implode( ' ', array_map( function ( $a ) { return $a . ' 0 R'; }, $annots ) ) . ']' : '' )
+				. ' >>'
+			);
+		}
 		$objects[ $catalog - 1 ] = '<< /Type /Catalog /Pages ' . $pages . ' 0 R >>';
-		$objects[ $pages - 1 ]   = '<< /Type /Pages /Kids [' . $page . ' 0 R] /Count 1 >>';
+		$objects[ $pages - 1 ]   = '<< /Type /Pages /Kids [' . implode( ' ', array_map( function ( $k ) { return $k . ' 0 R'; }, $kids ) ) . '] /Count ' . count( $kids ) . ' >>';
 		$info = '<< /Producer (Prospergenics courses)';
 		foreach ( $this->info as $k => $v ) {
 			if ( preg_match( '/^[A-Za-z]+$/', $k ) ) {

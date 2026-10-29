@@ -82,7 +82,7 @@ function prospergenics_courses_notice_html() {
 	if ( ! isset( $notices[ $key ] ) ) {
 		return '';
 	}
-	$error = in_array( $key, array( 'error', 'paid' ), true );
+	$error = in_array( $key, array( 'error', 'paid', 'quiz_required', 'quiz_rate' ), true );
 	return '<div class="pgc-notice' . ( $error ? ' pgc-notice--error' : '' ) . '" role="' . ( $error ? 'alert' : 'status' ) . '">' . esc_html( $notices[ $key ] ) . '</div>';
 }
 

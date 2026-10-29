@@ -6,7 +6,8 @@
  * post_date_gmt = enrolled_at. Progress lives on that record (_pg_courses_completed:
  * lesson id => unix time; _pg_courses_opened: lesson id => when the learner first opened it), so
  * unenrolling (deleting the record) removes the progress too. A lesson can only be marked
- * complete after it was opened.
+ * complete after it was opened, and a lesson with a quiz only by passing the quiz (quiz.php,
+ * whose attempts live on the same record).
  * Only the learner themself can enrol, unenrol or complete lessons: every entry point here
  * acts on get_current_user_id().
  */
@@ -171,6 +172,11 @@ function prospergenics_courses_set_lesson_complete( $user_id, $lesson_id, $done 
 			if ( ! isset( prospergenics_courses_opened_map( $user_id, $course_id )[ $lesson->ID ] ) ) {
 				return new WP_Error( 'pg_courses_not_opened', 'Open the lesson before marking it complete.', array( 'status' => 403 ) );
 			}
+			// A lesson with a quiz completes only once the quiz is passed (card #6461, quiz.php).
+			$quiz_block = prospergenics_courses_quiz_completion_block( $user_id, $lesson->ID );
+			if ( $quiz_block ) {
+				return $quiz_block;
+			}
 			$map[ $lesson->ID ] = time();
 		}
 	} else {
@@ -293,6 +299,12 @@ function prospergenics_courses_notices() {
 		'published'   => 'The course is published.',
 		'unpublished' => 'The course is unpublished (back to draft).',
 		'trashed'     => 'The course was moved to the trash.',
+		'quiz_required' => 'This lesson has a quiz: pass it to complete the lesson.',
+		'quiz_passed'   => 'Quiz passed. The lesson is complete.',
+		'quiz_failed'   => 'Not passed yet. Read the feedback under the quiz and try again.',
+		'quiz_finished' => 'Quiz passed. Congratulations, you completed the course! Your certificate is ready.',
+		'quiz_finished_unverified' => 'Quiz passed. Congratulations, you completed the course! Confirm your email address to receive your certificate.',
+		'quiz_rate'     => 'Too many attempts in a short time. Wait a minute and try again.',
 	);
 }
 
@@ -338,7 +350,7 @@ add_action( 'admin_post_pg_courses_complete', function () {
 	$result = prospergenics_courses_set_lesson_complete( get_current_user_id(), $lesson_id, $done );
 	$url    = 'pg_lesson' === get_post_type( $lesson_id ) ? get_permalink( $lesson_id ) : home_url( '/courses/' );
 	if ( is_wp_error( $result ) ) {
-		prospergenics_courses_redirect( $url, 'error' );
+		prospergenics_courses_redirect( $url, 'pg_courses_quiz_required' === $result->get_error_code() ? 'quiz_required' : 'error' );
 	}
 	if ( $done && 100 === $result['progress'] ) {
 		prospergenics_courses_redirect( get_permalink( prospergenics_courses_course_of( $lesson_id ) ), 'unverified' === $result['certificate_blocked'] ? 'finished_unverified' : ( $result['certificate_blocked'] ? 'completed' : 'finished' ) );
