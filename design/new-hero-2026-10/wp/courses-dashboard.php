@@ -94,6 +94,7 @@ get_header();
         </table>
       </div>
       <p class="pgc-muted">Deleted courses go to the trash in WordPress admin, where they can be restored. Completion = learners who finished every lesson.</p>
+      <?php echo prospergenics_courses_quiz_results_html($pgc_courses); // card #6461; escaped inside, '' when no course has a quiz ?>
     <?php endif; ?>
   <?php endif; ?>
 </div>

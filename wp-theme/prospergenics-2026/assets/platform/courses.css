@@ -190,6 +190,80 @@
 .pgc-pager-dir{font-size:13px;color:var(--muted);}
 .pgc-pager-title{font-weight:600;font-size:15px;}
 
+/* ---------- lessons on slow connections (card #6469): notes, click-to-load video */
+.pgc-lesson-tools{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin:-8px 0 24px;}
+.pgc-lesson-video{margin-bottom:28px;}
+.pgc-lesson-video-title{font-family:'Sora',sans-serif;font-weight:700;font-size:18px;color:var(--green-900);margin:0 0 12px;}
+.pgc-lesson-video:focus-within .pgc-lesson-video-title{color:var(--ink);}
+.pgc-facade{margin:0 0 28px;}
+.pgc-facade .pgc-video{margin-bottom:10px;}
+.pgc-facade-poster{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+.pgc-facade-poster.pg-pattern{min-height:0;background-size:0 0,var(--pg-texture-size),cover;}
+.pgc-facade-play{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--green-700);text-decoration:none;background:linear-gradient(to top,rgba(11,32,22,.55),rgba(11,32,22,.1) 60%);}
+.pgc-facade-play svg{filter:drop-shadow(0 4px 12px rgba(0,0,0,.35));}
+.pgc-facade-label{font-family:'Sora',sans-serif;font-weight:700;font-size:16px;color:#fff;background:rgba(11,32,22,.78);padding:6px 14px;border-radius:999px;}
+.pgc-facade-play:hover .pgc-facade-label,.pgc-facade-play:focus-visible .pgc-facade-label{background:var(--green-900);text-decoration:underline;}
+.pgc-facade-play:focus-visible{outline:3px solid #fff;outline-offset:-6px;box-shadow:inset 0 0 0 6px var(--green-700);}
+.pgc-facade-note{font-size:14px;color:var(--muted);line-height:1.5;}
+.pgc-lesson-content .wp-block-embed__wrapper::before{content:none;}
+.pgc-lesson-content .pgc-facade-poster{max-width:none;height:100%;}
+
+/* ---------- lesson quiz (card #6461) */
+.pgc-quiz{background:#fff;border:1px solid var(--line);border-radius:18px;padding:clamp(18px,3vw,28px);margin-bottom:28px;}
+.pgc-quiz-title{font-family:'Gabarito',sans-serif;font-weight:800;font-size:clamp(22px,2.4vw,26px);margin:0 0 6px;}
+.pgc-quiz-intro{color:var(--muted);font-size:15px;line-height:1.6;margin-bottom:18px;}
+.pgc-quiz-list,.pgc-quiz-feedback{list-style:none;counter-reset:pgcq;display:grid;gap:18px;margin:0 0 20px;padding:0;}
+.pgc-quiz-q,.pgc-quiz-fb{counter-increment:pgcq;}
+.pgc-quiz-fieldset{border:0;margin:0;padding:0;min-width:0;}
+.pgc-quiz-prompt{display:block;font-weight:700;font-size:16.5px;line-height:1.5;color:var(--ink);margin-bottom:10px;padding:0;}
+.pgc-quiz-prompt::before,.pgc-quiz-fb-q::before{content:counter(pgcq) ". ";color:var(--green-700);}
+.pgc-quiz-hint{font-size:14px;color:var(--muted);margin:-4px 0 10px;}
+.pgc-quiz-option{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;background:var(--paper);}
+.pgc-quiz-option input{flex:none;width:20px;height:20px;margin:2px 0 0;accent-color:var(--green-700);}
+.pgc-quiz-option label{flex:1;font-size:16px;line-height:1.45;cursor:pointer;}
+.pgc-quiz-option:focus-within{outline:3px solid var(--focus-ring,#1a7a46);outline-offset:1px;}
+.pgc-quiz-input{font:inherit;font-size:16px;width:100%;max-width:420px;min-height:44px;padding:10px 14px;border-radius:12px;border:1.5px solid rgba(15,61,40,.3);background:var(--paper);color:var(--ink);}
+.pgc-quiz-input:focus{outline:3px solid var(--focus-ring,#1a7a46);outline-offset:1px;border-color:var(--green-700);}
+.pgc-quiz-input+.pgc-quiz-hint{margin:6px 0 0;}
+.pgc-quiz-result{border-radius:14px;padding:16px 18px;margin-bottom:20px;border:1px solid;}
+.pgc-quiz-result:focus{outline:3px solid var(--focus-ring,#1a7a46);outline-offset:2px;}
+.pgc-quiz-result.is-passed{background:var(--green-100);border-color:rgba(26,122,70,.35);color:var(--green-900);}
+.pgc-quiz-result.is-failed{background:#fff4d6;border-color:#e8c766;color:#4a3700;}
+.pgc-quiz-result-title{font-family:'Sora',sans-serif;font-weight:700;font-size:19px;margin:0 0 6px;}
+.pgc-quiz-result>p{font-size:15px;line-height:1.55;margin-bottom:10px;}
+.pgc-quiz-result .pgc-cta-row{margin-bottom:12px;}
+.pgc-quiz-feedback{margin:14px 0 0;gap:12px;}
+.pgc-quiz-fb{background:#fff;border-radius:12px;padding:12px 14px;border-left:4px solid;color:var(--ink);}
+.pgc-quiz-fb.is-right{border-color:var(--green-700);}
+.pgc-quiz-fb.is-wrong{border-color:#b3261e;}
+.pgc-quiz-fb p{font-size:15px;line-height:1.55;margin:0 0 4px;}
+.pgc-quiz-fb-q{font-weight:700;}
+.pgc-quiz-fb-verdict{display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;}
+.pgc-quiz-fb.is-right .pgc-quiz-fb-verdict .pgc-icon{color:var(--green-700);}
+.pgc-quiz-fb.is-wrong .pgc-quiz-fb-verdict .pgc-icon{color:#b3261e;}
+.pgc-quiz-fb-answer{font-weight:600;}
+.pgc-quiz-fb-why{color:#2a3d30;}
+.pgc-quiz-retry>summary,.pgc-quiz-edit>summary,.pgc-quiz-results>summary{cursor:pointer;font-family:'Sora',sans-serif;font-weight:600;font-size:15px;color:var(--green-900);min-height:44px;display:flex;align-items:center;gap:8px;}
+.pgc-quiz-retry[open]>summary{margin-bottom:12px;}
+.pgc-quiz-retry>summary:focus-visible,.pgc-quiz-edit>summary:focus-visible,.pgc-quiz-results>summary:focus-visible{outline:3px solid var(--focus-ring,#1a7a46);outline-offset:2px;border-radius:8px;}
+/* wizard: quiz editor */
+.pgc-quiz-edit{border-top:1px dashed var(--line);margin:4px 0 14px;padding-top:6px;}
+.pgc-quiz-edit[open]{padding-bottom:6px;}
+.pgc-quiz-q-edit{border:1px solid var(--line);border-radius:12px;padding:10px 14px 14px;margin:0 0 12px;background:var(--paper);min-width:0;}
+.pgc-quiz-q-edit>legend{font-family:'Sora',sans-serif;font-weight:700;font-size:13.5px;color:var(--green-900);padding:0 6px;}
+.pgc-quiz-opts-edit{border:0;margin:0 0 12px;padding:0;min-width:0;}
+.pgc-quiz-opts-edit>legend{font-size:14px;font-weight:600;color:var(--green-900);margin-bottom:6px;padding:0;}
+.pgc-quiz-opt-edit{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:8px;}
+.pgc-quiz-opt-edit input[type=text]{flex:1 1 200px;min-width:0;font:inherit;font-size:16px;min-height:44px;padding:8px 12px;border-radius:10px;border:1.5px solid rgba(15,61,40,.3);background:#fff;color:var(--ink);}
+.pgc-quiz-opt-edit input[type=text]:focus{outline:3px solid var(--focus-ring,#1a7a46);outline-offset:1px;}
+.pgc-quiz-opt-correct{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--green-900);min-height:44px;}
+.pgc-quiz-opt-correct input{width:20px;height:20px;accent-color:var(--green-700);}
+.pgc-quiz-q-edit .pgc-field-error{margin-bottom:10px;}
+/* instructor dashboard: quiz results */
+.pgc-quiz-results-wrap{margin-top:36px;}
+.pgc-quiz-results{margin-bottom:12px;}
+.pgc-quiz-results[open]>summary{margin-bottom:10px;}
+
 /* ---------- my courses */
 .pgc-my-list{list-style:none;display:grid;gap:16px;}
 .pgc-my-item{display:grid;grid-template-columns:150px minmax(0,1fr);gap:20px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px;align-items:center;}

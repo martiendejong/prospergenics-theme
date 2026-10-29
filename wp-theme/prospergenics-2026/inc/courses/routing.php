@@ -5,6 +5,7 @@
  *   /courses/                               archive-pg_course.php (filters ?category= &level= &sort=)
  *   /courses/<slug>/                        single-pg_course.php
  *   /courses/<slug>/lessons/<lesson-slug>/  single-pg_lesson.php
+ *   /courses/<slug>/lessons/<lesson-slug>/notes/  the lesson as a PDF to keep offline (notes.php)
  *   /courses/<slug>/certificate/            the learner's own certificate PDF
  *   /courses/my/                            courses-my.php (my courses, progress, certificates)
  *   /courses/verify/[<code>/]               courses-verify.php (public certificate check)
@@ -21,10 +22,10 @@
 defined( 'ABSPATH' ) || exit;
 
 /** Bump to flush rewrite rules once after a deploy that changes them. */
-const PROSPERGENICS_COURSES_REWRITE_VERSION = '1';
+const PROSPERGENICS_COURSES_REWRITE_VERSION = '2';
 
 add_filter( 'query_vars', function ( $vars ) {
-	return array_merge( $vars, array( 'pg_courses_view', 'pg_courses_code', 'pg_courses_user', 'pg_courses_edit', 'pg_courses_course' ) );
+	return array_merge( $vars, array( 'pg_courses_view', 'pg_courses_code', 'pg_courses_user', 'pg_courses_edit', 'pg_courses_course', 'pg_courses_notes' ) );
 } );
 
 add_action( 'init', function () {
@@ -34,6 +35,7 @@ add_action( 'init', function () {
 		'courses/verify/([A-Za-z0-9-]+)/?$'           => 'index.php?pg_courses_view=verify&pg_courses_code=$matches[1]',
 		'courses/instructor/([0-9]+)(?:-[^/]*)?/?$'   => 'index.php?pg_courses_view=instructor&pg_courses_user=$matches[1]',
 		'courses/([^/]+)/lessons/([^/]+)/?$'          => 'index.php?pg_lesson=$matches[2]&pg_courses_course=$matches[1]',
+		'courses/([^/]+)/lessons/([^/]+)/notes/?$'    => 'index.php?pg_lesson=$matches[2]&pg_courses_course=$matches[1]&pg_courses_notes=1',
 		'courses/([^/]+)/certificate/?$'              => 'index.php?pg_courses_view=certificate&pg_courses_course=$matches[1]',
 		'instructor/?$'                               => 'index.php?pg_courses_view=dashboard',
 		'instructor/dashboard/?$'                     => 'index.php?pg_courses_view=dashboard',
@@ -197,6 +199,13 @@ add_action( 'template_redirect', function () {
 		}
 		$want = (string) parse_url( get_permalink( $lesson ), PHP_URL_PATH );
 		$have = isset( $_SERVER['REQUEST_URI'] ) ? (string) parse_url( wp_unslash( $_SERVER['REQUEST_URI'] ), PHP_URL_PATH ) : '';
+		if ( get_query_var( 'pg_courses_notes' ) ) {
+			if ( $want . 'notes/' !== trailingslashit( $have ) ) {
+				wp_safe_redirect( prospergenics_courses_notes_url( $lesson ), 301 );
+				exit;
+			}
+			prospergenics_courses_serve_notes( $lesson ); // exits
+		}
 		if ( $want !== $have ) {
 			wp_safe_redirect( get_permalink( $lesson ), 301 );
 			exit;
@@ -302,8 +311,11 @@ add_action( 'wp_enqueue_scripts', function () {
 	$js  = '/assets/platform/courses.js';
 	wp_enqueue_style( 'pg-courses', $uri . $css, array(), file_exists( $dir . $css ) ? (string) filemtime( $dir . $css ) : null );
 	wp_enqueue_script( 'pg-courses', $uri . $js, array(), file_exists( $dir . $js ) ? (string) filemtime( $dir . $js ) : null, true );
+	// The wizard (and its quiz editor) is a separate script, so lesson pages stay light (#6469).
 	if ( 'wizard' === prospergenics_courses_view() && is_user_logged_in() ) {
-		wp_add_inline_script( 'pg-courses', 'window.pgCoursesWizard = ' . wp_json_encode( prospergenics_courses_wizard_config() ) . ';', 'before' );
+		$wjs = '/assets/platform/courses-wizard.js';
+		wp_enqueue_script( 'pg-courses-wizard', $uri . $wjs, array(), file_exists( $dir . $wjs ) ? (string) filemtime( $dir . $wjs ) : null, true );
+		wp_add_inline_script( 'pg-courses-wizard', 'window.pgCoursesWizard = ' . wp_json_encode( prospergenics_courses_wizard_config() ) . ';', 'before' );
 	}
 } );
 

@@ -86,8 +86,8 @@ function prospergenics_courses_rate( $completed, $enrolled ) {
 }
 
 /**
- * Parse a YouTube or Vimeo URL. Lessons only accept these two (oEmbed only, no self-hosted
- * video, card #6358).
+ * Parse a YouTube or Vimeo URL (card #6358). Besides these two, lessons accept video files
+ * hosted on the site itself (prospergenics_courses_parse_file_video_url(), card #6469).
  *
  * @return array{provider:string,id:string}|null
  */
@@ -124,10 +124,49 @@ function prospergenics_courses_parse_video_url( $url ) {
 	return null;
 }
 
-/** The video URL if it is a YouTube/Vimeo URL, else ''. */
+/**
+ * Parse the URL of a self-hosted video file (MP4, WebM, Ogg) on the site's own host, e.g. one
+ * uploaded to the media library (card #6469). Other hosts are refused: lessons do not hotlink
+ * video files from anywhere on the web.
+ *
+ * @return array{provider:string,id:string,type:string}|null provider 'file', id = the URL
+ */
+function prospergenics_courses_parse_file_video_url( $url, $site_host ) {
+	$url  = trim( (string) $url );
+	$host = strtolower( (string) $site_host );
+	if ( '' === $url || '' === $host || ! preg_match( '#^https?://#i', $url ) ) {
+		return null;
+	}
+	$parts = parse_url( $url );
+	if ( empty( $parts['host'] ) || strtolower( $parts['host'] ) !== $host || isset( $parts['user'] ) || isset( $parts['pass'] ) ) {
+		return null;
+	}
+	$types = array( 'mp4' => 'video/mp4', 'm4v' => 'video/mp4', 'webm' => 'video/webm', 'ogv' => 'video/ogg' );
+	if ( ! preg_match( '#\.(mp4|m4v|webm|ogv)$#i', isset( $parts['path'] ) ? $parts['path'] : '', $m ) || preg_match( '/["\'<>\s]/', $url ) ) {
+		return null;
+	}
+	return array( 'provider' => 'file', 'id' => $url, 'type' => $types[ strtolower( $m[1] ) ] );
+}
+
+/** The site's host name ('' outside WordPress). */
+function prospergenics_courses_site_host() {
+	return function_exists( 'home_url' ) ? strtolower( (string) parse_url( home_url( '/' ), PHP_URL_HOST ) ) : '';
+}
+
+/**
+ * A lesson video: YouTube, Vimeo, or a video file on this site.
+ *
+ * @return array{provider:string,id:string}|null
+ */
+function prospergenics_courses_video_source( $url ) {
+	$v = prospergenics_courses_parse_video_url( $url );
+	return $v ? $v : prospergenics_courses_parse_file_video_url( $url, prospergenics_courses_site_host() );
+}
+
+/** The video URL if it is a YouTube/Vimeo URL or a video file on this site, else ''. */
 function prospergenics_courses_sanitize_video_url( $url ) {
 	$url = trim( (string) $url );
-	return prospergenics_courses_parse_video_url( $url ) ? $url : '';
+	return prospergenics_courses_video_source( $url ) ? $url : '';
 }
 
 /**

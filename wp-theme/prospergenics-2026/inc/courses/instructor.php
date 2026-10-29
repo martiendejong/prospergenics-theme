@@ -39,6 +39,7 @@ function prospergenics_courses_wizard_config() {
 				$post             = get_post( $l['id'] );
 				$l['content_raw'] = $post ? $post->post_content : '';
 				$l['video_url']   = (string) get_post_meta( $l['id'], '_pg_courses_video_url', true );
+				$l['quiz']        = prospergenics_courses_get_quiz( $l['id'], true ); // editors only (checked above)
 			}
 			unset( $l );
 		}
@@ -53,6 +54,9 @@ function prospergenics_courses_wizard_config() {
 		'dashboard'   => home_url( '/instructor/dashboard/' ),
 		'editBase'    => home_url( '/instructor/courses/' ),
 		'levels'      => prospergenics_courses_levels(),
+		'quizTypes'   => prospergenics_courses_quiz_types(),
+		'passMark'    => PROSPERGENICS_COURSES_QUIZ_PASS_MARK,
+		'siteHost'    => prospergenics_courses_site_host(),
 		'categories'  => is_array( $terms ) ? array_map( function ( $t ) { return array( 'id' => (int) $t->term_id, 'name' => $t->name ); }, $terms ) : array(),
 	);
 }

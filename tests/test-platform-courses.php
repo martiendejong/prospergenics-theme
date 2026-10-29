@@ -123,7 +123,7 @@ echo "REST routes\n";
 foreach ( $GLOBALS['hooks']['rest_api_init'] as $cb ) { $cb(); }
 $expect = array( '/courses', '/courses/(?P<id>\d+)', '/courses/(?P<id>\d+)/curriculum', '/courses/(?P<id>\d+)/thumbnail', '/courses/(?P<id>\d+)/modules',
 	'/courses/modules/(?P<id>\d+)', '/courses/modules/(?P<id>\d+)/lessons', '/courses/lessons/(?P<id>\d+)', '/courses/(?P<id>\d+)/enrolment',
-	'/courses/lessons/(?P<id>\d+)/completion', '/courses/(?P<id>\d+)/certificate', '/courses/me', '/courses/certificates/(?P<code>[A-Za-z0-9-]+)', '/courses/instructor/stats' );
+	'/courses/lessons/(?P<id>\d+)/completion', '/courses/(?P<id>\d+)/certificate', '/courses/me', '/courses/certificates/(?P<code>[A-Za-z0-9-]+)', '/courses/instructor/stats', '/courses/lessons/(?P<id>\d+)/quiz' );
 foreach ( $expect as $r ) {
 	ok( isset( $GLOBALS['routes'][ 'prospergenics/v1' . $r ] ), "route $r registered" );
 }
@@ -143,7 +143,7 @@ ok( $endpoints >= 25 && ! $bad, "all $endpoints endpoints have a real permission
 ok( false === strpos( file_get_contents( $theme . '/inc/courses/rest.php' ), '__return_true' ), 'no __return_true in the REST module' );
 
 $GLOBALS['logged_in'] = false;
-$learner_routes = array( '/courses/(?P<id>\d+)/enrolment', '/courses/lessons/(?P<id>\d+)/completion', '/courses/(?P<id>\d+)/certificate', '/courses/me' );
+$learner_routes = array( '/courses/(?P<id>\d+)/enrolment', '/courses/lessons/(?P<id>\d+)/completion', '/courses/(?P<id>\d+)/certificate', '/courses/me', '/courses/lessons/(?P<id>\d+)/quiz' );
 foreach ( $learner_routes as $r ) {
 	$args = $GLOBALS['routes'][ 'prospergenics/v1' . $r ];
 	foreach ( isset( $args['methods'] ) ? array( $args ) : $args as $ep ) {
@@ -193,7 +193,7 @@ foreach ( $templates as $t ) {
 	ok( false !== strpos( $s, "defined('ABSPATH') || exit;" ) && false !== strpos( $s, 'get_header()' ) && false !== strpos( $s, 'get_footer()' ), "$t is guarded and uses the shared header/footer" );
 	ok( file_get_contents( $root . '/design/new-hero-2026-10/wp/' . $t ) === $s, "$t is generated from design/new-hero-2026-10/wp/" );
 }
-foreach ( array( 'courses.css', 'courses.js' ) as $a ) {
+foreach ( array( 'courses.css', 'courses.js', 'courses-wizard.js' ) as $a ) {
 	ok( file_exists( $theme . '/assets/platform/' . $a ), "assets/platform/$a shipped" );
 }
 $css = file_get_contents( $theme . '/assets/platform/courses.css' );
