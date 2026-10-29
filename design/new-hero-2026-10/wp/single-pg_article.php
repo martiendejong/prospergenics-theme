@@ -42,6 +42,7 @@ $pga_rel  = prospergenics_articles_related( $pga_post, 3 );
   </header>
 
   <div class="post-wrap pga-article-wrap">
+    <?php echo prospergenics_articles_hidden_notice( $pga_post ); // escaped in the helper (#6472) ?>
     <?php if ( has_post_thumbnail() ) : ?>
       <figure class="pga-cover">
         <?php the_post_thumbnail( 'large', array( 'alt' => '', 'fetchpriority' => 'high', 'loading' => 'eager' ) ); ?>
@@ -67,6 +68,7 @@ $pga_rel  = prospergenics_articles_related( $pga_post, 3 );
     <div class="pga-actions">
       <?php echo prospergenics_articles_clap_box( $pga_post ); ?>
       <?php echo prospergenics_articles_share( $pga_post ); ?>
+      <?php if ( function_exists( 'prospergenics_profiles_report_html' ) ) { echo prospergenics_profiles_report_html( 'article', $pga_post->ID ); } // #6472, escaped in the helper ?>
     </div>
 
     <?php echo prospergenics_articles_series_box( $pga_post ); ?>
