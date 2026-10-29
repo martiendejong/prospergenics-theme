@@ -78,6 +78,10 @@ get_header();
         <a class="pgc-pager-link pgc-pager-next" href="<?= esc_url(get_permalink($pgc_course)) ?>"><span class="pgc-pager-dir">Last lesson</span><span class="pgc-pager-title">Back to the course</span></a>
       <?php endif; ?>
     </nav>
+
+    <?php // discussion:start (card #6464) questions and replies for enrolled learners and the instructor, inc/courses/discussion.php ?>
+    <?php if ($pgc_can) { do_action('prospergenics_courses_lesson_discussion', $pgc_lesson, $pgc_course); } ?>
+    <?php // discussion:end ?>
   </article>
 </div>
 

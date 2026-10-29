@@ -489,10 +489,11 @@ function prospergenics_profiles_is_hidden( $user_id ) {
 
 /**
  * Sections the viewer may see on a member's profile ('members' = verified members, ARC-10). A
- * profile hidden by staff (ARC-15) shows nothing to anyone but its owner and staff.
+ * profile hidden by staff (ARC-15) shows nothing to anyone but its owner and staff (user managers
+ * and moderators, #6472).
  */
 function prospergenics_profiles_visibility_for( $owner_id, $viewer_id ) {
-    $staff = $viewer_id && user_can( (int) $viewer_id, 'edit_users' );
+    $staff = $viewer_id && ( user_can( (int) $viewer_id, 'edit_users' ) || user_can( (int) $viewer_id, 'pg_moderate' ) );
     if ( prospergenics_profiles_hidden_from( prospergenics_profiles_is_hidden( $owner_id ), $viewer_id, $owner_id, $staff ) ) {
         return array_fill_keys( array_keys( prospergenics_profiles_privacy_defaults() ), false );
     }
@@ -500,8 +501,9 @@ function prospergenics_profiles_visibility_for( $owner_id, $viewer_id ) {
         prospergenics_profiles_privacy( $owner_id ),
         (int) $viewer_id,
         (int) $owner_id,
-        $viewer_id ? prospergenics_profiles_is_connection( $owner_id, $viewer_id ) : false,
-        $viewer_id && prospergenics_profiles_is_verified( $viewer_id )
+        // staff review reported profiles (#6472): they see what members and connections see
+        $staff || ( $viewer_id ? prospergenics_profiles_is_connection( $owner_id, $viewer_id ) : false ),
+        $staff || ( $viewer_id && prospergenics_profiles_is_verified( $viewer_id ) )
     );
 }
 

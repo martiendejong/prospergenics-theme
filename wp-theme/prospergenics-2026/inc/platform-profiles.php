@@ -19,6 +19,7 @@ require $prospergenics_profiles_dir . 'privacy.php';            // ARC-12 export
 require $prospergenics_profiles_dir . 'account.php';            // ARC-5 email and password changes on /profile/settings/
 require $prospergenics_profiles_dir . 'applications.php';       // ARC-8 "Apply to write / teach", Users → Requests
 require $prospergenics_profiles_dir . 'users-admin.php';        // ARC-15 Users columns, row actions, hidden profiles
+require $prospergenics_profiles_dir . 'moderation.php';         // #6472 Report on articles/profiles/discussion posts, the queue, suspension
 require $prospergenics_profiles_dir . 'rest.php';               // prospergenics/v1/profile/…
 require $prospergenics_profiles_dir . 'routes.php';             // /in/{slug}/, /profile/…, templates, assets
 require $prospergenics_profiles_dir . 'render.php';             // markup helpers for the templates
