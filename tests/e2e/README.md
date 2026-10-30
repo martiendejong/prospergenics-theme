@@ -59,6 +59,20 @@ it pass.
   themselves (an unverified member marking themselves verified, a hidden member showing their own
   profile). Controls: the admin resends the link, marks the member verified (who can then follow),
   hides the profile (members no longer see it) and shows it again.
+- The staff area `/manage/` (card #6457): every screen sends a visitor to the login page (302) and is
+  403 for subscriber, unverified member, writer, contributor and author, without showing member,
+  message or article data; editor and admin get every screen and a "Manage" account link (members
+  do not). Every member action (role, verify, resend, hide, unhide, suspend, unsuspend) and message
+  action (read, handled) is refused for subscriber, writer, contributor and author with and without
+  a valid nonce, and for the admin without one; the member is unchanged afterwards. Editors cannot
+  act on the administrator, another editor or themselves, nor make anyone contributor, author,
+  editor or administrator; nobody grants administrator or changes their own role there. Controls:
+  the editor makes a member Writer and back, resends the link, marks them verified (who can then
+  follow), hides and shows the profile, suspends (login refused, old cookie dead) and unsuspends;
+  the admin makes a member Author and changes an editor; the editor marks a message handled, the
+  admin reopens it, and opening a message from the inbox marks it read. Publishing someone else's
+  pending article from the review queue is refused for contributor, author and writer even with a
+  valid nonce; the editor publishes it and returns to `/manage/articles/`.
 
 ## Adding a rule
 

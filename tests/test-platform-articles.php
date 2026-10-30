@@ -221,7 +221,7 @@ foreach ( array( 'pg_article_category', 'pg_article_tag', 'pg_series' ) as $tax 
 ok( false !== strpos( $src, "\$settings['autosaveInterval'] = 30" ), 'autosave every 30 seconds (#6368)' );
 ok( false !== strpos( $src, "check_admin_referer( \$action . '_' . \$post_id )" ) && 2 === substr_count( $src, "prospergenics_articles_action_post( 'pg_articles_" ), 'both My articles actions check a per-post nonce' );
 ok( false !== strpos( $src, "current_user_can( \$cap, \$post_id )" ), 'actions check a per-post capability' );
-ok( false !== strpos( $src, "prospergenics_articles_action_post( 'pg_articles_unpublish', 'edit_post' )" ) && false !== strpos( $src, "prospergenics_articles_action_post( 'pg_articles_publish', 'publish_post' )" ), 'unpublish needs edit_post, publish needs publish_post' );
+ok( false !== strpos( $src, "prospergenics_articles_action_post( 'pg_articles_unpublish', 'edit_post' )" ) && false !== strpos( $src, "prospergenics_articles_action_post( 'pg_articles_publish', array( 'edit_post', 'publish_post' ) )" ), 'unpublish needs edit_post, publish needs edit_post and publish_post (an author cannot publish someone else\'s pending article)' );
 ok( false !== strpos( $src, '$wpdb->prepare(' ) && substr_count( $src, '$wpdb->query(' ) === substr_count( $src, '$wpdb->query( $wpdb->prepare(' ), 'SQL only through $wpdb->prepare()' );
 ok( false !== strpos( $src, "add_filter( 'wp_robots', 'wp_robots_no_robots' )" ), 'My articles is noindex' );
 foreach ( array( 'single-pg_article.php', 'archive-pg_article.php', 'taxonomy-pg_article_category.php', 'taxonomy-pg_article_tag.php', 'taxonomy-pg_series.php', 'inc/articles/views/mine.php', 'assets/platform/articles.css', 'assets/platform/articles.js' ) as $f ) {

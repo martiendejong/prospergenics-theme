@@ -15,7 +15,8 @@
  *
  * Actions (POST to admin-post.php, each with its own nonce and capability check):
  *   pg_articles_unpublish  published or scheduled -> draft     needs edit_post
- *   pg_articles_publish    draft/pending/scheduled -> live now  needs publish_post
+ *   pg_articles_publish    draft/pending/scheduled -> live now  needs edit_post and publish_post
+ *   Both return to /articles/mine/, or to /manage/articles/ when sent from the staff review queue.
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -124,12 +125,20 @@ function prospergenics_articles_action_redirect( array $args ) {
     return prospergenics_articles_mine_url( $args );
 }
 
-/** Validate an action request; returns the post or dies. */
-function prospergenics_articles_action_post( $action, $cap ) {
+/**
+ * Validate an action request; returns the post or dies.
+ *
+ * @param string|string[] $caps Meta capabilities the user needs for this post, all of them.
+ */
+function prospergenics_articles_action_post( $action, $caps ) {
     $post_id = isset( $_POST['post_id'] ) ? absint( $_POST['post_id'] ) : 0;
     check_admin_referer( $action . '_' . $post_id );
     $post = get_post( $post_id );
-    if ( ! $post || 'pg_article' !== $post->post_type || ! current_user_can( $cap, $post_id ) ) {
+    $ok   = $post && 'pg_article' === $post->post_type;
+    foreach ( (array) $caps as $cap ) {
+        $ok = $ok && current_user_can( $cap, $post_id );
+    }
+    if ( ! $ok ) {
         wp_die( esc_html__( 'Sorry, you are not allowed to do that.' ), 403 );
     }
     return $post;
@@ -146,7 +155,9 @@ add_action( 'admin_post_pg_articles_unpublish', function () {
 } );
 
 add_action( 'admin_post_pg_articles_publish', function () {
-    $post = prospergenics_articles_action_post( 'pg_articles_publish', 'publish_post' );
+    // publish_post alone maps to publish_pg_articles, which authors hold for everyone's articles:
+    // also ask for edit_post, so only who may edit this article (its author, editors) publishes it
+    $post = prospergenics_articles_action_post( 'pg_articles_publish', array( 'edit_post', 'publish_post' ) );
     $done = 0;
     if ( in_array( $post->post_status, array( 'draft', 'pending', 'future' ), true ) ) {
         $now  = current_time( 'mysql' );
