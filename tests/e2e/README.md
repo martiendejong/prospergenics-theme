@@ -80,6 +80,21 @@ it pass.
   editor; the editor then approves (control). Responding: a visitor is sent to log in, members who
   are not concerned and staff get 403, and the person concerned responds once (control).
 
+## Card #6393 acceptance walk-through (Playwright, not in CI)
+
+`expertise-acceptance.js` walks the card's acceptance in a real browser: sign in, add project,
+approve, publish, outsider correction, review, search, plus the staging gates (`/find/` has one
+canonical and an ItemList; a non-production host is noindex). Steps that need the projects (#6388)
+or scrutiny (#6389) modules are detected on the site and SKIPPED with a message until those are
+merged. It needs Playwright with Chromium, which the CI job does not install, so run it by hand:
+
+```bash
+E2E_BASE=http://localhost:8105 node tests/e2e/expertise-acceptance.js
+```
+
+Users, query and the names that must never appear are set with `E2E_MEMBER`, `E2E_OUTSIDER`,
+`E2E_ADMIN`, `E2E_QUERY` and `E2E_HIDDEN` (see the file header).
+
 ## Adding a rule
 
 Add a block to `role-matrix.js` with `check(rule, who, pass, detail)`: one refusal per role that

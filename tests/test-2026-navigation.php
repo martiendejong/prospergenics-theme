@@ -50,7 +50,7 @@ function trailingslashit( $s ) { return rtrim( $s, '/' ) . '/'; }
 function untrailingslashit( $s ) { return rtrim( $s, '/' ); }
 function wp_unslash( $v ) { return $v; }
 function wp_strip_all_tags( $s ) { return strip_tags( $s ); }
-function apply_filters( $tag, $value ) { return $value; }
+function apply_filters( $tag, $value ) { return isset( $GLOBALS['__filters'][ $tag ] ) ? $GLOBALS['__filters'][ $tag ]( $value ) : $value; }
 function add_action( $tag, $cb, $prio = 10, $args = 1 ) { $GLOBALS['__hooks'][ $tag ][] = $cb; }
 function add_filter( $tag, $cb, $prio = 10, $args = 1 ) { $GLOBALS['__hooks'][ $tag ][] = $cb; }
 function add_query_arg( $key, $value = null, $url = null ) {
@@ -290,6 +290,21 @@ foreach ( array( 'Services for my organisation', 'Tools', 'Partnership', 'Someth
 $unrelated = "<html><head></head><body><nav class=\"other\">x</nav><main>y</main>";
 ok( $unrelated === prospergenics_2026_listings_takeover( $unrelated, '/members/', $chrome ), 'a page without the plugin nav is left exactly as it was' );
 ok( false !== strpos( file_get_contents( $theme . '/inc/site-chrome.php' ), 'ob_get_level() !== $prospergenics_2026_takeover_level' ), 'a buffer opened by someone else in between leaves the page untouched' );
+
+// The /members/ directory links to the expertise search /find/ (card #6393), under its own search form.
+$members_page = '<html><head></head><body><nav class="pg-nav"><a href="/">x</a></nav><main><div class="search-wrap"><form class="search-box" method="get" action="/members/"><input type="text" name="keyword" /><button type="submit">Search →</button></form></div><div class="dir-wrap"></div></main>';
+ok( false === strpos( prospergenics_2026_listings_takeover( $members_page, '/members/', $chrome ), 'pg-find-link' ), 'no /find/ link while nothing asks for one' );
+$GLOBALS['__filters']['prospergenics_2026_listings_search_links'] = function ( $links ) {
+	$links['/members/'] = array( 'text' => 'Looking for someone who has done it before?', 'label' => 'Find people by skill, project or problem', 'path' => '/find/' );
+	return $links;
+};
+$members_out = prospergenics_2026_listings_takeover( $members_page, '/members/', $chrome );
+ok( (bool) preg_match( '#</form><p class="pg-find-link"[^>]*>Looking for someone who has done it before\? <a href="' . preg_quote( TEST_HOME, '#' ) . '/find/"[^>]*>Find people by skill, project or problem →</a></p></div>#', $members_out ), '/members/ links /find/ right after its search form' );
+ok( false === strpos( prospergenics_2026_listings_takeover( $members_page, '/members/lessy/', $chrome ), 'pg-find-link' ), 'member detail pages get no /find/ link' );
+ok( false === strpos( prospergenics_2026_listings_takeover( str_replace( '<div class="dir-wrap">', '<div class="search-wrap"></div><div class="dir-wrap">', $members_page ), '/members/', $chrome ), 'pg-find-link' ), 'an unexpected page shape gets no /find/ link' );
+unset( $GLOBALS['__filters'] );
+ok( 'Members' === prospergenics_2026_current_nav_label( '/find/' ), '/find/ is in the Members section' );
+ok( in_array( 'Find people', array_column( $nav['footer'][1]['links'], 'label' ), true ) && 6 === count( $nav['main'] ), 'the footer\'s Community column links Find people; the main menu keeps its six items (#6542)' );
 $GLOBALS['__queued'] = array( 'style:jengo-listings:done' );
 ok( prospergenics_2026_is_listings_page(), 'detects a jengo-listings page by its stylesheet' );
 $GLOBALS['__queued'] = array();
