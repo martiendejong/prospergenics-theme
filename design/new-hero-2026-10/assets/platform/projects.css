@@ -3,6 +3,7 @@
 
 .pgj-wrap{max-width:900px;margin:0 auto;padding:clamp(24px,4vw,44px) clamp(16px,4vw,40px) clamp(56px,7vw,96px);display:grid;gap:20px;min-width:0;}
 .pgj-wrap > .post-back{margin:0;}
+.pgj-wrap > .pgp-section > h2 + *{margin-top:12px;}
 .pgj-wrap > .post-back a{color:var(--green-700);font-weight:600;}
 .pgj-hero-meta{display:flex;flex-wrap:wrap;gap:6px 18px;}
 .pgj-hero-meta a{color:#fff;text-decoration:underline;text-underline-offset:3px;}
