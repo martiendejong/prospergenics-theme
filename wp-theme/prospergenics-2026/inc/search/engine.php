@@ -374,7 +374,19 @@ function prospergenics_search_compute( array $args ) {
         }
     }
 
-    // Contributors of matching projects (the contributions' own text was matched in SQL too).
+    // Contributors of matching projects (the contributions' own text was matched in SQL too). Their
+    // accounts are read in one go first: the projects track checks each one's privacy.
+    $contributor_ids = array();
+    foreach ( array_keys( $projects ) as $pid ) {
+        foreach ( (array) get_post_meta( $pid, '_pg_project_contributions', true ) as $c ) {
+            if ( is_array( $c ) && ! empty( $c['user_id'] ) ) {
+                $contributor_ids[] = (int) $c['user_id'];
+            }
+        }
+    }
+    if ( $contributor_ids ) {
+        cache_users( array_slice( array_unique( $contributor_ids ), 0, 1000 ) );
+    }
     foreach ( $projects as $pid => &$proj ) {
         $proj['contributors'] = prospergenics_search_project_contributors( $pid );
         $proj['kind']         = (string) get_post_meta( $pid, '_pg_project_kind', true );
