@@ -2,8 +2,8 @@
 /**
  * Seed the throwaway e2e WordPress (run by tests/e2e/run.sh through `wp eval-file`, after the
  * theme is active): one user per role (a Writer included), a published course with one lesson, an
- * article, a profile entry, a contact message, an image of the administrator's, and a member with
- * open requests to write and to teach. Prints the IDs and names role-matrix.js needs as JSON.
+ * article, an article waiting for review, a profile entry, a contact message, an image of the
+ * administrator's, and a member with open requests to write and to teach. Prints the IDs and names role-matrix.js needs as JSON.
  *
  * Idempotent: users and posts are looked up by login / title before they are created, so the
  * script can run again on the same site.
@@ -27,6 +27,8 @@ $pg_e2e_users = array(
     'unverified2' => array( 'e2e_new2', 'subscriber', 'Uma', 'Unconfirmed', false ), // the admin marks her verified
     'writer'     => array( 'e2e_writer', 'pg_writer', 'Wim', 'Writerson', true ),
     'applicant'  => array( 'e2e_applicant', 'subscriber', 'Aya', 'Applicant', true ), // pending requests
+    'editor2'    => array( 'e2e_editor2', 'editor', 'Edda', 'Secondeditor', true ), // /manage/: editors never change editors
+    'managed'    => array( 'e2e_managed', 'subscriber', 'Mira', 'Managed', false ), // /manage/ member actions
 );
 
 $pg_e2e_out = array( 'password' => $pg_e2e_password, 'users' => array() );
@@ -85,6 +87,11 @@ $module = pg_e2e_post( 'pg_module', 'E2E module', array( 'post_author' => $edito
 $lesson = pg_e2e_post( 'pg_lesson', 'E2E lesson', array( 'post_author' => $editor, 'post_parent' => $module, 'post_content' => '<p>Read this, then mark it complete.</p>' ) );
 
 $article = pg_e2e_post( 'pg_article', 'E2E article', array( 'post_author' => $pg_e2e_out['users']['author']['id'], 'post_content' => '<p>An article for the role matrix.</p>' ) );
+// An article waiting for review (/manage/articles/), by the contributor: only editors may publish it.
+$pending = pg_e2e_post( 'pg_article', 'E2E pending article 5b2e', array( 'post_status' => 'pending', 'post_author' => $pg_e2e_out['users']['contributor']['id'], 'post_content' => '<p>Waiting for review.</p>' ) );
+if ( 'pending' !== get_post_status( $pending ) ) {
+    wp_update_post( array( 'ID' => $pending, 'post_status' => 'pending' ) ); // a second run starts from "pending" again
+}
 
 // A contact message whose subject must never reach anyone but editors and administrators.
 $contact = pg_e2e_post( 'pg_contact_msg', 'E2E private enquiry 7f3a', array( 'post_content' => 'Phone +31 6 0000 0000' ) );
@@ -178,6 +185,8 @@ $pg_e2e_out['media_title']   = 'E2E admin image 9c1d';
 $pg_e2e_out['lesson']        = $lesson;
 $pg_e2e_out['lesson_url']    = get_permalink( $lesson );
 $pg_e2e_out['article']       = $article;
+$pg_e2e_out['pending']       = $pending;
+$pg_e2e_out['pending_title'] = 'E2E pending article 5b2e';
 $pg_e2e_out['contact_title'] = 'E2E private enquiry 7f3a';
 $pg_e2e_out['contact_id']    = $contact;
 $pg_e2e_out['entry']         = (int) $entry;

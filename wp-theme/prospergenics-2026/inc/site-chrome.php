@@ -12,7 +12,8 @@
  * site_chrome.py renders the same files for the static pages (people/, experts/, community/).
  *
  * Visitors get "Log in" and "Join"; logged-in members an account menu with My profile,
- * My courses, My articles, (for instructors) Instructor dashboard, Settings and Log out. Below 1181px all of it moves into the menu panel, so the bar is one row.
+ * My courses, My articles, (for instructors) Instructor dashboard, (for editors and administrators) Manage,
+ * Settings and Log out. Below 1181px all of it moves into the menu panel, so the bar is one row.
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -118,7 +119,8 @@ function prospergenics_2026_request_path() {
 
 /**
  * Account links for the header: Log in + Join for visitors; My profile, My courses, My articles,
- * Instructor dashboard (instructors only), Settings and Log out for members (audit NAV-16: My articles
+ * Instructor dashboard (instructors only), Manage (staff only, card #6457), Settings and Log out for
+ * members (audit NAV-16: My articles
  * also offers members who cannot write yet the "Apply to write" form). Registration is closed, so Join opens the contact form on "Joining the community".
  *
  * @return array<int,array{label:string,url:string,key:string}>
@@ -138,6 +140,10 @@ function prospergenics_2026_account_links() {
     $links[] = array( 'key' => 'articles', 'label' => 'My articles', 'url' => home_url( '/articles/mine/' ) );
     if ( function_exists( 'prospergenics_courses_is_instructor' ) && prospergenics_courses_is_instructor() ) {
         $links[] = array( 'key' => 'teach', 'label' => 'Instructor dashboard', 'url' => home_url( '/instructor/dashboard/' ) );
+    }
+    if ( function_exists( 'prospergenics_manage_can_access' ) && prospergenics_manage_can_access() ) {
+        // the staff area (card #6457): editors and administrators only (inc/platform-manage.php)
+        $links[] = array( 'key' => 'manage', 'label' => 'Manage', 'url' => home_url( '/manage/' ) );
     }
     if ( function_exists( 'prospergenics_profiles_url' ) ) {
         // email, password, privacy, download or delete my data (audit ARC-5, ARC-12)
