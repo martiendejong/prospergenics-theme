@@ -82,7 +82,7 @@ function prospergenics_scrutiny_audit_html( $item_id ) {
         'mail_submitter_more' => 'Submitter emailed: more evidence', 'mail_concerned' => 'Person concerned emailed',
     );
     $h  = '<details class="pgs-audit"><summary>Audit log (staff only)</summary>';
-    $h .= '<p class="description">Email address: ' . esc_html( '' !== $a['email'] ? $a['email'] : '(none or erased)' ) . '<br />IP hash: <code>' . esc_html( '' !== $a['ip'] ? substr( $a['ip'], 0, 16 ) : '(none)' ) . '</code></p><ol>';
+    $h .= '<p class="description">Email address: ' . esc_html( '' !== $a['email'] ? $a['email'] : '(none or erased)' ) . '<br />IP hash: ' . esc_html( '' !== $a['ip'] ? substr( $a['ip'], 0, 16 ) : '(none)' ) . '</p><ol>';
     foreach ( $a['log'] as $e ) {
         $by   = (int) $e['by'] ? get_userdata( (int) $e['by'] ) : null;
         $who  = $by ? $by->display_name : ( 'django-work' === $e['source'] ? 'Django Work' : ( 'privacy' === $e['source'] ? 'privacy request' : 'system / submitter' ) );

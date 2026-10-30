@@ -60,6 +60,15 @@ it pass.
   profile). Controls: the admin resends the link, marks the member verified (who can then follow),
   hides the profile (members no longer see it) and shows it again.
 
+- Scrutiny (card #6389, `inc/profiles/scrutiny*.php`): the Scrutiny tab of Reports, which shows the
+  staff-only audit log (the submitter's email address and IP hash), is refused for visitors,
+  subscribers, contributors, authors and writers (the editor sees it: control); no item and no
+  submitter email in REST (`/wp/v2/pg_scrutiny`, search), feeds, `?post_type=`, `?p=` or site
+  search; on the profile a member sees the published item but not the pending one. Approving with a
+  valid nonce but without `pg_moderate` is 403 for every member role, and without the nonce for the
+  editor; the editor then approves (control). Responding: a visitor is sent to log in, members who
+  are not concerned and staff get 403, and the person concerned responds once (control).
+
 ## Adding a rule
 
 Add a block to `role-matrix.js` with `check(rule, who, pass, detail)`: one refusal per role that

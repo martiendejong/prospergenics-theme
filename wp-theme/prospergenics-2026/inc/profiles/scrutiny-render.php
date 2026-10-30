@@ -37,6 +37,7 @@ function prospergenics_scrutiny_notices() {
         'responded'    => array( 'ok', 'Your response is published under the item.' ),
         'response_short' => array( 'error', 'Please write your response.' ),
         'response_long'  => array( 'error', 'Your response is too long: please keep it under 2,000 characters.' ),
+        'response_already' => array( 'info', 'You already responded to this item: there is one response per item.' ),
         'more_added'   => array( 'ok', 'Thank you: the ProsperGenics team will review it again.' ),
         'more_empty'   => array( 'error', 'Please add some text or a source.' ),
         'error'        => array( 'error', 'Something went wrong. Please try again.' ),
@@ -70,7 +71,7 @@ function prospergenics_scrutiny_dom( array $t ) {
 
 /** Notices shown next to the published items (the rest go with the form). */
 function prospergenics_scrutiny_item_notices() {
-    return array( 'responded', 'response_short', 'response_long', 'denied' );
+    return array( 'responded', 'response_short', 'response_long', 'response_already', 'denied' );
 }
 
 /**
@@ -490,6 +491,7 @@ add_action( 'admin_post_pg_scrutiny_respond', function () {
         if ( 'denied' === $code || 'login' === $code ) {
             wp_die( 'Only the person this is about can respond to it.', 403 );
         }
+        $code = 'already' === $code ? 'response_already' : $code;
         prospergenics_scrutiny_back( $t, isset( prospergenics_scrutiny_notices()[ $code ] ) ? $code : 'error', 'pgs-item-' . $item );
     }
     prospergenics_scrutiny_back( $t, 'responded', 'pgs-item-' . $item );
