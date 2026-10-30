@@ -15,8 +15,9 @@ Personal profile pages (people/<slug>/index.html) and the two list pages
 (experts/, community/) are static and deploy straight into public_html/ - see
 deploy-wp-theme-vimexx.py; they are not theme templates.
 
-The conversion only rewrites asset URLs to the theme directory and inserts the
-mandatory wp_head()/wp_footer() hooks. Everything else stays byte-identical so
+The conversion only rewrites asset URLs to the theme directory, inserts the
+mandatory wp_head()/wp_footer() hooks and swaps the static site header/footer blocks for
+the PHP-rendered ones (inc/site-chrome.php, same nav.json/CSS/JS). Everything else stays byte-identical so
 the interactive front-end (slider, parallax, scroll effects) keeps working as-is.
 Re-run after every design change, then deploy with deploy-wp-theme-to-test.py.
 """
@@ -34,6 +35,11 @@ def convert(html, asset_prefix):
     html = html.replace('<html lang="en" class="no-js">',
                         '<html class="no-js" <?php language_attributes(); ?>>', 1)
     html = html.replace("</head>", "<?php wp_head(); ?>\n</head>", 1)
+    # wp_body_open right after <body>, as in header.php (plugins hook in there; ARC-19)
+    # (the tag on its own line: "<body>" also appears inside a CSS comment)
+    html, found = re.subn(r"^<body>$", "<body>\n<?php wp_body_open(); ?>", html, count=1, flags=re.M)
+    if not found:
+        raise SystemExit("<body> line not found")
     html = html.replace("</body>", "<?php wp_footer(); ?>\n</body>", 1)
     # asset URLs -> theme directory (src/href/CSS url()/JS string literals)
     html = html.replace("https://test.prospergenics.com/assets/", f"{TPL}/assets/")
@@ -43,6 +49,20 @@ def convert(html, asset_prefix):
     return html
 
 
+def php_chrome(html, header_args):
+    """The static header/footer blocks (site_chrome.py) -> the same chrome rendered by
+    inc/site-chrome.php, so WordPress pages know who is logged in (account links, admin bar)."""
+    def swap(text, name, php):
+        pattern = re.compile(r"<!-- site-chrome:%s -->.*?<!-- /site-chrome:%s -->" % (name, name), re.S)
+        if not pattern.search(text):
+            raise SystemExit(f"site-chrome:{name} block not found")
+        return pattern.sub(lambda _m: f"<!-- site-chrome:{name} (inc/site-chrome.php) -->\n  {php}", text, count=1)
+    # after the header (so the skip link stays the first Tab stop): member notices such as the
+    # email-verification banner, the same hook header.php fires (ARC-19)
+    html = swap(html, "header", f"<?php echo prospergenics_2026_site_header( {header_args} ); // phpcs:ignore WordPress.Security.EscapeOutput ?>\n  <?php do_action( 'prospergenics_2026_after_site_header' ); ?>")
+    return swap(html, "footer", "<?php echo prospergenics_2026_site_footer(); // phpcs:ignore WordPress.Security.EscapeOutput ?>")
+
+
 def build():
     if os.path.isdir(OUT):
         shutil.rmtree(OUT)
@@ -50,7 +70,7 @@ def build():
 
     # homepage
     with open(os.path.join(HERE, "index.html"), encoding="utf-8") as f:
-        home = convert(f.read(), "")
+        home = php_chrome(convert(f.read(), ""), "array( 'autohide' => true )")
     home = home.replace('href="about/"', f'href="{HOME}about/"')
     home = home.replace('href="people/', f'href="{HOME}people/')
     home = home.replace('href="experts/"', f'href="{HOME}experts/"')
@@ -60,7 +80,7 @@ def build():
 
     # about page (template auto-applies to the page with slug "about")
     with open(os.path.join(HERE, "about", "index.html"), encoding="utf-8") as f:
-        about = convert(f.read(), "../")
+        about = php_chrome(convert(f.read(), "../"), "array( 'current' => 'About' )")
     about = about.replace('href="../"', f'href="{HOME}"')
     about = about.replace('href="./"', f'href="{HOME}about/"')
     about = about.replace('href="../#', f'href="{HOME}#')

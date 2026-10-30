@@ -53,10 +53,15 @@ function home_url( $path = '/' ) { return 'https://prospergenics.com' . $path; }
 function add_action( ...$args ) {}
 function add_theme_support( ...$args ) {}
 function remove_action( ...$args ) {}
+function remove_filter( ...$args ) {}
 // Under eval() __DIR__ is this tests/ folder, so point the module at the theme's real rules file.
 function apply_filters( $hook, $value ) {
+	if ( 'prospergenics_2026_person_redirects_file' === $hook ) {
+		return $GLOBALS['theme'] . '/inc/person-redirects.txt';
+	}
 	return 'prospergenics_2026_redirects_file' === $hook ? $GLOBALS['theme'] . '/inc/redirects.txt' : $value;
 }
+function is_admin() { return false; }
 $GLOBALS['_is_404']   = false;
 $GLOBALS['_redirect'] = null;
 function is_404() { return $GLOBALS['_is_404']; }
@@ -66,7 +71,9 @@ ok( false !== strpos( file_get_contents( $theme . '/functions.php' ), "/inc/redi
 // The hook ends in exit after a redirect; load the real module with that exit turned into a
 // return so the test survives (the file-level ABSPATH guard is left alone).
 $module = file_get_contents( $theme . '/inc/redirects.php' );
-ok( 1 === substr_count( $module, "        exit;\n" ), 'redirect hook exits right after redirecting' );
+ok( 2 === substr_count( $module, "        exit;\n" ), 'both redirect hooks exit right after redirecting' );
+ok( false !== strpos( $module, "add_action( 'template_redirect', 'prospergenics_2026_legacy_url_redirects', 1 );" ), 'legacy redirects run before core guesses a page for the 404' );
+ok( false !== strpos( $module, "add_action( 'init', 'prospergenics_2026_person_redirects', 0 );" ), 'person redirects run on init, before plugins render' );
 eval( '?>' . str_replace( "        exit;\n", "        return;\n", $module ) );
 
 function route( $path, $is_404 = true ) {
@@ -96,6 +103,47 @@ ok( null === route( '/members/../wp-config/' ), 'path traversal does not match' 
 ok( 'https://prospergenics.com/courses/' === route( '/programs/digital-technology/' )[0], 'old programme pages go to courses' );
 ok( 'https://prospergenics.com/courses/' === route( '/Programs/' )[0], 'old programme archive goes to courses (case-insensitive)' );
 ok( 'https://prospergenics.com/community/' === route( '/member-type/coach/' )[0], 'old member-type archives go to community' );
+
+echo "Person redirects (always on)\n";
+function person_route( $path, $method = 'GET' ) {
+	$_SERVER['REQUEST_URI']    = $path;
+	$_SERVER['REQUEST_METHOD'] = $method;
+	$GLOBALS['_redirect']      = null;
+	prospergenics_2026_person_redirects();
+	return $GLOBALS['_redirect'];
+}
+$person_cases = array(
+	'/members/lessy/'           => '/people/lessy/',  // jengo-listings answers 200 with an old copy
+	'/members/martien-de-jong/' => '/people/martien/',
+	'/team_member/martien-de-jong/' => '/people/martien/', // WordPress guessed a blog post
+	'/lessy-2/'                 => '/people/lessy/',  // imported page from the old site
+	'/lessy/'                   => '/people/lessy/',  // media attachment slug
+	'/Members/Sofy'             => '/people/sophy/',
+	'/our-team/'                => '/community/',
+);
+foreach ( $person_cases as $from => $to ) {
+	$r = person_route( $from );
+	ok( $r && 'https://prospergenics.com' . $to === $r[0] && 301 === $r[1], "$from -> 301 $to" );
+}
+ok( null === person_route( '/members/' ), 'the members list itself is not redirected' );
+ok( null === person_route( '/people/lessy/' ), 'the approved profile is not redirected' );
+ok( null === person_route( '/members/lessy/', 'POST' ), 'only GET and HEAD requests are redirected' );
+
+echo "The real person-redirects.txt\n";
+$person_text  = file_get_contents( $theme . '/inc/person-redirects.txt' );
+$person_rules = prospergenics_2026_parse_redirects( $person_text );
+ok( count( $person_rules ) >= 40, count( $person_rules ) . ' rules' );
+$base_rules = prospergenics_2026_parse_redirects( file_get_contents( $theme . '/inc/redirects.txt' ) );
+$problems   = prospergenics_2026_redirect_problems( array_merge( $base_rules, $person_rules ) );
+ok( ! $problems, 'no chains, loops or malformed targets across both rule files' . ( $problems ? ': ' . implode( '; ', $problems ) : '' ) );
+$dupes = prospergenics_2026_redirect_duplicates( $person_text . "\n" . file_get_contents( $theme . '/inc/redirects.txt' ) );
+ok( ! $dupes, 'no old path in both files or twice' . ( $dupes ? ': ' . implode( ', ', $dupes ) : '' ) );
+$people_dir = $root . '/design/new-hero-2026-10/people';
+foreach ( array_unique( $person_rules ) as $target ) {
+	if ( preg_match( '#^/people/([a-z0-9-]+)/$#', $target, $m ) ) {
+		ok( is_file( "$people_dir/{$m[1]}/index.html" ), "target $target is a published profile" );
+	}
+}
 
 echo "Rule matching\n";
 $rules = prospergenics_2026_parse_redirects( "# comment\nold-page   /new-page/   # trailing comment\nshop/*   /tools/\nshop/special/*  /services/\nshop/item  /partners/\nout  https://example.org/x\n\n" );
