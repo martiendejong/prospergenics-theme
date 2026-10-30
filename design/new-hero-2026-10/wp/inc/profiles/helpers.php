@@ -37,6 +37,9 @@ function prospergenics_profiles_privacy_defaults( $profile = 'members' ) {
         'featured'   => 'public',
         // ARC-20: earned course certificates, like education: as open as the profile itself
         'certificates' => 'public',
+        // #6388: projects, products, services and employers with the member's role and evidence;
+        // like experience, as open as the profile itself
+        'portfolio'  => 'public',
     );
 }
 
@@ -92,6 +95,7 @@ function prospergenics_profiles_privacy_labels() {
         'skills'     => 'Skills',
         'featured'   => 'Featured',
         'certificates' => 'Certificates (courses you completed)',
+        'portfolio'  => 'Portfolio (projects, products, services and employers you contributed to)',
     );
 }
 

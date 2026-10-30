@@ -1108,6 +1108,10 @@ function prospergenics_profiles_public_data( $user, $viewer_id ) {
     if ( $vis['certificates'] ) {
         $data['certificates'] = prospergenics_profiles_certificates( $user->ID );
     }
+    // #6388: the portfolio (inc/projects/), only the entries this viewer may see
+    if ( ! empty( $vis['portfolio'] ) && function_exists( 'prospergenics_projects_portfolio_data' ) ) {
+        $data['portfolio'] = prospergenics_projects_portfolio_data( $user->ID, $viewer_id );
+    }
     // what they teach and write (NAV-16): published work, public anyway, shown with the profile
     $data['courses']  = prospergenics_profiles_published( $user->ID, 'pg_course' );
     $data['articles'] = prospergenics_profiles_published( $user->ID, 'pg_article' );

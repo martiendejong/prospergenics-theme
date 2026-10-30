@@ -119,6 +119,9 @@ get_header();
       if ( $is_owner && isset( $_GET['welcome'] ) ) {
           prospergenics_profiles_notice( 'ok', 'Welcome! Your profile is set up. Use “Edit profile” to add more.' );
       }
+      if ( function_exists( 'prospergenics_projects_placeholder_notice' ) ) {
+          prospergenics_projects_placeholder_notice( $owner ); // #6388: a profile staff set up, not claimed yet
+      }
       if ( prospergenics_profiles_is_hidden( $owner->ID ) ) {
           // audit ARC-15: only the owner and staff get this far
           prospergenics_profiles_notice( 'info', $is_owner
@@ -333,6 +336,14 @@ get_header();
           <?php endif; ?>
         </section>
       <?php endif; ?>
+
+      <?php
+      // #6388: projects, products, services and employers with the member's role, contribution and
+      // evidence (inc/projects/render.php); manual forms in edit mode
+      if ( function_exists( 'prospergenics_projects_profile_section' ) ) {
+          prospergenics_projects_profile_section( $owner, $data, $viewer_id );
+      }
+      ?>
 
       <?php if ( $vis['certificates'] && ! empty( $data['certificates'] ) ) : ?>
         <section class="pgp-section" id="pgp-certificates" aria-labelledby="pgp-certs-h">

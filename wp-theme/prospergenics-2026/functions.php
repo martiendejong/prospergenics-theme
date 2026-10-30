@@ -54,3 +54,4 @@ require get_template_directory() . '/inc/sitemap.php';
 require get_template_directory() . '/inc/platform-articles.php';
 require get_template_directory() . '/inc/platform-profiles.php';
 require get_template_directory() . '/inc/platform-courses.php';
+require get_template_directory() . '/inc/platform-projects.php'; // #6388 portfolios: /projects/, contributions
