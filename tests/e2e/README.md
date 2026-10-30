@@ -82,11 +82,16 @@ it pass.
 
 ## Card #6393 acceptance walk-through (Playwright, not in CI)
 
-`expertise-acceptance.js` walks the card's acceptance in a real browser: sign in, add project,
-approve, publish, outsider correction, review, search, plus the staging gates (`/find/` has one
-canonical and an ItemList; a non-production host is noindex). Steps that need the projects (#6388)
-or scrutiny (#6389) modules are detected on the site and SKIPPED with a message until those are
-merged. It needs Playwright with Chromium, which the CI job does not install, so run it by hand:
+`expertise-acceptance.js` walks the card's acceptance in a real browser, through the site's own
+forms: sign in (and set the profile to "Everyone"), add project (`pg_projects_create` on the
+profile), approve (staff confirm the contribution, `pg_projects_status`), publish (the project page
+and `/wp/v2/pg_project` for a visitor), outsider correction (another member sends a correction about
+the person and evidence about the project, `pg_scrutiny_submit`), review (staff approve both in
+Reports → Scrutiny, `pg_scrutiny_decide`), search (`/find/` names the confirmed project and the
+approved evidence, and every evidence link and anchor resolves), plus the staging gates (one
+canonical, an ItemList, noindex off production). Precondition: both members have confirmed email
+addresses (`wp user meta delete <id> _pg_profiles_verify_pending`). It needs Playwright with
+Chromium, which the CI job does not install, so run it by hand:
 
 ```bash
 E2E_BASE=http://localhost:8105 node tests/e2e/expertise-acceptance.js

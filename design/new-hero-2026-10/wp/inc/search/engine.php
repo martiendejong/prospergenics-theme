@@ -622,7 +622,7 @@ function prospergenics_search_scrutiny_evidence( array $vis_of, array $by_user, 
             $seen[ $uid . ':' . $r['id'] ] = true;
             $out[ $uid ][] = array(
                 'kind'  => 'scrutiny',
-                'label' => prospergenics_search_snippet( $text, $terms, 70 ) . ( '' !== $r['name'] ? ' (' . $r['name'] . ')' : '' ),
+                'label' => '“' . prospergenics_search_snippet( $text, $terms, 70 ) . '”' . ( '' !== $r['name'] ? ' by ' . $r['name'] : '' ),
                 'url'   => preg_replace( '/#.*$/', '', $url ) . '#pgs-item-' . (int) $r['id'],
                 'terms' => $found,
             );
