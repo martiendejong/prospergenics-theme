@@ -1,0 +1,73 @@
+/* Prospergenics Platform – portfolios and projects (/projects/, the "Portfolio" section on /in/).
+   Builds on profiles.css (buttons, fields, sections) and the tokens from header.php. */
+
+.pgj-wrap{max-width:900px;margin:0 auto;padding:clamp(24px,4vw,44px) clamp(16px,4vw,40px) clamp(56px,7vw,96px);display:grid;gap:20px;min-width:0;}
+.pgj-wrap > .post-back{margin:0;}
+.pgj-wrap > .post-back a{color:var(--green-700);font-weight:600;}
+.pgj-hero-meta{display:flex;flex-wrap:wrap;gap:6px 18px;}
+.pgj-hero-meta a{color:#fff;text-decoration:underline;text-underline-offset:3px;}
+
+/* portfolio entries and contributors */
+.pgj-list{list-style:none;display:grid;gap:14px;margin:0;padding:0;}
+.pgj-item{border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:grid;gap:8px;min-width:0;background:#fff;}
+.pgj-item h3{font-family:'Sora',sans-serif;font-size:17px;font-weight:700;line-height:1.35;color:var(--ink);overflow-wrap:anywhere;}
+.pgj-item h3 a{color:var(--green-900);text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px;}
+.pgj-kind{font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--green-700);}
+.pgj-role{font-weight:600;color:var(--ink);display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;}
+.pgj-contribution{color:var(--ink);font-size:15.5px;line-height:1.6;overflow-wrap:anywhere;}
+.pgj-contribution p + p{margin-top:8px;}
+.pgj-status{display:inline-block;font-size:12.5px;font-weight:700;line-height:1;padding:5px 9px;border-radius:999px;border:1px solid;}
+.pgj-status-claimed{background:var(--paper-2);color:#2f4a3b;border-color:rgba(15,61,40,.25);}
+.pgj-status-confirmed{background:var(--green-100);color:var(--green-900);border-color:rgba(26,122,70,.45);}
+.pgj-status-disputed{background:#fbe4e2;color:#7a1d16;border-color:rgba(179,38,30,.35);}
+.pgj-evidence{font-size:14.5px;}
+.pgj-evidence-h{font-weight:700;color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.04em;}
+.pgj-evidence ul{list-style:none;display:flex;flex-wrap:wrap;gap:6px 14px;margin:4px 0 0;padding:0;}
+.pgj-evidence a,.pgj-link a{color:var(--green-700);font-weight:600;overflow-wrap:anywhere;}
+.pgj-person-head{display:flex;gap:12px;align-items:center;min-width:0;}
+.pgj-person-head img{width:48px;height:48px;border-radius:50%;object-fit:cover;flex:0 0 auto;}
+.pgj-creator{font-family:inherit;font-size:13px;font-weight:500;color:var(--muted);}
+.pgj-item-tools,.pgj-manage-row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;}
+.pgj-inline-form{display:inline-flex;margin:0;}
+.pgj-scrutiny:empty{display:none;}
+section.pgj-scrutiny:not(:has(*)){display:none;}
+
+/* disclosures with the manual forms */
+.pgj-details{min-width:0;}
+.pgj-details > summary{list-style:none;cursor:pointer;width:fit-content;max-width:100%;}
+.pgj-details > summary::-webkit-details-marker{display:none;}
+.pgj-details > summary.pgp-btn::after{content:"";width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin:-3px 0 0 2px;}
+.pgj-details[open] > summary.pgp-btn::after{transform:rotate(225deg);margin-top:3px;}
+.pgj-details[open] > .pgj-form,.pgj-details[open] > form{border-top:1px solid var(--line);padding-top:16px;}
+.pgj-owner-tools{display:grid;gap:12px;margin-top:16px;padding-top:16px;border-top:1px solid var(--line);}
+.pgj-fieldset{border:0;padding:0;margin:0;display:grid;gap:14px;min-width:0;}
+.pgj-evidence-rows{border:1px solid var(--line)!important;border-radius:12px;padding:12px 14px 14px!important;}
+.pgj-evidence-rows legend{font-size:14.5px!important;padding:0 6px;}
+.pgj-evidence-row{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr);gap:10px;}
+@media(max-width:560px){.pgj-evidence-row{grid-template-columns:minmax(0,1fr);gap:8px;padding-bottom:6px;border-bottom:1px dashed var(--line);}}
+.pgj-field-error{display:block;font-size:14px;font-weight:600;color:#a3271d;}
+.pgj-notice{margin-bottom:12px;}
+.pgj-search{grid-template-columns:minmax(0,1fr) auto;align-items:end;}
+@media(max-width:560px){.pgj-search{grid-template-columns:minmax(0,1fr);}}
+.pgj-results{list-style:none;display:grid;gap:12px;margin:12px 0 0;padding:0;}
+.pgj-results > li{border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;gap:6px;}
+.pgj-results h3{font-size:16px;font-weight:700;}
+.pgj-results h3 a{color:var(--green-900);}
+.pgj-count{font-size:14.5px;color:var(--muted);margin-top:8px;}
+
+/* /projects/ */
+.pgj-filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr)) auto;gap:14px;align-items:end;background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px 18px;}
+@media(max-width:640px){.pgj-filters{grid-template-columns:minmax(0,1fr);}}
+.pgj-filter-actions{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;}
+.pgj-filter-actions a{color:var(--green-700);font-weight:600;}
+.pgj-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:16px;}
+.pgj-card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px 20px;display:grid;gap:8px;align-content:start;min-width:0;}
+.pgj-card h2{font-family:'Gabarito',sans-serif;font-weight:800;font-size:20px;line-height:1.25;overflow-wrap:anywhere;}
+.pgj-card h2 a{color:var(--ink);text-decoration:none;}
+.pgj-card h2 a:hover{text-decoration:underline;}
+.pgj-excerpt{color:var(--muted);font-size:15px;line-height:1.55;}
+.pgj-people{font-size:14px;color:var(--muted);}
+.pgj-skills{list-style:none;display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0;}
+.pgj-skills li{font-size:13.5px;font-weight:600;padding:5px 10px;border-radius:999px;background:var(--paper-2);color:var(--green-900);}
+.pgj-skills a{color:var(--green-900);}
+.pgj-cta p + p{margin-top:10px;}
