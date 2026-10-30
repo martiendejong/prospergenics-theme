@@ -333,6 +333,71 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
     check('the admin shows the profile again (control)', 'admin', show.status === 302 && /pg_user_done=shown/.test(show.location || ''), `GET ${show.status} -> ${show.location || ''}`);
   }
 
+  /* 13. Scrutiny (card #6389): the audit part is staff-only, only pg_moderate decides, only the
+     person concerned responds (once). */
+  {
+    const SC = FX.scrutiny, mail = FX.scrutiny_email, T = U.subscriber2;
+    const tab = '/wp-admin/admin.php?page=pg-moderation&tab=scrutiny';
+    for (const who of ['visitor', 'subscriber', 'contributor', 'author', 'writer']) {
+      const sess = who === 'visitor' ? visitor : s[who];
+      const r = await sess.get(tab);
+      check('Scrutiny tab (audit log) refused', who, (refused(r) || (who === 'visitor' && r.status === 302)) && !r.text.includes(mail) && !r.text.includes(SC.pending.text), `status ${r.status}${r.location ? ' -> ' + pathOf(r.location) : ''}`);
+    }
+    {
+      const r = await s.editor.get(tab);
+      check('Scrutiny tab shows the item and its audit log (control)', 'editor', r.status === 200 && r.text.includes(SC.pending.text) && r.text.includes(mail), `status ${r.status}`);
+    }
+    // never via REST, feeds or queries, for anyone without pg_moderate
+    for (const who of ['visitor', 'subscriber', 'author']) {
+      const sess = who === 'visitor' ? visitor : s[who];
+      const leaks = [];
+      for (const path of ['/wp-json/wp/v2/pg_scrutiny', `/wp-json/wp/v2/pg_scrutiny/${SC.pending.id}`, `/wp-json/wp/v2/search?search=E2E%20scrutiny`, '/?post_type=pg_scrutiny', '/?feed=rss2&post_type=pg_scrutiny', '/?s=E2E+scrutiny', `/?p=${SC.pending.id}`, '/feed/']) {
+        const r = await sess.get(path, { follow: true });
+        if (r.text.includes(mail) || r.text.includes(SC.pending.text) || r.text.includes('8d4c')) leaks.push(`${path} (${r.status})`);
+      }
+      check('scrutiny items and the submitter email are not in REST, feeds or queries', who, leaks.length === 0, leaks.join(', ') || '8 URLs checked');
+      if (who !== 'visitor') {
+        const p = await sess.get(`/in/${T.slug}/`, { follow: true });
+        check('profile: the published item shows, the pending one and the email do not', who, p.text.includes(SC.published.text) && !p.text.includes(SC.pending.text) && !p.text.includes(mail), `status ${p.status}`);
+      }
+    }
+    // only pg_moderate decides: a valid nonce is not enough
+    const decide = (sess, nonce, item, d) => sess.request('POST', '/wp-admin/admin-post.php', { body: { action: 'pg_scrutiny_decide', item: String(item), do: d, note: 'e2e', _wpnonce: nonce } });
+    for (const who of ['subscriber', 'subscriber2', 'contributor', 'author', 'writer']) {
+      const n = await mint(s[who], `pg_scrutiny_decide_${SC.pending.id}`);
+      const r = await decide(s[who], n, SC.pending.id, 'approve');
+      check('approving a scrutiny item without pg_moderate is refused', who, n && r.status === 403, `POST ${r.status}`);
+    }
+    {
+      const r = await decide(s.editor, '', SC.pending.id, 'approve');
+      check('approving without the nonce is refused', 'editor', r.status === 403, `POST ${r.status}`);
+      const p0 = await s.subscriber.get(`/in/${T.slug}/`, { follow: true });
+      check('still not public after the refused attempts', 'subscriber', !p0.text.includes(SC.pending.text), `status ${p0.status}`);
+      const n = await mint(s.editor, `pg_scrutiny_decide_${SC.pending.id}`);
+      const ok = await decide(s.editor, n, SC.pending.id, 'approve');
+      const p1 = await s.subscriber.get(`/in/${T.slug}/`, { follow: true });
+      check('the editor approves; it is public (control)', 'editor', ok.status === 302 && /pgs_done=approved/.test(ok.location || '') && p1.text.includes(SC.pending.text), `POST ${ok.status} -> ${ok.location || ''}`);
+    }
+    // response: the person concerned only, once
+    const respond = (sess, nonce, body) => sess.request('POST', '/wp-admin/admin-post.php', { body: { action: 'pg_scrutiny_respond', item: String(SC.published.id), body, _wpnonce: nonce } });
+    {
+      const r = await respond(visitor, '', 'E2E visitor response');
+      check('a visitor cannot respond (sent to log in)', 'visitor', r.status === 302 && /wp-login\.php/.test(r.location || ''), `POST ${r.status} -> ${r.location || ''}`);
+    }
+    for (const who of ['subscriber', 'author', 'editor']) {
+      const n = await mint(s[who], `pg_scrutiny_respond_${SC.published.id}`);
+      const r = await respond(s[who], n, `E2E response by ${who} 3f1a`);
+      check('a response by someone not concerned is refused', who, n && r.status === 403, `POST ${r.status}`);
+    }
+    {
+      const n = await mint(s.subscriber2, `pg_scrutiny_respond_${SC.published.id}`);
+      const r = await respond(s.subscriber2, n, 'E2E owner response 7c2d');
+      const again = await respond(s.subscriber2, n, 'E2E second response 9e9e');
+      const p = await s.subscriber.get(`/in/${T.slug}/`, { follow: true });
+      check('the person concerned responds once (control)', 'subscriber2', r.status === 302 && /pgs=responded/.test(r.location || '') && p.text.includes('E2E owner response 7c2d') && !p.text.includes('9e9e') && !p.text.includes('3f1a') && /pgs=response_already/.test(again.location || ''), `POST ${r.status}, second ${again.status} -> ${again.location || ''}`);
+    }
+  }
+
   /* report */
   const w = Math.max(...results.map(r => r.rule.length)) + 2;
   for (const r of results) console.log(`${r.pass ? 'PASS' : 'FAIL'}  ${r.rule.padEnd(w)}${r.who.padEnd(13)}${r.detail}`);

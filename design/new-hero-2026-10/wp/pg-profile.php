@@ -237,6 +237,8 @@ get_header();
                     <p class="pgp-entry-sub"><?php echo esc_html( $e['company'] ); ?></p>
                     <p class="pgp-entry-dates"><?php echo esc_html( prospergenics_profiles_experience_dates( $e ) ); ?><?php if ( $e['current'] ) : ?> <span class="pgp-current">Current</span><?php endif; ?></p>
                     <?php if ( '' !== $e['description'] ) : ?><div class="pgp-entry-desc"><?php echo wpautop( esc_html( $e['description'] ) ); ?></div><?php endif; ?>
+                    <?php // #6389: published notes about this entry and "Suggest a correction" (inc/profiles/scrutiny-render.php)
+                    do_action( 'prospergenics_scrutiny_public', 'claim', $e['id'] ); do_action( 'prospergenics_scrutiny_actions', 'claim', $e['id'] ); ?>
                     <?php if ( $is_owner ) : ?>
                       <div class="pgp-entry-tools pgp-edit-only">
                         <button type="button" class="pgp-link-btn" data-pgp-open="pgp-exp-<?php echo (int) $e['id']; ?>-form" data-pgp-hide="pgp-exp-<?php echo (int) $e['id']; ?>-view" aria-expanded="false">Edit<span class="screen-reader-text"> <?php echo esc_html( $e['title'] ); ?></span></button>
@@ -273,6 +275,7 @@ get_header();
                     <h3><?php echo esc_html( $e['institution'] ); ?></h3>
                     <?php if ( '' !== $sub ) : ?><p class="pgp-entry-sub"><?php echo esc_html( $sub ); ?></p><?php endif; ?>
                     <?php if ( $e['start_year'] || $e['end_year'] ) : ?><p class="pgp-entry-dates"><?php echo esc_html( $years ); ?></p><?php endif; ?>
+                    <?php do_action( 'prospergenics_scrutiny_public', 'claim', $e['id'] ); do_action( 'prospergenics_scrutiny_actions', 'claim', $e['id'] ); // #6389 ?>
                     <?php if ( $is_owner ) : ?>
                       <div class="pgp-entry-tools pgp-edit-only">
                         <button type="button" class="pgp-link-btn" data-pgp-open="pgp-edu-<?php echo (int) $e['id']; ?>-form" data-pgp-hide="pgp-edu-<?php echo (int) $e['id']; ?>-view" aria-expanded="false">Edit<span class="screen-reader-text"> <?php echo esc_html( $e['institution'] ); ?></span></button>
@@ -372,6 +375,12 @@ get_header();
           <?php endif; ?>
         </section>
       <?php endif; ?>
+
+      <?php // #6389 public scrutiny of this member: what was published about them after review, and
+      // "Suggest a correction, add evidence or review" (inc/profiles/scrutiny-render.php; nothing when
+      // the profile is hidden or suspended)
+      do_action( 'prospergenics_scrutiny_public', 'person', $owner->ID );
+      do_action( 'prospergenics_scrutiny_actions', 'person', $owner->ID ); ?>
     </div>
 
     <aside class="pgp-side" data-pgp-region="sidebar" aria-label="Profile details">
