@@ -278,7 +278,7 @@ function prospergenics_search_explanation_parts( array $evidence ) {
                 break;
             case 'scrutiny':
                 foreach ( $items as $e ) {
-                    $parts[] = array( 'text' => 'reviewed evidence:', 'links' => array( $link( $e ) ), 'suffix' => '(approved)' );
+                    $parts[] = array( 'text' => 'evidence from others:', 'links' => array( $link( $e ) ), 'suffix' => '(approved)' );
                 }
                 break;
             case 'course':
