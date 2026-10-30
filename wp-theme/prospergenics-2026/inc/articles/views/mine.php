@@ -39,10 +39,9 @@ if ( $pga_can ) {
     );
     if ( isset( $pga_filters['review'] ) ) {
         // the review queue: everyone's pending articles, oldest submission first
-        $pga_review_n = count( get_posts( array( 'post_type' => 'pg_article', 'post_status' => 'pending', 'posts_per_page' => -1, 'fields' => 'ids', 'no_found_rows' => true ) ) );
+        $pga_review_n = prospergenics_articles_review_count();
         if ( $pga_queue ) {
-            unset( $pga_args['author'] );
-            $pga_args['order'] = 'ASC';
+            $pga_args = prospergenics_articles_review_queue_args( $pga_paged );
         }
     }
     $pga_query = new WP_Query( $pga_args );

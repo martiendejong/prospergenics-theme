@@ -54,3 +54,5 @@ require get_template_directory() . '/inc/sitemap.php';
 require get_template_directory() . '/inc/platform-articles.php';
 require get_template_directory() . '/inc/platform-profiles.php';
 require get_template_directory() . '/inc/platform-courses.php';
+// The staff area at /manage/ (card #6457): overview, members, contact messages, articles for review.
+require get_template_directory() . '/inc/platform-manage.php';

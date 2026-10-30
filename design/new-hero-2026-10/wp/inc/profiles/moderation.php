@@ -472,13 +472,16 @@ function prospergenics_profiles_report_groups( $status ) {
     return $groups;
 }
 
+/** Open reports (one COUNT query: the menu bubble and /manage/ show it on every page load). */
 function prospergenics_profiles_open_report_count() {
+    global $wpdb;
     $n = wp_cache_get( 'open', 'pg_profiles_reports' );
     if ( false === $n ) {
-        $n = count( get_posts( array(
-            'post_type' => 'pg_report', 'post_status' => 'publish', 'posts_per_page' => 999, 'fields' => 'ids',
-            'meta_key' => '_pg_profiles_report_status', 'meta_value' => 'open', 'suppress_filters' => true,
-        ) ) );
+        $n = (int) $wpdb->get_var(
+            "SELECT COUNT(*) FROM {$wpdb->posts} p
+            INNER JOIN {$wpdb->postmeta} m ON m.post_id = p.ID AND m.meta_key = '_pg_profiles_report_status'
+            WHERE p.post_type = 'pg_report' AND p.post_status = 'publish' AND m.meta_value = 'open'"
+        );
         wp_cache_set( 'open', $n, 'pg_profiles_reports', 60 );
     }
     return (int) $n;
