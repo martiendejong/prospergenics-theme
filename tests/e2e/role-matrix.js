@@ -92,7 +92,7 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
   const U = FX.users, PW = FX.password;
   const visitor = new Session('visitor');
   const s = {};
-  for (const key of ['admin', 'editor', 'author', 'contributor', 'subscriber', 'subscriber2', 'unverified', 'unverified2', 'writer', 'applicant']) {
+  for (const key of ['admin', 'editor', 'author', 'contributor', 'subscriber', 'subscriber2', 'unverified', 'unverified2', 'writer', 'applicant', 'editor2', 'managed']) {
     s[key] = await new Session(key).login(U[key].login, PW);
   }
 
@@ -496,6 +496,164 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
       await post(s.editor, 'hide', { hidden: '0' }, n);
       const back = await visitor.get(FX.project_url);
       check('staff hide a project: 404 and not in REST, then back (control)', 'editor', gone.status === 404 && goneRest.status >= 400 && back.status === 200, `hidden ${gone.status}/${goneRest.status}, shown ${back.status}`);
+    }
+  }
+
+  /* 15. The staff area /manage/ (inc/platform-manage.php, card #6457): editors and admins only; every
+     action nonce + capability; editors never touch administrators or editors, never grant more than
+     Writer. */
+  {
+    const M = U.managed, screens = ['/manage/', '/manage/members/', '/manage/messages/', '/manage/articles/'];
+    const nobodies = ['subscriber', 'unverified', 'writer', 'contributor', 'author'];
+    for (const path of screens) {
+      const v = await visitor.get(path);
+      check('/manage/ sends visitors to the login page (302)', 'visitor', v.status === 302 && /\/wp-login\.php/.test(v.location || ''), `${path} ${v.status} -> ${v.location ? pathOf(v.location) : '(none)'}`);
+      for (const who of nobodies) {
+        const r = await s[who].get(path);
+        check('/manage/ is 403 without the capability', who, r.status === 403 && !r.text.includes(M.login) && !r.text.includes(FX.contact_title) && !r.text.includes(FX.pending_title), `${path} ${r.status}`);
+      }
+    }
+    for (const who of ['editor', 'admin']) {
+      const o = await s[who].get('/manage/');
+      const m = await s[who].get('/manage/members/?s=' + M.login);
+      const c = await s[who].get('/manage/messages/');
+      const a = await s[who].get('/manage/articles/');
+      check('/manage/ screens open for staff (control)', who, o.status === 200 && /Waiting for the team/.test(o.text) && m.status === 200 && m.text.includes(M.name) && c.status === 200 && c.text.includes(FX.contact_title) && a.status === 200 && a.text.includes(FX.pending_title),
+        `overview ${o.status}, members ${m.status}, messages ${c.status}, articles ${a.status}`);
+      check('the account menu offers Manage to staff (control)', who, /href="[^"]*\/manage\/">Manage<\/a>/.test(o.text), '');
+    }
+    {
+      const home = await s.subscriber.get('/courses/', { follow: true });
+      check('no Manage in the account menu for members', 'subscriber', home.status === 200 && !/\/manage\/">Manage</.test(home.text) && /My courses/.test(home.text), `status ${home.status}`);
+    }
+
+    // a member action, as a POST; nonce: true = a valid one minted for this user, a string = that nonce
+    const roleOf = async uid => { const r = await s.admin.get(`/wp-json/wp/v2/users/${uid}?context=edit`); return r.data && r.data.roles ? r.data.roles.join(',') : `?${r.status}`; };
+    const act = async (who, d, uid, { nonce = true, role = '', note = '' } = {}) => {
+      const n = nonce === true ? await mint(s[who], `pg_manage_member_${d}_${uid}`) : (nonce || '');
+      const body = { action: 'pg_manage_member', do: d, user_id: String(uid), role, note };
+      if (n) body._wpnonce = n;
+      return s[who].request('POST', '/wp-admin/admin-post.php', { body });
+    };
+    const memberActions = [['role', { role: 'pg_writer' }], ['verify'], ['resend'], ['hide'], ['unhide'], ['suspend'], ['unsuspend']];
+    for (const who of ['subscriber', 'writer', 'contributor', 'author']) {
+      for (const [d, extra] of memberActions) {
+        const plain = await act(who, d, M.id, Object.assign({ nonce: false }, extra));
+        check(`/manage/ "${d}" without the nonce is refused`, who, plain.status === 403, `POST ${plain.status}`);
+        const r = await act(who, d, M.id, Object.assign({}, extra));
+        check(`/manage/ "${d}" with a valid nonce but no capability is refused`, who, r.status === 403, `POST ${r.status}`);
+      }
+    }
+    for (const d of ['hide', 'verify']) {
+      const r = await act('admin', d, M.id, { nonce: false });
+      check(`/manage/ "${d}" without the nonce is refused`, 'admin', r.status === 403, `POST ${r.status}`);
+    }
+    {
+      const role = await roleOf(M.id);
+      const f = await s.managed.request('POST', `${NS}/profile/users/${U.editor.slug}/follow`);
+      check('after the refusals the member is unchanged', 'managed', role === 'subscriber' && f.status === 403, `role ${role}, follow ${f.status} (still unverified)`);
+    }
+
+    // editors: never administrators, other editors or themselves; nothing above Writer
+    for (const [target, d, extra] of [['admin', 'hide'], ['admin', 'role', { role: 'subscriber' }], ['editor2', 'hide'], ['editor2', 'suspend'], ['editor2', 'role', { role: 'pg_writer' }], ['editor', 'unhide']]) {
+      const r = await act('editor', d, U[target].id, extra || {});
+      check(`editor cannot "${d}" ${target === 'editor' ? 'themself' : 'the ' + target}`, 'editor', r.status === 403, `POST ${r.status}`);
+    }
+    for (const role of ['editor', 'author', 'contributor', 'administrator']) {
+      const r = await act('editor', 'role', M.id, { role });
+      check(`editor cannot make a member ${role}`, 'editor', r.status === 403, `POST ${r.status}`);
+    }
+    {
+      const r = await act('admin', 'role', M.id, { role: 'administrator' });
+      check('nobody grants administrator from /manage/', 'admin', r.status === 403 && (await roleOf(M.id)) === 'subscriber', `POST ${r.status}`);
+      const own = await act('admin', 'role', U.admin.id, { role: 'subscriber' });
+      check('an administrator cannot change their own role here', 'admin', own.status === 403 && (await roleOf(U.admin.id)) === 'administrator', `POST ${own.status}`);
+    }
+
+    // controls: the editor uses every action on a member; the admin may also grant Author
+    const page = await s.editor.get('/manage/members/?s=' + M.login);
+    check('the members list offers the actions for the member (control)', 'editor', ['role', 'verify', 'resend', 'hide', 'suspend'].every(d => new RegExp(`name="do" value="${d}" />\\s*<input type="hidden" name="user_id" value="${M.id}"`).test(page.text)), `status ${page.status}`);
+    const done = (r, key) => r.status === 302 && new RegExp(`done=${key}`).test(r.location || '') && pathOf(r.location) === '/manage/members/';
+    {
+      const r = await act('editor', 'role', M.id, { role: 'pg_writer' });
+      const after = await roleOf(M.id);
+      const back = await act('editor', 'role', M.id, { role: 'subscriber' });
+      check('editor makes a member a Writer and back (control)', 'editor', done(r, 'role') && after === 'pg_writer' && done(back, 'role') && (await roleOf(M.id)) === 'subscriber', `POST ${r.status} -> ${after}, back ${back.status}`);
+    }
+    {
+      const r = await act('editor', 'resend', M.id);
+      check('editor resends the confirmation link (control)', 'editor', done(r, 'sent'), `POST ${r.status} -> ${r.location || ''}`);
+      const before = await s.managed.request('POST', `${NS}/profile/users/${U.editor.slug}/follow`);
+      const v = await act('editor', 'verify', M.id);
+      const after = await s.managed.request('POST', `${NS}/profile/users/${U.editor.slug}/follow`);
+      check('editor marks the member verified (control)', 'editor', done(v, 'verified') && before.status === 403 && after.status === 200, `POST ${v.status}, follow before ${before.status}, after ${after.status}`);
+    }
+    {
+      const seenBefore = await s.subscriber.get(`/in/${M.slug}/`, { follow: true });
+      const h = await act('editor', 'hide', M.id);
+      const seen = await s.subscriber.get(`/in/${M.slug}/`, { follow: true });
+      const un = await act('editor', 'unhide', M.id);
+      const seenAgain = await s.subscriber.get(`/in/${M.slug}/`, { follow: true });
+      check('editor hides the profile and shows it again (control)', 'editor', seenBefore.text.includes(M.name) && done(h, 'hidden') && !seen.text.includes(M.name) && done(un, 'shown') && seenAgain.text.includes(M.name), `seen before ${seenBefore.text.includes(M.name)}, hidden ${!seen.text.includes(M.name)}, again ${seenAgain.text.includes(M.name)}`);
+    }
+    {
+      const sp = await act('editor', 'suspend', M.id, { note: 'E2E suspension' });
+      const login = await new Session('managed-suspended').login(M.login, PW).then(() => true, () => false);
+      const old = await s.managed.get('/profile/settings/');
+      const un = await act('editor', 'unsuspend', M.id);
+      const again = await new Session('managed-back').login(M.login, PW).then(() => true, () => false);
+      check('editor suspends the member and lifts it (control)', 'editor', done(sp, 'suspended') && !login && old.status === 302 && done(un, 'unsuspended') && again, `POST ${sp.status}, login while suspended ${login}, old cookie ${old.status}, after ${again}`);
+    }
+    {
+      const r = await act('admin', 'role', M.id, { role: 'author' });
+      const after = await roleOf(M.id);
+      await act('admin', 'role', M.id, { role: 'subscriber' });
+      check('the admin may make a member an Author (control)', 'admin', done(r, 'role') && after === 'author' && (await roleOf(M.id)) === 'subscriber', `POST ${r.status} -> ${after}`);
+      const e = await act('admin', 'hide', U.editor2.id);
+      await act('admin', 'unhide', U.editor2.id);
+      check('the admin may change an editor (control)', 'admin', done(e, 'hidden'), `POST ${e.status}`);
+    }
+
+    // contact messages: editors and admins, nonce per action and message
+    const msg = async (who, d, nonce = true) => {
+      const n = nonce === true ? await mint(s[who], `pg_manage_message_${d}_${FX.contact_id}`) : '';
+      const body = { action: 'pg_manage_message', do: d, message: String(FX.contact_id) };
+      if (n) body._wpnonce = n;
+      return s[who].request('POST', '/wp-admin/admin-post.php', { body });
+    };
+    for (const who of ['subscriber', 'writer', 'contributor', 'author']) {
+      for (const d of ['read', 'handled']) {
+        const plain = await msg(who, d, false);
+        const r = await msg(who, d);
+        check(`/manage/ message "${d}" refused, with and without the nonce`, who, plain.status === 403 && r.status === 403, `POST ${plain.status} / ${r.status}`);
+      }
+    }
+    {
+      const plain = await msg('editor', 'handled', false);
+      const h = await msg('editor', 'handled');
+      const list = await s.editor.get('/manage/messages/?view=handled');
+      const re = await msg('admin', 'reopen');
+      const open = await s.admin.get('/manage/messages/?view=handled');
+      check('editor marks a message handled, the admin reopens it (control)', 'editor', plain.status === 403 && h.status === 302 && /done=msg_handled/.test(h.location || '') && list.text.includes(FX.contact_title) && re.status === 302 && !open.text.includes(FX.contact_title), `no nonce ${plain.status}, POST ${h.status}, listed ${list.text.includes(FX.contact_title)}, reopen ${re.status}`);
+      await msg('editor', 'unread');
+      const link = /href="([^"]*\/manage\/messages\/\?message=\d+(?:&#0?38;|&amp;|&)_wpnonce=[0-9a-f]+)"/.exec((await s.editor.get('/manage/messages/?view=unread')).text);
+      const view = link ? await s.editor.get(decode(link[1])) : { status: 0, text: '' };
+      const unread = await s.editor.get('/manage/messages/?view=unread');
+      check('opening a message from the inbox marks it read (control)', 'editor', !!link && view.status === 200 && /Phone \+31/.test(view.text) && !unread.text.includes(FX.contact_title), `open ${view.status}, still unread: ${unread.text.includes(FX.contact_title)}`);
+    }
+
+    // the review queue: the existing publish action, returning to /manage/articles/
+    {
+      for (const who of ['contributor', 'author', 'writer']) {
+        const n = await mint(s[who], `pg_articles_publish_${FX.pending}`);
+        const r = await s[who].request('POST', '/wp-admin/admin-post.php', { body: { action: 'pg_articles_publish', post_id: String(FX.pending), pg_from: 'manage', _wpnonce: n } });
+        check('publishing someone else\'s article from the queue is refused, even with a valid nonce', who, n && r.status === 403, `POST ${r.status}`);
+      }
+      const q = await s.editor.get('/manage/articles/');
+      const m = new RegExp(`name="post_id" value="${FX.pending}" />\\s*<input type="hidden" name="pg_from" value="manage" />\\s*<input type="hidden" id="_wpnonce" name="_wpnonce" value="([0-9a-f]+)"`).exec(q.text);
+      const r = m ? await s.editor.request('POST', '/wp-admin/admin-post.php', { body: { action: 'pg_articles_publish', post_id: String(FX.pending), pg_from: 'manage', _wpnonce: m[1] } }) : { status: 0 };
+      const st = await s.admin.get(`/wp-json/wp/v2/pg_article/${FX.pending}?context=edit`);
+      check('editor publishes from the review queue and returns to it (control)', 'editor', r.status === 302 && pathOf(r.location) === '/manage/articles/' && /done=published/.test(r.location || '') && st.data && st.data.status === 'publish', `POST ${r.status} -> ${r.location || ''}, status ${st.data && st.data.status}`);
     }
   }
 

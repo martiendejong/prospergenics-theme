@@ -360,17 +360,15 @@ function prospergenics_profiles_all_applications() {
     return $rows;
 }
 
-/** The number of open requests (for the menu bubble). */
+/** The number of open requests (for the menu bubble and /manage/): one COUNT query. */
 function prospergenics_profiles_pending_application_count() {
-    $n = 0;
-    foreach ( array_keys( prospergenics_profiles_application_types() ) as $type ) {
-        $n += count( get_users( array(
-            'fields'      => 'ID',
-            'count_total' => false,
-            'meta_query'  => array( array( 'key' => prospergenics_profiles_application_key( $type ), 'value' => 's:6:"status";s:7:"pending";', 'compare' => 'LIKE' ) ),
-        ) ) );
-    }
-    return $n;
+    global $wpdb;
+    $keys = array_map( 'prospergenics_profiles_application_key', array_keys( prospergenics_profiles_application_types() ) );
+    $in   = implode( ', ', array_fill( 0, count( $keys ), '%s' ) );
+    return (int) $wpdb->get_var( $wpdb->prepare(
+        "SELECT COUNT(*) FROM {$wpdb->usermeta} WHERE meta_key IN ($in) AND meta_value LIKE %s", // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders -- $in is a list of %s placeholders
+        array_merge( $keys, array( '%' . $wpdb->esc_like( 's:6:"status";s:7:"pending";' ) . '%' ) )
+    ) );
 }
 
 add_action( 'admin_menu', function () {
