@@ -65,6 +65,12 @@ function prospergenics_search_stopwords() {
         'was', 'we', 'what', 'when', 'where', 'which', 'who', 'why', 'will', 'with', 'would', 'you',
         'your', 'about', 'into', 'more', 'most', 'not', 'but', 'all', 'any', 'just', 'like', 'find',
         'looking', 'person', 'people', 'expert', 'experts', 'good', 'best', 'very',
+        // words a "describe your problem" text is full of
+        'am', 'im', 'been', 'being', 'cannot', 'cant', 'could', 'should', 'does', 'did', 'doing',
+        'decide', 'know', 'keep', 'keeps', 'make', 'many', 'much', 'also', 'because', 'they', 'them',
+        'then', 'than', 'stuck', 'problem', 'trying', 'try', 'got', 'us', 'one', 'out', 'up',
+        // pieces of a pasted link
+        'http', 'https', 'www', 'com',
         // Swahili and Dutch fillers members type
         'na', 'ya', 'wa', 'kwa', 'ni', 'de', 'het', 'een', 'en', 'van', 'voor', 'met',
     );
