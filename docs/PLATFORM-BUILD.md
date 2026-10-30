@@ -9,10 +9,17 @@ theme (card #6343: "keep within the theme"), in three independent tracks:
 | Articles | #6365–#6370 | `/articles/` (existing blog posts stay at `/blog/`) |
 | Profiles | #6339–#6340, #6343–#6354 | `/in/{username}/` (the curated `/people/` pages stay as they are) |
 | Courses | #6355–#6364 | `/courses/` (replaces the jengo-listings courses page, decided 2026-10-25) |
+| Search | #6393 | `/find/` (expertise search: people, projects, courses, articles; WordPress keeps `?s=`) |
 
 Blocked for now: IAM login and registration (#6337, #6338, #6341, #6342: need jengo-iam), companies
-and AI tools (#6371–#6377: need the jengo-listings repo), search (#6378–#6380: needs a decision on
-SQLite FTS5 vs MySQL), and the epics #6388, #6389, #6393.
+and AI tools (#6371–#6377: need the jengo-listings repo), and the global search (#6378–#6380: needs
+a decision on SQLite FTS5 vs MySQL). The WordPress-native expertise search (#6393, `inc/search/`)
+runs now; the FTS5 index plugs in behind its `prospergenics_search_index_hits` filter, Jengo
+Listings behind `prospergenics_search_listings_results`, Knowledge provenance behind
+`prospergenics_search_evidence_provenance`, AGI intake behind `prospergenics_search_intake_terms`
+and scrutiny evidence (#6389) behind `prospergenics_search_person_evidence` (docblocks in
+`inc/search/engine.php`). Other tracks need not call it: it listens to
+`prospergenics_platform_content_saved` and post / user meta changes to retire its cache.
 
 ## Where code goes
 

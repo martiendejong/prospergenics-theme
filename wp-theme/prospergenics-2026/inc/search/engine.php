@@ -13,11 +13,12 @@
  *   - articles: published pg_article posts, never hidden ones (_pg_articles_hidden) or
  *     password-protected ones.
  *
- * The query plan is the same for every search (no query per result): the posts that mention a
- * term (profile entries, then projects/courses/articles), the members whose headline or about
- * text mentions one, the certificates of the matching courses, then one priming read each for
- * the users and the post meta involved, and the candidates' skills. At most
- * PROSPERGENICS_SEARCH_MAX_CANDIDATES people are scored. The result is cached in a transient for
+ * The query plan is the same for every search (no query per result): the projects, courses and
+ * articles that mention a term; how many matching profile entries each member has; the members
+ * whose headline or about text mentions one; the certificates of the matching courses; then, for
+ * the chosen candidates only, their matching entries, their accounts and their skills, with one
+ * priming read for the post meta involved. At most PROSPERGENICS_SEARCH_MAX_CANDIDATES people,
+ * the strongest raw evidence first, are scored. The result is cached in a transient for
  * PROSPERGENICS_SEARCH_CACHE_TTL seconds, keyed by the query and filters; any change to a
  * profile, project, course, article or certificate bumps a generation number, which retires
  * every cached search at once.
@@ -201,34 +202,66 @@ function prospergenics_search_in_sql( array $values ) {
     return $wpdb->prepare( implode( ', ', array_fill( 0, count( $values ), '%s' ) ), $values ); // phpcs:ignore WordPress.DB.PreparedSQL
 }
 
+/** WHERE fragment for posts (alias p) whose title, content, excerpt or describing meta mention a term. */
+function prospergenics_search_match_sql( array $terms ) {
+    global $wpdb;
+    $meta_in = prospergenics_search_in_sql( array( '_pg_profiles_company', '_pg_profiles_degree', '_pg_profiles_field', '_pg_project_skills', '_pg_project_contributions', '_pg_courses_outcomes' ) );
+    return '(' . prospergenics_search_like_sql( array( 'p.post_title', 'p.post_content', 'p.post_excerpt' ), $terms )
+        . " OR p.ID IN (SELECT m.post_id FROM {$wpdb->postmeta} m WHERE m.meta_key IN ($meta_in) AND " . prospergenics_search_like_sql( array( 'm.meta_value' ), $terms ) . '))';
+}
+
 /**
  * Which posts and members mention the terms, from the WordPress tables. A coarse filter (substring
  * LIKE on the stem); the engine then checks each hit at word starts.
  *
- * @return array{posts:array<int,object>,users:int[]}
+ * @return array{posts:array<int,object>,entry_authors:array<int,int>,users:int[]}
  */
 function prospergenics_search_wp_hits( array $terms ) {
     global $wpdb;
-    $meta_keys = array( '_pg_profiles_company', '_pg_profiles_degree', '_pg_profiles_field', '_pg_project_skills', '_pg_project_contributions', '_pg_courses_outcomes' );
-    $meta_in   = prospergenics_search_in_sql( $meta_keys );
-    $match     = '(' . prospergenics_search_like_sql( array( 'p.post_title', 'p.post_content', 'p.post_excerpt' ), $terms )
-        . " OR p.ID IN (SELECT m.post_id FROM {$wpdb->postmeta} m WHERE m.meta_key IN ($meta_in) AND " . prospergenics_search_like_sql( array( 'm.meta_value' ), $terms ) . '))';
-    $posts     = array();
-    // 1. profile entries (the evidence people put on their profile); 2. projects, courses, articles
-    foreach ( array( array( PROSPERGENICS_SEARCH_ENTRY_TYPES, 600 ), array( PROSPERGENICS_SEARCH_CONTENT_TYPES, 300 ) ) as $set ) {
-        $types = array_values( array_filter( $set[0], 'post_type_exists' ) );
-        if ( ! $types ) {
-            continue;
-        }
-        $rows = $wpdb->get_results( "SELECT p.* FROM {$wpdb->posts} p WHERE p.post_status = 'publish' AND p.post_type IN (" . prospergenics_search_in_sql( $types ) . ") AND $match ORDER BY p.ID DESC LIMIT " . (int) $set[1] ); // phpcs:ignore WordPress.DB.PreparedSQL -- built from prepared parts
-        $posts = array_merge( $posts, (array) $rows );
+    $match = prospergenics_search_match_sql( $terms );
+    $posts = array();
+    // 1. projects, courses, articles
+    $types = array_values( array_filter( PROSPERGENICS_SEARCH_CONTENT_TYPES, 'post_type_exists' ) );
+    if ( $types ) {
+        $posts = (array) $wpdb->get_results( "SELECT p.* FROM {$wpdb->posts} p WHERE p.post_status = 'publish' AND p.post_type IN (" . prospergenics_search_in_sql( $types ) . ") AND $match ORDER BY p.ID DESC LIMIT 300" ); // phpcs:ignore WordPress.DB.PreparedSQL -- built from prepared parts
+    }
+    // 2. members with matching profile entries (skills, experience, education) and how many; the
+    // entries themselves are read for the chosen candidates only (prospergenics_search_entries())
+    $rows    = (array) $wpdb->get_results( "SELECT p.post_author AS uid, COUNT(*) AS n FROM {$wpdb->posts} p WHERE p.post_status = 'publish' AND p.post_type IN (" . prospergenics_search_in_sql( PROSPERGENICS_SEARCH_ENTRY_TYPES ) . ") AND $match GROUP BY p.post_author ORDER BY COUNT(*) DESC, p.post_author ASC LIMIT 1000" ); // phpcs:ignore WordPress.DB.PreparedSQL
+    $authors = array();
+    foreach ( $rows as $r ) {
+        $authors[ (int) $r->uid ] = (int) $r->n;
     }
     // 3. members whose headline or about text mentions a term
-    $users = $wpdb->get_col( "SELECT DISTINCT user_id FROM {$wpdb->usermeta} WHERE meta_key IN ('_pg_profiles_headline', '_pg_profiles_about') AND " . prospergenics_search_like_sql( array( 'meta_value' ), $terms ) . ' LIMIT ' . PROSPERGENICS_SEARCH_MAX_CANDIDATES ); // phpcs:ignore WordPress.DB.PreparedSQL
-    return array( 'posts' => $posts, 'users' => array_map( 'intval', (array) $users ) );
+    $users = $wpdb->get_col( "SELECT DISTINCT user_id FROM {$wpdb->usermeta} WHERE meta_key IN ('_pg_profiles_headline', '_pg_profiles_about') AND " . prospergenics_search_like_sql( array( 'meta_value' ), $terms ) . ' LIMIT 1000' ); // phpcs:ignore WordPress.DB.PreparedSQL
+    return array( 'posts' => $posts, 'entry_authors' => $authors, 'users' => array_map( 'intval', (array) $users ) );
+}
+
+/**
+ * The candidates' profile entries that mention a term, in one read (at most 200 members × 50
+ * entries each).
+ *
+ * @param int[] $user_ids
+ * @return object[] full wp_posts rows
+ */
+function prospergenics_search_entries( array $terms, array $user_ids ) {
+    if ( ! $user_ids ) {
+        return array();
+    }
+    global $wpdb;
+    return (array) $wpdb->get_results( "SELECT p.* FROM {$wpdb->posts} p WHERE p.post_status = 'publish' AND p.post_type IN (" . prospergenics_search_in_sql( PROSPERGENICS_SEARCH_ENTRY_TYPES ) . ') AND p.post_author IN (' . implode( ',', array_map( 'intval', $user_ids ) ) . ') AND ' . prospergenics_search_match_sql( $terms ) ); // phpcs:ignore WordPress.DB.PreparedSQL -- built from prepared parts and integers
 }
 
 /* ───────────────────────── computing a search ───────────────────────── */
+
+/** Put full post rows and their meta in the object cache (two reads at most, none per post later). */
+function prospergenics_search_prime_posts( array $rows ) {
+    if ( ! $rows ) {
+        return;
+    }
+    update_post_cache( $rows );
+    update_meta_cache( 'post', array_map( 'intval', wp_list_pluck( $rows, 'ID' ) ) );
+}
 
 /** Text of a post a term may be found in (title, content, excerpt and the meta that describes it). */
 function prospergenics_search_post_text( $p ) {
@@ -314,11 +347,12 @@ function prospergenics_search_compute( array $args ) {
      *
      * Return null (the default) to use the WordPress tables (SQL LIKE, prospergenics_search_wp_hits()).
      * The global FTS5 index (#6378-#6380) will return the same shape from its own index:
-     * 'posts' => full wp_posts rows (objects; published posts of the searched types only, e.g.
-     * read back with one "SELECT * … WHERE ID IN (…)" for the IDs the index found), and
-     * 'users' => member IDs whose headline/about matches. Everything after this (privacy,
-     * evidence, ranking, explanations) stays in WordPress, so swapping the index never changes
-     * who may be found.
+     * 'posts' => full wp_posts rows (objects) of the published projects, courses and articles
+     * that match (e.g. read back with one "SELECT * … WHERE ID IN (…)" for the IDs the index
+     * found), 'entry_authors' => member ID => number of matching profile entries, and 'users' =>
+     * member IDs whose headline/about matches. The chosen candidates' entries, privacy, evidence,
+     * ranking and explanations stay in WordPress, so swapping the index never changes who may be
+     * found.
      *
      * @param array|null $hits
      * @param string[]   $terms
@@ -328,15 +362,8 @@ function prospergenics_search_compute( array $args ) {
     if ( ! is_array( $hits ) || ! isset( $hits['posts'], $hits['users'] ) ) {
         $hits = prospergenics_search_wp_hits( $terms );
     }
-
-    $post_ids = array();
-    foreach ( $hits['posts'] as $p ) {
-        $post_ids[] = (int) $p->ID;
-    }
-    if ( $post_ids ) {
-        update_post_cache( $hits['posts'] ); // full rows: permalinks and titles need no further reads
-        update_meta_cache( 'post', $post_ids );
-    }
+    $hits += array( 'entry_authors' => array() );
+    prospergenics_search_prime_posts( $hits['posts'] );
 
     // Check each hit at word starts; sort into evidence by member and into result groups.
     $by_user  = array(); // user_id => list of [kind, post, terms]
@@ -352,11 +379,6 @@ function prospergenics_search_compute( array $args ) {
             continue;
         }
         switch ( $p->post_type ) {
-            case 'pg_skill':
-            case 'pg_experience':
-            case 'pg_education':
-                $by_user[ (int) $p->post_author ][] = array( substr( $p->post_type, 3 ), $p, $found );
-                break;
             case 'pg_project':
                 $projects[ (int) $p->ID ] = array( 'post' => $p, 'terms' => $found );
                 break;
@@ -419,15 +441,35 @@ function prospergenics_search_compute( array $args ) {
         }
         $by_user[ $uid ][] = array( 'headline', null, array() );
     }
+    foreach ( array_keys( $hits['entry_authors'] ) as $uid ) {
+        if ( ! isset( $by_user[ (int) $uid ] ) ) {
+            $by_user[ (int) $uid ] = array();
+        }
+    }
     unset( $by_user[0] );
 
-    // The candidate budget: the members with the most raw hits first, at most 200.
-    uksort( $by_user, function ( $a, $b ) use ( $by_user ) {
-        return count( $by_user[ $b ] ) - count( $by_user[ $a ] ) ?: $a - $b;
+    // The candidate budget: the members with the strongest raw evidence first, at most 200
+    // (a matching profile entry counts like a piece of experience until it is read).
+    $raw = array();
+    foreach ( $by_user as $uid => $list ) {
+        $raw[ $uid ] = prospergenics_search_raw_weight( $list ) + 3 * ( isset( $hits['entry_authors'][ $uid ] ) ? (int) $hits['entry_authors'][ $uid ] : 0 );
+    }
+    uksort( $by_user, function ( $a, $b ) use ( $raw ) {
+        return $raw[ $b ] <=> $raw[ $a ] ?: $a - $b;
     } );
     $by_user    = array_slice( $by_user, 0, PROSPERGENICS_SEARCH_MAX_CANDIDATES, true );
     $candidates = count( $by_user );
     cache_users( array_keys( $by_user ) );
+
+    // The candidates' matching profile entries, in one read.
+    $entries = prospergenics_search_entries( $terms, array_values( array_intersect( array_keys( $by_user ), array_map( 'intval', array_keys( $hits['entry_authors'] ) ) ) ) );
+    prospergenics_search_prime_posts( $entries );
+    foreach ( $entries as $p ) {
+        $found = prospergenics_search_text_matches( prospergenics_search_post_text( $p ), $terms );
+        if ( $found && isset( $by_user[ (int) $p->post_author ] ) ) {
+            $by_user[ (int) $p->post_author ][] = array( substr( $p->post_type, 3 ), $p, $found );
+        }
+    }
 
     // Who may be found, and which of their sections everyone may see.
     $vis_of = array();
@@ -506,6 +548,25 @@ function prospergenics_search_compute( array $args ) {
         'skills'     => array_slice( $facets, 0, 15, true ),
         'candidates' => $candidates,
     );
+}
+
+/**
+ * A member's raw evidence weight before any privacy check, to choose which candidates are scored
+ * when there are more than PROSPERGENICS_SEARCH_MAX_CANDIDATES.
+ *
+ * @param array $hits [kind, post, terms, extra] items.
+ */
+function prospergenics_search_raw_weight( array $hits ) {
+    $kinds = prospergenics_search_evidence_kinds();
+    $w     = 0;
+    foreach ( $hits as $h ) {
+        $kind = $h[0];
+        if ( 'project' === $kind ) {
+            $kind = isset( $h[3]['status'] ) && 'confirmed' === $h[3]['status'] ? 'project_confirmed' : 'project_claimed';
+        }
+        $w += isset( $kinds[ $kind ] ) ? $kinds[ $kind ]['weight'] : 1;
+    }
+    return $w;
 }
 
 /**
