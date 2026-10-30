@@ -123,6 +123,25 @@ $media = $media ? (int) $media[0] : (int) wp_insert_attachment( array(
     'guid'           => home_url( '/wp-content/uploads/e2e-admin-9c1d.png' ),
 ) );
 
+// Scrutiny (card #6389): a published item and one waiting for review, about subscriber2, from a
+// visitor whose email address only staff may see. Reset to that state on every run.
+$pg_e2e_scrutiny = array();
+foreach ( array( 'published' => array( 'approved', 'E2E scrutiny published 5b2e: he trained ten apprentices.' ), 'pending' => array( 'pending', 'E2E scrutiny pending 8d4c: not reviewed yet.' ) ) as $k => $item ) {
+    $sid = pg_e2e_post( 'pg_scrutiny', 'E2E scrutiny ' . $k, array( 'post_author' => 0, 'post_content' => $item[1] ) );
+    $meta = array(
+        'kind' => 'evidence', 'target' => 'person:' . $owner, 'target_type' => 'person', 'target_id' => $owner, 'sources' => array(),
+        'disclosure' => 'none', 'disclosure_text' => '', 'name' => 'E2E Visitor', 'status' => $item[0],
+        'published_at' => 'approved' === $item[0] ? time() : 0, 'audit_email' => 'e2e-scrutiny-visitor@example.test', 'audit_ip' => str_repeat( 'ab', 32 ),
+    );
+    foreach ( $meta as $mk => $mv ) {
+        update_post_meta( $sid, '_pg_scrutiny_' . $mk, $mv );
+    }
+    delete_post_meta( $sid, '_pg_scrutiny_response' );
+    $pg_e2e_scrutiny[ $k ] = array( 'id' => $sid, 'text' => $item[1] );
+}
+$pg_e2e_out['scrutiny']       = $pg_e2e_scrutiny;
+$pg_e2e_out['scrutiny_email'] = 'e2e-scrutiny-visitor@example.test';
+
 $pg_e2e_out['course']        = $course;
 $pg_e2e_out['media']         = $media;
 $pg_e2e_out['media_title']   = 'E2E admin image 9c1d';

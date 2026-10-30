@@ -602,10 +602,11 @@ function prospergenics_profiles_moderate( $key, $do, $by, $note = '' ) {
 }
 
 add_action( 'admin_menu', function () {
-    $n = current_user_can( PROSPERGENICS_MODERATION_CAP ) ? prospergenics_profiles_open_report_count() : 0;
+    // open reports plus what other queues in this screen wait on (filter: e.g. scrutiny items, #6389)
+    $n = current_user_can( PROSPERGENICS_MODERATION_CAP ) ? prospergenics_profiles_open_report_count() + (int) apply_filters( 'prospergenics_profiles_moderation_count', 0 ) : 0;
     add_menu_page(
         'Reports and moderation',
-        'Reports' . ( $n ? ' <span class="awaiting-mod count-' . (int) $n . '"><span class="pending-count" aria-hidden="true">' . (int) $n . '</span><span class="screen-reader-text">' . esc_html( sprintf( '%d open reports', $n ) ) . '</span></span>' : '' ),
+        'Reports' . ( $n ? ' <span class="awaiting-mod count-' . (int) $n . '"><span class="pending-count" aria-hidden="true">' . (int) $n . '</span><span class="screen-reader-text">' . esc_html( sprintf( '%d to review', $n ) ) . '</span></span>' : '' ),
         PROSPERGENICS_MODERATION_CAP,
         'pg-moderation',
         'prospergenics_profiles_moderation_page',
@@ -647,7 +648,17 @@ function prospergenics_profiles_moderation_page() {
     }
     // phpcs:ignore WordPress.Security.NonceVerification -- display only, whitelisted values
     $tab  = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'open';
-    $tab  = in_array( $tab, array( 'open', 'handled', 'suspended' ), true ) ? $tab : 'open';
+    /**
+     * The tabs of the screen, key => label. Another queue adds a tab here and renders it on the
+     * action prospergenics_profiles_moderation_tab_<key> (e.g. Scrutiny, card #6389). The screen
+     * and every handler of such a tab check pg_moderate themselves.
+     */
+    $tabs = (array) apply_filters( 'prospergenics_profiles_moderation_tabs', array(
+        'open'      => 'Open (' . prospergenics_profiles_open_report_count() . ')',
+        'handled'   => 'Handled',
+        'suspended' => 'Suspended members',
+    ) );
+    $tab  = isset( $tabs[ $tab ] ) ? $tab : 'open';
     $done = isset( $_GET['pg_mod_done'] ) ? sanitize_key( wp_unslash( $_GET['pg_mod_done'] ) ) : '';
     $msgs = array(
         'hidden'      => 'Hidden. Only its owner and staff can see it now.',
@@ -673,13 +684,18 @@ function prospergenics_profiles_moderation_page() {
         echo '<div class="notice notice-error is-dismissible pg-mod-notice"><p>' . esc_html( isset( $why[ $done ] ) ? $why[ $done ] : 'That did not work. Please try again.' ) . '</p></div>';
     }
     echo '<nav class="nav-tab-wrapper" aria-label="Report lists">';
-    foreach ( array( 'open' => 'Open (' . prospergenics_profiles_open_report_count() . ')', 'handled' => 'Handled', 'suspended' => 'Suspended members' ) as $k => $label ) {
+    foreach ( $tabs as $k => $label ) {
         printf( '<a class="nav-tab%s" href="%s"%s>%s</a>', $k === $tab ? ' nav-tab-active' : '', esc_url( add_query_arg( 'tab', $k, $base ) ), $k === $tab ? ' aria-current="page"' : '', esc_html( $label ) );
     }
     echo '</nav>';
 
     if ( 'suspended' === $tab ) {
         prospergenics_profiles_moderation_suspended_table();
+        echo '</div>';
+        return;
+    }
+    if ( ! in_array( $tab, array( 'open', 'handled' ), true ) ) {
+        do_action( 'prospergenics_profiles_moderation_tab_' . $tab );
         echo '</div>';
         return;
     }
