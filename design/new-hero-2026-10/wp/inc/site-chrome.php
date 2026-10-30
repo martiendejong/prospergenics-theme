@@ -356,6 +356,16 @@ function prospergenics_2026_listings_takeover( $html, $path, array $chrome ) {
         $out  = null === $new ? $out : $new;
     }
 
+    // A link under the directory's own name search (the /members/ directory links to the expertise
+    // search /find/, card #6393): after the plugin's search form, only when it is there exactly once.
+    $search_links = (array) apply_filters( 'prospergenics_2026_listings_search_links', array() );
+    if ( isset( $search_links[ $key ] ) && 1 === substr_count( $out, '<div class="search-wrap">' ) ) {
+        $l    = $search_links[ $key ];
+        $note = '<p class="pg-find-link" style="margin:12px 0 0;font-size:15px">' . esc_html( $l['text'] ) . ' <a href="' . esc_url( home_url( $l['path'] ) ) . '" style="color:#1a7a46;font-weight:600">' . esc_html( $l['label'] ) . ' →</a></p>';
+        $new  = preg_replace_callback( '#(<div class="search-wrap">.*?</form>)#s', function ( $m ) use ( $note ) { return $m[1] . $note; }, $out, 1 );
+        $out  = null === $new ? $out : $new;
+    }
+
     return rtrim( $out ) . "\n\n" . $chrome['footer'] . "\n" . $chrome['script'] . "\n";
 }
 
