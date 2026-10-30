@@ -123,7 +123,7 @@ add_action( 'prospergenics_search_invalidate', 'prospergenics_search_flush' );
 
 function prospergenics_search_flush_for_post( $post_id ) {
     $type = get_post_type( (int) $post_id );
-    if ( in_array( $type, array_merge( PROSPERGENICS_SEARCH_ENTRY_TYPES, PROSPERGENICS_SEARCH_CONTENT_TYPES, array( 'pg_certificate' ) ), true ) ) {
+    if ( in_array( $type, array_merge( PROSPERGENICS_SEARCH_ENTRY_TYPES, PROSPERGENICS_SEARCH_CONTENT_TYPES, array( 'pg_certificate', 'pg_scrutiny' ) ), true ) ) {
         prospergenics_search_flush();
     }
 }
@@ -380,6 +380,11 @@ function prospergenics_search_compute( array $args ) {
         }
         switch ( $p->post_type ) {
             case 'pg_project':
+                // hidden by staff, its creator hidden or suspended, or no contribution a visitor
+                // may see: the project does not exist for visitors (projects track #6388)
+                if ( function_exists( 'prospergenics_projects_can_view' ) && ! prospergenics_projects_can_view( $p, 0 ) ) {
+                    break;
+                }
                 $projects[ (int) $p->ID ] = array( 'post' => $p, 'terms' => $found );
                 break;
             case 'pg_course':
@@ -483,13 +488,20 @@ function prospergenics_search_compute( array $args ) {
     // Every visible skill of those members (skill facet and filter), one read.
     $skills_of = prospergenics_search_skills_of( array_keys( array_filter( $vis_of, function ( $v ) { return ! empty( $v['skills'] ); } ) ) );
 
+    // Approved scrutiny evidence about them, their matching entries and projects (#6389), one read.
+    $scrutiny = prospergenics_search_scrutiny_evidence( $vis_of, $by_user, $terms );
+
     $kinds  = (array) apply_filters( 'prospergenics_search_weights', prospergenics_search_evidence_kinds() );
     $people = array();
     $facets = array();
     foreach ( $vis_of as $uid => $vis ) {
         $evidence = prospergenics_search_person_evidence( $uid, $by_user[ $uid ], $vis, $terms, $projects );
+        if ( isset( $scrutiny[ $uid ] ) ) {
+            $evidence = array_merge( $evidence, $scrutiny[ $uid ] );
+        }
         /**
-         * More evidence for a person (scrutiny #6389, Work review). Add only items a logged-out
+         * More evidence for a person (Django Work review, other sources; approved scrutiny
+         * evidence (#6389) is already in, from prospergenics_search_scrutiny_evidence()). Add only items a logged-out
          * visitor may see (approved, public), each: kind ('scrutiny' or another key of
          * prospergenics_search_evidence_kinds()), label, url, terms (the query terms it matches),
          * verified (bool). Called only for members who may be found at all.
@@ -548,6 +560,75 @@ function prospergenics_search_compute( array $args ) {
         'skills'     => array_slice( $facets, 0, 15, true ),
         'candidates' => $candidates,
     );
+}
+
+/**
+ * Approved scrutiny evidence (card #6389) for the members who may be found, in one read: items of
+ * kind "evidence" that the ProsperGenics team approved, about
+ *   - the person, when the item's text mentions a query term,
+ *   - one of their matching profile entries (a "claim"), when that section is public, or
+ *   - a matching project they contributed to (not disputed, portfolio public).
+ * Corrections, questions, disputes and reviews (opinions) never add weight.
+ *
+ * @param array $vis_of  user ID => visibility for a logged-out visitor.
+ * @param array $by_user user ID => raw hits [kind, post, terms, extra].
+ * @return array<int,array> user ID => evidence items
+ */
+function prospergenics_search_scrutiny_evidence( array $vis_of, array $by_user, array $terms ) {
+    if ( ! $vis_of || ! post_type_exists( 'pg_scrutiny' ) || ! function_exists( 'prospergenics_scrutiny_record' ) ) {
+        return array();
+    }
+    $section = array( 'skill' => 'skills', 'experience' => 'experience', 'education' => 'education' );
+    $targets = array(); // key => [ [uid, terms|null (null: the item text must match), url] ]
+    foreach ( $vis_of as $uid => $vis ) {
+        $profile                       = prospergenics_profiles_url( $uid );
+        $targets[ 'person:' . $uid ][] = array( $uid, null, $profile );
+        foreach ( $by_user[ $uid ] as $h ) {
+            if ( isset( $section[ $h[0] ] ) && ! empty( $vis[ $section[ $h[0] ] ] ) ) {
+                $targets[ 'claim:' . $h[1]->ID ][] = array( $uid, $h[2], $profile );
+            } elseif ( 'project' === $h[0] && ! empty( $vis['portfolio'] ) ) {
+                $targets[ 'project:' . $h[1]->ID ][] = array( $uid, $h[2], prospergenics_search_project_url( $h[1]->ID ) );
+            }
+        }
+    }
+    $posts = get_posts( array(
+        'post_type'        => 'pg_scrutiny',
+        'post_status'      => 'publish',
+        'posts_per_page'   => 500,
+        'orderby'          => 'ID',
+        'order'            => 'DESC',
+        'meta_query'       => array(
+            array( 'key' => '_pg_scrutiny_target', 'value' => array_keys( $targets ), 'compare' => 'IN' ),
+            array( 'key' => '_pg_scrutiny_status', 'value' => 'approved' ),
+            array( 'key' => '_pg_scrutiny_kind', 'value' => 'evidence' ),
+        ),
+        'suppress_filters' => true,
+        'no_found_rows'    => true,
+    ) );
+    $out  = array();
+    $seen = array();
+    foreach ( $posts as $post ) {
+        $r = prospergenics_scrutiny_record( $post );
+        if ( ! $r || 'approved' !== $r['status'] || 'evidence' !== $r['kind'] || ! isset( $targets[ $r['target'] ] ) ) {
+            continue;
+        }
+        $text = trim( preg_replace( '/\s+/u', ' ', wp_strip_all_tags( $r['body'] ) ) );
+        foreach ( $targets[ $r['target'] ] as $t ) {
+            list( $uid, $found, $url ) = $t;
+            $found = null === $found ? prospergenics_search_text_matches( $text, $terms ) : $found;
+            if ( ! $found || isset( $seen[ $uid . ':' . $r['id'] ] ) ) {
+                continue;
+            }
+            $seen[ $uid . ':' . $r['id'] ] = true;
+            $out[ $uid ][] = array(
+                'kind'  => 'scrutiny',
+                'label' => prospergenics_search_snippet( $text, $terms, 70 ) . ( '' !== $r['name'] ? ' (' . $r['name'] . ')' : '' ),
+                'url'   => preg_replace( '/#.*$/', '', $url ) . '#pgs-item-' . (int) $r['id'],
+                'terms' => $found,
+            );
+        }
+    }
+    return $out;
 }
 
 /**
@@ -619,8 +700,8 @@ function prospergenics_search_person_evidence( $uid, array $hits, array $vis, ar
     $profile  = prospergenics_profiles_url( $uid );
     $evidence = array();
     $seen     = array();
-    // a section the member made private never contributes ('projects' once the projects track adds it)
-    $section  = array( 'skill' => 'skills', 'experience' => 'experience', 'education' => 'education', 'certificate' => 'certificates', 'project' => 'projects' );
+    // a section the member made private never contributes (projects: the "portfolio" section of #6388)
+    $section  = array( 'skill' => 'skills', 'experience' => 'experience', 'education' => 'education', 'certificate' => 'certificates', 'project' => 'portfolio', 'scrutiny' => 'profile' );
     foreach ( $hits as $h ) {
         list( $kind, $p ) = $h;
         $found = $h[2];

@@ -135,10 +135,10 @@ async function login(browser, who) {
   const vp = await visitor.newPage();
   const res = await vp.goto(`${BASE}/find/?q=${encodeURIComponent(QUERY)}`);
   const html = await vp.content();
-  const card = memberName ? vp.locator('.pgs-person', { hasText: memberName }).first() : null;
+  const card = memberName ? vp.locator('.pgf-person', { hasText: memberName }).first() : null;
   const found = card && await card.count();
-  const why = found ? (await card.locator('.pgs-why').textContent()).trim() : '';
-  const links = found ? await card.locator('.pgs-why a').evaluateAll(as => as.map(a => a.href)) : [];
+  const why = found ? (await card.locator('.pgf-why').textContent()).trim() : '';
+  const links = found ? await card.locator('.pgf-why a').evaluateAll(as => as.map(a => a.href)) : [];
   let broken = [];
   for (const href of links) {
     const r = await fetch(href.split('#')[0], { redirect: 'manual' });
