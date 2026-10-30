@@ -59,6 +59,17 @@ it pass.
   themselves (an unverified member marking themselves verified, a hidden member showing their own
   profile). Controls: the admin resends the link, marks the member verified (who can then follow),
   hides the profile (members no longer see it) and shows it again.
+- Portfolios (`inc/projects/`, card #6388): a contribution in a private portfolio is on neither the
+  project page nor `/wp/v2/pg_project` (item and list, no `author` field) nor
+  `prospergenics/v1/profile/users/<slug>` for a visitor, a member or an author; the member sees it
+  (control). The manual forms refuse a missing nonce and visitors; with a valid nonce, editing
+  someone else's contribution is refused for the project creator, an author and an editor, a
+  contributor cannot confirm, edit, delete or hide the project, the creator cannot confirm their own
+  contribution or delete a project others contributed to, an unverified member cannot add to a
+  portfolio, and REST writes to `pg_project` are refused for subscriber and author. Controls: the
+  member edits their own contribution (an http evidence link is refused), the creator confirms
+  another's, staff edit the project and hide it (404, gone from REST) and show it again, a verified
+  author adds a project.
 
 - Scrutiny (card #6389, `inc/profiles/scrutiny*.php`): the Scrutiny tab of Reports, which shows the
   staff-only audit log (the submitter's email address and IP hash), is refused for visitors,

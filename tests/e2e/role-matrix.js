@@ -398,6 +398,107 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
     }
   }
 
+  /* 14. Portfolios (inc/projects/, #6388): who creates, edits, confirms and deletes; private portfolios stay private. */
+  {
+    const P = FX.project, SECRET = FX.secret_role;
+    const post = (sess, action, fields, nonce) => sess.request('POST', '/wp-admin/admin-post.php', { body: Object.assign({ action: `pg_projects_${action}`, project_id: String(P) }, fields, nonce ? { _pgj_nonce: nonce } : {}) });
+    const page = await visitor.get(FX.project_url);
+    check('project page shows the public contribution (control)', 'visitor', page.status === 200 && page.text.includes(FX.project_title) && page.text.includes(U.subscriber.name), `status ${page.status}`);
+    check('project page hides a private portfolio\'s contribution', 'visitor', !page.text.includes(SECRET) && !page.text.includes(U.subscriber2.name), `status ${page.status}`);
+    for (const who of ['visitor', 'subscriber', 'author']) {
+      const sess = who === 'visitor' ? visitor : s[who];
+      const one = await sess.get(`/wp-json/wp/v2/pg_project/${P}`);
+      const list = await sess.get('/wp-json/wp/v2/pg_project?per_page=100');
+      const prof = await sess.get(`${NS}/profile/users/${U.subscriber2.slug}`);
+      const leak = [one, list, prof].some(r => r.text.includes(SECRET) || r.text.includes('_pg_project_contributions'));
+      check('REST does not leak a private portfolio', who, one.status === 200 && !leak && !(one.data && 'author' in one.data), `GET item ${one.status}, list ${list.status}, profile ${prof.status}`);
+    }
+    {
+      const own = await s.subscriber2.get(FX.project_url);
+      check('the member sees their own private contribution (control)', 'subscriber2', own.status === 200 && own.text.includes(SECRET), `status ${own.status}`);
+    }
+
+    // a missing nonce, and a visitor, are refused
+    {
+      const r = await post(s.subscriber2, 'contribution', { role: 'Hijacked', contribution: 'x' });
+      check('portfolio form without the nonce is refused', 'subscriber2', r.status === 403, `POST ${r.status}`);
+      const v = await post(visitor, 'create', { title: 'E2E visitor project', kind: 'project', role: 'r', contribution: 'c' });
+      check('portfolio form as a visitor is refused', 'visitor', v.status === 403, `POST ${v.status}`);
+    }
+    // editing someone else's contribution: refused for every role, even with a valid nonce
+    for (const who of ['subscriber', 'author', 'editor']) {
+      const n = await mint(s[who], 'pg_projects_contribution');
+      const r = await post(s[who], 'contribution', { user_id: String(U.subscriber2.id), role: `Hijacked by ${who}`, contribution: 'x' }, n);
+      check('editing someone else\'s contribution is refused', who, n && r.status === 403, `POST ${r.status}`);
+    }
+    {
+      const after = await s.subscriber2.get(FX.project_url);
+      check('the contribution is unchanged after the refusals', 'subscriber2', after.text.includes(SECRET) && !/Hijacked by/.test(after.text), `status ${after.status}`);
+      const n = await mint(s.subscriber2, 'pg_projects_contribution');
+      const own = await post(s.subscriber2, 'contribution', { role: SECRET, contribution: 'Private work 5d1c, edited.', 'evidence_label[]': 'Report', 'evidence_url[]': 'https://example.org/report' }, n);
+      check('the member edits their own contribution (control)', 'subscriber2', own.status === 303 && /pg_portfolio=updated/.test(own.location || ''), `POST ${own.status} -> ${own.location ? pathOf(own.location) : ''}`);
+      const bad = await post(s.subscriber2, 'contribution', { role: SECRET, contribution: 'x', 'evidence_label[]': 'Bad', 'evidence_url[]': 'javascript:alert(1)' }, n);
+      const still = await s.subscriber2.get(FX.project_url);
+      check('a non-https evidence link is refused', 'subscriber2', bad.status === 303 && /pg_portfolio=invalid/.test(bad.location || '') && !still.text.includes('javascript:alert'), `POST ${bad.status} -> ${bad.location ? pathOf(bad.location) : ''}`);
+    }
+    // confirming: the creator (or staff), never someone else, never your own
+    {
+      const n2 = await mint(s.subscriber2, 'pg_projects_status');
+      const r2 = await post(s.subscriber2, 'status', { user_id: String(U.subscriber.id), status: 'confirmed' }, n2);
+      check('a contributor cannot confirm the creator\'s contribution', 'subscriber2', n2 && r2.status === 403, `POST ${r2.status}`);
+      const n1 = await mint(s.subscriber, 'pg_projects_status');
+      const self = await post(s.subscriber, 'status', { user_id: String(U.subscriber.id), status: 'confirmed' }, n1);
+      check('the creator cannot confirm their own contribution', 'subscriber', self.status === 403, `POST ${self.status}`);
+      const ok = await post(s.subscriber, 'status', { user_id: String(U.subscriber2.id), status: 'confirmed' }, n1);
+      const seen = await s.subscriber2.get(FX.project_url);
+      check('the creator confirms a contribution (control)', 'subscriber', ok.status === 303 && /pg_portfolio=confirmed/.test(ok.location || '') && seen.text.includes('pgj-status-confirmed'), `POST ${ok.status}`);
+    }
+    // the project itself: creator or staff
+    {
+      const n = await mint(s.subscriber2, 'pg_projects_update');
+      const r = await post(s.subscriber2, 'update', { title: 'Hijacked project', kind: 'project' }, n);
+      check('a contributor cannot edit the project', 'subscriber2', n && r.status === 403, `POST ${r.status}`);
+      const ne = await mint(s.editor, 'pg_projects_update');
+      const e = await post(s.editor, 'update', { title: FX.project_title, kind: 'product', url: 'https://example.org/kiosk', period: '2025–2026', description: 'Edited by staff.', skills: 'Solar' }, ne);
+      check('staff edit the project (control)', 'editor', e.status === 303 && /pg_portfolio=project/.test(e.location || ''), `POST ${e.status}`);
+      const nd = await mint(s.subscriber, 'pg_projects_delete');
+      const d = await post(s.subscriber, 'delete', {}, nd);
+      check('the creator cannot delete a project others contributed to', 'subscriber', d.status === 403, `POST ${d.status}`);
+      const nd2 = await mint(s.subscriber2, 'pg_projects_delete');
+      const d2 = await post(s.subscriber2, 'delete', {}, nd2);
+      check('a contributor cannot delete the project', 'subscriber2', d2.status === 403, `POST ${d2.status}`);
+      const still = await visitor.get(FX.project_url);
+      check('the project still exists after the refusals', 'visitor', still.status === 200, `status ${still.status}`);
+    }
+    // creating: verified members only; REST writes: nobody but staff
+    {
+      const nu = await mint(s.unverified, 'pg_projects_create');
+      const u = await post(s.unverified, 'create', { title: 'E2E unverified project', kind: 'project', role: 'r', contribution: 'c' }, nu);
+      check('an unverified member cannot add to a portfolio', 'unverified', nu && u.status === 403, `POST ${u.status}`);
+      for (const who of ['subscriber', 'author']) {
+        const c = await s[who].request('POST', '/wp-json/wp/v2/pg_project', { json: { title: `E2E REST project by ${who}`, status: 'publish' } });
+        const e = await s[who].request('POST', `/wp-json/wp/v2/pg_project/${P}`, { json: { title: 'Hijacked over REST' } });
+        check('REST create/edit of projects refused', who, (c.status === 401 || c.status === 403) && (e.status === 401 || e.status === 403), `create ${c.status}, edit ${e.status}`);
+      }
+      const na = await mint(s.author, 'pg_projects_create');
+      const a = await post(s.author, 'create', { title: 'E2E author project', kind: 'service', role: 'Owner', contribution: 'Runs it.' }, na);
+      check('a verified member adds a project (control)', 'author', a.status === 303 && /pg_portfolio=added/.test(a.location || ''), `POST ${a.status} -> ${a.location ? pathOf(a.location) : ''}`);
+    }
+    // staff hide a project: gone for everyone else, back after "show"
+    {
+      const n = await mint(s.editor, 'pg_projects_hide');
+      const nh = await mint(s.subscriber2, 'pg_projects_hide');
+      const refusedHide = await post(s.subscriber2, 'hide', { hidden: '1' }, nh);
+      check('a member cannot hide a project', 'subscriber2', refusedHide.status === 403, `POST ${refusedHide.status}`);
+      await post(s.editor, 'hide', { hidden: '1' }, n);
+      const gone = await visitor.get(FX.project_url);
+      const goneRest = await visitor.get(`/wp-json/wp/v2/pg_project/${P}`);
+      await post(s.editor, 'hide', { hidden: '0' }, n);
+      const back = await visitor.get(FX.project_url);
+      check('staff hide a project: 404 and not in REST, then back (control)', 'editor', gone.status === 404 && goneRest.status >= 400 && back.status === 200, `hidden ${gone.status}/${goneRest.status}, shown ${back.status}`);
+    }
+  }
+
   /* report */
   const w = Math.max(...results.map(r => r.rule.length)) + 2;
   for (const r of results) console.log(`${r.pass ? 'PASS' : 'FAIL'}  ${r.rule.padEnd(w)}${r.who.padEnd(13)}${r.detail}`);

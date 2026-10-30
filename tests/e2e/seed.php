@@ -142,6 +142,36 @@ foreach ( array( 'published' => array( 'approved', 'E2E scrutiny published 5b2e:
 $pg_e2e_out['scrutiny']       = $pg_e2e_scrutiny;
 $pg_e2e_out['scrutiny_email'] = 'e2e-scrutiny-visitor@example.test';
 
+// Portfolios (#6388): a project the subscriber added (public profile and portfolio), on which
+// subscriber2 has a contribution in a private portfolio, which must never reach anyone else.
+$pg_e2e_sub  = $pg_e2e_out['users']['subscriber']['id'];
+$pg_e2e_sub2 = $pg_e2e_out['users']['subscriber2']['id'];
+update_user_meta( $pg_e2e_sub, '_pg_profiles_privacy', array( 'profile' => 'public', 'portfolio' => 'public' ) );
+update_user_meta( $pg_e2e_sub2, '_pg_profiles_privacy', array( 'portfolio' => 'private' ) );
+$project = get_posts( array( 'post_type' => 'pg_project', 'title' => 'E2E solar kiosk 4b2e', 'post_status' => 'any', 'posts_per_page' => 1, 'fields' => 'ids' ) );
+if ( $project ) {
+    $project = (int) $project[0];
+    wp_update_post( array( 'ID' => $project, 'post_title' => 'E2E solar kiosk 4b2e', 'post_author' => $pg_e2e_sub ) ); // a second run starts over
+    delete_post_meta( $project, '_pg_project_hidden' );
+} else {
+    $project = prospergenics_projects_create( $pg_e2e_sub,
+        array( 'title' => 'E2E solar kiosk 4b2e', 'kind' => 'product', 'url' => 'https://example.org/kiosk', 'period' => '2025–2026', 'description' => 'A kiosk for the role matrix.', 'skills' => array( 'Solar' ) ),
+        array( 'role' => 'E2E founder role', 'contribution' => 'Designed the kiosk.', 'evidence' => array( array( 'label' => 'Photos', 'url' => 'https://example.org/photos' ) ) )
+    );
+    if ( is_wp_error( $project ) ) {
+        fwrite( STDERR, 'could not create the project: ' . $project->get_error_message() . "\n" );
+        exit( 1 );
+    }
+}
+prospergenics_projects_store_contributions( $project, array(
+    array( 'user_id' => $pg_e2e_sub, 'role' => 'E2E founder role', 'contribution' => 'Designed the kiosk.', 'evidence' => array( array( 'label' => 'Photos', 'url' => 'https://example.org/photos' ) ), 'status' => 'claimed', 'added' => time() - 60 ),
+    array( 'user_id' => $pg_e2e_sub2, 'role' => 'E2E secret role 5d1c', 'contribution' => 'Private work 5d1c.', 'evidence' => array(), 'status' => 'claimed', 'added' => time() ),
+) );
+$pg_e2e_out['project']      = (int) $project;
+$pg_e2e_out['project_url']  = get_permalink( $project );
+$pg_e2e_out['project_title'] = 'E2E solar kiosk 4b2e';
+$pg_e2e_out['secret_role']  = 'E2E secret role 5d1c';
+
 $pg_e2e_out['course']        = $course;
 $pg_e2e_out['media']         = $media;
 $pg_e2e_out['media_title']   = 'E2E admin image 9c1d';

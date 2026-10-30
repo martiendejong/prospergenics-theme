@@ -9,6 +9,7 @@ theme (card #6343: "keep within the theme"), in three independent tracks:
 | Articles | #6365–#6370 | `/articles/` (existing blog posts stay at `/blog/`) |
 | Profiles | #6339–#6340, #6343–#6354 | `/in/{username}/` (the curated `/people/` pages stay as they are) |
 | Courses | #6355–#6364 | `/courses/` (replaces the jengo-listings courses page, decided 2026-10-25) |
+| Projects | #6388 (portfolios), #6467 | `/projects/`, and the "Portfolio" section on `/in/{username}/` |
 
 Blocked for now: IAM login and registration (#6337, #6338, #6341, #6342: need jengo-iam), companies
 and AI tools (#6371–#6377: need the jengo-listings repo), search (#6378–#6380: needs a decision on
