@@ -51,6 +51,7 @@ require get_template_directory() . '/inc/sitemap.php';
 
 // Prospergenics Platform features (JengoWork board "Prospergenics Platform"), one loader per
 // track so the tracks can be built independently. See docs/PLATFORM-BUILD.md.
+require get_template_directory() . '/inc/platform-search.php';   // #6393 /find/: people by skill, project or problem
 require get_template_directory() . '/inc/platform-articles.php';
 require get_template_directory() . '/inc/platform-profiles.php';
 require get_template_directory() . '/inc/platform-courses.php';
