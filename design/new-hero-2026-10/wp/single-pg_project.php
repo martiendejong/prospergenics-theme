@@ -12,6 +12,9 @@ $pgj_kinds   = prospergenics_projects_kinds();
 $pgj_creator = (int) $pgj_post->post_author;
 $pgj_all     = prospergenics_projects_contributions($pgj_post->ID);
 $pgj_people  = prospergenics_projects_contributors($pgj_post->ID, $pgj_uid);
+if (function_exists('prospergenics_profiles_badges_prime')) {
+    prospergenics_profiles_badges_prime(wp_list_pluck($pgj_people, 'user_id')); // their badges: one read for all
+}
 $pgj_mine    = prospergenics_projects_find_contribution($pgj_all, $pgj_uid) >= 0;
 $pgj_can_edit = prospergenics_projects_can_edit_project($pgj_uid, $pgj_creator, $pgj_staff) && ! prospergenics_projects_user_suspended($pgj_uid);
 $pgj_others  = 0;
@@ -78,7 +81,7 @@ get_header();
                   <span class="pgp-avatar-ph" aria-hidden="true"><?php echo esc_html(prospergenics_profiles_initials($pgj_u->display_name)); ?></span>
                 <?php endif; ?>
                 <div>
-                  <h3><a href="<?php echo esc_url($pgj_purl); ?>"><?php echo esc_html($pgj_u->display_name); ?></a><?php if ((int) $pgj_u->ID === $pgj_creator) : ?> <span class="pgj-creator">added this <?php echo esc_html(strtolower($pgj_kinds[$pgj_fields['kind']])); ?></span><?php endif; ?></h3>
+                  <h3><a href="<?php echo esc_url($pgj_purl); ?>"><?php echo esc_html($pgj_u->display_name); ?></a><?php if (function_exists('prospergenics_profiles_badge_html')) { echo ' ' . prospergenics_profiles_badge_html($pgj_u->ID); } // member badge, escaped in the helper ?><?php if ((int) $pgj_u->ID === $pgj_creator) : ?> <span class="pgj-creator">added this <?php echo esc_html(strtolower($pgj_kinds[$pgj_fields['kind']])); ?></span><?php endif; ?></h3>
                   <p class="pgj-role"><?php echo esc_html($pgj_c['role']); ?> <?php echo prospergenics_projects_status_badge($pgj_c['status']); // escaped in the helper ?></p>
                 </div>
               </div>

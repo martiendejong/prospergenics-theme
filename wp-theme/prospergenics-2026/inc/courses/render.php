@@ -218,7 +218,9 @@ function prospergenics_courses_instructor_block( $user_id ) {
 	$bio     = get_the_author_meta( 'description', $user->ID );
 	$profile = apply_filters( 'prospergenics_courses_instructor_profile_url', '', $user->ID );
 	$html    = '<div class="pgc-instructor">' . ( function_exists( 'prospergenics_2026_avatar_html' ) ? prospergenics_2026_avatar_html( $user->ID, 96, 'pgc-avatar' ) : get_avatar( $user->ID, 96, '', '', array( 'class' => 'pgc-avatar' ) ) );
-	$html   .= '<div><h3 class="pgc-instructor-name"><a href="' . esc_url( prospergenics_courses_instructor_url( $user->ID ) ) . '">' . esc_html( $user->display_name ) . '</a></h3>';
+	$html   .= '<div><h3 class="pgc-instructor-name"><a href="' . esc_url( prospergenics_courses_instructor_url( $user->ID ) ) . '">' . esc_html( $user->display_name ) . '</a>';
+	// the member badge (inc/profiles/badges.php), escaped in the helper
+	$html   .= ( function_exists( 'prospergenics_profiles_badge_html' ) ? ' ' . prospergenics_profiles_badge_html( $user->ID ) : '' ) . '</h3>';
 	$html   .= $bio ? '<p>' . esc_html( $bio ) . '</p>' : '<p class="pgc-muted">Instructor at ProsperGenics.</p>';
 	$html   .= '<p class="pgc-links"><a href="' . esc_url( prospergenics_courses_instructor_url( $user->ID ) ) . '">All courses by ' . esc_html( $user->display_name ) . '</a>';
 	if ( $profile ) {

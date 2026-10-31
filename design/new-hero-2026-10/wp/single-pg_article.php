@@ -30,7 +30,10 @@ $pga_rel  = prospergenics_articles_related( $pga_post, 3 );
       <div class="pga-byline">
         <?php echo prospergenics_2026_avatar_html( $pga_post->post_author, 48, 'pga-avatar' ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the helper ?>
         <div class="pga-byline-text">
-          <?php echo prospergenics_articles_author_name_html( $pga_post->post_author ); ?>
+          <span class="pgb-with-badge">
+            <?php echo prospergenics_articles_author_name_html( $pga_post->post_author ); ?>
+            <?php if ( function_exists( 'prospergenics_profiles_badge_html' ) ) { echo prospergenics_profiles_badge_html( $pga_post->post_author ); } // member badge (inc/profiles/badges.php), escaped in the helper ?>
+          </span>
           <span class="pga-byline-facts">
             <time datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>"><?php echo esc_html( get_the_date( 'j F Y' ) ); ?></time>
             <span aria-hidden="true">·</span>

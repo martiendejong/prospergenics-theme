@@ -183,6 +183,31 @@ function prospergenics_manage_member_query_args( $search, $filter, $paged, $per_
     return $args;
 }
 
+/**
+ * The badge filter of the members list (pure): '' for any, a tier key, or 'none' for members
+ * without a badge (unverified, hidden, suspended). Unknown values are ''.
+ *
+ * @param string   $tier  As asked (already sanitised with sanitize_key()).
+ * @param string[] $tiers The tier keys (prospergenics_profiles_badge_tiers()).
+ */
+function prospergenics_manage_clean_tier( $tier, array $tiers ) {
+    $tier = (string) $tier;
+    return 'none' === $tier || in_array( $tier, $tiers, true ) ? $tier : '';
+}
+
+/**
+ * The members list arguments with the badge filter added (pure): the stored tier
+ * (_pg_profiles_rank_tier, inc/profiles/rank.php) must match, together with any other filter.
+ */
+function prospergenics_manage_member_tier_args( array $args, $tier ) {
+    if ( '' === (string) $tier ) {
+        return $args;
+    }
+    $clause = array( 'key' => '_pg_profiles_rank_tier', 'value' => (string) $tier );
+    $args['meta_query'] = empty( $args['meta_query'] ) ? array( $clause ) : array( 'relation' => 'AND', $args['meta_query'], $clause );
+    return $args;
+}
+
 /* ───────────────────────── contact messages ───────────────────────── */
 
 /** The contact inbox views, key => label. */

@@ -10,6 +10,9 @@
 
 defined( 'ABSPATH' ) || exit;
 
+// The evidence weights, shared with the member badges (one definition for both).
+require_once dirname( __DIR__ ) . '/profiles/rank-rules.php';
+
 /** Longest query kept (characters); longer input is cut, and such a page is never indexed. */
 const PROSPERGENICS_SEARCH_MAX_QUERY = 100;
 /** At most this many terms are matched; the rest of a long query is ignored. */
@@ -168,31 +171,24 @@ function prospergenics_search_text_matches( $text, array $terms ) {
  * Evidence kinds with their weight (strength of evidence) and whether they count as verified.
  * Confirmed contributions beat claimed ones; earned certificates, taught courses and approved
  * scrutiny evidence are checked by someone other than the member; a skill or a headline is the
- * member's own word. Filter 'prospergenics_search_weights' to tune.
+ * member's own word. The table is shared with the member badges
+ * (prospergenics_profiles_evidence_weights() in inc/profiles/rank-rules.php, filter
+ * 'prospergenics_profiles_evidence_weights' for both); filter 'prospergenics_search_weights' to
+ * tune search alone.
  *
  * @return array<string,array{weight:float,verified:bool}>
  */
 function prospergenics_search_evidence_kinds() {
-    return array(
-        'project_confirmed' => array( 'weight' => 10, 'verified' => true ),
-        'scrutiny'          => array( 'weight' => 8, 'verified' => true ),
-        'certificate'       => array( 'weight' => 6, 'verified' => true ),
-        'course'            => array( 'weight' => 6, 'verified' => true ),
-        'skill'             => array( 'weight' => 4, 'verified' => false ),
-        'project_claimed'   => array( 'weight' => 3, 'verified' => false ),
-        'article'           => array( 'weight' => 3, 'verified' => false ),
-        'experience'        => array( 'weight' => 3, 'verified' => false ),
-        'education'         => array( 'weight' => 2, 'verified' => false ),
-        'headline'          => array( 'weight' => 1, 'verified' => false ),
-    );
+    return prospergenics_profiles_evidence_weights();
 }
 
 /**
  * Score one person's evidence.
  *
- * Every item adds its kind's weight; a skill gains up to 3 more for endorsements (one each);
- * articles count for at most three. Coverage is how many of the query's terms the evidence
- * covers together: people who match every word rank above people who match one.
+ * Every item adds its kind's weight; a skill gains up to 3 more for endorsements (one each: the
+ * kind's bonus and bonus_max); articles count for at most three (search_cap). The same defaults
+ * apply when a filtered table leaves those keys out. Coverage is how many of the query's terms the
+ * evidence covers together: people who match every word rank above people who match one.
  *
  * @param array    $evidence Items: kind, terms (matched), endorsements (skills), verified (optional override).
  * @param string[] $terms    The query's terms.
@@ -204,20 +200,24 @@ function prospergenics_search_score( array $evidence, array $terms, array $kinds
     $score    = 0.0;
     $verified = 0;
     $covered  = array();
-    $articles = 0;
+    $seen     = array(); // items per kind, for search_cap
     foreach ( $evidence as $e ) {
         $kind = isset( $e['kind'] ) ? $e['kind'] : '';
         if ( ! isset( $kinds[ $kind ] ) ) {
             continue;
         }
-        if ( 'article' === $kind && ++$articles > 3 ) {
+        $k    = $kinds[ $kind ];
+        $cap  = isset( $k['search_cap'] ) ? (int) $k['search_cap'] : ( 'article' === $kind ? 3 : 0 );
+        $seen[ $kind ] = isset( $seen[ $kind ] ) ? $seen[ $kind ] + 1 : 1;
+        if ( $cap && $seen[ $kind ] > $cap ) {
             continue;
         }
-        $score += (float) $kinds[ $kind ]['weight'];
-        if ( 'skill' === $kind && ! empty( $e['endorsements'] ) ) {
-            $score += min( 3, (int) $e['endorsements'] );
+        $score += (float) $k['weight'];
+        $bonus  = isset( $k['bonus'] ) ? (int) $k['bonus'] : ( 'skill' === $kind ? 1 : 0 );
+        if ( $bonus && ! empty( $e['endorsements'] ) ) {
+            $score += min( isset( $k['bonus_max'] ) ? (int) $k['bonus_max'] : 3, $bonus * (int) $e['endorsements'] );
         }
-        $is_verified = isset( $e['verified'] ) ? (bool) $e['verified'] : $kinds[ $kind ]['verified'];
+        $is_verified = isset( $e['verified'] ) ? (bool) $e['verified'] : $k['verified'];
         if ( $is_verified ) {
             $verified++;
         }

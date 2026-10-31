@@ -193,6 +193,9 @@ function prospergenics_profiles_member_card( $user_id ) {
     }
     // a member whose profile is hidden from this viewer stays anonymous here too
     echo '<span><strong>' . esc_html( $vis['profile'] ? $u->display_name : 'A member with a private profile' ) . '</strong>';
+    if ( $vis['profile'] && function_exists( 'prospergenics_profiles_badge_html' ) ) {
+        echo ' ' . prospergenics_profiles_badge_html( $u->ID, 'inline' ); // a <span>: the card is a link already; escaped in the helper
+    }
     if ( '' !== $head ) {
         echo '<span class="pgp-member-head">' . esc_html( $head ) . '</span>';
     }
