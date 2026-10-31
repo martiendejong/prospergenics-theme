@@ -189,10 +189,12 @@
   /* ---- LEFT: the message ---- */
   .copy { position: relative; z-index: 5; max-width: 620px; }
   /* paper halo behind the text: opaque-ish in the middle, fully transparent toward the edges,
-     so the full-width team photo stays visible around it but the copy stays readable */
+     so the full-width team photo stays visible around it but the copy stays readable.
+     The box starts at the top of the hero and the ellipse reaches 0 before the box's top edge
+     (centre 54% / radius 75% > the 70% stop), so the halo never ends in a visible line (Martien, 31 Oct). */
   .copy::before {
-    content: ""; position: absolute; z-index: -1; inset: -48px -110px -280px -320px; pointer-events: none;
-    background: radial-gradient(ellipse 56% 86% at 58% 48%,
+    content: ""; position: absolute; z-index: -1; inset: -130px -110px -280px -320px; pointer-events: none;
+    background: radial-gradient(ellipse 56% 75% at 58% 54%,
       rgba(244,250,246,.97) 0%, rgba(244,250,246,.80) 34%, rgba(244,250,246,.75) 50%, rgba(244,250,246,0) 70%);
   }
   .eyebrow {
