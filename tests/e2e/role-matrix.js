@@ -92,7 +92,7 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
   const U = FX.users, PW = FX.password;
   const visitor = new Session('visitor');
   const s = {};
-  for (const key of ['admin', 'editor', 'author', 'contributor', 'subscriber', 'subscriber2', 'unverified', 'unverified2', 'writer', 'applicant', 'editor2', 'managed']) {
+  for (const key of ['admin', 'editor', 'author', 'contributor', 'subscriber', 'subscriber2', 'unverified', 'unverified2', 'writer', 'applicant', 'editor2', 'managed', 'badger']) {
     s[key] = await new Session(key).login(U[key].login, PW);
   }
 
@@ -654,6 +654,77 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
       const r = m ? await s.editor.request('POST', '/wp-admin/admin-post.php', { body: { action: 'pg_articles_publish', post_id: String(FX.pending), pg_from: 'manage', _wpnonce: m[1] } }) : { status: 0 };
       const st = await s.admin.get(`/wp-json/wp/v2/pg_article/${FX.pending}?context=edit`);
       check('editor publishes from the review queue and returns to it (control)', 'editor', r.status === 302 && pathOf(r.location) === '/manage/articles/' && /done=published/.test(r.location || '') && st.data && st.data.status === 'publish', `POST ${r.status} -> ${r.location || ''}, status ${st.data && st.data.status}`);
+    }
+  }
+
+  /* 16. Member badges (inc/profiles/rank.php, badges.php): only public evidence counts, only the owner
+     sees the score and breakdown, the tier filter of /manage/ is staff-only. */
+  {
+    const B = U.badger;
+    const tierOn = html => { const m = /data-pg-badge="([a-z_-]+)"/.exec(html || ''); return m ? m[1] : ''; };
+    const breakdown = t => /pgb-owner|Where your points come from|points of public evidence/.test(t || '');
+    const restLeak = r => /"(breakdown|score|withheld)"/.test(r.text || '');
+    const setPortfolio = async level => {
+      const n = await mint(s.badger, 'pg_profiles_privacy');
+      return s.badger.request('POST', '/profile/settings/', { body: { pgp_action: 'privacy', _pgp_nonce: n, 'privacy[portfolio]': level } });
+    };
+    const page = await visitor.get(`/in/${B.slug}/`);
+    check('badges: the visitor sees the tier next to the name', 'visitor', page.status === 200 && page.text.includes(B.name) && tierOn(page.text) === 'member', `status ${page.status}, tier "${tierOn(page.text)}"`);
+    check('badges: a private portfolio\'s confirmed contribution does not raise the public tier', 'visitor', tierOn(page.text) !== 'contributor' && !page.text.includes('E2E badge trainer 6a0d'), `tier "${tierOn(page.text)}"`);
+    for (const who of ['visitor', 'subscriber', 'editor']) {
+      const sess = who === 'visitor' ? visitor : s[who];
+      const p = who === 'visitor' ? page : await sess.get(`/in/${B.slug}/`);
+      const r = await sess.get(`${NS}/profile/users/${B.slug}`);
+      const badge = r.data && r.data.badge;
+      check('badges: nobody but the owner sees the score or breakdown', who, p.status === 200 && !breakdown(p.text) && r.status === 200 && !restLeak(r) && badge && badge.tier === 'member' && badge.label === 'Member' && Object.keys(badge).length === 2, `page ${p.status}, REST ${r.status} badge ${JSON.stringify(badge)}`);
+    }
+    {
+      const own = await s.badger.get(`/in/${B.slug}/`);
+      check('badges: the owner sees score, breakdown and the private portfolio tip (control)', 'badger', own.status === 200 && breakdown(own.text) && /1 of your confirmed project contributions is in a section that is not public/.test(own.text) && /more points? to/.test(own.text), `status ${own.status}`);
+      const preview = await s.badger.get(`/in/${B.slug}/?view=public`);
+      check('badges: the owner\'s "what visitors see" preview has no breakdown', 'badger', preview.status === 200 && !breakdown(preview.text) && tierOn(preview.text) === 'member', `status ${preview.status}`);
+    }
+    // making the portfolio public counts the contribution (control), private again takes it back
+    {
+      const r = await setPortfolio('public');
+      const pub = await visitor.get(`/in/${B.slug}/`);
+      const rest = await visitor.get(`${NS}/profile/users/${B.slug}`);
+      const proj = await visitor.get(FX.badge_project_url);
+      check('badges: once the portfolio is public, the confirmed contribution counts (control)', 'visitor', r.status === 302 && tierOn(pub.text) === 'contributor' && rest.data && rest.data.badge && rest.data.badge.tier === 'contributor', `POST ${r.status}, page tier "${tierOn(pub.text)}", REST ${JSON.stringify(rest.data && rest.data.badge)}`);
+      check('badges: shown with the project\'s contributors', 'visitor', proj.status === 200 && proj.text.includes(B.name) && /data-pg-badge="contributor"/.test(proj.text), `status ${proj.status}`);
+      const find = await visitor.get('/find/?q=badgecraft');
+      check('badges: shown on /find/ person results', 'visitor', find.status === 200 && find.text.includes(B.name) && /data-pg-badge="contributor"/.test(find.text), `status ${find.status}`);
+      const m = await s.editor.get('/manage/members/?tier=contributor');
+      const mm = await s.editor.get('/manage/members/?tier=member');
+      check('badges: the /manage/ tier filter finds the member (control)', 'editor', m.status === 200 && m.text.includes(B.name) && /data-pg-badge="contributor"/.test(m.text) && mm.status === 200 && !mm.text.includes(B.name), `contributor ${m.status} listed ${m.text.includes(B.name)}, member listed ${mm.text.includes(B.name)}`);
+      for (const who of ['subscriber', 'author', 'badger']) {
+        const x = await s[who].get('/manage/members/?tier=contributor');
+        // (the badger's own name is in her account menu, so the list itself must be absent)
+        check('badges: the /manage/ tier filter is staff-only', who, x.status === 403 && !x.text.includes('pgm-list-members') && !x.text.includes('data-pg-badge="contributor"'), `status ${x.status}`);
+      }
+      const back = await setPortfolio('private');
+      const priv = await visitor.get(`/in/${B.slug}/`);
+      check('badges: private again, the public tier drops back', 'visitor', back.status === 302 && tierOn(priv.text) === 'member', `POST ${back.status}, tier "${tierOn(priv.text)}"`);
+      const refused = await s.badger.request('POST', '/profile/settings/', { body: { pgp_action: 'privacy', 'privacy[portfolio]': 'public' } });
+      const still = await visitor.get(`/in/${B.slug}/`);
+      check('badges: a privacy change without the nonce is refused and changes nothing', 'badger', refused.status === 403 && tierOn(still.text) === 'member', `POST ${refused.status}, tier "${tierOn(still.text)}"`);
+    }
+    // the other surfaces, and the explainer
+    {
+      const course = await visitor.get(`/?p=${FX.course}`, { follow: true });
+      check('badges: shown with the course instructor', 'visitor', course.status === 200 && /pgc-instructor-name[\s\S]{0,600}data-pg-badge=/.test(course.text), `status ${course.status}`);
+      const art = await visitor.get(`/?p=${FX.article}`, { follow: true });
+      check('badges: shown in the article byline', 'visitor', art.status === 200 && /pga-byline[\s\S]{0,1200}data-pg-badge=/.test(art.text), `status ${art.status}`);
+      const ex = await visitor.get('/badges/');
+      const labels = ['Member', 'Contributor', 'Practitioner', 'Expert', 'Mentor'];
+      check('badges: /badges/ explains every tier and the points', 'visitor', ex.status === 200 && labels.every(l => ex.text.includes(`id="tier-${l.toLowerCase()}"`)) && /Only public, verified evidence counts/.test(ex.text) && /Confirmed project contributions/.test(ex.text), `status ${ex.status}`);
+      const badgeLink = /<a class="pg-badge[^"]*"[^>]*href="([^"]+)"/.exec(page.text);
+      check('badges: the badge links to its tier on /badges/', 'visitor', !!badgeLink && /\/badges\/#tier-member$/.test(decode(badgeLink[1])), badgeLink ? decode(badgeLink[1]) : 'no link');
+    }
+    // no badge: unverified and suspended members
+    {
+      const nu = await s.subscriber.get(`/in/${U.unverified.slug}/`);
+      check('badges: an unverified member shows no badge', 'subscriber', !/data-pg-badge=/.test(nu.text), `status ${nu.status}`);
     }
   }
 

@@ -95,6 +95,19 @@ it pass.
   pending article from the review queue is refused for contributor, author and writer even with a
   valid nonce; the editor publishes it and returns to `/manage/articles/`.
 
+- Member badges (`inc/profiles/rank*.php`, `badges.php`): the seeded "badger" has a public profile
+  and a confirmed contribution in a private portfolio. A visitor sees the Member tier next to her
+  name, never Contributor, and the role is not on the page; the visitor, another member and an
+  editor never see the score or breakdown (page or `prospergenics/v1/profile/users/<slug>`, whose
+  `badge` is `{tier, label}` only), nor does the owner's "what visitors see" preview. Controls: the
+  owner sees her score, breakdown and the "not public" tip; once she makes the portfolio public
+  (the settings form, with its nonce) she is a Contributor on her profile, in REST, on the project
+  page, on `/find/` and under `/manage/members/?tier=contributor` (editor); private again, Member
+  again. The tier filter is 403 for subscriber, author and the member herself; a privacy change
+  without the nonce is refused. The course instructor and article byline carry a badge, `/badges/`
+  lists every tier and the points, the badge links to its tier there, and an unverified member
+  shows none.
+
 ## Card #6393 acceptance walk-through (Playwright, not in CI)
 
 `expertise-acceptance.js` walks the card's acceptance in a real browser, through the site's own

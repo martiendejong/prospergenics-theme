@@ -29,6 +29,7 @@ $pg_e2e_users = array(
     'applicant'  => array( 'e2e_applicant', 'subscriber', 'Aya', 'Applicant', true ), // pending requests
     'editor2'    => array( 'e2e_editor2', 'editor', 'Edda', 'Secondeditor', true ), // /manage/: editors never change editors
     'managed'    => array( 'e2e_managed', 'subscriber', 'Mira', 'Managed', false ), // /manage/ member actions
+    'badger'     => array( 'e2e_badger', 'subscriber', 'Bea', 'Badgeholder', true ), // badges: a confirmed contribution in a private portfolio
 );
 
 $pg_e2e_out = array( 'password' => $pg_e2e_password, 'users' => array() );
@@ -178,6 +179,31 @@ $pg_e2e_out['project']      = (int) $project;
 $pg_e2e_out['project_url']  = get_permalink( $project );
 $pg_e2e_out['project_title'] = 'E2E solar kiosk 4b2e';
 $pg_e2e_out['secret_role']  = 'E2E secret role 5d1c';
+
+// Badges (inc/profiles/rank.php): the badger has a public profile with a headline and a skill
+// (Member), and a confirmed contribution to the subscriber's second project in a portfolio she
+// keeps private, which must not raise her public badge (it would make her a Contributor).
+$pg_e2e_badger = $pg_e2e_out['users']['badger']['id'];
+update_user_meta( $pg_e2e_badger, '_pg_profiles_privacy', array( 'profile' => 'public', 'portfolio' => 'private' ) );
+update_user_meta( $pg_e2e_badger, '_pg_profiles_headline', 'Badgecraft tester for the role matrix' );
+if ( ! get_posts( array( 'post_type' => 'pg_skill', 'author' => $pg_e2e_badger, 'title' => 'Badgecraft', 'posts_per_page' => 1, 'fields' => 'ids' ) ) ) {
+    prospergenics_profiles_save_entry( $pg_e2e_badger, 'pg_skill', array( 'name' => 'Badgecraft' ) );
+}
+$badge_project = get_posts( array( 'post_type' => 'pg_project', 'title' => 'E2E badge workshop 3c9a', 'post_status' => 'any', 'posts_per_page' => 1, 'fields' => 'ids' ) );
+$badge_project = $badge_project ? (int) $badge_project[0] : prospergenics_projects_create( $pg_e2e_sub,
+    array( 'title' => 'E2E badge workshop 3c9a', 'kind' => 'project', 'url' => '', 'period' => '2026', 'description' => 'A workshop for the badge checks.', 'skills' => array( 'Badgecraft' ) ),
+    array( 'role' => 'E2E organiser', 'contribution' => 'Organised the workshop.', 'evidence' => array() )
+);
+if ( is_wp_error( $badge_project ) ) {
+    fwrite( STDERR, 'could not create the badge project: ' . $badge_project->get_error_message() . "\n" );
+    exit( 1 );
+}
+prospergenics_projects_store_contributions( $badge_project, array(
+    array( 'user_id' => $pg_e2e_sub, 'role' => 'E2E organiser', 'contribution' => 'Organised the workshop.', 'evidence' => array(), 'status' => 'claimed', 'added' => time() - 60 ),
+    array( 'user_id' => $pg_e2e_badger, 'role' => 'E2E badge trainer 6a0d', 'contribution' => 'Trained the group.', 'evidence' => array(), 'status' => 'confirmed', 'added' => time(), 'confirmed_by' => $pg_e2e_sub ),
+) );
+$pg_e2e_out['badge_project']     = (int) $badge_project;
+$pg_e2e_out['badge_project_url'] = get_permalink( $badge_project );
 
 $pg_e2e_out['course']        = $course;
 $pg_e2e_out['media']         = $media;
