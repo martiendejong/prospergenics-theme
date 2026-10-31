@@ -26,6 +26,9 @@ require $prospergenics_profiles_dir . 'scrutiny-queue.php';     // #6389 the Scr
 require $prospergenics_profiles_dir . 'rest.php';               // prospergenics/v1/profile/…
 require $prospergenics_profiles_dir . 'routes.php';             // /in/{slug}/, /profile/…, templates, assets
 require $prospergenics_profiles_dir . 'render.php';             // markup helpers for the templates
+require_once $prospergenics_profiles_dir . 'rank-rules.php';   // badges: evidence weights (shared with search), caps, tiers
+require $prospergenics_profiles_dir . 'rank.php';               // badges: public evidence, the cached rank, what recomputes it, export/erase
+require $prospergenics_profiles_dir . 'badges.php';             // badges: the badge markup, the owner's breakdown, /badges/
 unset( $prospergenics_profiles_dir );
 
 /* ───────────── link to the curated /people/ story (audit CON-11) ─────────────

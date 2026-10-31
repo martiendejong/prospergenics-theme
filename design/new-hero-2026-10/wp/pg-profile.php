@@ -72,7 +72,10 @@ get_header();
       </div>
       <div class="pgp-hero-text">
         <div class="ph-eyebrow"><span class="dot"></span>Member profile</div>
-        <h1><?php echo esc_html( $data['name'] ); ?></h1>
+        <div class="pgb-with-badge pgb-name">
+          <h1><?php echo esc_html( $data['name'] ); ?></h1>
+          <?php echo prospergenics_profiles_badge_html( $owner->ID, 'header' ); // the tier only (inc/profiles/badges.php), escaped in the helper ?>
+        </div>
         <?php if ( '' !== $data['headline'] ) : ?>
           <p class="pgp-headline"><?php echo esc_html( $data['headline'] ); ?></p>
         <?php elseif ( $is_owner ) : ?>
@@ -413,6 +416,7 @@ get_header();
             </ul>
           </div>
         <?php endif; ?>
+        <?php prospergenics_profiles_rank_owner_card( $owner->ID ); // score, breakdown and tips: the owner only (inc/profiles/badges.php) ?>
       <?php endif; ?>
 
       <div class="pgp-card">

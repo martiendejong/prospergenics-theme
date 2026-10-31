@@ -22,6 +22,9 @@ if ( '' !== $args['problem'] ) {
 $tab_url = function ( $type, $page = 1 ) use ( $base_args ) {
     return prospergenics_search_url( array_merge( $base_args, array( 'type' => $type, 'pg' => $page ) ) );
 };
+if ( function_exists( 'prospergenics_profiles_badges_prime' ) ) {
+    prospergenics_profiles_badges_prime( wp_list_pluck( $r['people'], 'id' ) ); // their badges: one read for all
+}
 $has_projects = post_type_exists( 'pg_project' );
 $filtered     = '' !== $args['skill'] || '' !== $args['kind'] || $args['verified'];
 $kinds        = prospergenics_search_project_kinds();
@@ -38,7 +41,7 @@ $person_card = function ( array $p ) use ( $q ) {
         <span class="pgf-avatar pgf-avatar-ph" aria-hidden="true"><?php echo esc_html( function_exists( 'prospergenics_profiles_initials' ) ? prospergenics_profiles_initials( $p['name'] ) : mb_substr( $p['name'], 0, 1 ) ); ?></span>
       <?php endif; ?>
       <div class="pgf-card-body">
-        <h3 class="pgf-card-title"><a href="<?php echo esc_url( $p['url'] ); ?>"><?php echo esc_html( $p['name'] ); ?></a></h3>
+        <h3 class="pgf-card-title"><a href="<?php echo esc_url( $p['url'] ); ?>"><?php echo esc_html( $p['name'] ); ?></a><?php if ( function_exists( 'prospergenics_profiles_badge_html' ) ) { echo ' ' . prospergenics_profiles_badge_html( $p['id'] ); } // member badge (inc/profiles/badges.php), escaped in the helper ?></h3>
         <?php if ( '' !== $p['headline'] ) : ?>
           <p class="pgf-sub"><?php echo esc_html( $p['headline'] ); ?></p>
         <?php endif; ?>

@@ -4,6 +4,7 @@ defined('ABSPATH') || exit;
 $uid       = get_current_user_id();
 $following = prospergenics_profiles_following_ids( $uid );
 $followers = prospergenics_profiles_follower_ids( $uid );
+prospergenics_profiles_badges_prime( array_merge( $following, $followers ) ); // the cards' badges: one read for all
 get_header();
 ?>
 <div class="post-hero">
