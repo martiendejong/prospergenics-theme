@@ -90,7 +90,7 @@ $halo_ok = (bool) preg_match( '#\.copy::before \{[^}]*radial-gradient\(ellipse [
 ok( $halo_ok && ( (float) $hm[2] / (float) $hm[1] ) > ( (float) $hm[3] / 100 ), 'the headline halo is fully transparent at its top edge (no line across the hero photo)' );
 
 // The photo's white top fade stays short, so it never covers the people's heads (Martien, 31 Oct).
-$fade_ok = (bool) preg_match( '#\.hero-top-photo \{[^}]*mask-image: linear-gradient\(to bottom, transparent 0%,[^#]*\#000 ([\d.]+)%#s', $home, $fm );
+$fade_ok = (bool) preg_match( '~\.hero-top-photo \{[^}]*?mask-image: linear-gradient\(to bottom, transparent 0%,[^#]*#000 ([\d.]+)%~s', $home, $fm );
 ok( $fade_ok && (float) $fm[1] <= 10, 'the hero photo is fully visible from 10% down (top fade ' . ( $fade_ok ? $fm[1] : '?' ) . '%)' );
 
 echo "UX-16 homepage H1\n";
