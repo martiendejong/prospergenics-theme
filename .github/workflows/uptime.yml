@@ -1,0 +1,32 @@
+name: Uptime test.prospergenics.com
+
+# Every 30 minutes: /, /courses/, /articles/ and /wp-login.php must answer 200 or 302 without a
+# PHP fatal error (tests/smoke/uptime-check.sh). A failed run is the alert: GitHub emails it
+# (see docs/OPERATIONS.md for who receives it and how to add more people or channels).
+#
+# GitHub only runs scheduled workflows from the repository's DEFAULT branch, so this file has to
+# be merged there before the schedule starts. "Run workflow" (workflow_dispatch) works from any
+# branch for a manual check.
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: uptime
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: tests/smoke
+
+      - name: Check the key pages
+        run: bash tests/smoke/uptime-check.sh https://test.prospergenics.com
