@@ -6,7 +6,11 @@
 #   bash tests/smoke/smoke-check.sh                       # https://test.prospergenics.com
 #   bash tests/smoke/smoke-check.sh http://localhost:8096
 #
-# Prints one line per check and exits 1 when any fails.
+# Prints one line per check and exits 1 when any fails. When a check fails, it shows what the host
+# actually served (status, type, page title), waits SMOKE_RETRY_WAIT seconds (default 45) and runs
+# every check once more; only that second round decides. A real breakage fails both rounds; a
+# moment where the host served another page for every URL (31 Oct, right after three deploys in a
+# row) does not fail the deploy, but stays visible as a warning in the log.
 set -uo pipefail
 
 BASE="${1:-https://test.prospergenics.com}"
@@ -14,8 +18,24 @@ BASE="${BASE%/}"
 BODY="$(mktemp)"
 trap 'rm -f "$BODY"' EXIT
 fails=0
+ROUND=1
+SHOWN=0
+WAIT="${SMOKE_RETRY_WAIT:-45}"
 
-fail() { echo "FAIL  $1"; echo "::error::smoke check: $1"; fails=$((fails + 1)); }
+# In the first round a failure is a warning plus what the host served; in the last round an error.
+fail() {
+    fails=$((fails + 1))
+    if [ "$ROUND" = 1 ]; then
+        echo "FAIL  $1"; echo "::warning::smoke check (first round): $1"
+        if [ "$SHOWN" = 0 ]; then
+            SHOWN=1
+            echo "      served: $CODE ${TYPE:-?}, title: $(grep -o '<title>[^<]*' "$BODY" 2>/dev/null | head -1 | cut -c8-120)"
+            echo "      first bytes: $(head -c 200 "$BODY" 2>/dev/null | tr -s '\n\t ' ' ')"
+        fi
+    else
+        echo "FAIL  $1"; echo "::error::smoke check: $1"
+    fi
+}
 pass() { echo "ok    $1"; }
 
 # fetch PATH -> sets CODE, TYPE, LOCATION; body in $BODY (redirects are not followed)
@@ -54,6 +74,7 @@ expect_redirect() { # PATH CODE LOCATION-REGEX
     fi
 }
 
+run_checks() {
 # Theme pages and the static pages next to WordPress
 expect_page / "How valuable"                   # the value test on the homepage
 expect_page /about/
@@ -82,6 +103,16 @@ fetch /.well-known/security.txt
 
 fetch "/this-page-does-not-exist-$(date +%s)/"
 if [ "$CODE" = "404" ]; then no_fatal "unknown URL" && pass "unknown URL 404"; else fail "unknown URLs should 404, got $CODE"; fi
+}
+
+run_checks
+if [ "$fails" -gt 0 ]; then
+    echo
+    echo "$fails check(s) failed; checking again in ${WAIT}s (a host that briefly serves another page passes now)"
+    sleep "$WAIT"
+    ROUND=2; fails=0
+    run_checks
+fi
 
 echo
 [ "$fails" -eq 0 ] && echo "smoke check passed: $BASE" || echo "smoke check: $fails failed for $BASE"
