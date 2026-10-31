@@ -303,10 +303,13 @@
   .l-hero { position:relative; overflow:hidden; padding:clamp(36px,6vw,72px) 0 clamp(10px,2vw,24px); }
   .l-hero::before { content:""; position:absolute; width:620px; height:620px; right:-240px; top:-80px; border-radius:50%; background:radial-gradient(circle,var(--green-100),transparent 65%); opacity:.7; pointer-events:none; }
   .l-hero .wrap { position:relative; z-index:2; }
+  /* listing pages: wider than profile pages, so the cards fill the screen in three columns on desktop
+     (two on tablets, one on phones) instead of two wide ones with empty sides (Martien, 31 Oct) */
+  .l-hero .wrap, .l-list .wrap { max-width:1200px; }
   h1 { font-weight:800; font-size:clamp(38px,6vw,76px); line-height:1; letter-spacing:-.03em; margin-top:22px; max-width:20ch; }
   h1 .accent { background:linear-gradient(100deg,var(--green-700) 0%,#1f9a55 100%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
   .lede { margin-top:22px; max-width:56ch; font-size:clamp(16.5px,1.8vw,19.5px); line-height:1.6; color:var(--body); }
-  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:clamp(18px,2.5vw,28px); padding:clamp(34px,5vw,56px) 0 0; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:clamp(18px,2.5vw,28px); padding:clamp(34px,5vw,56px) 0 0; }
   .pcard { display:block; text-decoration:none; background:#fff; border:1px solid var(--line); border-radius:22px; overflow:hidden; box-shadow:0 18px 44px -30px rgba(11,32,22,.4); transition:transform .25s var(--ease), box-shadow .25s var(--ease); }
   .pcard:hover { transform:translateY(-4px); box-shadow:0 26px 54px -30px rgba(11,32,22,.5); }
   .pc-media { position:relative; height:240px; overflow:hidden; background:linear-gradient(165deg,var(--green-100),var(--paper-2) 70%); }
@@ -471,7 +474,7 @@
         <p class="lede">ProsperGenics is a community of people creating value: some write software, some run a store, some grow a herd. These are their stories and contributions.</p>
       </div>
     </section>
-    <section>
+    <section class="l-list">
       <div class="wrap">
         <div class="grid">
           <a class="pcard" href="../people/martien/">
