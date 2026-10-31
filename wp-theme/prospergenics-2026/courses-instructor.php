@@ -27,7 +27,10 @@ get_header();
     <?php echo prospergenics_2026_avatar_html($pgc_user->ID, 120, 'pgc-avatar pgc-avatar--lg'); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the helper ?>
     <div>
       <div class="ph-eyebrow"><span class="dot"></span><a href="<?= esc_url(home_url('/courses/')) ?>">Courses</a> · Instructor</div>
-      <h1><?= esc_html($pgc_user->display_name) ?></h1>
+      <div class="pgb-with-badge pgb-name">
+        <h1><?= esc_html($pgc_user->display_name) ?></h1>
+        <?php if (function_exists('prospergenics_profiles_badge_html')) { echo prospergenics_profiles_badge_html($pgc_user->ID, 'header'); } // member badge, escaped in the helper ?>
+      </div>
       <?php if ($pgc_bio) : ?><p class="ph-excerpt"><?= esc_html($pgc_bio) ?></p><?php endif; ?>
       <?php if ($pgc_profile) : ?><p class="pgc-hero-links"><a href="<?= esc_url($pgc_profile) ?>">View full profile</a></p><?php endif; ?>
     </div>

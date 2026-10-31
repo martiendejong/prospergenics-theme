@@ -1087,6 +1087,9 @@ function prospergenics_profiles_public_data( $user, $viewer_id ) {
     $data['followers']  = count( prospergenics_profiles_follower_ids( $user->ID ) );
     $data['following']  = count( prospergenics_profiles_following_ids( $user->ID ) );
     $data['followed_by_me'] = $viewer_id && ! $is_owner ? prospergenics_profiles_follows( $viewer_id, $user->ID ) : false;
+    // the badge (rank.php): only {tier, label}, from public evidence; the score and breakdown
+    // are the owner's, on the profile page and in the data export, never in this output
+    $data['badge'] = function_exists( 'prospergenics_profiles_badge_data' ) ? prospergenics_profiles_badge_data( $user->ID ) : null;
     if ( $vis['email'] ) {
         $data['email'] = $user->user_email;
     }
