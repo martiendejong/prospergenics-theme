@@ -83,6 +83,12 @@ foreach ( array( 'index.html' => $home, 'about/index.html' => $about ) as $label
 	ok( false === strpos( $text, 'var(--green-500) 55%, var(--green-300) 100%' ) && false === strpos( $text, 'var(--green-500) 70%, var(--green-300) 100%' ), "$label: no accent gradient ending in #34c759/#86e0a6" );
 }
 
+echo "Hero halo (Martien, 31 Oct)\n";
+// The paper halo behind the headline must reach 0 before the top of its box, or the box's top
+// edge shows as a line across the photo: centre / vertical radius > the 70% transparent stop.
+$halo_ok = (bool) preg_match( '#\.copy::before \{[^}]*radial-gradient\(ellipse [\d.]+% ([\d.]+)% at [\d.]+% ([\d.]+)%,[^}]*rgba\(244,250,246,0\) ([\d.]+)%\)#s', $home, $hm );
+ok( $halo_ok && ( (float) $hm[2] / (float) $hm[1] ) > ( (float) $hm[3] / 100 ), 'the headline halo is fully transparent at its top edge (no line across the hero photo)' );
+
 echo "UX-16 homepage H1\n";
 ok( false !== strpos( $home, '<h1 class="reveal d1">You create <span class="accent">value</span></h1>' ), 'H1 text content is "You create value"' );
 
