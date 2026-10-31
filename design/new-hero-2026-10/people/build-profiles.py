@@ -90,7 +90,7 @@ PROFILES = [
         ],
     },
     {
-        "slug": "simitia", "name": "Simitia Mpoe", "role": "Software Developer, Entrepreneur",
+        "slug": "simitia", "name": "Simitia Mpoe", "role": "Co-Founder, Software Developer, Entrepreneur",
         "tags": ["expert", "member"], "slider": True,
         "img": "sandra_profile-300x300.webp", "pos": "center 25%",
         "quote": "I design and build web products, and I'm growing my own business with everything I learn.",
@@ -105,7 +105,7 @@ PROFILES = [
             {"name": "Entrepreneurship"},
         ],
         "work": [
-            ("Software developer", "ProsperGenics", "Design and front-end work on the community's websites and products."),
+            ("Co-Founder & software developer", "ProsperGenics", "Design and front-end work on the community's websites and products."),
             ("Entrepreneur", "", "Building her own business alongside her development work."),
         ],
         "education": [
@@ -113,7 +113,7 @@ PROFILES = [
         ],
     },
     {
-        "slug": "diko", "name": "Diko Mohamed", "role": "Software Developer, Entrepreneur",
+        "slug": "diko", "name": "Diko Mohamed", "role": "Co-Founder, Software Developer, Entrepreneur",
         "tags": ["expert", "member"], "slider": True,
         "img": "diko_profile-300x300.webp", "pos": "center 30%",
         "quote": "I turn opportunities into products. Right now that means integrations and new partnerships.",
@@ -128,7 +128,7 @@ PROFILES = [
             {"name": "Business development"},
         ],
         "work": [
-            ("Software developer", "ProsperGenics", "Product development, integrations and partner contacts."),
+            ("Co-Founder & software developer", "ProsperGenics", "Product development, integrations and partner contacts."),
         ],
         "education": [
             ("Hands-on developer training", "ProsperGenics", "Learning by building, on real projects with real users."),
@@ -196,7 +196,7 @@ PROFILES = [
         ],
     },
     {
-        "slug": "lessy", "name": "Lesiamon Mpoe", "role": "Co-founder, Trainer, Software Developer",
+        "slug": "lessy", "name": "Lesiamon Mpoe", "role": "Co-Founder, Trainer, Software Developer",
         "tags": ["expert", "member"], "slider": True,
         "img": "lessy_profile-300x300.webp", "pos": "center 25%",
         "quote": "I develop software and train new developers. Good software starts with understanding people.",
@@ -211,14 +211,14 @@ PROFILES = [
             {"name": "WordPress & websites"},
         ],
         "work": [
-            ("Co-founder, trainer & software developer", "ProsperGenics", "Websites and web applications across the community's projects, and training for new developers."),
+            ("Co-Founder, trainer & software developer", "ProsperGenics", "Websites and web applications across the community's projects, and training for new developers."),
         ],
         "education": [
             ("Hands-on developer training", "ProsperGenics", "Learning by building, on real projects with real users."),
         ],
     },
     {
-        "slug": "frank", "name": "Frank", "role": "Software Developer",
+        "slug": "frank", "name": "Frank", "role": "Co-Founder, Software Developer",
         "tags": ["expert", "member"], "slider": True,
         "img": "frank_profile-300x300.webp", "pos": "center 25%",
         "quote": "I build and ship features for our web platforms, with real responsibility from day one.",
@@ -231,7 +231,7 @@ PROFILES = [
             {"name": "Shipping & deployment"},
         ],
         "work": [
-            ("Software developer", "ProsperGenics", "Feature development on the community's web platforms."),
+            ("Co-Founder & software developer", "ProsperGenics", "Feature development on the community's web platforms."),
         ],
         "education": [
             ("Hands-on developer training", "ProsperGenics", "Learning by building, on real projects with real users."),

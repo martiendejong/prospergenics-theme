@@ -9,13 +9,13 @@
     },
     "simitia": {
       "name": "Simitia Mpoe",
-      "role": "Software Developer, Entrepreneur",
+      "role": "Co-Founder, Software Developer, Entrepreneur",
       "img": "sandra_profile-300x300.webp",
       "pos": "center 25%"
     },
     "diko": {
       "name": "Diko Mohamed",
-      "role": "Software Developer, Entrepreneur",
+      "role": "Co-Founder, Software Developer, Entrepreneur",
       "img": "diko_profile-300x300.webp",
       "pos": "center 30%"
     },
@@ -39,13 +39,13 @@
     },
     "lessy": {
       "name": "Lesiamon Mpoe",
-      "role": "Co-founder, Trainer, Software Developer",
+      "role": "Co-Founder, Trainer, Software Developer",
       "img": "lessy_profile-300x300.webp",
       "pos": "center 25%"
     },
     "frank": {
       "name": "Frank",
-      "role": "Software Developer",
+      "role": "Co-Founder, Software Developer",
       "img": "frank_profile-300x300.webp",
       "pos": "center 25%"
     },
