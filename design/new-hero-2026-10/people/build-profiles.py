@@ -218,7 +218,7 @@ PROFILES = [
         ],
     },
     {
-        "slug": "frank", "name": "Frank", "role": "Co-Founder, Software Developer",
+        "slug": "frank", "name": "Frank", "role": "Co-Founder, Trainer, Software Developer",
         "tags": ["expert", "member"], "slider": True,
         "img": "frank_profile-300x300.webp", "pos": "center 25%",
         "quote": "I build and ship features for our web platforms, with real responsibility from day one.",
@@ -231,7 +231,7 @@ PROFILES = [
             {"name": "Shipping & deployment"},
         ],
         "work": [
-            ("Co-Founder & software developer", "ProsperGenics", "Feature development on the community's web platforms."),
+            ("Co-Founder, trainer & software developer", "ProsperGenics", "Feature development on the community's web platforms, and training for new developers."),
         ],
         "education": [
             ("Hands-on developer training", "ProsperGenics", "Learning by building, on real projects with real users."),

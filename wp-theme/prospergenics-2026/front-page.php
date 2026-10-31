@@ -998,7 +998,7 @@
             <span class="fc-ring" aria-hidden="true"></span>
             <span class="fc-portrait"><img loading="lazy" decoding="async" width="300" height="300" src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/frank_profile-300x300.webp" alt="Frank" style="object-position: center 25%" /></span>
             <div class="fc-name">Frank</div>
-            <div class="fc-role">Co-Founder, Software Developer</div>
+            <div class="fc-role">Co-Founder, Trainer, Software Developer</div>
             <p class="fc-quote">"I build and ship features for our web platforms, with real responsibility from day one."</p>
           </a>
           <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/sophy/">
@@ -1084,7 +1084,7 @@
             <span class="fc-ring"></span>
             <span class="fc-portrait"><img loading="lazy" decoding="async" width="300" height="300" src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/frank_profile-300x300.webp" alt="" style="object-position: center 25%" /></span>
             <div class="fc-name">Frank</div>
-            <div class="fc-role">Co-Founder, Software Developer</div>
+            <div class="fc-role">Co-Founder, Trainer, Software Developer</div>
             <p class="fc-quote">"I build and ship features for our web platforms, with real responsibility from day one."</p>
           </a>
           <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/sophy/" tabindex="-1">
