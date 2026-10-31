@@ -10,11 +10,17 @@
   font-family:'Sora',system-ui,sans-serif;font-weight:700;font-size:12px;line-height:1.25;letter-spacing:.01em;
   text-decoration:none;white-space:nowrap;
 }
+/* the tier's colours win over the link colours of the card, heading or list around the badge
+   (".pgf-card-title a", ".pgc-instructor-name a", ":hover" rules …) */
+a.pg-badge[data-pg-badge],a.pg-badge[data-pg-badge]:link,a.pg-badge[data-pg-badge]:visited,
+a.pg-badge[data-pg-badge]:hover,a.pg-badge[data-pg-badge]:active,span.pg-badge[data-pg-badge]{
+  color:var(--pgb-fg,#0f3d28);background:var(--pgb-bg,#fff);text-decoration:none;
+}
 .pg-badge-icon{flex:0 0 auto;display:block;}
 .pg-badge-label{color:inherit;}
 .pg-badge--header{gap:6px;padding:5px 13px 5px 10px;font-size:14px;}
 a.pg-badge{cursor:pointer;}
-a.pg-badge:hover .pg-badge-label{text-decoration:underline;text-underline-offset:2px;}
+a.pg-badge[data-pg-badge]:hover .pg-badge-label{text-decoration:underline;text-underline-offset:2px;}
 /* a two-tone ring, visible on the dark hero bands and on white cards alike */
 a.pg-badge:focus-visible{outline:none;box-shadow:0 0 0 2px #fff,0 0 0 4px #0f3d28;}
 
