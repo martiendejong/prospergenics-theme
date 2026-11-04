@@ -115,7 +115,7 @@
   /* TOP half: message (left, on paper) + team photo fading in from ~30% */
   .hero-top { position: relative; min-height: 520px; display: flex; align-items: flex-start; padding-top: 130px; }
   .hero-top-photo {
-    position: absolute; top: 34px; bottom: 0; left: 50%; width: 100vw; transform: translateX(-50%);
+    position: absolute; top: 0; bottom: 0; left: 50%; width: 100vw; transform: translateX(-50%);
     z-index: 0; pointer-events: none;
     background: url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/hero-top.webp') center 12% / cover no-repeat;
     opacity: .97;
@@ -776,7 +776,11 @@
   .launcher.is-compact .wa-btn { left: -22px; bottom: -2px; width: 44px; height: 44px; }
   .launcher.is-compact .wa-btn svg { width: 24px; height: 24px; }
   body.launcher-compact .co-embed-panel { bottom: 120px !important; height: min(560px, calc(100vh - 152px)) !important; }
-  @media (max-width: 560px){ .launcher { right: 18px; bottom: 18px; gap: 8px; } .launcher-bubble { display: none; } }
+  @media (max-width: 560px){
+    .launcher { right: 18px; bottom: 18px; gap: 8px; }
+    .launcher-bubble { display: none; }
+    .launcher-orb .l-photo img { width: 84px; height: 100%; object-fit: cover; transform: scale(3.5); transform-origin: 39% 54%; object-position: -2px 22%; }
+  }
   @media (prefers-reduced-motion: reduce){ .launcher-orb, .launcher .wa-btn, .launcher-bubble { transition: none; } }
 
   /* subtle double text-shadow on all headings and body text */
@@ -833,7 +837,7 @@
       <div class="copy">
         <div class="copy-inner">
           <h1 class="reveal d1">You create<span class="accent">value</span></h1>
-          <p class="sub reveal d2">We're building the system to help you realize your true capacity.</p>
+          <p class="sub reveal d2">Prospergenics is building the system to maximize your potential.</p>
         </div>
       </div>
     </div>
@@ -857,8 +861,8 @@
         </a>
       </div>
       <div class="hero-bottom-cta reveal d4">
-        <p class="hbc-head">Not sure where <span class="accent">to start?</span></p>
-        <p class="hbc-body">Tell us what you want to achieve. We'll help you find the next step.</p>
+        <p class="hbc-head">How can we <span class="accent">help you?</span></p>
+        <p class="hbc-body">Tell us what you want to achieve. We'll guide you through the next step.</p>
         <span class="hbc-arrow">
           Chat with us
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8-8-8z"/></svg>
