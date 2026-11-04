@@ -248,7 +248,7 @@ echo "footer (NAV-8)\n";
 foreach ( $footer_labels as $l ) {
 	ok( false !== strpos( $php_footer, '>' . esc_html( $l ) . '</a>' ), "footer links $l" );
 }
-foreach ( array( '/contact/', '/privacy-policy/', '/cookie-policy/', '/vacancies/', '/articles/' ) as $href ) {
+foreach ( array( '/contact/', '/privacy-policy/', '/cookie-policy/', '/vacancies/', '/articles/', '/find/', '/badges/' ) as $href ) {
 	ok( false !== strpos( $php_footer, 'href="' . TEST_HOME . $href . '"' ), "footer links $href" );
 }
 ok( false !== strpos( $home, '<main id="main">' ) && false !== strpos( $home, '</main>' ), 'homepage content is wrapped in <main>' );
@@ -308,6 +308,10 @@ ok( false === strpos( prospergenics_2026_listings_takeover( str_replace( '<div c
 unset( $GLOBALS['__filters'] );
 ok( 'Members' === prospergenics_2026_current_nav_label( '/find/' ), '/find/ is in the Members section' );
 ok( in_array( 'Find people', array_column( $nav['footer'][1]['links'], 'label' ), true ) && 6 === count( $nav['main'] ), 'the footer\'s Community column links Find people; the main menu keeps its six items (#6542)' );
+$community = array_column( $nav['footer'][1]['links'], 'path', 'label' );
+ok( isset( $community['Member badges'], $community['Find people'] ) && '/badges/' === $community['Member badges'] && '/find/' === $community['Find people'], 'the Community column links Member badges (/badges/) next to Find people (/find/)' );
+ok( array( 'Courses', 'Members', 'Tools', 'Services', 'Partners', 'About' ) === array_column( $nav['main'], 'label' ), 'adding footer links leaves the six main menu items unchanged' );
+ok( false !== strpos( $php_footer, 'href="' . TEST_HOME . '/badges/">Member badges</a>' ) && false !== strpos( $php_footer, 'href="' . TEST_HOME . '/find/">Find people</a>' ), 'the PHP footer links /badges/ and /find/' );
 $GLOBALS['__queued'] = array( 'style:jengo-listings:done' );
 ok( prospergenics_2026_is_listings_page(), 'detects a jengo-listings page by its stylesheet' );
 $GLOBALS['__queued'] = array();
