@@ -372,7 +372,54 @@ function prospergenics_2026_listings_takeover( $html, $path, array $chrome ) {
         $out  = null === $new ? $out : $new;
     }
 
+    // Member badges on the /members/ directory: whoever answers the filter (the profiles track)
+    // maps the cards' listing slugs to badge markup, which goes next to the name.
+    $slugs = 0 === strpos( $key, '/members/' ) ? prospergenics_2026_listings_member_slugs( $out ) : array();
+    if ( $slugs ) {
+        $out = prospergenics_2026_listings_add_member_badges( $out, (array) apply_filters( 'prospergenics_2026_listings_member_badges', array(), $slugs ) );
+    }
+
     return rtrim( $out ) . "\n\n" . $chrome['footer'] . "\n" . $chrome['script'] . "\n";
+}
+
+/** The card pattern of the jengo-listings /members/ directory: <a class="dir-card" href=".../members/<slug>/">. */
+function prospergenics_2026_listings_member_card_re() {
+    return '#<a class="dir-card" href="' . preg_quote( untrailingslashit( home_url() ), '#' ) . '/members/([a-z0-9-]+)/">(.*?)</a>#s';
+}
+
+/** The listing slugs of the member cards on a jengo-listings page, in page order (pure). */
+function prospergenics_2026_listings_member_slugs( $html ) {
+    return preg_match_all( prospergenics_2026_listings_member_card_re(), (string) $html, $m ) ? array_values( array_unique( $m[1] ) ) : array();
+}
+
+/**
+ * Put each member's badge right after their name on the /members/ cards (pure).
+ *
+ * The card is itself a link, so the badge must be the link-free 'inline' markup. A card is only
+ * touched when it has exactly one name (<div class="dc-title">); a card without a badge, or a page
+ * of another shape, stays exactly as the plugin made it.
+ *
+ * @param array<string,string> $badges listing slug => badge markup (already escaped)
+ */
+function prospergenics_2026_listings_add_member_badges( $html, array $badges ) {
+    $badges = array_filter( $badges, function ( $b ) { return is_string( $b ) && '' !== $b && false === stripos( $b, '<a' ); } );
+    if ( ! $badges ) {
+        return $html;
+    }
+    $out = preg_replace_callback(
+        prospergenics_2026_listings_member_card_re(),
+        function ( $m ) use ( $badges ) {
+            if ( ! isset( $badges[ $m[1] ] ) || 1 !== substr_count( $m[2], '<div class="dc-title">' ) ) {
+                return $m[0];
+            }
+            $badge = $badges[ $m[1] ];
+            $body  = preg_replace_callback( '#(<div class="dc-title">)(.*?)(</div>)#s', function ( $t ) use ( $badge ) { return $t[1] . $t[2] . ' ' . $badge . $t[3]; }, $m[2], 1 );
+            $open  = substr( $m[0], 0, strlen( $m[0] ) - strlen( $m[2] ) - strlen( '</a>' ) );
+            return null === $body ? $m[0] : $open . $body . '</a>';
+        },
+        $html
+    );
+    return null === $out ? $html : $out;
 }
 
 add_action( 'wp_head', function () {

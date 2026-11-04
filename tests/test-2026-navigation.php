@@ -50,7 +50,7 @@ function trailingslashit( $s ) { return rtrim( $s, '/' ) . '/'; }
 function untrailingslashit( $s ) { return rtrim( $s, '/' ); }
 function wp_unslash( $v ) { return $v; }
 function wp_strip_all_tags( $s ) { return strip_tags( $s ); }
-function apply_filters( $tag, $value ) { return isset( $GLOBALS['__filters'][ $tag ] ) ? $GLOBALS['__filters'][ $tag ]( $value ) : $value; }
+function apply_filters( $tag, $value, ...$args ) { return isset( $GLOBALS['__filters'][ $tag ] ) ? $GLOBALS['__filters'][ $tag ]( $value, ...$args ) : $value; }
 function add_action( $tag, $cb, $prio = 10, $args = 1 ) { $GLOBALS['__hooks'][ $tag ][] = $cb; }
 function add_filter( $tag, $cb, $prio = 10, $args = 1 ) { $GLOBALS['__hooks'][ $tag ][] = $cb; }
 function add_query_arg( $key, $value = null, $url = null ) {
@@ -305,6 +305,34 @@ $members_out = prospergenics_2026_listings_takeover( $members_page, '/members/',
 ok( (bool) preg_match( '#</form><p class="pg-find-link"[^>]*>Looking for someone who has done it before\? <a href="' . preg_quote( TEST_HOME, '#' ) . '/find/"[^>]*>Find people by skill, project or problem →</a></p></div>#', $members_out ), '/members/ links /find/ right after its search form' );
 ok( false === strpos( prospergenics_2026_listings_takeover( $members_page, '/members/lessy/', $chrome ), 'pg-find-link' ), 'member detail pages get no /find/ link' );
 ok( false === strpos( prospergenics_2026_listings_takeover( str_replace( '<div class="dir-wrap">', '<div class="search-wrap"></div><div class="dir-wrap">', $members_page ), '/members/', $chrome ), 'pg-find-link' ), 'an unexpected page shape gets no /find/ link' );
+unset( $GLOBALS['__filters'] );
+
+// Member badges on the /members/ directory (saved plugin page): next to the name on the cards the
+// profiles track has a badge for; every other card, and every other page, stays as it was.
+$dir_page = substr( $dp = file_get_contents( __DIR__ . '/fixtures/jengo-listings/members.html' ), 0, strpos( $dp, '<script type="speculationrules">' ) );
+$grid     = function ( $html ) { return block( $html, '#<div class="dir-grid">.*?</a>\s*</div>#s' ); }; // the grid, up to the end of its last card
+$dir_cards = prospergenics_2026_listings_member_slugs( $dir_page );
+ok( 12 === count( $dir_cards ) && 'martien-de-jong' === $dir_cards[0] && in_array( 'lessy', $dir_cards, true ), 'the 12 member cards are read from their /members/<slug>/ links, in page order' );
+$plain = prospergenics_2026_listings_takeover( $dir_page, '/members/', $chrome );
+ok( $grid( $dir_page ) === $grid( $plain ) && '' !== $grid( $plain ) && false === strpos( $plain, 'pg-badge' ), 'no badges offered: the cards are exactly as the plugin made them' );
+$seen  = null;
+$badge = '<span class="pg-badge pg-badge--compact pg-badge--member" data-pg-badge="member"><span class="pg-badge-label">Member</span></span>';
+$GLOBALS['__filters']['prospergenics_2026_listings_member_badges'] = function ( $badges, $slugs = array() ) use ( &$seen, $badge ) {
+	$seen = $slugs;
+	return array( 'lessy' => $badge, 'martien-de-jong' => $badge, 'frank' => '<a class="pg-badge" href="/badges/">Member</a>', 'not-on-the-page' => $badge, 'natumi' => '' );
+};
+$with = prospergenics_2026_listings_takeover( $dir_page, '/members/', $chrome );
+ok( $seen === $dir_cards, 'the filter gets every card\'s slug in one call (one lookup for the page)' );
+ok( false !== strpos( $with, '<div class="dc-title">Lessy ' . $badge . '</div>' ) && false !== strpos( $with, '<div class="dc-title">Martien de Jong ' . $badge . '</div>' ), 'the badge sits right after the name, inside the card title' );
+ok( 2 === substr_count( $with, 'pg-badge--member' ) && false === strpos( $with, 'href="/badges/"' ), 'a badge with a link (it would nest inside the card link) and an empty one are refused' );
+$strip = function ( $html ) use ( $badge ) { return str_replace( ' ' . $badge, '', $html ); };
+ok( $grid( $dir_page ) === $grid( $strip( $with ) ), 'nothing else on the cards changes' );
+ok( 12 === substr_count( $with, '<a class="dir-card" href=' ) && 12 === substr_count( $grid( $with ), '</a>' ), 'still twelve whole cards' );
+$seen = null;
+ok( false === strpos( prospergenics_2026_listings_takeover( $dir_page, '/services/', $chrome ), 'pg-badge' ) && null === $seen, 'other directories are never asked' );
+$twice = str_replace( '<div class="dc-title">Lessy</div>', '<div class="dc-title">Lessy</div><div class="dc-title">x</div>', $dir_page );
+ok( false === strpos( block( prospergenics_2026_listings_takeover( $twice, '/members/', $chrome ), '#<a class="dir-card" href="[^"]*/members/lessy/">.*?</a>#s' ), 'pg-badge' ), 'a card of an unexpected shape (two names) gets no badge' );
+ok( $dir_page === prospergenics_2026_listings_add_member_badges( $dir_page, array() ) && $dir_page === prospergenics_2026_listings_add_member_badges( $dir_page, array( 'nobody' => $badge ) ), 'nothing that matches: the page is returned unchanged' );
 unset( $GLOBALS['__filters'] );
 ok( 'Members' === prospergenics_2026_current_nav_label( '/find/' ), '/find/ is in the Members section' );
 ok( in_array( 'Find people', array_column( $nav['footer'][1]['links'], 'label' ), true ) && 6 === count( $nav['main'] ), 'the footer\'s Community column links Find people; the main menu keeps its six items (#6542)' );
