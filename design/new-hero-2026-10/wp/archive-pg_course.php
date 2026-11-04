@@ -8,6 +8,8 @@ $pgc_terms   = get_terms(array('taxonomy' => 'pg_course_category', 'hide_empty' 
 $pgc_user    = get_current_user_id();
 $pgc_active  = $pgc_filters['category'] || $pgc_filters['level'] || 'newest' !== $pgc_filters['sort'];
 global $wp_query;
+// the courses in the jengo-listings system (Martien's courses), shown on the unfiltered first page
+$pgc_listings = ( ! $pgc_active && (int) get_query_var('paged') < 2 && function_exists('prospergenics_courses_listings') ) ? prospergenics_courses_listings() : array();
 ?>
 
 <div class="post-hero">
@@ -55,12 +57,15 @@ global $wp_query;
   </form>
 
   <p class="pgc-count" role="status"><?php
-    $pgc_n = (int) $wp_query->found_posts;
+    $pgc_n = (int) $wp_query->found_posts + count($pgc_listings);
     echo esc_html(sprintf(_n('%d course', '%d courses', $pgc_n, 'prospergenics-2026'), $pgc_n) . ($pgc_filters['category'] || $pgc_filters['level'] ? ' match your filters' : ''));
   ?></p>
 
-  <?php if (have_posts()) : ?>
+  <?php if (have_posts() || $pgc_listings) : ?>
     <div class="pgc-grid">
+      <?php foreach ($pgc_listings as $pgc_item) : ?>
+        <?php echo prospergenics_courses_listing_card($pgc_item); // escaped in the helper ?>
+      <?php endforeach; ?>
       <?php while (have_posts()) : the_post(); ?>
         <?php echo prospergenics_courses_card(get_post(), $pgc_user); // escaped in the helper ?>
       <?php endwhile; ?>
