@@ -10,7 +10,7 @@
  * The certificates themselves are listed on the member's /in/ profile (privacy section
  * "certificates", inc/profiles/data.php); the course page suggests a next course once a learner has
  * finished (prospergenics_courses_next_course(), single-pg_course.php). Weekly reminders for inactive
- * learners are not built (they need an opt-out setting and a cron job; left for later).
+ * learners are in reminders.php (card #6512).
  * Mail goes through the platform mail helper (inc/profiles/mail.php), so failures are logged.
  */
 

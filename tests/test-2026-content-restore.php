@@ -78,7 +78,7 @@ ok( 2 === count( prospergenics_courses_listings() ), 'when the service is down, 
 echo "Wiring\n";
 $loader  = file_get_contents( $theme . '/inc/platform-courses.php' );
 $archive = file_get_contents( $theme . '/archive-pg_course.php' );
-ok( false !== strpos( $loader, "'listings' )" ), 'the courses loader loads listings.php' );
+ok( false !== strpos( $loader, "'listings'" ), 'the courses loader loads listings.php' );
 ok( false !== strpos( $archive, 'prospergenics_courses_listings()' ) && false !== strpos( $archive, 'prospergenics_courses_listing_card($pgc_item)' ), '/courses/ lists the listings courses' );
 ok( false !== strpos( $archive, '$wp_query->found_posts + count($pgc_listings)' ), 'and counts them in "N courses"' );
 ok( false !== strpos( $archive, 'if (have_posts() || $pgc_listings)' ), 'the empty state shows only when there are no courses at all' );

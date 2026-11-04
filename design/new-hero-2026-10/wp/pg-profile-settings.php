@@ -1,7 +1,8 @@
 <?php
 defined('ABSPATH') || exit;
 // Settings at /profile/settings/ (profiles track): privacy (card #6351), email and password (audit ARC-5),
-// download or delete your data (ARC-12). Plain forms: everything works without JavaScript.
+// weekly learning reminders (card #6512), download or delete your data (ARC-12). Plain forms:
+// everything works without JavaScript.
 $uid      = get_current_user_id();
 $user     = wp_get_current_user();
 $privacy  = prospergenics_profiles_privacy( $uid );
@@ -108,6 +109,19 @@ get_header();
       </div>
     </form>
   </section>
+
+  <?php if ( function_exists( 'prospergenics_courses_reminders_enabled' ) ) : // weekly learning reminders (card #6512) ?>
+  <section class="pgp-section" id="pgp-email" aria-labelledby="pgp-email-h">
+    <h2 id="pgp-email-h">Emails</h2>
+    <?php if ( 'reminders' === $saved ) { prospergenics_profiles_notice( 'ok', 'Your email settings are saved.' ); } ?>
+    <form class="pgp-form" method="post" action="<?php echo esc_url( home_url( '/profile/settings/#pgp-email' ) ); ?>">
+      <?php wp_nonce_field( 'pg_profiles_reminders', '_pgp_nonce' ); ?>
+      <input type="hidden" name="pgp_action" value="reminders" />
+      <?php prospergenics_profiles_field( 'pgp-reminders', 'reminders', 'Weekly learning reminders', prospergenics_courses_reminders_enabled( $uid ), 'checkbox', array( 'hint' => 'When you have not opened a lesson of a course you are taking for a week, we email you your next lesson and your progress. At most one email a week; none once you finish.' ) ); ?>
+      <div class="pgp-form-actions"><button type="submit" class="pgp-btn pgp-btn-primary">Save email settings</button></div>
+    </form>
+  </section>
+  <?php endif; ?>
 
   <section class="pgp-section" id="pgp-data" aria-labelledby="pgp-data-h">
     <h2 id="pgp-data-h">Your data</h2>

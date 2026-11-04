@@ -9,6 +9,7 @@
  *   /courses/<slug>/certificate/            the learner's own certificate PDF
  *   /courses/my/                            courses-my.php (my courses, progress, certificates)
  *   /courses/verify/[<code>/]               courses-verify.php (public certificate check)
+ *   /courses/reminders/stop/?u=&t=          courses-reminders.php (one-click stop of the weekly reminders)
  *   /courses/instructor/<id>-<name>/        courses-instructor.php
  *   /instructor/dashboard/                  courses-dashboard.php
  *   /instructor/courses/new/                courses-wizard.php
@@ -22,7 +23,7 @@
 defined( 'ABSPATH' ) || exit;
 
 /** Bump to flush rewrite rules once after a deploy that changes them. */
-const PROSPERGENICS_COURSES_REWRITE_VERSION = '2';
+const PROSPERGENICS_COURSES_REWRITE_VERSION = '3';
 
 add_filter( 'query_vars', function ( $vars ) {
 	return array_merge( $vars, array( 'pg_courses_view', 'pg_courses_code', 'pg_courses_user', 'pg_courses_edit', 'pg_courses_course', 'pg_courses_notes' ) );
@@ -32,6 +33,7 @@ add_action( 'init', function () {
 	$rules = array(
 		'courses/my/?$'                               => 'index.php?pg_courses_view=my',
 		'courses/verify/?$'                           => 'index.php?pg_courses_view=verify',
+		'courses/reminders/stop/?$'                   => 'index.php?pg_courses_view=reminders',
 		'courses/verify/([A-Za-z0-9-]+)/?$'           => 'index.php?pg_courses_view=verify&pg_courses_code=$matches[1]',
 		'courses/instructor/([0-9]+)(?:-[^/]*)?/?$'   => 'index.php?pg_courses_view=instructor&pg_courses_user=$matches[1]',
 		'courses/([^/]+)/lessons/([^/]+)/?$'          => 'index.php?pg_lesson=$matches[2]&pg_courses_course=$matches[1]',
@@ -116,7 +118,7 @@ function prospergenics_courses_wizard_url( $course_id = 0 ) {
 /** The track's own view for this request ('' when none). */
 function prospergenics_courses_view() {
 	$view = get_query_var( 'pg_courses_view' );
-	return in_array( $view, array( 'my', 'verify', 'instructor', 'certificate', 'dashboard', 'wizard' ), true ) ? $view : '';
+	return in_array( $view, array( 'my', 'verify', 'instructor', 'certificate', 'dashboard', 'wizard', 'reminders' ), true ) ? $view : '';
 }
 
 /** Whether this request is one of the track's pages (for assets and head tags). */
@@ -230,6 +232,7 @@ add_action( 'template_redirect', function () {
 		'instructor' => 'courses-instructor.php',
 		'dashboard'  => 'courses-dashboard.php',
 		'wizard'     => 'courses-wizard.php',
+		'reminders'  => 'courses-reminders.php',
 	);
 	status_header( 200 );
 	nocache_headers();
@@ -252,6 +255,7 @@ add_filter( 'document_title_parts', function ( $parts ) {
 		'verify'     => 'Verify a certificate',
 		'dashboard'  => 'Instructor dashboard',
 		'wizard'     => get_query_var( 'pg_courses_edit' ) ? 'Edit course' : 'Create a course',
+		'reminders'  => 'Learning reminders',
 	);
 	$view = prospergenics_courses_view();
 	if ( isset( $titles[ $view ] ) ) {

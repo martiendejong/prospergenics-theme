@@ -205,6 +205,23 @@ prospergenics_projects_store_contributions( $badge_project, array(
 $pg_e2e_out['badge_project']     = (int) $badge_project;
 $pg_e2e_out['badge_project_url'] = get_permalink( $badge_project );
 
+// Featured items (card #6472): two links on the subscriber's profile; the matrix reports and hides
+// the first, the second must stay. A second run starts again: no reports on it, nothing hidden.
+update_user_meta( $pg_e2e_sub, '_pg_profiles_featured', array(
+    array( 'type' => 'link', 'url' => 'https://example.org/e2e-featured-spam-6f1a', 'title' => 'E2E featured link 6f1a', 'image' => '', 'attachment_id' => 0, 'id' => 1 ),
+    array( 'type' => 'link', 'url' => 'https://example.org/e2e-featured-keep-6f1a', 'title' => 'E2E featured keep 6f1a', 'image' => '', 'attachment_id' => 0, 'id' => 2 ),
+) );
+update_user_meta( $pg_e2e_sub, '_pg_profiles_featured_seq', 2 );
+delete_user_meta( $pg_e2e_sub, '_pg_profiles_featured_hidden' );
+$pg_e2e_featured = prospergenics_profiles_featured_ref( $pg_e2e_sub, 1 );
+foreach ( get_posts( array( 'post_type' => 'pg_report', 'post_status' => 'any', 'posts_per_page' => -1, 'fields' => 'ids', 'meta_key' => '_pg_profiles_report_target', 'meta_value' => 'featured:' . $pg_e2e_featured ) ) as $pg_e2e_r ) {
+    wp_delete_post( $pg_e2e_r, true );
+}
+$pg_e2e_out['featured_ref']   = $pg_e2e_featured;
+$pg_e2e_out['featured_title'] = 'E2E featured link 6f1a';
+$pg_e2e_out['featured_url']   = 'https://example.org/e2e-featured-spam-6f1a';
+$pg_e2e_out['featured_keep']  = 'https://example.org/e2e-featured-keep-6f1a';
+
 $pg_e2e_out['course']        = $course;
 $pg_e2e_out['media']         = $media;
 $pg_e2e_out['media_title']   = 'E2E admin image 9c1d';

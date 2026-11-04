@@ -288,6 +288,9 @@
 .pgc-verify-list{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:10px 22px;font-size:16px;}
 .pgc-verify-list dt{color:var(--muted);}
 .pgc-verify-list dd{font-weight:600;overflow-wrap:anywhere;}
+/* /courses/reminders/stop/ (weekly learning reminders, card #6512) */
+.pgc-reminders a:not(.pgc-btn){color:var(--green-700);font-weight:600;}
+.pgc-reminders-actions{display:flex;flex-wrap:wrap;gap:10px;}
 .pgc-verify-list a{color:var(--green-700);}
 .pgc-verify--bad p+p{margin-top:8px;}
 .pgc-verify-staff{margin:-12px 0 28px;}

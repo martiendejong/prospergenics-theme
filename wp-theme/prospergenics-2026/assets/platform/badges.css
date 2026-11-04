@@ -30,6 +30,8 @@ a.pg-badge:focus-visible{outline:none;box-shadow:0 0 0 2px #fff,0 0 0 4px #0f3d2
 .pga-byline-text .pgb-with-badge{gap:4px 8px;}
 .pgf-card-title .pg-badge,.pgj-person h3 .pg-badge,.pgc-instructor-name .pg-badge{margin-left:4px;}
 .pgp-member .pg-badge{margin-left:4px;font-size:11px;padding:2px 7px 2px 5px;}
+/* the jengo-listings /members/ directory: after the name inside the card's title (Sora 18px) */
+.dir-card .dc-title .pg-badge{margin-left:2px;letter-spacing:.01em;}
 .pgm-rank{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;}
 .pgm-rank-h{font-weight:600;}
 

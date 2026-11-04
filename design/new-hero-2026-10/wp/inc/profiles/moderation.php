@@ -2,8 +2,9 @@
 /**
  * Profiles track: reporting content and the moderation queue (card #6472).
  *
- * Report: verified members (logged in, email confirmed) report an article, a member profile (/in/)
- * or a lesson discussion post, once per item, with a reason and an optional note. A report is a
+ * Report: verified members (logged in, email confirmed) report an article, a member profile (/in/),
+ * one featured item on a profile (a link, article or image, by its own id: "featured:<owner * 10^6 +
+ * item>", helpers.php) or a lesson discussion post, once per item, with a reason and an optional note. A report is a
  * pg_report post (internal: no UI, no REST): post_author = the reporter, meta
  * _pg_profiles_report_{target,type,object,owner,reason,details,status,action,by,at}.
  *
@@ -16,9 +17,12 @@
  * report on the item:
  *
  *   Hide      article: _pg_articles_hidden (inc/articles/hidden.php); profile: the staff "hidden"
- *             flag _pg_profiles_hidden (users-admin.php); discussion post: unapproved (held).
+ *             flag _pg_profiles_hidden (users-admin.php); discussion post: unapproved (held);
+ *             featured item: _pg_profiles_featured_hidden on the owner (by id and link), gone from
+ *             the profile and REST for everyone but the owner and staff (data.php).
  *             Reversible from the "Handled" tab ("Show again").
- *   Remove    article: to the trash; discussion post: to the trash. (Profiles: hide or suspend.)
+ *   Remove    article: to the trash; discussion post: to the trash; featured item: taken off the
+ *             owner's list. (Profiles: hide or suspend.)
  *   Dismiss   nothing was wrong.
  *   Warn      an email to the member, with the team's note; kept on the member (_pg_profiles_warnings).
  *   Suspend   the member cannot log in (authenticate filter, with a clear message), their sessions
@@ -61,7 +65,7 @@ function prospergenics_profiles_report_reasons() {
 
 /** The kinds of content that can be reported, type => label. */
 function prospergenics_profiles_report_types() {
-    return array( 'article' => 'Article', 'profile' => 'Profile', 'question' => 'Discussion post' );
+    return array( 'article' => 'Article', 'profile' => 'Profile', 'featured' => 'Featured item', 'question' => 'Discussion post' );
 }
 
 /** "article:12", or '' for an unknown type or id. */
@@ -222,6 +226,31 @@ function prospergenics_profiles_report_target( $type, $id ) {
             'removed'   => false,
         );
     }
+    if ( 'featured' === $type ) {
+        $ref  = prospergenics_profiles_featured_unref( $id );
+        $u    = $ref ? get_userdata( $ref[0] ) : false;
+        $item = null;
+        foreach ( $u ? prospergenics_profiles_featured( $u->ID ) : array() as $f ) {
+            if ( (int) $f['id'] === $ref[1] ) {
+                $item = $f;
+            }
+        }
+        if ( ! $item ) {
+            return null; // the member took it off their profile
+        }
+        $types = prospergenics_profiles_featured_types();
+        return array(
+            'type' => $type, 'id' => $id, 'key' => 'featured:' . $id,
+            'title'     => sprintf( '%s “%s” featured by %s', $types[ $item['type'] ], '' !== $item['title'] ? $item['title'] : $item['url'], $u->display_name ),
+            'url'       => prospergenics_profiles_url( $u->ID ) . '#pgp-feat-' . (int) $item['id'],
+            'owner'     => (int) $u->ID,
+            'admin_url' => '',
+            'hidden'    => prospergenics_profiles_featured_is_hidden( $item, prospergenics_profiles_featured_hidden( $u->ID ) ),
+            'removed'   => false,
+            'excerpt'   => $item['url'],
+            'item'      => (int) $item['id'],
+        );
+    }
     if ( 'question' === $type && function_exists( 'prospergenics_courses_discussion_get' ) ) {
         $c = prospergenics_courses_discussion_get( $id );
         if ( ! $c ) {
@@ -253,6 +282,8 @@ function prospergenics_profiles_report_target_visible( array $t, $user_id ) {
             return ! $t['hidden'] && 'publish' === get_post_status( $t['id'] );
         case 'profile':
             return ! empty( prospergenics_profiles_visibility_for( $t['id'], $user_id )['profile'] );
+        case 'featured':
+            return ! $t['hidden'] && ! empty( prospergenics_profiles_visibility_for( $t['owner'], $user_id )['featured'] );
         case 'question':
             $c = get_comment( $t['id'] );
             return ! $t['hidden'] && $c && prospergenics_courses_discussion_can_access( (int) $c->comment_post_ID, $user_id );
@@ -383,7 +414,7 @@ function prospergenics_profiles_report_html( $type, $id ) {
     // phpcs:ignore WordPress.Security.NonceVerification -- display only, whitelisted values
     $err_key = isset( $_GET['pg_report'], $_GET['pg_report_target'] ) && $key === sanitize_text_field( wp_unslash( $_GET['pg_report_target'] ) ) ? sanitize_key( wp_unslash( $_GET['pg_report'] ) ) : '';
     $notices = prospergenics_profiles_report_notices();
-    $labels  = array( 'article' => 'this article', 'profile' => 'this profile', 'question' => 'this post' );
+    $labels  = array( 'article' => 'this article', 'profile' => 'this profile', 'featured' => 'this featured item', 'question' => 'this post' );
     $html    = '<details class="pg-report" id="' . esc_attr( $dom ) . '"' . ( isset( $notices[ $err_key ] ) ? ' open' : '' ) . '>';
     $html   .= '<summary><svg aria-hidden="true" focusable="false" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22V4"/><path d="M4 4h12l-2 4 2 4H4"/></svg>Report<span class="screen-reader-text"> ' . esc_html( $labels[ $type ] ) . '</span></summary>';
     $html   .= '<form class="pg-report-form" method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">';
@@ -512,7 +543,7 @@ function prospergenics_profiles_warn( array $t, $by, $note ) {
     if ( ! $user ) {
         return new WP_Error( 'pg_profiles_no_owner', 'The item has no member to warn.' );
     }
-    $what = array( 'article' => 'your article “%s”', 'profile' => 'your profile', 'question' => 'your post in a lesson discussion' );
+    $what = array( 'article' => 'your article “%s”', 'profile' => 'your profile', 'featured' => 'an item featured on your profile (%s)', 'question' => 'your post in a lesson discussion' );
     $item = sprintf( $what[ $t['type'] ], $t['title'] );
     $note = sanitize_textarea_field( (string) $note );
     $body = sprintf(
@@ -573,6 +604,8 @@ function prospergenics_profiles_moderate( $key, $do, $by, $note = '' ) {
                 prospergenics_articles_set_hidden( $t['id'], $hide );
             } elseif ( 'profile' === $t['type'] ) {
                 prospergenics_profiles_set_hidden( $t['id'], $hide );
+            } elseif ( 'featured' === $t['type'] ) {
+                prospergenics_profiles_set_featured_hidden( $t['owner'], $t['item'], $hide );
             } else {
                 wp_set_comment_status( $t['id'], $hide ? 'hold' : 'approve' );
             }
@@ -583,6 +616,10 @@ function prospergenics_profiles_moderate( $key, $do, $by, $note = '' ) {
         case 'remove':
             if ( 'article' === $t['type'] ) {
                 wp_trash_post( $t['id'] );
+            } elseif ( 'featured' === $t['type'] ) {
+                // off the member's list (an uploaded image goes with the daily clean-up, data.php)
+                $keep = array_values( array_filter( prospergenics_profiles_featured( $t['owner'] ), function ( $f ) use ( $t ) { return (int) $f['id'] !== (int) $t['item']; } ) );
+                prospergenics_profiles_set_meta( $t['owner'], 'featured', $keep );
             } else {
                 wp_trash_comment( $t['id'] );
             }

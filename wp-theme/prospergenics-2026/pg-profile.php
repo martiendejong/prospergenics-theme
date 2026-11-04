@@ -176,7 +176,7 @@ get_header();
           <?php if ( $featured ) : ?>
             <ul class="pgp-featured" data-pgp-featured-list>
               <?php foreach ( $featured as $i => $f ) : ?>
-                <li class="pgp-feat" data-pgp-item="<?php echo esc_attr( wp_json_encode( $f ) ); ?>"<?php echo $is_owner ? ' draggable="true"' : ''; ?>>
+                <li class="pgp-feat<?php echo empty( $f['hidden'] ) ? '' : ' pgp-feat--hidden'; ?>" id="pgp-feat-<?php echo (int) $f['id']; ?>" data-pgp-item="<?php echo esc_attr( wp_json_encode( array_diff_key( $f, array( 'hidden' => 1 ) ) ) ); ?>"<?php echo $is_owner ? ' draggable="true"' : ''; ?>>
                   <a class="pgp-feat-link" href="<?php echo esc_url( $f['url'] ); ?>"<?php echo 0 === strpos( $f['url'], home_url() ) ? '' : ' rel="noopener nofollow ugc" target="_blank"'; ?>>
                     <?php if ( '' !== $f['image'] ) : ?>
                       <img src="<?php echo esc_url( $f['image'] ); ?>" alt="" loading="lazy" referrerpolicy="no-referrer" />
@@ -187,6 +187,11 @@ get_header();
                     <span class="pgp-feat-title"><?php echo esc_html( '' !== $f['title'] ? $f['title'] : $f['url'] ); ?></span>
                     <?php if ( 0 !== strpos( $f['url'], home_url() ) ) : ?><span class="screen-reader-text"> (opens in a new tab)</span><?php endif; ?>
                   </a>
+                  <?php if ( ! empty( $f['hidden'] ) ) : // only the owner and staff get hidden items (data.php) ?>
+                    <p class="pgp-feat-hidden" role="note"><?php echo $is_owner ? 'Hidden by the ProsperGenics team after a report. Only you and the team can see it.' : 'Hidden after a report: members and visitors do not see it.'; ?></p>
+                  <?php elseif ( ! $is_owner && function_exists( 'prospergenics_profiles_report_html' ) ) : // card #6472: report this one item ?>
+                    <?php echo prospergenics_profiles_report_html( 'featured', prospergenics_profiles_featured_ref( $owner->ID, $f['id'] ) ); // phpcs:ignore WordPress.Security.EscapeOutput -- escaped in the helper ?>
+                  <?php endif; ?>
                   <?php if ( $is_owner ) : ?>
                     <div class="pgp-feat-tools pgp-edit-only">
                       <span class="pgp-drag" aria-hidden="true" title="Drag to reorder">⠿</span>
