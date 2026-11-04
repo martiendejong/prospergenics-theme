@@ -4,6 +4,7 @@ Build + deploy the "Prospergenics 2026" WP theme to the WordPress install
 on https://test.prospergenics.com (one command).
 
     python deploy-wp-theme-to-test.py
+    python deploy-wp-theme-to-test.py --allow-older   # deliberate rollback only (see deploy_guard.py)
 
 What it does:
   - runs build-wp-theme.py (regenerates ../../wp-theme/prospergenics-2026
@@ -22,6 +23,9 @@ WP admin login: user jengo-admin, password in vault (project 6, "WP test.prosper
 """
 import json, os, re, subprocess, sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import deploy_guard  # noqa: E402
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 THEME = os.path.normpath(os.path.join(HERE, "..", "..", "wp-theme", "prospergenics-2026"))
 VAULT = r"E:\projects\jengo\jengo-system-private\tools\vault-api.py"
@@ -36,13 +40,25 @@ def prod_password():
     return json.loads(re.search(r"\{.*\}", out, re.S).group())["password"]
 
 
+REPO = os.path.normpath(os.path.join(HERE, "..", ".."))
+DEPLOYED = REMOTE + "/.deployed-commit"  # the commit of the last deploy, read by deploy_guard
+
+
 def main():
+    allow_older = "--allow-older" in sys.argv[1:]
     subprocess.run([sys.executable, os.path.join(HERE, "build-wp-theme.py")], check=True)
     import paramiko
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     ssh.connect(HOST, username=USER, password=prod_password(), timeout=20)
     sftp = ssh.open_sftp()
+    try:
+        with sftp.open(DEPLOYED) as f:
+            previous = f.read().decode("utf-8", "replace").strip()
+    except IOError:
+        previous = ""
+    # never replace a newer site with an older build (4 Nov 2026: the 24 Oct theme overwrote everything)
+    deploy_guard.require_current(REPO, previous, allow_older)
 
     def mkdirs(p):
         try:
@@ -59,6 +75,8 @@ def main():
         for fn in files:
             sftp.put(os.path.join(root, fn), rdir + "/" + fn)
             n += 1
+    with sftp.open(DEPLOYED, "w") as f:
+        f.write(deploy_guard.head(REPO))
     sftp.close()
     _, so, _ = ssh.exec_command(
         'powershell -Command "try{(Invoke-WebRequest http://localhost -Headers @{Host=\'test.prospergenics.com\'} -UseBasicParsing).StatusCode}catch{$_.Exception.Message}"',

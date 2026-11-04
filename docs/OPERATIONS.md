@@ -14,6 +14,27 @@ and the owner still have to provide. Card 6473, audit ARC-17 / ARC-18.
 | Uptime check of test | `.github/workflows/uptime.yml` (`tests/smoke/uptime-check.sh`) | every 30 minutes |
 | Production deploy (`master`) | by hand (Martien) | manual |
 
+## Deploying safely (read this before you upload anything)
+
+On 4 Nov 2026 test.prospergenics.com was overwritten with the theme of **24 Oct**: a deploy ran by hand
+from a branch that did not contain the 110 commits of `design/new-hero-2026-10`, so the platform, the
+people pages and every fix since 24 Oct disappeared from the site (the database was untouched).
+
+- **The test site is built from `design/new-hero-2026-10`.** Change it with a pull request against
+  that branch; merging deploys automatically (`.github/workflows/deploy-test.yml`), with a backup first
+  and a smoke check after.
+- **`develop` and `master`** follow it: `develop` is brought up to date from `design/new-hero-2026-10`,
+  and `master` gets it through the launch PR (#28). Start new branches from `design/new-hero-2026-10`
+  (or an up-to-date `develop`), never from an older commit.
+- **Deploying by hand** (`deploy-wp-theme-vimexx.py` for the Vimexx host, `deploy-wp-theme-to-test.py`
+  for the IIS server) now stops before uploading when your checkout does not contain the latest
+  `origin/design/new-hero-2026-10`, or when the server already runs a newer commit (`deploy_guard.py`;
+  the Vimexx deploy reads the commit from its manifest, the IIS deploy from `.deployed-commit` in the
+  theme folder). `--allow-older` is for a deliberate rollback only.
+- **One host at a time.** test.prospergenics.com is served by whichever origin Cloudflare points at.
+  The GitHub deploy uploads to the Vimexx host; switching Cloudflare to another server (such as the
+  IIS server) makes the site show that server's copy instead. Agree on the host before switching.
+
 ## Backups
 
 ### What to back up
