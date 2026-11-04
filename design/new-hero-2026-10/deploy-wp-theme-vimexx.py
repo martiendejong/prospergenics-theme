@@ -49,6 +49,9 @@ port and web root; PG_FTP_PLAIN=1 allows plain FTP, for localhost only.
 """
 import argparse, datetime, ftplib, hashlib, io, json, os, posixpath, re, subprocess, sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import deploy_guard  # noqa: E402
+
 HERE   = os.path.dirname(os.path.abspath(__file__))
 REPO   = os.path.normpath(os.path.join(HERE, "..", ".."))
 THEME  = os.path.join(REPO, "wp-theme", "prospergenics-2026")
@@ -472,6 +475,7 @@ def main():
     ap.add_argument("--backup-dir", default=os.environ.get("PG_DEPLOY_BACKUP_DIR") or os.path.join(REPO, ".deploy-backups"),
                     help="where the remote theme is downloaded before it is overwritten")
     ap.add_argument("--no-backup", action="store_true", help="skip the backup download")
+    ap.add_argument("--allow-older", action="store_true", help="deploy even if this checkout is older than what the server runs (deliberate rollback; see deploy_guard.py)")
     ap.add_argument("--prune-unlisted", action="store_true", help="also delete theme files on the server that are not in the build and were never in a manifest")
     args = ap.parse_args()
 
@@ -488,6 +492,9 @@ def main():
 
     ftp = connect()
     print(f"connected to {FTP_HOST}:{FTP_PORT}, theme folder {REMOTE_THEME}" + (" (dry run)" if args.dry_run else ""))
+    # never replace a newer site with an older build (4 Nov 2026: the 24 Oct theme overwrote everything)
+    previous = read_remote_json(ftp, MANIFEST) or {}
+    deploy_guard.require_current(REPO, previous.get("commit"), args.allow_older or args.theme_dir != THEME)
     deploy_theme(ftp, args, theme_dir, files, log_dir)
     count = len(files)
     if not args.theme_only:
