@@ -43,17 +43,18 @@ add_filter( 'wp_mail_from_name', function ( $name ) {
 /**
  * Send one platform mail and record what happened.
  *
- * @param string $type    Short key: verify, endorsement, …
- * @param int    $user_id The member the mail is about (0 for none).
+ * @param string   $type    Short key: verify, endorsement, …
+ * @param int      $user_id The member the mail is about (0 for none).
+ * @param string[] $headers Extra headers (e.g. List-Unsubscribe on the course reminders).
  * @return true|WP_Error
  */
-function prospergenics_profiles_send_mail( $to, $subject, $body, $type, $user_id = 0 ) {
+function prospergenics_profiles_send_mail( $to, $subject, $body, $type, $user_id = 0, array $headers = array() ) {
     $error   = '';
     $capture = function ( $wp_error ) use ( &$error ) {
         $error = $wp_error instanceof WP_Error ? $wp_error->get_error_message() : 'unknown error';
     };
     add_action( 'wp_mail_failed', $capture );
-    $sent = wp_mail( $to, $subject, $body );
+    $sent = wp_mail( $to, $subject, $body, $headers );
     remove_action( 'wp_mail_failed', $capture );
     if ( ! $sent && '' === $error ) {
         $error = 'wp_mail() returned false.';

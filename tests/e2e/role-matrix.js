@@ -195,6 +195,24 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
     }
     const again = await new Session('subscriber-again').login(U.subscriber.login, PW).then(() => true, () => false);
     check('password unchanged after the refused forms', 'subscriber', again, again ? 'login still works' : 'login failed');
+
+    // Weekly learning reminders (card #6512): on by default, the form needs its nonce, and the
+    // one-click stop link only works with the member's own signed token.
+    const ticked = html => /<input type="checkbox" id="pgp-reminders" name="reminders" value="1" checked/.test(html);
+    const before = await s.subscriber2.get('/profile/settings/');
+    check('reminders: on by default in /profile/settings/', 'subscriber2', before.status === 200 && ticked(before.text), `status ${before.status}`);
+    const noNonce = await s.subscriber2.request('POST', '/profile/settings/', { body: { pgp_action: 'reminders' } });
+    const still = await s.subscriber2.get('/profile/settings/');
+    check('reminders: turning them off refused without nonce', 'subscriber2', noNonce.status === 403 && ticked(still.text), `POST ${noNonce.status}`);
+    const forged = await visitor.get(`/courses/reminders/stop/?u=${U.subscriber2.id}&t=${'0'.repeat(64)}`);
+    const after = await s.subscriber2.get('/profile/settings/');
+    check('reminders: a forged stop link changes nothing', 'visitor', forged.status === 403 && ticked(after.text), `GET ${forged.status}`);
+    const n = await mint(s.subscriber2, 'pg_profiles_reminders');
+    const off = await s.subscriber2.request('POST', '/profile/settings/', { body: { pgp_action: 'reminders', _pgp_nonce: n } });
+    const now = await s.subscriber2.get('/profile/settings/');
+    check('reminders: the member turns them off (control)', 'subscriber2', off.status === 302 && /saved=reminders/.test(off.location || '') && now.status === 200 && !ticked(now.text), `POST ${off.status} -> ${off.location ? pathOf(off.location) : '(none)'}`);
+    const on = await s.subscriber2.request('POST', '/profile/settings/', { body: { pgp_action: 'reminders', _pgp_nonce: n, reminders: '1' } });
+    check('reminders: and on again (control)', 'subscriber2', on.status === 302 && ticked((await s.subscriber2.get('/profile/settings/')).text), `POST ${on.status}`);
   }
 
   /* 9. A few more writes that must stay closed. */

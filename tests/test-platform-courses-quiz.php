@@ -55,6 +55,7 @@ function current_user_can( $cap ) { return user_can( $GLOBALS['me'], $cap ); }
 function get_userdata( $id ) { return isset( $GLOBALS['users'][ (int) $id ] ) ? $GLOBALS['users'][ (int) $id ] : false; }
 function get_user_by( $field, $v ) { foreach ( $GLOBALS['users'] as $u ) { if ( $u->user_email === $v ) { return $u; } } return false; }
 function get_user_meta( $id, $k, $single = false ) { return ''; }
+function delete_user_meta( $id, $k ) { return false; }
 function wp_cache_get( $k, $g = '' ) { return false; }
 function wp_cache_set( $k, $v, $g = '' ) { return true; }
 function wp_cache_delete( $k, $g = '' ) { return true; }

@@ -3,7 +3,7 @@
  * Courses track: personal data (audit ARC-12).
  *
  * An exporter and an eraser for a learner's enrolments (with progress and quiz attempts, which
- * are stored on the enrolment, card #6461) and certificates, for
+ * are stored on the enrolment, card #6461), certificates and weekly reminder setting (#6512), for
  * Tools → Export / Erase Personal Data and the profile's "Download my data" / "Delete my account".
  * Erasing deletes the records, so a certificate's public verification link stops working; the
  * enrolment counts of the courses are recounted. Deleting a WordPress user removes these records
@@ -58,6 +58,7 @@ function prospergenics_courses_personal_data_exporter( $email, $page = 1 ) {
 				'Progress'          => null === $progress ? '' : (int) $progress . '%',
 				'Lessons completed' => count( (array) get_post_meta( $enrolment->ID, '_pg_courses_completed', true ) ),
 				'Course completed'  => $date( get_post_meta( $enrolment->ID, '_pg_courses_completed_at', true ) ),
+				'Last opened a lesson' => $date( get_post_meta( $enrolment->ID, '_pg_courses_last_active', true ) ),
 			) ),
 		);
 		// Quiz attempts (card #6461) live on the enrolment: one item per attempt kept.
@@ -97,6 +98,21 @@ function prospergenics_courses_personal_data_exporter( $email, $page = 1 ) {
 				);
 			}
 		}
+	}
+	// Weekly learning reminders (card #6512): the setting and the last one sent.
+	if ( function_exists( 'prospergenics_courses_reminders_enabled' ) ) {
+		$off     = (int) get_user_meta( $user->ID, PROSPERGENICS_COURSES_REMINDERS_OFF_META, true );
+		$items[] = array(
+			'group_id'          => 'prospergenics-course-reminders',
+			'group_label'       => 'Learning reminders',
+			'group_description' => 'Whether we email you your next lesson when you have not opened one for a week.',
+			'item_id'           => 'pg-course-reminders-' . (int) $user->ID,
+			'data'              => $pairs( array(
+				'Weekly learning reminders' => prospergenics_courses_reminders_enabled( $user->ID ) ? 'on' : 'off',
+				'Turned off'                => $date( $off ),
+				'Last reminder sent'        => $date( get_user_meta( $user->ID, PROSPERGENICS_COURSES_REMINDER_SENT_META, true ) ),
+			) ),
+		);
 	}
 	foreach ( prospergenics_courses_user_certificates( $user->ID ) as $cert ) {
 		$c       = prospergenics_courses_certificate_data( $cert );
@@ -146,6 +162,13 @@ function prospergenics_courses_erase_user_data( $user_id ) {
 	}
 	foreach ( array_unique( array_filter( $courses ) ) as $course_id ) {
 		prospergenics_courses_update_enrolment_count( $course_id );
+	}
+	// The weekly reminders' record of the last one sent (card #6512). The opt-out stays: erasing
+	// the data must not start sending reminders to someone who turned them off.
+	foreach ( array( '_pg_courses_reminder_week', '_pg_courses_reminder_sent' ) as $key ) {
+		if ( delete_user_meta( (int) $user_id, $key ) ) {
+			$n++;
+		}
 	}
 	return $n;
 }

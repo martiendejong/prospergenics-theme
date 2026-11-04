@@ -208,7 +208,7 @@ function prospergenics_courses_set_lesson_complete( $user_id, $lesson_id, $done 
 
 /**
  * The learner opened a lesson (the lesson page calls this): record the first time, which
- * completion requires, and remember the lesson opened last (for "Continue").
+ * completion requires, remember the lesson opened last (for "Continue") and when.
  */
 function prospergenics_courses_touch_lesson( $user_id, $lesson ) {
 	$course_id = prospergenics_courses_course_of( $lesson );
@@ -223,6 +223,10 @@ function prospergenics_courses_touch_lesson( $user_id, $lesson ) {
 	}
 	if ( (int) get_post_meta( $enrolment->ID, '_pg_courses_last_lesson', true ) !== (int) $lesson->ID ) {
 		update_post_meta( $enrolment->ID, '_pg_courses_last_lesson', (int) $lesson->ID );
+	}
+	// When a lesson was last opened, for the weekly reminders (reminders.php): at most one write an hour.
+	if ( (int) get_post_meta( $enrolment->ID, '_pg_courses_last_active', true ) < time() - 3600 ) {
+		update_post_meta( $enrolment->ID, '_pg_courses_last_active', time() );
 	}
 }
 

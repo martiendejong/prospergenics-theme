@@ -11,11 +11,12 @@
  * quiz.php: lesson quizzes (#6461). lite.php and notes.php: lessons on slow and costly
  * connections, video facades and the notes PDF (#6469).
  * listings.php: the courses in the jengo-listings system (Martien's courses) on /courses/ again.
+ * reminders.php: weekly learning reminders for inactive learners, with an opt-out (ARC-20, #6512).
  */
 
 defined( 'ABSPATH' ) || exit;
 
-foreach ( array( 'helpers', 'pdf', 'data-model', 'enrolment', 'certificate', 'routing', 'render', 'rest', 'instructor', 'privacy', 'notify', 'discussion', 'quiz', 'lite', 'notes', 'listings' ) as $prospergenics_courses_module ) {
+foreach ( array( 'helpers', 'pdf', 'data-model', 'enrolment', 'certificate', 'routing', 'render', 'rest', 'instructor', 'privacy', 'notify', 'discussion', 'quiz', 'lite', 'notes', 'listings', 'reminders' ) as $prospergenics_courses_module ) {
 	require __DIR__ . '/courses/' . $prospergenics_courses_module . '.php';
 }
 unset( $prospergenics_courses_module );
