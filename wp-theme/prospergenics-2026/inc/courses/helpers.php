@@ -190,7 +190,7 @@ function prospergenics_courses_video_iframe( $url, $title ) {
 
 /** Course slugs that would collide with the track's own /courses/<word>/ routes. */
 function prospergenics_courses_reserved_slugs() {
-	return array( 'my', 'verify', 'instructor', 'page', 'feed', 'embed', 'category', 'new', 'certificate', 'lessons' );
+	return array( 'my', 'verify', 'instructor', 'page', 'feed', 'embed', 'category', 'new', 'certificate', 'lessons', 'reminders' );
 }
 
 /** Make a course slug safe: a reserved word gets "-course" appended. */

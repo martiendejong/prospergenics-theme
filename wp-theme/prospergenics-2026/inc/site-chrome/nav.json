@@ -28,6 +28,7 @@
         { "label": "About us",          "path": "/about/" },
         { "label": "Our experts",       "path": "/experts/" },
         { "label": "Find people",       "path": "/find/" },
+        { "label": "Member badges",     "path": "/badges/" },
         { "label": "Community stories", "path": "/community/" },
         { "label": "Articles",          "path": "/articles/" },
         { "label": "Blog",              "path": "/blog/" }

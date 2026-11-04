@@ -163,17 +163,19 @@ function prospergenics_profiles_handle_verify() {
 
 /**
  * The forms on /profile/settings/ (all work without JavaScript): privacy (card #6351), email and
- * password (ARC-5), "Download my data" and "Delete my account" (ARC-12). Each has its own nonce.
+ * password (ARC-5), weekly learning reminders (#6512), "Download my data" and "Delete my account"
+ * (ARC-12). Each has its own nonce.
  * An error re-renders the page with the message next to its form; success redirects.
  */
 function prospergenics_profiles_handle_settings_post( $uid ) {
     $action  = isset( $_POST['pgp_action'] ) ? sanitize_key( wp_unslash( $_POST['pgp_action'] ) ) : 'privacy';
     $nonces  = array(
-        'privacy'  => 'pg_profiles_privacy',
-        'email'    => 'pg_profiles_email',
-        'password' => 'pg_profiles_password',
-        'export'   => 'pg_profiles_export',
-        'delete'   => 'pg_profiles_delete',
+        'privacy'   => 'pg_profiles_privacy',
+        'email'     => 'pg_profiles_email',
+        'password'  => 'pg_profiles_password',
+        'reminders' => 'pg_profiles_reminders',
+        'export'    => 'pg_profiles_export',
+        'delete'    => 'pg_profiles_delete',
     );
     if ( ! isset( $nonces[ $action ] ) || ! isset( $_POST['_pgp_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_pgp_nonce'] ) ), $nonces[ $action ] ) || ! current_user_can( 'read' ) ) {
         wp_die( 'This form has expired. Please go back, reload the page and try again.', 'Expired', array( 'response' => 403 ) );
@@ -216,6 +218,13 @@ function prospergenics_profiles_handle_settings_post( $uid ) {
                 return;
             }
             wp_safe_redirect( add_query_arg( 'saved', 'password', $settings ) . '#pgp-account' );
+            exit;
+
+        case 'reminders': // weekly learning reminders (courses track, card #6512); unticked = off
+            if ( function_exists( 'prospergenics_courses_set_reminders' ) ) {
+                prospergenics_courses_set_reminders( $uid, ! empty( $_POST['reminders'] ) );
+            }
+            wp_safe_redirect( add_query_arg( 'saved', 'reminders', $settings ) . '#pgp-email' );
             exit;
 
         case 'export':
