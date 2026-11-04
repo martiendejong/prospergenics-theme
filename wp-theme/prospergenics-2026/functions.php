@@ -43,3 +43,6 @@ add_action( 'template_redirect', function () {
 require get_template_directory() . '/inc/redirects.php';
 // Sitemap entries for the static /people/, /experts/ and /community/ pages.
 require get_template_directory() . '/inc/sitemap.php';
+// IAM SSO account & header chrome
+require get_template_directory() . '/inc/account.php';
+require get_template_directory() . '/inc/site-chrome.php';
