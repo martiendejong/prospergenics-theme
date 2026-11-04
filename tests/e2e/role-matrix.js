@@ -195,6 +195,24 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
     }
     const again = await new Session('subscriber-again').login(U.subscriber.login, PW).then(() => true, () => false);
     check('password unchanged after the refused forms', 'subscriber', again, again ? 'login still works' : 'login failed');
+
+    // Weekly learning reminders (card #6512): on by default, the form needs its nonce, and the
+    // one-click stop link only works with the member's own signed token.
+    const ticked = html => /<input type="checkbox" id="pgp-reminders" name="reminders" value="1" checked/.test(html);
+    const before = await s.subscriber2.get('/profile/settings/');
+    check('reminders: on by default in /profile/settings/', 'subscriber2', before.status === 200 && ticked(before.text), `status ${before.status}`);
+    const noNonce = await s.subscriber2.request('POST', '/profile/settings/', { body: { pgp_action: 'reminders' } });
+    const still = await s.subscriber2.get('/profile/settings/');
+    check('reminders: turning them off refused without nonce', 'subscriber2', noNonce.status === 403 && ticked(still.text), `POST ${noNonce.status}`);
+    const forged = await visitor.get(`/courses/reminders/stop/?u=${U.subscriber2.id}&t=${'0'.repeat(64)}`);
+    const after = await s.subscriber2.get('/profile/settings/');
+    check('reminders: a forged stop link changes nothing', 'visitor', forged.status === 403 && ticked(after.text), `GET ${forged.status}`);
+    const n = await mint(s.subscriber2, 'pg_profiles_reminders');
+    const off = await s.subscriber2.request('POST', '/profile/settings/', { body: { pgp_action: 'reminders', _pgp_nonce: n } });
+    const now = await s.subscriber2.get('/profile/settings/');
+    check('reminders: the member turns them off (control)', 'subscriber2', off.status === 302 && /saved=reminders/.test(off.location || '') && now.status === 200 && !ticked(now.text), `POST ${off.status} -> ${off.location ? pathOf(off.location) : '(none)'}`);
+    const on = await s.subscriber2.request('POST', '/profile/settings/', { body: { pgp_action: 'reminders', _pgp_nonce: n, reminders: '1' } });
+    check('reminders: and on again (control)', 'subscriber2', on.status === 302 && ticked((await s.subscriber2.get('/profile/settings/')).text), `POST ${on.status}`);
   }
 
   /* 9. A few more writes that must stay closed. */
@@ -726,6 +744,74 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
       const nu = await s.subscriber.get(`/in/${U.unverified.slug}/`);
       check('badges: an unverified member shows no badge', 'subscriber', !/data-pg-badge=/.test(nu.text), `status ${nu.status}`);
     }
+  }
+
+  /* Featured items (card #6472 follow-up): each featured link on /in/ can be reported on its own,
+     through the moderation queue. Visitors and unverified members cannot report, members who are
+     not staff cannot hide, and a hidden link is gone from the profile and REST for everyone but the
+     owner and staff. */
+  {
+    const ref = FX.featured_ref, key = `featured:${ref}`, dom = `pg-report-featured-${ref}`;
+    const profile = `/in/${U.subscriber.slug}/`, rest = `${NS}/profile/users/${U.subscriber.slug}`;
+    const queue = async () => (await s.editor.get('/wp-admin/admin.php?page=pg-moderation')).text;
+    const report = (sess, nonce) => sess.request('POST', '/wp-admin/admin-post.php', { body: { action: 'pg_profiles_report', target: key, reason: 'spam', details: 'E2E featured report', _wpnonce: nonce } });
+    const hide = (sess, nonce, what = 'hide') => sess.request('POST', '/wp-admin/admin-post.php', { body: { action: 'pg_profiles_moderate', target: key, do: what, _wpnonce: nonce } });
+    const shows = (r, url) => r.text.includes(url) || JSON.stringify(r.data || '').includes(url.replace(/\//g, '\\/')) || JSON.stringify(r.data || '').includes(url);
+
+    // who may report
+    const vp = await visitor.get(profile);
+    check('featured: no Report control for a visitor', 'visitor', !vp.text.includes(dom), `status ${vp.status}`);
+    const vr = await visitor.request('POST', '/wp-admin/admin-post.php', { body: { action: 'pg_profiles_report', target: key, reason: 'spam' } });
+    check('featured: a visitor cannot report a featured link', 'visitor', vr.status === 302 && /wp-login\.php/.test(vr.location || ''), `POST ${vr.status} -> ${vr.location ? pathOf(vr.location) : '(none)'}`);
+    const up = await s.unverified.get(profile);
+    check('featured: no Report control for an unverified member', 'unverified', !up.text.includes(dom), `status ${up.status}`);
+    const ur = await report(s.unverified, await mint(s.unverified, `pg_profiles_report_${key}`));
+    check('featured: an unverified member cannot report, even with a valid nonce', 'unverified', ur.status === 302 && /pg_report=error/.test(ur.location || ''), `POST ${ur.status} -> ${decode(ur.location || '(none)')}`);
+    const nn = await report(s.subscriber2, '');
+    check('featured: reporting refused without nonce', 'subscriber2', nn.status === 403 || /link you followed has expired/i.test(nn.text), `POST ${nn.status}`);
+    check('featured: none of the refused reports reached the queue', 'editor', !(await queue()).includes(FX.featured_title), 'Reports → Open');
+    const mp = await s.subscriber2.get(profile);
+    check('featured: a verified member gets a Report control on each featured link (control)', 'subscriber2', mp.status === 200 && mp.text.includes(`id="${dom}"`) && mp.text.includes('Why are you reporting this featured item?'), `status ${mp.status}`);
+    const mr = await report(s.subscriber2, await mint(s.subscriber2, `pg_profiles_report_${key}`));
+    const q1 = await queue();
+    check('featured: the member reports it, it is in the queue (control)', 'subscriber2', mr.status === 302 && !/pg_report=/.test(mr.location || '') && q1.includes(FX.featured_title) && q1.includes(FX.featured_url), `POST ${mr.status}`);
+    const again = await s.subscriber2.get(profile);
+    check('featured: once per item per member', 'subscriber2', again.text.includes(`class="pg-report-done" id="${dom}"`), 'the profile says "You reported this"');
+    const op = await s.subscriber.get(profile);
+    check('featured: the owner cannot report their own link', 'subscriber', op.status === 200 && !op.text.includes(dom), `status ${op.status}`);
+
+    // who may hide
+    for (const who of ['subscriber2', 'subscriber', 'author', 'contributor', 'writer']) {
+      const r = await hide(s[who], await mint(s[who], `pg_profiles_moderate_${key}`));
+      check('featured: hiding needs pg_moderate, even with a valid nonce', who, r.status === 403, `POST ${r.status}`);
+    }
+    const still = await s.subscriber2.get(profile);
+    check('featured: after the refusals the link is still there', 'subscriber2', still.text.includes(FX.featured_url), `status ${still.status}`);
+    const nh = await hide(s.editor, '');
+    check('featured: hiding refused without nonce', 'editor', nh.status === 403 || /link you followed has expired/i.test(nh.text), `POST ${nh.status}`);
+    const eh = await hide(s.editor, await mint(s.editor, `pg_profiles_moderate_${key}`));
+    check('featured: staff hide it from the queue (control)', 'editor', eh.status === 302 && /pg_mod_done=hidden/.test(eh.location || ''), `POST ${eh.status} -> ${decode(eh.location || '(none)')}`);
+
+    // a hidden link is gone for everyone but the owner and staff
+    for (const who of ['subscriber2', 'author', 'unverified']) {
+      const page = await s[who].get(profile);
+      const api = await s[who].get(rest);
+      check('featured: a hidden link is gone from the profile and REST', who, !shows(page, FX.featured_url) && !page.text.includes(FX.featured_title) && !shows(api, FX.featured_url), `page ${page.status}, REST ${api.status}`);
+    }
+    {
+      const page = await visitor.get(profile), api = await visitor.get(rest);
+      check('featured: a hidden link is gone from the profile and REST', 'visitor', !shows(page, FX.featured_url) && !shows(api, FX.featured_url), `page ${page.status}, REST ${api.status}`);
+      const kp = await s.subscriber2.get(profile), ka = await s.subscriber2.get(rest);
+      check('featured: the other featured link stays (control)', 'subscriber2', shows(kp, FX.featured_keep) && shows(ka, FX.featured_keep), `page ${kp.status}, REST ${ka.status}`);
+      const own = await s.subscriber.get(profile);
+      check('featured: the owner still sees it, marked hidden (control)', 'subscriber', shows(own, FX.featured_url) && /Hidden by the ProsperGenics team/.test(own.text), `status ${own.status}`);
+      const staff = await s.editor.get(profile);
+      check('featured: staff still see it, marked hidden (control)', 'editor', shows(staff, FX.featured_url) && /Hidden after a report/.test(staff.text), `status ${staff.status}`);
+    }
+    // and back
+    const sh = await hide(s.editor, await mint(s.editor, `pg_profiles_moderate_${key}`), 'unhide');
+    const back = await s.subscriber2.get(rest);
+    check('featured: "Show again" brings it back (control)', 'editor', sh.status === 302 && shows(back, FX.featured_url), `POST ${sh.status}, REST ${back.status}`);
   }
 
   /* report */

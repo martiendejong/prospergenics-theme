@@ -327,10 +327,63 @@ $args = prospergenics_manage_member_tier_args( prospergenics_manage_member_query
 ok( 'AND' === $args['meta_query']['relation'] && array( 'key' => '_pg_profiles_rank_tier', 'value' => 'mentor' ) === $args['meta_query'][1], 'a tier filter adds the stored tier to the other filters (AND)' );
 ok( prospergenics_manage_member_query_args( '', 'all', 1 ) === prospergenics_manage_member_tier_args( prospergenics_manage_member_query_args( '', 'all', 1 ), '' ), 'no tier: the list query is unchanged' );
 
+// ───────────────────────────── the jengo-listings /members/ directory ─────────────────────────────
+echo "Badges on the /members/ directory\n";
+// the real person redirects (inc/redirects.php reads inc/person-redirects.txt) and /people/ data
+require $theme . '/inc/redirects.php';
+function prospergenics_2026_people() { $d = json_decode( file_get_contents( ABSPATH . 'inc/people.json' ), true ); return $d['people']; }
+// get_users() over the fake users' _pg_people_slug meta; counts the queries
+$GLOBALS['get_users_calls'] = array();
+function get_users( array $a ) {
+	$GLOBALS['get_users_calls'][] = $a;
+	$q = $a['meta_query'][0];
+	$out = array();
+	foreach ( $GLOBALS['W']['umeta'] as $id => $meta ) {
+		if ( isset( $meta[ $q['key'] ] ) && in_array( $meta[ $q['key'] ], $q['value'], true ) ) { $out[] = (string) $id; }
+	}
+	return $out;
+}
+// the real helper, minus the stylesheet
+function prospergenics_profiles_badge_html( $user_id, $context = 'compact' ) {
+	$b = prospergenics_profiles_badge_data( $user_id );
+	$t = prospergenics_profiles_badge_tiers();
+	return $b ? prospergenics_profiles_badge_markup( $b['tier'], $t[ $b['tier'] ], $context, 'https://example.test/badges/#tier-' . $b['tier'] ) : '';
+}
+require $theme . '/inc/profiles/badges-listings.php';
+$fixture = file_get_contents( dirname( __DIR__ ) . '/tests/fixtures/jengo-listings/members.html' );
+preg_match_all( '#<a class="dir-card" href="https://test\.prospergenics\.com/members/([a-z0-9-]+)/">#', $fixture, $fm );
+$cards = $fm[1];
+$map = prospergenics_profiles_listing_people_slugs( $cards, prospergenics_2026_person_redirect_rules(), prospergenics_2026_people() );
+ok( 12 === count( $cards ) && count( $cards ) === count( $map ), 'every card on the saved /members/ page has a hand-checked /people/ page (person-redirects.txt)' );
+ok( 'martien' === $map['martien-de-jong'] && 'lessy' === $map['lessy'] && 'sophy' === $map['sophy-nashipae-de-jong'] && 'simitia' === $map['simitia-mpoe'], 'by the redirects, not by the name: lessy → Lesiamon (/people/lessy/), martien-de-jong → /people/martien/' );
+$odd = prospergenics_profiles_listing_people_slugs( array( 'nobody', 'x' ), array( 'members/x' => '/about/', 'members/nobody' => '/people/nobody/' ), prospergenics_2026_people() );
+ok( array() === $odd, 'no rule, a rule to another page, or a /people/ page that does not exist: no match' );
+
+world_reset();
+$GLOBALS['get_users_calls'] = array();
+foreach ( array( 30 => 'lessy', 31 => 'martien', 32 => 'frank', 33 => 'frank', 34 => 'diko', 35 => 'maxwell' ) as $id => $slug ) {
+	add_user( $id );
+	$GLOBALS['W']['umeta'][ $id ]['_pg_people_slug'] = $slug;
+}
+$GLOBALS['W']['projects'] = array( 700 => array( array( 'user_id' => 30, 'status' => 'confirmed' ), array( 'user_id' => 31, 'status' => 'confirmed' ), array( 'user_id' => 34, 'status' => 'confirmed' ), array( 'user_id' => 35, 'status' => 'confirmed' ) ) );
+$GLOBALS['W']['users'][34]['verified'] = false;
+$GLOBALS['W']['users'][35]['hidden']   = true;
+$users = prospergenics_profiles_users_by_people_slug( array( 'lessy', 'martien', 'frank', 'diko', 'maxwell', 'sjoerd' ) );
+ok( array( 'lessy' => 30, 'martien' => 31, 'diko' => 34, 'maxwell' => 35 ) == $users, 'one account per /people/ page; a page two accounts claim (frank) maps to neither; an unclaimed page (sjoerd) to none' );
+ok( 1 === count( $GLOBALS['get_users_calls'] ) && 'ID' === $GLOBALS['get_users_calls'][0]['fields'] && 'IN' === $GLOBALS['get_users_calls'][0]['meta_query'][0]['compare'], 'one user query for every card on the page' );
+$GLOBALS['get_users_calls'] = array();
+$badges = prospergenics_profiles_listing_member_badges( array(), $cards );
+ok( array( 'martien-de-jong', 'lessy' ) === array_keys( $badges ), 'badges for the verified, visible accounts only: none for the unverified (diko), the hidden (maxwell), the doubly claimed (frank) or unlinked cards' );
+ok( 1 === count( $GLOBALS['get_users_calls'] ), 'still one user query for the twelve cards' );
+ok( 0 === strpos( $badges['lessy'], '<span class="pg-badge pg-badge--compact pg-badge--contributor"' ) && false === strpos( implode( '', $badges ), '<a' ), "the card is a link: the link-free 'inline' badge, compact size" );
+$GLOBALS['W']['users'][30]['suspended'] = true;
+ok( ! isset( prospergenics_profiles_listing_member_badges( array(), $cards )['lessy'] ), 'a suspended member loses the badge on the directory too' );
+ok( array() === prospergenics_profiles_listing_member_badges( array(), array() ) && array() === prospergenics_profiles_listing_member_badges( array(), array( 'not-a-member' ) ), 'nothing on the page, or nothing that matches: nothing added' );
+
 // ───────────────────────────── wiring ─────────────────────────────
 echo "Wiring\n";
 $loader = $src( 'inc/platform-profiles.php' );
-foreach ( array( 'rank-rules.php', 'rank.php', 'badges.php' ) as $f ) {
+foreach ( array( 'rank-rules.php', 'rank.php', 'badges.php', 'badges-listings.php' ) as $f ) {
 	ok( false !== strpos( $loader, "'$f'" ), "the profiles loader requires $f" );
 }
 ok( false !== strpos( $src( 'inc/search/helpers.php' ), "require_once dirname( __DIR__ ) . '/profiles/rank-rules.php'" ), 'search loads the shared weights' );

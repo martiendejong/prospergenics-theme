@@ -128,7 +128,7 @@ unlink( $tmp );
 
 echo "Wiring\n";
 $routing = file_get_contents( $theme . '/inc/courses/routing.php' );
-ok( false !== strpos( $routing, "'courses/([^/]+)/lessons/([^/]+)/notes/?\$'" ) && false !== strpos( $routing, "PROSPERGENICS_COURSES_REWRITE_VERSION = '2'" ), 'the notes URL has a rewrite rule (rules flushed once via the version bump)' );
+ok( false !== strpos( $routing, "'courses/([^/]+)/lessons/([^/]+)/notes/?\$'" ) && preg_match( "/PROSPERGENICS_COURSES_REWRITE_VERSION = '([0-9]+)'/", $routing, $rv ) && (int) $rv[1] >= 2, 'the notes URL has a rewrite rule (rules flushed once via the version bump, 2 or later)' );
 ok( false !== strpos( $routing, 'prospergenics_courses_serve_notes( $lesson )' ) && false !== strpos( file_get_contents( $theme . '/inc/courses/notes.php' ), 'prospergenics_courses_can_view_lesson( $lesson )' ), 'notes are served with the lesson\'s own access rule' );
 ok( false !== strpos( $routing, "'/assets/platform/courses-wizard.js'" ) && preg_match( "/'wizard' === prospergenics_courses_view\\(\\)[^\\n]*\\n\\s*\\\$wjs/", $routing ), 'the wizard script loads on the wizard only' );
 ok( file_exists( $theme . '/assets/platform/courses-wizard.js' ) && false === strpos( $js, 'pgCoursesWizard' ) && strlen( $js ) < 4000, 'courses.js (loaded on lessons) has no wizard code and stays small (' . strlen( $js ) . ' bytes)' );

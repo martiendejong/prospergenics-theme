@@ -29,6 +29,7 @@ require $prospergenics_profiles_dir . 'render.php';             // markup helper
 require_once $prospergenics_profiles_dir . 'rank-rules.php';   // badges: evidence weights (shared with search), caps, tiers
 require $prospergenics_profiles_dir . 'rank.php';               // badges: public evidence, the cached rank, what recomputes it, export/erase
 require $prospergenics_profiles_dir . 'badges.php';             // badges: the badge markup, the owner's breakdown, /badges/
+require $prospergenics_profiles_dir . 'badges-listings.php';    // badges on the jengo-listings /members/ directory
 unset( $prospergenics_profiles_dir );
 
 /* ───────────── link to the curated /people/ story (audit CON-11) ─────────────
