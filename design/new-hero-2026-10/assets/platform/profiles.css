@@ -119,6 +119,13 @@
 .pgp-feat-title{font-weight:600;font-size:15.5px;line-height:1.4;color:var(--ink);padding:4px 14px 14px;overflow-wrap:anywhere;}
 .pgp-feat-link:hover .pgp-feat-title{text-decoration:underline;}
 .pgp-feat-tools{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;padding:0 10px 10px;}
+/* a featured item's own Report control, and the note on an item staff hid (card #6472) */
+.pgp-feat .pg-report{display:block;margin:0 10px 10px;}
+.pgp-feat .pg-report>summary{min-height:36px;padding:4px 12px;font-size:13.5px;}
+.pgp-feat .pg-report-form{width:auto;box-shadow:none;}
+.pgp-feat .pg-report-done{margin:0 14px 12px;font-size:13.5px;}
+.pgp-feat-hidden{margin:0 14px 12px;padding:8px 10px;border-radius:10px;background:#fbe4e2;color:#7a1d16;font-size:13.5px;line-height:1.45;}
+.pgp-feat--hidden .pgp-feat-link img,.pgp-feat--hidden .pgp-feat-ph{opacity:.55;}
 .pgp-drag{cursor:grab;color:var(--muted);font-size:18px;padding:0 4px;}
 
 /* forms */

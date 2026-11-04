@@ -476,7 +476,7 @@ function prospergenics_profiles_clean_url( $url ) {
  * Normalise the featured list: at most 3 items, known types, http(s) URLs only.
  *
  * @param mixed $items
- * @return array<int,array{type:string,url:string,title:string,image:string,attachment_id:int}>
+ * @return array<int,array{type:string,url:string,title:string,image:string,attachment_id:int,id:int}>
  */
 function prospergenics_profiles_normalize_featured( $items ) {
     $out = array();
@@ -499,7 +499,78 @@ function prospergenics_profiles_normalize_featured( $items ) {
             'title'         => prospergenics_profiles_clip( isset( $item['title'] ) ? $item['title'] : '', 140 ),
             'image'         => prospergenics_profiles_clean_url( isset( $item['image'] ) ? $item['image'] : '' ),
             'attachment_id' => isset( $item['attachment_id'] ) ? max( 0, (int) $item['attachment_id'] ) : 0,
+            'id'            => isset( $item['id'] ) ? max( 0, min( PROSPERGENICS_PROFILES_FEATURED_REF - 1, (int) $item['id'] ) ) : 0,
         );
+    }
+    return $out;
+}
+
+/* Featured items carry an id of their own (per member, never reused), so one item can be reported
+ * and hidden (card #6472, moderation.php). A report key needs one number: owner * REF + item id. */
+const PROSPERGENICS_PROFILES_FEATURED_REF = 1000000;
+
+/** The report number of a member's featured item (0 for none). */
+function prospergenics_profiles_featured_ref( $owner_id, $item_id ) {
+    $owner_id = (int) $owner_id;
+    $item_id  = (int) $item_id;
+    return $owner_id > 0 && $item_id > 0 && $item_id < PROSPERGENICS_PROFILES_FEATURED_REF ? $owner_id * PROSPERGENICS_PROFILES_FEATURED_REF + $item_id : 0;
+}
+
+/** [owner id, item id] from a report number, or null. */
+function prospergenics_profiles_featured_unref( $ref ) {
+    $ref   = (int) $ref;
+    $owner = intdiv( $ref, PROSPERGENICS_PROFILES_FEATURED_REF );
+    $item  = $ref % PROSPERGENICS_PROFILES_FEATURED_REF;
+    return $owner > 0 && $item > 0 ? array( $owner, $item ) : null;
+}
+
+/**
+ * Give every featured item an id when the list is saved: a stored item keeps its id (same id and
+ * same link, once per list), so a report or a hidden flag always means the item it was made for;
+ * any other item gets the next number, above 3 (lists stored before items had ids read as 1, 2, 3:
+ * prospergenics_profiles_featured()).
+ *
+ * @param array             $items    normalised items
+ * @param array<int,string> $existing the member's stored items: id => link
+ * @param int               $seq      the highest id handed out so far
+ * @return array{0:array,1:int} the items and the new highest id
+ */
+function prospergenics_profiles_featured_assign_ids( array $items, array $existing, $seq ) {
+    $seq  = max( (int) $seq, $existing ? max( array_map( 'intval', array_keys( $existing ) ) ) : 0, 3 );
+    $used = array();
+    foreach ( $items as $i => $item ) {
+        $id = isset( $item['id'] ) ? (int) $item['id'] : 0;
+        if ( $id < 1 || ! isset( $existing[ $id ] ) || (string) $existing[ $id ] !== (string) ( isset( $item['url'] ) ? $item['url'] : '' ) || isset( $used[ $id ] ) ) {
+            $id = ++$seq;
+        }
+        $used[ $id ]       = true;
+        $items[ $i ]['id'] = $id;
+    }
+    return array( $items, $seq );
+}
+
+/**
+ * Whether staff hid a featured item: by its id, or by its link (so removing and adding the same
+ * link again does not bring it back).
+ *
+ * @param array<int,string> $hidden item id => link, as hidden
+ */
+function prospergenics_profiles_featured_is_hidden( array $item, array $hidden ) {
+    return ( ! empty( $item['id'] ) && isset( $hidden[ (int) $item['id'] ] ) ) || ( isset( $item['url'] ) && '' !== $item['url'] && in_array( $item['url'], array_map( 'strval', $hidden ), true ) );
+}
+
+/**
+ * The featured items one viewer gets: hidden ones are left out, unless the viewer is the owner or
+ * staff ($sees), who get every item with 'hidden' => bool.
+ */
+function prospergenics_profiles_featured_visible( array $items, array $hidden, $sees ) {
+    $out = array();
+    foreach ( $items as $item ) {
+        $is_hidden = $hidden && prospergenics_profiles_featured_is_hidden( $item, $hidden );
+        if ( $is_hidden && ! $sees ) {
+            continue;
+        }
+        $out[] = $sees ? $item + array( 'hidden' => $is_hidden ) : $item;
     }
     return $out;
 }

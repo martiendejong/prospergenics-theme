@@ -657,6 +657,7 @@ function prospergenics_profiles_rest_save_featured( WP_REST_Request $r ) {
             'title'         => isset( $item['title'] ) ? sanitize_text_field( (string) $item['title'] ) : '',
             'image'         => isset( $item['image'] ) ? esc_url_raw( (string) $item['image'], array( 'http', 'https' ) ) : '',
             'attachment_id' => isset( $item['attachment_id'] ) ? (int) $item['attachment_id'] : 0,
+            'id'            => isset( $item['id'] ) ? absint( $item['id'] ) : 0,
         );
         if ( 'media' === $item['type'] ) {
             // a media item must be an image this member uploaded
@@ -683,9 +684,13 @@ function prospergenics_profiles_rest_save_featured( WP_REST_Request $r ) {
         $clean[] = $item;
     }
     $clean = prospergenics_profiles_normalize_featured( $clean );
+    // each item keeps its id (reports and hiding refer to it, moderation.php); new items get a new one
+    $old_items = prospergenics_profiles_featured( $uid );
+    list( $clean, $seq ) = prospergenics_profiles_featured_assign_ids( $clean, wp_list_pluck( $old_items, 'url', 'id' ), (int) get_user_meta( $uid, '_pg_profiles_featured_seq', true ) );
+    update_user_meta( $uid, '_pg_profiles_featured_seq', $seq );
     // media no longer featured: remove the uploaded images
     $keep = wp_list_pluck( $clean, 'attachment_id' );
-    foreach ( prospergenics_profiles_featured( $uid ) as $old ) {
+    foreach ( $old_items as $old ) {
         if ( $old['attachment_id'] && ! in_array( $old['attachment_id'], $keep, true ) && (int) get_post_meta( $old['attachment_id'], '_pg_profiles_owner', true ) === $uid ) {
             wp_delete_attachment( $old['attachment_id'], true );
         }

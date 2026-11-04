@@ -174,5 +174,59 @@ foreach ( array( 'single-pg_article.php' => "'article'", 'pg-profile.php' => "'p
 }
 ok( file_exists( $theme . '/assets/platform/community.css' ), 'assets/platform/community.css shipped' );
 
+echo "\n#6472 featured items: each one can be reported, hidden and removed\n";
+require $theme . '/inc/profiles/helpers.php';
+$ref = prospergenics_profiles_featured_ref( 42, 5 );
+ok( 42000005 === $ref && array( 42, 5 ) === prospergenics_profiles_featured_unref( $ref ), 'an item\'s report number: owner * 10^6 + item id, and back' );
+ok( 0 === prospergenics_profiles_featured_ref( 0, 5 ) && 0 === prospergenics_profiles_featured_ref( 42, 0 ) && 0 === prospergenics_profiles_featured_ref( 42, PROSPERGENICS_PROFILES_FEATURED_REF ) && null === prospergenics_profiles_featured_unref( 42000000 ) && null === prospergenics_profiles_featured_unref( 7 ), 'no number without an owner and an item id in range' );
+ok( 'featured:42000005' === prospergenics_profiles_report_key( 'featured', $ref ) && array( 'featured', 42000005 ) === prospergenics_profiles_report_parse_key( 'featured:42000005' ), 'report key featured:<number>' );
+ok( array( 'hide', 'remove', 'dismiss', 'warn', 'suspend' ) === array_keys( prospergenics_profiles_moderation_actions( 'featured' ) ), 'featured items: hide, remove, dismiss, warn (and suspend)' );
+$stored = array( 1 => 'https://a.example/', 2 => 'https://b.example/', 3 => 'https://c.example/' );
+list( $items, $seq ) = prospergenics_profiles_featured_assign_ids( array( array( 'id' => 2, 'url' => 'https://b.example/' ), array( 'id' => 0, 'url' => 'https://n.example/' ), array( 'id' => 9, 'url' => 'https://n.example/' ), array( 'id' => 2, 'url' => 'https://b.example/' ) ), $stored, 0 );
+ok( array( 2, 4, 5, 6 ) === array_column( $items, 'id' ) && 6 === $seq, 'saving keeps an item\'s own id; new items, ids the member never had (9) and a second copy get the next numbers' );
+list( $items, $seq ) = prospergenics_profiles_featured_assign_ids( array( array( 'id' => 1, 'url' => 'https://other.example/' ), array( 'id' => 1, 'url' => 'https://a.example/' ) ), $stored, 0 );
+ok( array( 4, 1 ) === array_column( $items, 'id' ), 'another link cannot take over an item\'s id (a report or a hide stays on the item it was made for)' );
+list( $items, $seq ) = prospergenics_profiles_featured_assign_ids( array( array( 'id' => 0 ) ), array(), 11 );
+ok( array( 12 ) === array_column( $items, 'id' ) && 12 === $seq, 'ids are never handed out twice (the member\'s counter)' );
+$norm = prospergenics_profiles_normalize_featured( array( array( 'type' => 'link', 'url' => 'https://example.org/a', 'id' => '7' ), array( 'type' => 'link', 'url' => 'https://example.org/b', 'id' => -3 ) ) );
+ok( 7 === $norm[0]['id'] && 0 === $norm[1]['id'], 'the id is kept by the normaliser (a whole number, never negative)' );
+$list   = array( array( 'id' => 1, 'url' => 'https://a.example/' ), array( 'id' => 4, 'url' => 'https://b.example/' ), array( 'id' => 5, 'url' => 'https://c.example/' ) );
+$hidden = array( 4 => 'https://b.example/', 99 => 'https://c.example/' );
+ok( ! prospergenics_profiles_featured_is_hidden( $list[0], $hidden ) && prospergenics_profiles_featured_is_hidden( $list[1], $hidden ) && prospergenics_profiles_featured_is_hidden( $list[2], $hidden ), 'hidden by id, or by link (removing and adding the same link again does not bring it back)' );
+ok( array( 1 ) === array_column( prospergenics_profiles_featured_visible( $list, $hidden, false ), 'id' ), 'everyone else: hidden items are left out' );
+$own = prospergenics_profiles_featured_visible( $list, $hidden, true );
+ok( array( 1, 4, 5 ) === array_column( $own, 'id' ) && array( false, true, true ) === array_column( $own, 'hidden' ), 'the owner and staff: every item, the hidden ones marked' );
+ok( $list === prospergenics_profiles_featured_visible( $list, array(), false ), 'nothing hidden: the list as it is' );
+
+// the target, who may report it and the queue actions, against a small fake site
+$GLOBALS['fx'] = array( 'featured' => array( 42 => array( array( 'type' => 'link', 'url' => 'https://spam.example/', 'title' => 'Cheap pills', 'image' => '', 'attachment_id' => 0, 'id' => 5 ), array( 'type' => 'article', 'url' => 'https://ok.example/', 'title' => 'My article', 'image' => '', 'attachment_id' => 0, 'id' => 6 ) ) ), 'hidden' => array(), 'vis' => true, 'saved' => null );
+function get_userdata( $id ) { return 42 === (int) $id ? (object) array( 'ID' => 42, 'display_name' => 'Fay Featured', 'user_email' => 'fay@example.test' ) : false; }
+function prospergenics_profiles_featured( $uid ) { return $GLOBALS['fx']['featured'][ $uid ] ?? array(); }
+function prospergenics_profiles_featured_hidden( $uid ) { return $GLOBALS['fx']['hidden']; }
+function prospergenics_profiles_set_featured_hidden( $uid, $item, $hide ) { if ( $hide ) { $GLOBALS['fx']['hidden'][ $item ] = 'x'; } else { unset( $GLOBALS['fx']['hidden'][ $item ] ); } }
+function prospergenics_profiles_set_meta( $uid, $key, $value ) { $GLOBALS['fx']['saved'] = array( $uid, $key, $value ); $GLOBALS['fx']['featured'][ $uid ] = $value; }
+function prospergenics_profiles_url( $uid ) { return 'https://example.test/in/fay/'; }
+function prospergenics_profiles_visibility_for( $owner, $viewer ) { return array( 'profile' => $GLOBALS['fx']['vis'], 'featured' => $GLOBALS['fx']['vis'] ); }
+function get_posts( $a ) { return array(); }
+function wp_cache_delete( $k, $g = '' ) { return true; }
+$t = prospergenics_profiles_report_target( 'featured', $ref );
+ok( 'featured:42000005' === $t['key'] && 42 === $t['owner'] && 5 === $t['item'] && 'https://example.test/in/fay/#pgp-feat-5' === $t['url'] && 'https://spam.example/' === $t['excerpt'] && false !== strpos( $t['title'], '“Cheap pills” featured by Fay Featured' ), 'the target: the item on its owner\'s profile, the link shown in the queue' );
+ok( null === prospergenics_profiles_report_target( 'featured', prospergenics_profiles_featured_ref( 42, 77 ) ) && null === prospergenics_profiles_report_target( 'featured', prospergenics_profiles_featured_ref( 43, 5 ) ), 'an item the member removed, or of no member: gone' );
+ok( prospergenics_profiles_report_target_visible( $t, 7 ), 'a member who sees the featured section may report the item' );
+$GLOBALS['fx']['vis'] = false;
+ok( ! prospergenics_profiles_report_target_visible( $t, 7 ), 'nobody reports an item they cannot see (private section)' );
+$GLOBALS['fx']['vis'] = true;
+ok( 'hidden' === prospergenics_profiles_moderate( $t['key'], 'hide', 1 ) && isset( $GLOBALS['fx']['hidden'][5] ), 'Hide hides that one item' );
+ok( ! prospergenics_profiles_report_target_visible( prospergenics_profiles_report_target( 'featured', $ref ), 7 ) && prospergenics_profiles_report_target( 'featured', $ref )['hidden'], 'a hidden item cannot be reported again, and the queue shows it as hidden' );
+ok( 'shown' === prospergenics_profiles_moderate( $t['key'], 'unhide', 1 ) && ! isset( $GLOBALS['fx']['hidden'][5] ), 'Show again' );
+ok( 'removed' === prospergenics_profiles_moderate( $t['key'], 'remove', 1 ) && array( 42, 'featured' ) === array_slice( $GLOBALS['fx']['saved'], 0, 2 ) && array( 6 ) === array_column( $GLOBALS['fx']['saved'][2], 'id' ), 'Remove takes only that item off the member\'s list' );
+ok( 'dismissed' === prospergenics_profiles_moderate( $t['key'], 'dismiss', 1 ), 'Dismiss still closes the reports once the item is gone' );
+$data = file_get_contents( $theme . '/inc/profiles/data.php' );
+ok( false !== strpos( $data, "\$data['featured'] = prospergenics_profiles_featured_for( \$user->ID, \$viewer_id );" ) && false !== strpos( $data, "user_can( (int) \$viewer_id, 'pg_moderate' )" ), 'the profile data and REST give each viewer only what they may see (owner and staff see hidden items)' );
+$prof = file_get_contents( $theme . '/pg-profile.php' );
+ok( false !== strpos( $prof, "prospergenics_profiles_report_html( 'featured', prospergenics_profiles_featured_ref( \$owner->ID, \$f['id'] ) )" ) && false !== strpos( $prof, 'id="pgp-feat-<?php echo (int) $f[\'id\']; ?>"' ), 'each featured item on the profile has its own Report control and anchor' );
+$rest = file_get_contents( $theme . '/inc/profiles/rest.php' );
+ok( false !== strpos( $rest, 'prospergenics_profiles_featured_assign_ids( $clean, wp_list_pluck( $old_items, \'url\', \'id\' )' ), 'saving the list keeps the ids (reports and hiding refer to them)' );
+
 echo "\n" . ( $failures ? "$failures FAILED\n" : "All community tests passed\n" );
 exit( $failures ? 1 : 0 );

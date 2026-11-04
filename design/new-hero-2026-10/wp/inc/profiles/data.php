@@ -961,8 +961,56 @@ add_filter( 'pre_get_avatar_data', function ( $args, $id_or_email ) {
 
 /* ───────────────────────── featured (card #6352) ───────────────────────── */
 
+/** A member's featured items, each with its id (lists saved before ids existed: 1, 2, 3 by position). */
 function prospergenics_profiles_featured( $user_id ) {
-    return prospergenics_profiles_normalize_featured( get_user_meta( (int) $user_id, '_pg_profiles_featured', true ) );
+    $items = prospergenics_profiles_normalize_featured( get_user_meta( (int) $user_id, '_pg_profiles_featured', true ) );
+    $taken = array_filter( wp_list_pluck( $items, 'id' ) );
+    foreach ( $items as $i => $item ) {
+        if ( ! $item['id'] && ! in_array( $i + 1, $taken, true ) ) {
+            $items[ $i ]['id'] = $i + 1;
+            $taken[]           = $i + 1;
+        }
+    }
+    return $items;
+}
+
+/** The featured items staff hid (report queue, moderation.php): item id => link. */
+function prospergenics_profiles_featured_hidden( $user_id ) {
+    $hidden = get_user_meta( (int) $user_id, '_pg_profiles_featured_hidden', true );
+    return is_array( $hidden ) ? $hidden : array();
+}
+
+/** Hide or show one featured item of a member (staff only: the queue checks pg_moderate). */
+function prospergenics_profiles_set_featured_hidden( $user_id, $item_id, $hide ) {
+    $hidden = prospergenics_profiles_featured_hidden( $user_id );
+    $item   = null;
+    foreach ( prospergenics_profiles_featured( $user_id ) as $f ) {
+        if ( (int) $f['id'] === (int) $item_id ) {
+            $item = $f;
+        }
+    }
+    if ( $hide && $item ) {
+        $hidden[ (int) $item_id ] = $item['url'];
+    } elseif ( ! $hide ) {
+        $url    = isset( $hidden[ (int) $item_id ] ) ? $hidden[ (int) $item_id ] : ( $item ? $item['url'] : '' );
+        $hidden = array_filter( $hidden, function ( $u, $id ) use ( $item_id, $url ) {
+            return (int) $id !== (int) $item_id && $u !== $url;
+        }, ARRAY_FILTER_USE_BOTH );
+    }
+    if ( $hidden ) {
+        update_user_meta( (int) $user_id, '_pg_profiles_featured_hidden', $hidden );
+    } else {
+        delete_user_meta( (int) $user_id, '_pg_profiles_featured_hidden' );
+    }
+}
+
+/**
+ * The featured items a viewer may see: an item staff hid is left out for everyone but the owner
+ * and staff (pg_moderate), who get it with 'hidden' => true.
+ */
+function prospergenics_profiles_featured_for( $user_id, $viewer_id ) {
+    $sees = $viewer_id && ( (int) $viewer_id === (int) $user_id || user_can( (int) $viewer_id, 'pg_moderate' ) );
+    return prospergenics_profiles_featured_visible( prospergenics_profiles_featured( $user_id ), prospergenics_profiles_featured_hidden( $user_id ), $sees );
 }
 
 /**
@@ -1106,7 +1154,7 @@ function prospergenics_profiles_public_data( $user, $viewer_id ) {
         $data['skills'] = prospergenics_profiles_entries( $user->ID, 'pg_skill', $viewer_id );
     }
     if ( $vis['featured'] ) {
-        $data['featured'] = prospergenics_profiles_featured( $user->ID );
+        $data['featured'] = prospergenics_profiles_featured_for( $user->ID, $viewer_id ); // without items staff hid
     }
     if ( $vis['certificates'] ) {
         $data['certificates'] = prospergenics_profiles_certificates( $user->ID );
