@@ -860,7 +860,7 @@
       <div class="copy">
         <div class="copy-inner">
           <h1 class="reveal d1">You create <span class="accent">value</span></h1>
-          <p class="sub reveal d2">Prospergenics is building the system to maximize your potential.</p>
+          <p class="sub reveal d2">Prospergenics is an ecosystem that helps you realize your true capacity.</p>
         </div>
       </div>
     </div>
@@ -884,7 +884,7 @@
         </a>
       </div>
       <div class="hero-bottom-cta reveal d4">
-        <p class="hbc-head">How can we <span class="accent">help you?</span></p>
+        <p class="hbc-head">Need our <span class="accent">help?</span></p>
         <p class="hbc-body">Tell us what you want to achieve. We'll guide you through the next step.</p>
         <span class="hbc-arrow">
           Chat with us
