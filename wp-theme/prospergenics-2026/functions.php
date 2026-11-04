@@ -12,6 +12,11 @@ remove_action( 'wp_head', '_wp_render_title_tag', 1 );
 
 require get_template_directory() . '/inc/security.php';
 require get_template_directory() . '/inc/seo.php';
+// The one site header + footer (menu in inc/site-chrome/nav.json), also put on jengo-listings
+// pages; and the account side: admin bar for staff only, members kept out of wp-admin, login page.
+require get_template_directory() . '/inc/site-chrome.php';
+require get_template_directory() . '/inc/account.php';
+require get_template_directory() . '/inc/avatars.php';     // one avatar (photo or initials), no Gravatar
 
 // Contact form: every enquiry is stored before any email is attempted, with spam flagged
 // (never discarded) and the delivery result recorded. Ported from PR #20 for production.
@@ -43,3 +48,13 @@ add_action( 'template_redirect', function () {
 require get_template_directory() . '/inc/redirects.php';
 // Sitemap entries for the static /people/, /experts/ and /community/ pages.
 require get_template_directory() . '/inc/sitemap.php';
+
+// Prospergenics Platform features (JengoWork board "Prospergenics Platform"), one loader per
+// track so the tracks can be built independently. See docs/PLATFORM-BUILD.md.
+require get_template_directory() . '/inc/platform-search.php';   // #6393 /find/: people by skill, project or problem
+require get_template_directory() . '/inc/platform-articles.php';
+require get_template_directory() . '/inc/platform-profiles.php';
+require get_template_directory() . '/inc/platform-courses.php';
+require get_template_directory() . '/inc/platform-projects.php'; // #6388 portfolios: /projects/, contributions
+// The staff area at /manage/ (card #6457): overview, members, contact messages, articles for review.
+require get_template_directory() . '/inc/platform-manage.php';

@@ -32,7 +32,7 @@ $root = sys_get_temp_dir() . '/pg-sitemap-test-' . getmypid();
 foreach ( array( 'people/lessy', 'people/martien', 'people/Bad Slug', 'people/empty', 'experts', 'community' ) as $dir ) {
 	@mkdir( "$root/$dir", 0777, true );
 }
-foreach ( array( 'people/lessy', 'people/martien', 'people/Bad Slug', 'experts', 'community' ) as $dir ) {
+foreach ( array( 'people/lessy', 'people/martien', 'people/Bad Slug', 'experts', 'community', 'people' ) as $dir ) {
 	file_put_contents( "$root/$dir/index.html", '<html></html>' );
 }
 touch( "$root/people/lessy/index.html", 1793000000 );
@@ -46,7 +46,7 @@ ok( array(
 	'https://prospergenics.com/experts/',
 	'https://prospergenics.com/people/lessy/',
 	'https://prospergenics.com/people/martien/',
-) === $locs, 'lists the 4 real pages: profiles with an index.html and a safe slug, plus both lists' );
+) === $locs, 'lists the 4 real pages: profiles with an index.html and a safe slug, plus both lists (not the /people/ redirect)' );
 $lessy = array_values( array_filter( $urls, function ( $u ) { return false !== strpos( $u['loc'], 'lessy' ); } ) )[0];
 ok( '2026-10-26T07:33:20Z' === $lessy['lastmod'], 'lastmod is the file time in W3C format' );
 ok( array() === prospergenics_2026_static_page_urls( $root . '/nowhere', 'https://prospergenics.com/' ), 'missing folders give an empty list, not an error' );
@@ -58,6 +58,8 @@ ok( @$doc->loadXML( $xml ), 'urlset is well-formed XML' );
 ok( 'http://www.sitemaps.org/schemas/sitemap/0.9' === $doc->documentElement->namespaceURI, 'uses the sitemaps.org namespace' );
 ok( false !== strpos( $xml, 'a&amp;b' ), 'URLs are XML-escaped' );
 ok( 5 === $doc->getElementsByTagName( 'url' )->length, 'one <url> per page' );
+$xml = prospergenics_2026_urlset_xml( array( array( 'loc' => 'https://prospergenics.com/in/amina/' ) ) );
+ok( @$doc->loadXML( $xml ) && false === strpos( $xml, '<lastmod>' ), 'an entry without lastmod (profiles) prints none' );
 
 echo "Wiring\n";
 ok( false !== strpos( file_get_contents( $theme . '/functions.php' ), "/inc/sitemap.php'" ), 'functions.php loads the sitemap module' );
@@ -67,6 +69,15 @@ foreach ( array( 'init', 'wpseo_sitemap_index', 'robots_txt', 'wp_sitemaps_add_p
 $src = file_get_contents( $theme . '/inc/sitemap.php' );
 ok( false !== strpos( $src, "'users' === \$name ? false" ), 'core users sitemap is dropped' );
 ok( false !== strpos( $src, "get_query_var( 'sitemap' )" ) && false !== strpos( $src, 'status_header( 404 )' ), 'unknown sitemap names 404' );
+
+echo "No URL in two sitemaps; listings and profiles listed (ARC-22)\n";
+ok( false !== strpos( $src, "'pgpeople', new Prospergenics_2026_Url_List_Sitemap( 'pgpeople', 'prospergenics_2026_current_static_urls' )" ), 'the static pages (/people/ is the person URL for now) stay in the core sitemap' );
+ok( false !== strpos( $src, "'pglistings', 'prospergenics_2026_listing_urls'" ), '/articles/ and /courses/ have a provider' );
+ok( false !== strpos( $src, "'pgprofiles', 'prospergenics_profiles_sitemap_urls'" ), 'indexable /in/ profiles have a provider' );
+ok( false !== strpos( $src, "add_filter( 'wp_sitemaps_posts_query_args'" ) && false !== strpos( $src, "\$args['post__not_in']" ), 'the page the /courses/ archive shadows leaves the page sitemap' );
+ok( 1 === preg_match( "#core_sitemaps_enabled\\(\\) \\) \\{\\s*wp_safe_redirect\\( home_url\\( '/wp-sitemap-pgpeople-1.xml' \\), 301 \\)#", $src ), '/people-sitemap.xml 301s to the core provider while the core sitemap is on' );
+ok( 1 === preg_match( "#add_filter\\( 'robots_txt', function \\( \\\$output \\) \\{\\s*if \\( prospergenics_2026_core_sitemaps_enabled\\(\\) \\) \\{\\s*return \\\$output;#", $src ), 'robots.txt names /people-sitemap.xml only when an SEO plugin replaced the core sitemap' );
+ok( false !== strpos( $src, 'return call_user_func( $this->list ) ? 1 : 0;' ), 'an empty list is not in the sitemap index (no 404 sitemap)' );
 
 array_map( 'unlink', glob( "$root/*/index.html" ) );
 array_map( 'unlink', glob( "$root/people/*/index.html" ) );

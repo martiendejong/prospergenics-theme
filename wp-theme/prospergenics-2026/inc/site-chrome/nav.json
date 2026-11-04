@@ -1,0 +1,49 @@
+{
+  "_comment": "The site's one menu. Read by inc/site-chrome.php (WordPress header, footer and the jengo-listings takeover) and by site_chrome.py (homepage, About, people/experts/community). Paths are site-root paths; tests/test-2026-navigation.php checks every page type renders exactly this list.",
+  "main": [
+    { "label": "Courses",  "path": "/courses/" },
+    { "label": "Members",  "path": "/members/", "also": ["/people/", "/in/", "/experts/", "/community/", "/find/"] },
+    { "label": "Tools",    "path": "/tools/" },
+    { "label": "Services", "path": "/services/" },
+    { "label": "Partners", "path": "/partners/" },
+    { "label": "About",    "path": "/about/" }
+  ],
+  "cta": { "label": "Take the test", "path": "/#value-test" },
+  "join_subject": "Joining the community",
+  "footer": [
+    {
+      "title": "Explore",
+      "links": [
+        { "label": "Courses",   "path": "/courses/" },
+        { "label": "Members",   "path": "/members/" },
+        { "label": "Tools",     "path": "/tools/" },
+        { "label": "Services",  "path": "/services/" },
+        { "label": "Partners",  "path": "/partners/" },
+        { "label": "Vacancies", "path": "/vacancies/" }
+      ]
+    },
+    {
+      "title": "Community",
+      "links": [
+        { "label": "About us",          "path": "/about/" },
+        { "label": "Our experts",       "path": "/experts/" },
+        { "label": "Find people",       "path": "/find/" },
+        { "label": "Community stories", "path": "/community/" },
+        { "label": "Articles",          "path": "/articles/" },
+        { "label": "Blog",              "path": "/blog/" }
+      ]
+    },
+    {
+      "title": "Get in touch",
+      "links": [
+        { "label": "Contact us",               "path": "/contact/" },
+        { "label": "WhatsApp +254 741 619743", "url": "https://wa.me/254741619743" },
+        { "label": "Take the value test",      "path": "/#value-test" }
+      ]
+    }
+  ],
+  "legal": [
+    { "label": "Privacy policy", "path": "/privacy-policy/" },
+    { "label": "Cookie policy",  "path": "/cookie-policy/" }
+  ]
+}

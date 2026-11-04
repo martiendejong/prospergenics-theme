@@ -48,7 +48,9 @@ function prospergenics_register_contact_message_post_type() {
             'show_in_rest'        => false,
             'menu_icon'           => 'dashicons-email-alt',
             'menu_position'       => 26,
-            'capability_type'     => 'post',
+            // Own capability type: enquiries hold names, emails and phone numbers, so being able
+            // to write posts (contributors, authors) must not be enough to read them.
+            'capability_type'     => array( 'pg_contact_msg', 'pg_contact_msgs' ),
             'capabilities'        => array( 'create_posts' => 'do_not_allow' ),
             'map_meta_cap'        => true,
             'supports'            => array( 'title', 'editor' ),
@@ -59,6 +61,29 @@ function prospergenics_register_contact_message_post_type() {
     );
 }
 add_action( 'init', 'prospergenics_register_contact_message_post_type' );
+
+/** The primitive capabilities of the pg_contact_msg capability type. */
+function prospergenics_contact_message_caps() {
+    return array(
+        'edit_pg_contact_msgs', 'edit_others_pg_contact_msgs', 'publish_pg_contact_msgs', 'read_private_pg_contact_msgs',
+        'delete_pg_contact_msgs', 'delete_private_pg_contact_msgs', 'delete_published_pg_contact_msgs',
+        'delete_others_pg_contact_msgs', 'edit_private_pg_contact_msgs', 'edit_published_pg_contact_msgs',
+    );
+}
+
+/**
+ * Administrators and editors (everyone who may edit others' posts) handle contact messages.
+ * Granted at runtime, so nothing is written to the roles table.
+ */
+function prospergenics_contact_message_grant_caps( $allcaps ) {
+    if ( ! empty( $allcaps['edit_others_posts'] ) ) {
+        foreach ( prospergenics_contact_message_caps() as $cap ) {
+            $allcaps[ $cap ] = true;
+        }
+    }
+    return $allcaps;
+}
+add_filter( 'user_has_cap', 'prospergenics_contact_message_grant_caps' );
 
 /**
  * Store one submission.

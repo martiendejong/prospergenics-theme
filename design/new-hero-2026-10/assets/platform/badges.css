@@ -1,0 +1,97 @@
+/* Member badges (profiles track, inc/profiles/badges.php): the badge on every surface, the owner's
+   breakdown card on /in/<slug>/, the /badges/ explainer. Each tier's colours come in as custom
+   properties from the tiers array (--pgb-bg, --pgb-fg, --pgb-bd); the label is always shown, so a
+   badge never depends on colour alone. */
+
+.pg-badge{
+  display:inline-flex;align-items:center;gap:5px;vertical-align:middle;
+  padding:3px 9px 3px 7px;border-radius:999px;
+  border:1.5px solid var(--pgb-bd,#9cc3ad);background:var(--pgb-bg,#fff);color:var(--pgb-fg,#0f3d28);
+  font-family:'Sora',system-ui,sans-serif;font-weight:700;font-size:12px;line-height:1.25;letter-spacing:.01em;
+  text-decoration:none;white-space:nowrap;
+}
+/* the tier's colours win over the link colours of the card, heading or list around the badge
+   (".pgf-card-title a", ".pgc-instructor-name a", ":hover" rules …) */
+a.pg-badge[data-pg-badge],a.pg-badge[data-pg-badge]:link,a.pg-badge[data-pg-badge]:visited,
+a.pg-badge[data-pg-badge]:hover,a.pg-badge[data-pg-badge]:active,span.pg-badge[data-pg-badge]{
+  color:var(--pgb-fg,#0f3d28);background:var(--pgb-bg,#fff);text-decoration:none;
+}
+.pg-badge-icon{flex:0 0 auto;display:block;}
+.pg-badge-label{color:inherit;}
+.pg-badge--header{gap:6px;padding:5px 13px 5px 10px;font-size:14px;}
+a.pg-badge{cursor:pointer;}
+a.pg-badge[data-pg-badge]:hover .pg-badge-label{text-decoration:underline;text-underline-offset:2px;}
+/* a two-tone ring, visible on the dark hero bands and on white cards alike */
+a.pg-badge:focus-visible{outline:none;box-shadow:0 0 0 2px #fff,0 0 0 4px #0f3d28;}
+
+/* a name and its badge side by side, wrapping under each other on narrow screens */
+.pgb-with-badge{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;min-width:0;}
+.pgb-with-badge > h1,.pgb-with-badge > h3{min-width:0;}
+.pga-byline-text .pgb-with-badge{gap:4px 8px;}
+.pgf-card-title .pg-badge,.pgj-person h3 .pg-badge,.pgc-instructor-name .pg-badge{margin-left:4px;}
+.pgp-member .pg-badge{margin-left:4px;font-size:11px;padding:2px 7px 2px 5px;}
+.pgm-rank{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;}
+.pgm-rank-h{font-weight:600;}
+
+/* ── the owner's card (profile sidebar) ── */
+.pgb-owner .pgb-owner-badge{margin:4px 0 10px;}
+.pgb-owner-state{font-size:14.5px;line-height:1.55;color:#2a3d30;margin-bottom:10px;}
+.pgb-score{font-size:15px;color:#2a3d30;margin-bottom:6px;}
+.pgb-score strong{font-family:'Gabarito',sans-serif;font-weight:800;font-size:30px;line-height:1;color:var(--ink,#0b2016);margin-right:4px;}
+.pgb-next{font-size:14.5px;color:#2a3d30;margin-bottom:8px;}
+.pgb-next a{color:var(--green-700,#1a7a46);font-weight:600;}
+.pgb-meter{margin-bottom:14px;}
+.pgb-breakdown{width:100%;border-collapse:collapse;font-size:14px;margin:6px 0 14px;}
+.pgb-breakdown caption{text-align:left;font-weight:600;font-size:14px;color:var(--ink,#0b2016);padding-bottom:6px;}
+.pgb-breakdown th,.pgb-breakdown td{padding:7px 0;border-top:1px solid rgba(15,61,40,.12);text-align:left;vertical-align:top;font-weight:400;color:#2a3d30;}
+.pgb-breakdown thead th{font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#4a6555;border-top:0;}
+.pgb-breakdown tbody th{padding-right:10px;}
+.pgb-count{display:block;font-size:12.5px;color:#4a6555;}
+.pgb-num{text-align:right !important;white-space:nowrap;font-variant-numeric:tabular-nums;}
+.pgb-breakdown tbody .pgb-num{font-weight:700;color:var(--ink,#0b2016);}
+.pgb-tips-h{font-family:'Sora',sans-serif;font-weight:700;font-size:14.5px;color:var(--ink,#0b2016);margin:4px 0 6px;}
+.pgb-tips{padding-left:18px;margin-bottom:12px;}
+.pgb-tips li{font-size:14px;line-height:1.55;color:#2a3d30;margin-bottom:6px;}
+.pgb-private-note a{color:var(--green-700,#1a7a46);}
+
+/* ── /badges/ ── */
+.pgb-page{max-width:820px;}
+.pgb-section{margin-bottom:56px;}
+.pgb-section h2{font-family:'Gabarito',sans-serif;font-weight:800;font-size:clamp(22px,2.4vw,30px);line-height:1.15;letter-spacing:-.02em;color:var(--ink,#0b2016);margin-bottom:18px;}
+.pgb-section > p,.pgb-note{font-size:16.5px;line-height:1.7;color:#2a3d30;margin-bottom:18px;}
+.pgb-note{font-size:14.5px;color:#4a6555;margin-top:14px;}
+.pgb-tiers{list-style:none;display:grid;gap:14px;}
+.pgb-tier{background:#fff;border:1px solid rgba(15,61,40,.12);border-radius:16px;padding:20px 22px;scroll-margin-top:90px;}
+.pgb-tier:target,.pgb-tier:focus{outline:none;border-color:var(--green-600,#22a65a);box-shadow:0 0 0 3px rgba(52,199,89,.25);}
+.pgb-tier-h{margin-bottom:10px;}
+.pgb-tier p{font-size:15.5px;line-height:1.65;color:#2a3d30;margin-bottom:10px;}
+.pgb-needs{padding-left:20px;}
+.pgb-needs li{font-size:14.5px;line-height:1.6;color:#2a3d30;margin-bottom:3px;}
+.pgb-table-wrap{border:1px solid rgba(15,61,40,.12);border-radius:16px;background:#fff;padding:6px 18px;}
+.pgb-points{width:100%;border-collapse:collapse;font-size:15px;}
+.pgb-points th,.pgb-points td{padding:11px 8px;border-top:1px solid rgba(15,61,40,.12);text-align:left;vertical-align:top;color:#2a3d30;font-weight:400;}
+.pgb-points thead th{border-top:0;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#4a6555;}
+.pgb-points tbody th{font-weight:600;color:var(--ink,#0b2016);}
+.pgb-rules{padding-left:22px;}
+.pgb-rules li{font-size:16px;line-height:1.7;color:#2a3d30;margin-bottom:10px;}
+.pgb-cta{margin-top:22px;}
+.pgb-btn{display:inline-flex;align-items:center;font-family:'Sora',sans-serif;font-weight:600;font-size:15px;padding:12px 22px;border-radius:999px;background:var(--green-700,#1a7a46);color:#fff;text-decoration:none;}
+.pgb-btn:hover{background:var(--green-900,#0f3d28);}
+.pgb-btn:focus-visible{outline:none;box-shadow:0 0 0 2px #fff,0 0 0 4px #0f3d28;}
+
+@media (max-width:600px){
+  /* the points table as one card per row */
+  .pgb-table-wrap{padding:0 14px;}
+  .pgb-points thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);}
+  .pgb-points tr{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:12px 0;border-top:1px solid rgba(15,61,40,.12);}
+  .pgb-points tbody tr:first-child{border-top:0;}
+  .pgb-points th,.pgb-points td{border:0;padding:0;}
+  .pgb-points tbody th{grid-column:1 / -1;}
+  .pgb-points td{font-size:14px;}
+  .pgb-points td:nth-of-type(1)::before{content:"Points each: ";color:#4a6555;}
+  .pgb-points td:nth-of-type(2)::before{content:"At most: ";color:#4a6555;}
+  .pgb-points td:nth-of-type(3){grid-column:1 / -1;}
+  .pgb-points td:nth-of-type(3)::before{content:"Checked by others: ";color:#4a6555;}
+  .pgb-points .pgb-num{text-align:left !important;white-space:normal;}
+}
+@media (prefers-reduced-motion:reduce){.pgb-tier{scroll-behavior:auto;}}

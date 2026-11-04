@@ -1,0 +1,6 @@
+{
+  "_comment": "The one description of ProsperGenics (audit CON-13). Read by inc/site-chrome.php (footer; inc/seo.php uses it for the homepage meta, sharing tags and Organization JSON-LD) and by site_chrome.py (footer of the static pages, About page meta and sharing tags). 'short' fits a meta description (at most 160 characters); 'long' is for structured data and other places with room. Change the wording here only.",
+  "name": "ProsperGenics",
+  "short": "A community in Kenya and the Netherlands that creates value together: courses and certification, AI tools, services and the people behind them.",
+  "long": "ProsperGenics is a community in Kenya and the Netherlands researching and practising value creation. We build, learn and measure through real projects: courses and certification, AI tools and services for organisations."
+}

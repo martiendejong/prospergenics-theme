@@ -1,0 +1,85 @@
+/*
+ * Prospergenics public scrutiny (card #6389, inc/profiles/scrutiny-render.php): the published
+ * evidence, corrections, questions, reviews and disputes under a person, project or profile entry,
+ * and the "Suggest a correction" form. Loaded on /in/ profiles and project pages, and by the hooks
+ * themselves anywhere else. Self-contained: builds only on the tokens in wp/header.php
+ * (--green-*, --ink, --muted, --line, --paper, --paper-2).
+ */
+
+.pgs-section{background:#fff;border:1px solid var(--line);border-radius:18px;padding:clamp(18px,3vw,28px);min-width:0;}
+.pgs-section h2{font-family:'Gabarito',sans-serif;font-weight:800;font-size:clamp(20px,2.2vw,24px);letter-spacing:-.01em;color:var(--ink);margin:0 0 6px;}
+.pgs-intro,.pgs-empty{font-size:15px;line-height:1.6;color:var(--muted);margin:0 0 14px;}
+.pgs-empty{margin:0;}
+.pgs-muted{color:var(--muted);font-weight:400;}
+
+/* ---------- published items */
+.pgs-list{list-style:none;margin:0;padding:0;display:grid;gap:14px;}
+.pgs-item{border:1px solid var(--line);border-radius:14px;padding:14px 16px;background:var(--paper);min-width:0;}
+.pgs-kind-review{background:#fff;border-style:dashed;}
+.pgs-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:0 0 8px;font-size:14px;color:var(--ink);}
+.pgs-badge{font-size:12.5px;font-weight:700;color:var(--green-900);background:var(--green-100);border:1px solid rgba(26,122,70,.35);border-radius:999px;padding:2px 9px;}
+.pgs-kind-review .pgs-badge{background:#fff4d6;border-color:#e8c766;color:#4a3700;}
+.pgs-kind-dispute .pgs-badge,.pgs-kind-correction .pgs-badge{background:#fbe9e7;border-color:rgba(179,38,30,.35);color:#7a1d16;}
+.pgs-by a{color:var(--green-700);font-weight:600;}
+.pgs-date{color:var(--muted);}
+.pgs-opinion{font-size:13.5px;font-weight:600;color:#4a3700;background:#fff4d6;border:1px solid #e8c766;border-radius:10px;padding:6px 10px;margin:0 0 8px;}
+.pgs-body{font-size:15.5px;line-height:1.65;color:var(--ink);overflow-wrap:anywhere;}
+.pgs-body p{margin:0 0 8px;}
+.pgs-body p:last-child{margin-bottom:0;}
+.pgs-body blockquote{border-left:3px solid var(--line);margin:0 0 8px;padding-left:12px;color:var(--muted);}
+.pgs-sources-h{font-size:13.5px;font-weight:700;color:var(--green-900);margin:10px 0 2px;}
+.pgs-sources{margin:0;padding-left:18px;font-size:14px;line-height:1.5;}
+.pgs-sources a{color:var(--green-700);overflow-wrap:anywhere;display:inline-block;min-height:24px;}
+.pgs-disclosure{font-size:13.5px;color:var(--ink);margin:10px 0 0;}
+.pgs-response{margin:12px 0 0;padding:10px 0 0 14px;border-left:3px solid var(--green-600);}
+.pgs-response-h{font-size:14px;font-weight:700;color:var(--green-900);margin:0 0 4px;}
+.pgs-response-h .pgs-date{font-weight:400;}
+
+/* ---------- forms */
+.pgs-actions{margin-top:0;min-width:0;}
+.pgs-actions:not(.pgs-compact){background:#fff;border:1px solid var(--line);border-radius:18px;padding:clamp(16px,3vw,24px);}
+.pgs-compact{margin-top:8px;}
+.pgs-add>summary,.pgs-respond>summary{list-style:none;cursor:pointer;}
+.pgs-add>summary::-webkit-details-marker,.pgs-respond>summary::-webkit-details-marker{display:none;}
+.pgs-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:10px 18px;border-radius:999px;border:1.5px solid var(--green-700);background:#fff;color:var(--green-900);font:inherit;font-weight:600;font-size:14px;line-height:1.2;text-decoration:none;cursor:pointer;}
+.pgs-btn:hover{background:var(--paper-2);}
+.pgs-btn-primary{background:var(--green-700);color:#fff;}
+.pgs-btn-primary:hover{background:var(--green-900);}
+.pgs-link{display:inline-flex;align-items:center;min-height:44px;font-weight:600;font-size:14px;color:var(--green-700);text-decoration:underline;text-underline-offset:3px;}
+.pgs-add[open]>summary{margin-bottom:10px;}
+.pgs-form{display:grid;gap:14px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0;}
+.pgs-section .pgs-form,.pgs-actions:not(.pgs-compact) .pgs-form{border:0;padding:0;}
+.pgs-field{display:grid;gap:6px;min-width:0;}
+.pgs-field label,.pgs-radios legend{font-size:14px;font-weight:700;color:var(--green-900);}
+.pgs-field input,.pgs-field textarea{font:inherit;font-size:16px;width:100%;min-width:0;padding:10px 12px;border-radius:12px;border:1.5px solid rgba(15,61,40,.45);background:var(--paper);color:var(--ink);}
+.pgs-field textarea{resize:vertical;}
+.pgs-field [aria-invalid=true]{border-color:#a3271d;}
+.pgs-radios{border:0;margin:0;padding:0;display:grid;gap:4px;min-width:0;}
+.pgs-radios legend{margin-bottom:6px;padding:0;}
+.pgs-radio{display:grid;grid-template-columns:auto 1fr;column-gap:8px;align-items:start;}
+.pgs-radio input{margin:4px 0 0;width:18px;height:18px;accent-color:var(--green-700);}
+.pgs-radio label{font-size:15px;line-height:1.45;min-height:26px;cursor:pointer;}
+.pgs-radio .pgs-hint{grid-column:2;margin:0 0 4px;}
+.pgs-hint,.pgs-note,.pgs-as,.pgs-about{font-size:13.5px;line-height:1.5;color:var(--muted);margin:0;}
+.pgs-as,.pgs-about{color:var(--ink);}
+.pgs-as a,.pgs-note a{color:var(--green-700);}
+.pgs-error{font-size:13.5px;font-weight:600;color:#7a1d16;margin:0;}
+.pgs-grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:14px;}
+.pgs-form .pgs-btn{justify-self:start;}
+.pgs-field input:focus,.pgs-field textarea:focus,.pgs-radio input:focus-visible,.pgs-btn:focus-visible,.pgs-link:focus-visible,.pgs-add>summary:focus-visible,.pgs-respond>summary:focus-visible,.pgs-sources a:focus-visible{outline:3px solid var(--focus-ring,#1a7a46);outline-offset:2px;}
+.pgs-respond{margin-top:8px;}
+.pgs-respond .pgs-form{margin-top:4px;}
+
+/* ---------- notices, "more evidence" */
+.pgs-notice{border-radius:12px;padding:12px 14px;font-size:15px;line-height:1.55;margin:0 0 12px;}
+.pgs-notice-ok{background:var(--green-100);color:var(--green-900);border:1px solid rgba(26,122,70,.3);}
+.pgs-notice-error{background:#fbe4e2;color:#7a1d16;border:1px solid rgba(179,38,30,.3);}
+.pgs-notice-info{background:var(--paper-2);color:var(--ink);border:1px solid var(--line);}
+.pgs-more{background:var(--paper-2);border:1px solid var(--line);border-radius:14px;padding:16px;margin:0 0 14px;display:grid;gap:8px;}
+.pgs-more-h{font-family:'Sora',sans-serif;font-size:17px;font-weight:700;color:var(--green-900);margin:0;}
+
+/* ---------- on a profile entry (claim) */
+.pgs-public-claim{margin-top:10px;}
+.pgs-claim-h{font-size:13.5px;font-weight:700;color:var(--green-900);margin:0 0 6px;}
+.pgs-public-claim .pgs-item{padding:10px 12px;}
+.pgs-public-claim .pgs-body{font-size:15px;}

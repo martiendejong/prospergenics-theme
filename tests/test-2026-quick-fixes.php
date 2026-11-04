@@ -7,7 +7,7 @@
  *   - no duplicate lang attribute on <html> (lang="en" plus language_attributes()),
  *   - C4: no theme image over 600 KB, and every asset a template references exists,
  *   - H1: the value test shows a privacy notice next to the email field,
- *   - C6/H4: real WhatsApp number, WhatsApp link not nested in the chat button, compact launcher,
+ *   - C6/H4: real WhatsApp number, WhatsApp link not nested in the chat button, launcher compact on phones,
  *   - M3: fonts are self-hosted (no Google Fonts), M1: homepage axe/Lighthouse fixes.
  *
  * Run with: php tests/test-2026-quick-fixes.php
@@ -68,7 +68,8 @@ echo "Chat launcher and WhatsApp (C6, H4)\n";
 ok( false === strpos( $front, '254XXXXXXXXX' ), 'no placeholder WhatsApp number left' );
 ok( false !== strpos( $front, 'https://wa.me/254741619743' ), 'WhatsApp links use the real number' );
 ok( ! preg_match( '#<button class="launcher-orb"[^>]*>(?:(?!</button>).)*<a #s', $front ), 'WhatsApp link is not nested inside the chat button' );
-ok( false !== strpos( $front, '<div class="launcher is-compact">' ), 'launcher starts compact (small even without JS)' );
+// Martien's rule (2c8c456): full-size launcher on desktop, compact only on phones (<= 880px).
+ok( false !== strpos( $front, "window.matchMedia('(max-width: 880px)')" ) && false !== strpos( $front, "launcher.classList.toggle('is-compact', compact)" ), 'launcher is compact on phones and full-size on desktop' );
 
 echo "Self-hosted fonts (M3)\n";
 $all_pages = array_merge( glob( $theme . '/*.php' ), $pages );
