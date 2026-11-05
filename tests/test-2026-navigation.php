@@ -412,7 +412,16 @@ $ljs = prospergenics_2026_learn_script();
 ok( false !== strpos( $ljs, "body.hasAttribute('data-pg-sessions')" ) && false !== strpos( $ljs, "c.tagName === 'HR'" ), 'the script runs once and splits the lesson at the plugin\'s <hr> session breaks' );
 ok( false !== strpos( $ljs, "'#session-' + (i + 2)" ) && false !== strpos( $ljs, "addEventListener('hashchange'" ), 'Previous / Next are links to #session-N, so back and forward work' );
 ok( false !== strpos( $ljs, ".tool-section[data-tool]" ) && false !== strpos( $ljs, ".os-section[data-os]" ) && false !== strpos( $ljs, "localStorage" ), 'agent and computer pickers show only the matching steps and remember the choice' );
-ok( false === strpos( $ljs, 'innerHTML' ), 'the script builds its markup with textContent only (no HTML from the page is re-parsed)' );
+ok( false === strpos( file_get_contents( $theme . '/inc/site-chrome/learn.js' ), 'innerHTML' ), 'the lesson script builds its markup with textContent only (no HTML from the page is re-parsed)' );
+// The Try-it playground (card #7146): a theme copy of the [5818] playground, in the same lesson script.
+$pjs = file_get_contents( $theme . '/inc/site-chrome/playground.js' );
+ok( strpos( $ljs, 'window.__pgPlayground = {' ) !== false && strpos( $ljs, 'window.__pgPlayground = {' ) < strpos( $ljs, "body.hasAttribute('data-pg-sessions')" ), 'the playground is defined before the lesson script that starts it' );
+ok( false !== strpos( $pjs, "if (window.__pgPlayground) { return; }" ), 'it steps aside when the original playground runs again' );
+ok( false !== strpos( $pjs, "frame.setAttribute('sandbox', 'allow-scripts');" ) && 1 === substr_count( $pjs, "setAttribute('sandbox'" ) && ! preg_match( '#allow-scripts[ \'"]+allow-same-origin|allow-same-origin[ \'"]+allow-scripts#', $pjs ), 'lesson code runs in a sandboxed frame without the page\'s origin (no cookies, storage or page access)' );
+ok( false !== strpos( $pjs, "/npm/skulpt' + '@' + '1.2.0/dist/'" ) && false === strpos( $pjs, 'skulpt@' ), 'the Skulpt URL is built so email obfuscation cannot mangle it' );
+ok( false === strpos( $ljs, '</script>' . "\n" . '(function' ) && 1 === substr_count( $ljs, '</script>' ), 'no closing script tag inside the inlined scripts' );
+ok( false !== strpos( $ljs, '/* Lesson playground' ) && false !== strpos( $ljs, 'else\\s*\\{\\s*scan\\(document\\);' ), 'the stranded playground code is removed from its header comment to its last line' );
+ok( false !== strpos( prospergenics_2026_learn_css(), '.editor-container textarea {' ) && false !== strpos( prospergenics_2026_learn_css(), '.learn-body .analogy, .learn-body .info-box {' ), 'the editors and lesson callouts are styled again' );
 ok( preg_match_all( '#data-tool="([a-z]+)"#', $learn, $tm ) && 5 === count( array_unique( $tm[1] ) ) && 8 === substr_count( $learn, '<hr>' ), 'the saved course has 5 coding agents and 9 sessions (8 breaks)' );
 
 echo $failures ? "\n$failures FAILED\n" : "\nAll assertions passed.\n";

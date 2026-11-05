@@ -61,6 +61,23 @@
   }
   applyChoice();
 
+  // ── the lessons' own playground code, stranded as text (card #7146) ──
+  // Every lesson of the HTML, CSS, JavaScript and Python courses ends with the <style> and <script> of
+  // the [5818] playground; the tags are stripped before the plugin prints the lesson, so the code shows
+  // as text, with a few elements made from the HTML inside its strings. One run per lesson, directly in
+  // the lesson: from the text that opens with its header comment up to and including the text that
+  // ends with its last line. A run without that end is left alone (it is not the shape we know).
+  [].slice.call(body.childNodes).forEach(function (n) {
+    if (n.nodeType !== 3 || !n.parentNode || n.textContent.replace(/^\s+/, '').indexOf('/* Lesson playground') !== 0) return;
+    var run = [n], x = n.nextSibling, closed = false;
+    for (var k = 0; x && k < 60; k++, x = x.nextSibling) {
+      run.push(x);
+      if (x.nodeType === 3 && /else\s*\{\s*scan\(document\);\s*\}\s*\}\)\(\);/.test(x.textContent)) { closed = true; break; }
+      if (x.nodeType === 1 && /^(HR|H1|H2|SECTION)$/.test(x.tagName)) break;
+    }
+    if (closed) run.forEach(function (r) { if (r.parentNode) r.parentNode.removeChild(r); });
+  });
+
   // ── the course's own ClickUp / Jira switch ──
   // Its <style> and <script> reach the page as plain text (the tags are stripped before the plugin
   // prints the course), so the code shows up as a paragraph and the buttons do nothing. Drop that
@@ -88,6 +105,9 @@
     setTm(tm);
   }
 
+  // The "Try it yourself" editors (playground.js, printed just before this script).
+  if (window.__pgPlayground) window.__pgPlayground.scan(body);
+
   // ── sessions: the plugin separates them with <hr> ──
   var foot = body.querySelector(':scope > .learn-foot');
   var groups = [[]];
@@ -108,30 +128,42 @@
   });
   if (pick) body.insertBefore(pick, sessions[0] || foot);
 
+  // A part is named by its <h1> (HTML, CSS and JavaScript courses), else by its first heading that is
+  // not one of the lesson template's fixed headings ("In simple terms", "Deep dive", ... in the Python
+  // course; "Introduction" in AI Software Lifecycle), without a leading "1." or "Step 1:".
+  // Courses built from one lesson template (every part has an <h1>, or every part opens with the same
+  // heading) count lessons; the others count sessions.
+  var TEMPLATE = /^(introduction|in simple terms|the simple version|deep dive|what's really happening|try it yourself|try more tags|challenge|summary|what you learned|recap|key takeaways)$/i;
+  function heads(sec, sel) { return [].slice.call(sec.querySelectorAll(sel)).filter(function (x) { return !x.closest('.tool-section, .os-section'); }); }
+  function firstH1(sec) { var h = heads(sec, 'h1')[0]; return h ? h.textContent.trim() : ''; }
   function title(sec, n) {
-    var heads = [].slice.call(sec.querySelectorAll('h2'));
-    for (var i = 0; i < heads.length; i++) {
-      var t = heads[i].textContent.trim();
-      if (!/^introduction$/i.test(t) && !heads[i].closest('.tool-section, .os-section')) return t;
+    if (firstH1(sec)) return firstH1(sec);
+    var hs = heads(sec, 'h2, h3');
+    for (var i = 0; i < hs.length; i++) {
+      var t = hs[i].textContent.replace(/\s+/g, ' ').trim().replace(/^(step\s+)?\d+\s*[.:·)-]\s*/i, '');
+      if (t && !TEMPLATE.test(t)) return t;
     }
     if (sec.querySelector('.tool-section')) return 'Set up your coding agent';
-    return heads[0] ? heads[0].textContent.trim() : 'Session ' + n;
+    return unit + ' ' + n;
   }
+  function opener(sec) { var h = sec.querySelector('h1, h2'); return h ? h.textContent.trim().toLowerCase() : ''; }
+  var unit = sessions.length > 1 && (sessions.every(function (s) { return firstH1(s) !== ''; }) ||
+    sessions.every(function (s) { return opener(s) !== '' && opener(s) === opener(sessions[0]); })) ? 'Lesson' : 'Session';
   var titles = sessions.map(function (s, i) { return title(s, i + 1); });
   var total = sessions.length;
 
   sessions.forEach(function (sec, i) {
     if (total < 2) return; // a course without sessions: no "Session 1 of 1", no pager
     var head = el('p', 'pg-session-head');
-    head.appendChild(document.createTextNode('Session ' + (i + 1) + ' '));
+    head.appendChild(document.createTextNode(unit + ' ' + (i + 1) + ' '));
     head.appendChild(el('span', '', 'of ' + total));
     sec.insertBefore(head, sec.firstChild);
-    sec.setAttribute('aria-label', 'Session ' + (i + 1) + ': ' + titles[i]);
+    sec.setAttribute('aria-label', unit + ' ' + (i + 1) + ': ' + titles[i]);
     var pager = el('nav', 'pg-session-pager');
-    pager.setAttribute('aria-label', 'Sessions');
+    pager.setAttribute('aria-label', unit + 's');
     function link(cls, href, small, big) { var a = el('a', cls); a.href = href; a.appendChild(el('small', '', small)); a.appendChild(el('b', '', big)); pager.appendChild(a); }
-    if (i > 0) link('pg-prev', '#session-' + i, '← Previous session', titles[i - 1]);
-    if (i < total - 1) link('pg-next', '#session-' + (i + 2), 'Next: session ' + (i + 2), titles[i + 1] + ' →');
+    if (i > 0) link('pg-prev', '#session-' + i, '← Previous ' + unit.toLowerCase(), titles[i - 1]);
+    if (i < total - 1) link('pg-next', '#session-' + (i + 2), 'Next: ' + unit.toLowerCase() + ' ' + (i + 2), titles[i + 1] + ' →');
     else {
       var back = document.querySelector('.learn-toc .toc-back');
       if (back) link('pg-next', back.getAttribute('href'), 'You reached the end', 'Back to the course overview →');
@@ -154,9 +186,9 @@
       var open = !tocBox.classList.contains('pg-toc-open');
       tocBox.classList.toggle('pg-toc-open', open);
       more.setAttribute('aria-expanded', open ? 'true' : 'false');
-      more.textContent = open ? 'Show less' : 'All ' + total + ' sessions';
+      more.textContent = open ? 'Show less' : 'All ' + total + ' ' + unit.toLowerCase() + 's';
     });
-    more.textContent = 'All ' + total + ' sessions';
+    more.textContent = 'All ' + total + ' ' + unit.toLowerCase() + 's';
     toc.parentNode.insertBefore(more, toc.nextSibling);
   }
   function refresh() {
@@ -169,7 +201,7 @@
     sessions.forEach(function (sec, i) {
       var a = el('a', 'pg-toc-session');
       a.href = '#session-' + (i + 1);
-      a.appendChild(el('small', '', 'Session ' + (i + 1)));
+      a.appendChild(el('small', '', unit + ' ' + (i + 1)));
       a.appendChild(document.createTextNode(titles[i]));
       if (i === current) a.setAttribute('aria-current', 'true');
       toc.appendChild(a);
