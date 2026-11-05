@@ -101,3 +101,45 @@
   .learn-wrap .learn-body .pg-session-pager a { flex-basis: 100%; }
   .learn-wrap .learn-body .pg-session-pager a.pg-next { order: -1; }
 }
+
+/* #7146: the lessons' Try-it editors and callouts. These are the styles of the [5818] playground, which reach
+   the page only as text (their <style> tag is stripped before the plugin prints the lesson); restated here as they were. */
+.learn-body .editor-container, .editor-container {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; margin: 20px 0; align-items: stretch;
+}
+@media (max-width: 760px) { .editor-container { grid-template-columns: minmax(0, 1fr); } }
+.editor-container .editor-panel, .editor-container .preview-panel {
+  display: flex; flex-direction: column; min-width: 0; overflow: hidden;
+  border: 1px solid var(--line, rgba(15, 61, 40, .18)); border-radius: 10px; background: #fff;
+}
+.editor-container .panel-header {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 12px;
+  background: var(--green-900, #0f3d28); color: #fff;
+  font: 600 12px/1.2 'Sora', system-ui, sans-serif; letter-spacing: .05em; text-transform: uppercase;
+}
+.editor-container .editor-buttons { display: flex; gap: 6px; }
+.editor-container .editor-buttons button {
+  font: 600 12px/1 'Sora', system-ui, sans-serif; padding: 6px 12px; border-radius: 6px; cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, .35); background: rgba(255, 255, 255, .12); color: #fff;
+}
+.editor-container .editor-buttons .btn-run { background: var(--green-500, #34c759); border-color: var(--green-500, #34c759); color: #0b2016; }
+.editor-container .editor-buttons button:hover { filter: brightness(1.12); }
+.editor-container .editor-buttons button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.editor-container textarea {
+  flex: 1; width: 100%; min-height: 220px; resize: vertical; border: 0; outline: 0; margin: 0; padding: 12px 14px;
+  background: #1a1a1a; color: #e6e6e6; tab-size: 2; white-space: pre; overflow: auto;
+  font: 13.5px/1.55 ui-monospace, 'Cascadia Code', 'Fira Code', monospace;
+}
+.editor-container textarea:focus-visible { box-shadow: inset 0 0 0 2px var(--green-500, #34c759); }
+.editor-container iframe { flex: 1; width: 100%; min-height: 220px; border: 0; background: #fff; }
+.editor-container[data-pg-lang="javascript"] iframe, .editor-container[data-pg-lang="python"] iframe { background: #1a1a1a; }
+
+/* CodeHub lesson callouts and sections, unstyled in the plain learn template */
+.learn-body .analogy, .learn-body .info-box {
+  margin: 16px 0; padding: 14px 18px; border-radius: 10px; border-left: 4px solid var(--green-600, #22a65a);
+  background: var(--green-100, #d9f5e3); color: var(--green-900, #0f3d28); font-size: 15.5px; line-height: 1.65;
+}
+.learn-body .info-box { border-left-color: #2f7fd3; background: #e8f1fb; color: #123a63; }
+.learn-body .lesson-header h1 { font-family: 'Sora', system-ui, sans-serif; font-size: clamp(26px, 3vw, 36px); margin: 0 0 8px; }
+.learn-body .try-it, .learn-body .challenge { margin-top: 28px; }
+.learn-body .challenge { padding: 6px 18px 12px; border: 1px dashed var(--green-600, #22a65a); border-radius: 12px; }

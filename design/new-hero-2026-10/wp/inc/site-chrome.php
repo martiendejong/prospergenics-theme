@@ -270,9 +270,11 @@ function prospergenics_2026_learn_css() {
     return (string) file_get_contents( __DIR__ . '/site-chrome/learn.css' );
 }
 
-/** The course lesson script (one session at a time, agent and OS picker), wrapped in a <script> element. */
+/** The course lesson scripts (the Try-it playground, #7146; one session at a time, agent and OS picker, #7144), in one <script> element. */
 function prospergenics_2026_learn_script() {
-    return '<script id="prospergenics-learn-js">' . "\n" . file_get_contents( __DIR__ . '/site-chrome/learn.js' ) . "</script>\n";
+    return '<script id="prospergenics-learn-js">' . "\n"
+        . file_get_contents( __DIR__ . '/site-chrome/playground.js' ) . "\n"
+        . file_get_contents( __DIR__ . '/site-chrome/learn.js' ) . "</script>\n";
 }
 
 /** Whether a buffered jengo-listings page is a course lesson page: its lesson layout exactly once (pure). */
