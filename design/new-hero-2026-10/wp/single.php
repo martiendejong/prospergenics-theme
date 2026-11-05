@@ -18,7 +18,8 @@ get_header();
 </div>
 
 <div class="post-wrap">
-  <a class="post-back" href="<?= esc_url(home_url('/')) ?>">← Back to ProsperGenics</a>
+  <?php $pg_back = prospergenics_2026_posts_listing(); // the posts listing, not the homepage (audit NAV-9) ?>
+  <a class="post-back" href="<?= esc_url($pg_back['url']) ?>">← <?= esc_html($pg_back['label']) ?></a>
   <div class="post-content">
     <?php echo apply_filters('the_content', get_the_content()); ?>
   </div>

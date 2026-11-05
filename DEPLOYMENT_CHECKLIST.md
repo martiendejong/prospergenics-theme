@@ -125,6 +125,19 @@ Use this checklist before deploying the theme to production.
 - [ ] Contact form emails arrive
 - [ ] Test all automated emails
 
+### Platform mail (2026 theme: email confirmations, endorsement notices)
+The theme sends as `noreply@<site host>` ("ProsperGenics"), e.g. `noreply@prospergenics.com` on
+production and `noreply@test.prospergenics.com` on test. Override in wp-config.php with
+`define( 'PROSPERGENICS_MAIL_FROM', 'noreply@prospergenics.com' );` (and `PROSPERGENICS_MAIL_FROM_NAME`),
+or the `prospergenics_mail_from` / `prospergenics_mail_from_name` filters. The From domain must pass DMARC
+(prospergenics.com publishes `p=reject; sp=reject`):
+- [ ] SPF: the From domain's TXT record includes the server/relay that sends (e.g. `v=spf1 include:<smtp provider> ip4:<server IP> -all`); for the test site either add an SPF TXT on `test.prospergenics.com` or set `PROSPERGENICS_MAIL_FROM` to a prospergenics.com address
+- [ ] DKIM: the provider's selector record (`<selector>._domainkey.prospergenics.com`, TXT or CNAME) is published and the SMTP relay signs as prospergenics.com
+- [ ] DMARC: `_dmarc.prospergenics.com` keeps `p=reject`; add `rua=mailto:<monitored address>` to see failures
+- [ ] Someone reads replies/bounces for the From address (or set a monitored address as From)
+- [ ] Delivery check after every deploy: create a test account (or change a test account's email on /profile/settings/), confirm the mail reaches a Gmail inbox and "Show original" says SPF, DKIM and DMARC PASS
+- [ ] wp-admin shows no "platform email(s) could not be sent" notice (failures are also in the PHP error log as `[prospergenics] … mail … failed`)
+
 ### Legal & Compliance
 - [ ] Privacy policy updated
 - [ ] Cookie notice added (if EU visitors)

@@ -1,233 +1,200 @@
 #!/usr/bin/env python3
 """
-Shared site header (with the mobile menu) and footer for the static design pages that are
-not the homepage: about/index.html and the generated people/, experts/ and community/ pages.
+The site header (with the mobile menu) and footer for the static design pages: index.html,
+about/index.html and the generated people/, experts/ and community/ pages.
 
-The homepage (index.html) carries the same header and footer markup inline, and the
-WordPress inner pages use wp/header.php + wp/footer.php; tests/test-2026-navigation.php
-checks all of them offer the same menu.
+There is ONE definition of the menu and the chrome, in wp/inc/site-chrome/:
+  nav.json         the main menu, the call to action, the footer columns and legal links
+  site-chrome.css  header + footer styles (scoped under .site-header / .site-footer)
+  site-chrome.js   mobile menu, account menu, homepage hide-on-scroll
+WordPress renders the same files through wp/inc/site-chrome.php (inner pages, front-page.php,
+page-about.php and the jengo-listings pages); this module renders them for the static pages.
+tests/test-2026-navigation.php checks that every page type shows the same menu and markup.
 
-    python site_chrome.py      # rewrites the marked blocks in about/index.html
+    python site_chrome.py      # rewrites the marked blocks in index.html and about/index.html
+
+The organisation description (footer, About meta) comes from wp/inc/site-chrome/organisation.json,
+the same file inc/site-chrome.php and inc/seo.php read.
 
 people/build-profiles.py imports this module, so rebuilding the profiles picks it up too.
-Everything here is self-contained (literal colours, rules scoped under .site-header /
-.site-footer) so it renders the same on pages whose own stylesheets define different tokens
-or reuse class names like .brand and .nav-links.
+The static pages can't know who is logged in, so they show the visitor links (Log in, Join), and
+site-chrome.js swaps in the account menu when WordPress's pg_member marker cookie is set (#6486);
+in WordPress (homepage, About, every inner page) the header comes from PHP and knows.
 """
+import json
 import os
 import re
+from urllib.parse import quote
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+CHROME = os.path.join(HERE, "wp", "inc", "site-chrome")
 
-# (label, href). Hrefs starting with "/" are WordPress routes; "{root}" is replaced by the
-# relative path back to the design root, so the static pages also work when opened locally.
-NAV = [
-    ("Courses", "/courses"),
-    ("Members", "/members"),
-    ("Tools", "/tools"),
-    ("Services", "/services"),
-    ("Partners", "/partners"),
-    ("About", "{root}about/"),
-]
 
-CSS = """
-  /* ── site header + mobile menu (site_chrome.py) ── */
-  .site-header { position: relative; z-index: 30; max-width: 1500px; margin: 0 auto; display: flex; align-items: center; gap: 28px; padding: 18px clamp(20px, 5vw, 72px); }
-  .site-header .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; margin-right: auto; }
-  .site-header .brand img { height: 40px; width: auto; display: block; }
-  .site-header .brand-text { font-family: 'Sora', sans-serif; font-weight: 800; font-size: 20px; color: #0f3d28; letter-spacing: -.02em; }
-  .site-header .nav-links { display: flex; align-items: center; gap: 30px; }
-  .site-header .nav-links a { font-size: 15px; font-weight: 500; color: #0f3d28; text-decoration: none; opacity: .8; transition: opacity .2s; box-shadow: none; padding: 0; }
-  .site-header .nav-links a:hover { opacity: 1; }
-  .site-header .nav-links a[aria-current="page"] { opacity: 1; font-weight: 600; box-shadow: inset 0 -2px 0 #34c759; padding-bottom: 3px; }
-  .site-header .nav-cta { font-family: 'Sora', sans-serif; font-weight: 600; font-size: 14px; padding: 10px 18px; border-radius: 999px; border: 1.5px solid #1a7a46; color: #0f3d28; background: transparent; text-decoration: none; white-space: nowrap; transition: all .2s; }
-  .site-header .nav-cta:hover { background: #1a7a46; color: #fff; }
-  .site-header .nav-toggle { display: none; width: 44px; height: 44px; border-radius: 12px; border: 1.5px solid rgba(15,61,40,.12); background: #fff; cursor: pointer; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent; }
-  .site-header .nav-toggle[aria-expanded="true"] { background: #eaf5ee; border-color: #86e0a6; }
-  .site-header .nav-toggle-bars, .site-header .nav-toggle-bars::before, .site-header .nav-toggle-bars::after { display: block; width: 20px; height: 2px; border-radius: 2px; background: #0f3d28; transition: transform .2s cubic-bezier(.22,.61,.36,1), opacity .2s; }
-  .site-header .nav-toggle-bars { position: relative; }
-  .site-header .nav-toggle-bars::before, .site-header .nav-toggle-bars::after { content: ""; position: absolute; left: 0; }
-  .site-header .nav-toggle-bars::before { top: -6px; }
-  .site-header .nav-toggle-bars::after { top: 6px; }
-  .site-header .nav-toggle[aria-expanded="true"] .nav-toggle-bars { background: transparent; }
-  .site-header .nav-toggle[aria-expanded="true"] .nav-toggle-bars::before { transform: translateY(6px) rotate(45deg); }
-  .site-header .nav-toggle[aria-expanded="true"] .nav-toggle-bars::after { transform: translateY(-6px) rotate(-45deg); }
-  .site-header .nav-panel { position: absolute; top: 100%; left: 12px; right: 12px; background: #fff; border: 1px solid rgba(15,61,40,.12); border-radius: 18px; box-shadow: 0 24px 60px -20px rgba(11,32,22,.35); padding: 10px; }
-  .site-header .nav-panel nav { display: grid; }
-  .site-header .nav-panel a { display: flex; align-items: center; min-height: 48px; padding: 0 14px; border-radius: 12px; font-size: 17px; font-weight: 500; color: #0f3d28; text-decoration: none; }
-  .site-header .nav-panel a:hover, .site-header .nav-panel a:focus-visible { background: #eaf5ee; }
-  .site-header .nav-panel .nav-panel-cta { margin-top: 6px; justify-content: center; background: #1a7a46; color: #fff; font-family: 'Sora', sans-serif; font-weight: 600; }
-  .site-header .nav-panel .nav-panel-cta:hover { background: #0f3d28; }
-  @media (max-width: 880px) {
-    .site-header .nav-links, .site-header > .nav-cta { display: none; }
-    .site-header .nav-toggle { display: inline-flex; }
-    .site-header { padding: 12px 16px; }
-    .site-header .brand img { height: 36px; }
-  }
-  @media (min-width: 881px) { .site-header .nav-panel { display: none !important; } }
+def _read(name):
+    with open(os.path.join(CHROME, name), encoding="utf-8") as f:
+        return f.read()
 
-  /* ── site footer (site_chrome.py) ── */
-  .site-footer { background: #0f3d28; color: rgba(255,255,255,.78); margin-top: clamp(48px, 7vw, 96px); border: 0; }
-  .site-footer .site-footer-inner { max-width: 1500px; margin: 0 auto; padding: clamp(40px, 5vw, 64px) clamp(20px, 5vw, 72px) 28px; display: grid; grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr)); gap: 32px 40px; }
-  .site-footer .f-brand { display: grid; gap: 14px; align-content: start; }
-  .site-footer .f-brand img { height: 44px; width: auto; background: #f4faf6; border-radius: 10px; padding: 4px; }
-  .site-footer .f-brand p { font-size: 15px; line-height: 1.6; max-width: 34ch; color: rgba(255,255,255,.78); margin: 0; text-shadow: none; }
-  .site-footer h2 { font-family: 'Sora', sans-serif !important; font-size: 13px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #86e0a6; margin: 0 0 14px; text-shadow: none; }
-  .site-footer ul { list-style: none; display: grid; gap: 10px; margin: 0; padding: 0; }
-  .site-footer a { color: #fff; text-decoration: none; font-size: 15px; }
-  .site-footer a:hover { text-decoration: underline; }
-  .site-footer .site-footer-base { max-width: 1500px; margin: 0 auto; padding: 18px clamp(20px, 5vw, 72px) 28px; border-top: 1px solid rgba(255,255,255,.14); display: flex; flex-wrap: wrap; gap: 10px 28px; font-size: 13.5px; }
-  .site-footer .site-footer-base nav { display: flex; flex-wrap: wrap; gap: 8px 20px; }
-  .site-footer .site-footer-base a { font-size: 13.5px; color: rgba(255,255,255,.85); }
-  @media (max-width: 880px) {
-    .site-footer .site-footer-inner { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .site-footer .f-brand { grid-column: 1 / -1; }
-  }
-"""
 
+SITE = json.loads(_read("nav.json"))
+# The one organisation description (short: meta, sharing tags, footer; long: structured data).
+ORG = json.loads(_read("organisation.json"))
+# (label, path) of the main menu, e.g. ("Courses", "/courses/")
+NAV = [(item["label"], item["path"]) for item in SITE["main"]]
+
+# Pages that live in this design folder: linked relative to it, so they also work when the
+# static pages are opened locally. Every other path is a WordPress route.
+_LOCAL = ("about/", "experts/", "community/")
+
+CSS = "\n" + _read("site-chrome.css")
+
+# The header's script for pages that have their own scroll effects (index.html).
+MENU_JS = "<script>\n" + _read("site-chrome.js") + "  </script>"
+
+# Static pages: the header's script plus the scroll top-fade.
 JS = """<script>
-    // Mobile menu: toggle, close on Esc / link click / outside click / resize to desktop.
+""" + _read("site-chrome.js") + """
+    // scroll-fade:start (kept identical in index.html and site_chrome.py; tests/test-2026-scroll-fade.php)
+    // Scroll top-fade: content fades out only in a thin band at the top of the viewport, i.e. the part
+    // the reader has already scrolled past. Mask only: no greyscale or scaling of whole sections, never
+    // on forms, the chat or whatever has focus, and off under prefers-reduced-motion.
     (function () {
-      var btn = document.querySelector('.site-header .nav-toggle');
-      var panel = document.getElementById('mobile-menu');
-      if (!btn || !panel) return;
-      function setOpen(open, returnFocus) {
-        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-        btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
-        panel.hidden = !open;
-        if (open) { var first = panel.querySelector('a'); if (first) first.focus(); }
-        else if (returnFocus) { btn.focus(); }
-      }
-      btn.addEventListener('click', function () { setOpen(btn.getAttribute('aria-expanded') !== 'true'); });
-      panel.addEventListener('click', function (e) { if (e.target.closest('a')) setOpen(false); });
-      document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !panel.hidden) setOpen(false, true); });
-      document.addEventListener('click', function (e) { if (!panel.hidden && !e.target.closest('.site-header')) setOpen(false); });
-      window.matchMedia('(min-width: 881px)').addEventListener('change', function (e) { if (e.matches) setOpen(false); });
-    })();
-    // Scroll top-fade: gradient mask — the top 15 % of the viewport is a fade zone.
-    // Non-hero: viewport-relative formula. Hero children: scroll-relative (no mask at scrollY=0).
-    (function () {
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-      var items = Array.prototype.slice.call(document.querySelectorAll('main > section:not(.hero) > *, main > section.hero > .hero-bottom'));
-      var heroItems = Array.prototype.slice.call(document.querySelectorAll('main > section.hero > .hero-top > .copy > .copy-inner'));
-      var heroItemsData = heroItems.map(function (el) { return { el: el, initialTop: el.getBoundingClientRect().top }; });
-      if (!items.length && !heroItemsData.length) return;
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+      var items = Array.prototype.slice.call(document.querySelectorAll(
+        'main > section:not(.hero) > *, main > section.hero > .hero-bottom, main > section.hero > .hero-top > .copy > .copy-inner'));
+      if (!items.length) return;
+      var skip = 'form, .launcher, .co-embed-root, [data-no-fade]';
       var ticking = false;
-      function applyFx(el, progress) {
-        el.style.filter = 'grayscale(' + (progress * 75) + '%)';
-        el.style.scale = String(1 - progress * 0.05);
-      }
-      function clearFx(el) {
-        el.style.filter = '';
-        el.style.scale = '';
-        el.style.maskImage = ''; el.style.webkitMaskImage = '';
-      }
+      function clear(el) { el.style.maskImage = ''; el.style.webkitMaskImage = ''; }
       function update() {
-        var zone = window.innerHeight * 0.15;
+        ticking = false;
+        var band = Math.min(window.innerHeight * 0.12, 96);
+        var off = reduce.matches || window.scrollY < 40;
+        var focused = document.activeElement;
         items.forEach(function (el) {
           var t = el.getBoundingClientRect().top;
-          if (t >= zone) {
-            clearFx(el);
-          } else {
-            var progress = Math.max(0, Math.min(1, (zone - t) / zone));
-            var g = 'linear-gradient(to bottom,transparent ' + (-t) + 'px,#000 ' + (zone - t) + 'px)';
-            el.style.maskImage = g; el.style.webkitMaskImage = g;
-            applyFx(el, progress);
-          }
+          if (off || t >= 0 || el.matches(skip) || el.querySelector(skip) ||
+              (focused && focused !== document.body && el.contains(focused))) { clear(el); return; }
+          var g = 'linear-gradient(to bottom,transparent ' + (-t) + 'px,#000 ' + (band - t) + 'px)';
+          el.style.maskImage = g; el.style.webkitMaskImage = g;
         });
-        heroItemsData.forEach(function (item) {
-          var t = item.el.getBoundingClientRect().top;
-          var fadeStart = Math.min(zone, item.initialTop);
-          if (t >= fadeStart) {
-            clearFx(item.el);
-          } else {
-            var progress = Math.max(0, Math.min(1, (zone - t) / zone));
-            var g = 'linear-gradient(to bottom,transparent ' + (-t) + 'px,#000 ' + (zone - t) + 'px)';
-            item.el.style.maskImage = g; item.el.style.webkitMaskImage = g;
-            applyFx(item.el, progress);
-          }
-        });
-        ticking = false;
       }
-      window.addEventListener('scroll', function () { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
-      window.addEventListener('resize', function () { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+      function request() { if (!ticking) { ticking = true; requestAnimationFrame(update); } }
+      window.addEventListener('scroll', request, { passive: true });
+      window.addEventListener('resize', request, { passive: true });
+      document.addEventListener('focusin', request);
+      if (reduce.addEventListener) reduce.addEventListener('change', request);
+      update();
     })();
+    // scroll-fade:end
   </script>"""
+
+
+def _href(path, root):
+    """Site-root path from nav.json -> href on a static page whose design root is `root`."""
+    if path == "/":
+        return root or "./"
+    if path.startswith("/#"):
+        return root + path[1:]
+    if path.lstrip("/") in _LOCAL:
+        return root + path.lstrip("/")
+    return path
+
+
+def _item_href(item, root):
+    return item["url"] if "url" in item else _href(item["path"], root)
+
+
+def _esc(text):
+    return text.replace("&", "&amp;").replace('"', "&quot;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def current_label(path):
+    """Menu label of the section a site path belongs to ("/people/lessy/" -> "Members"), or None.
+    Mirrors prospergenics_2026_current_nav_label() in inc/site-chrome.php (nav.json "also")."""
+    path = "/" + path.strip("/") + "/" if path.strip("/") else "/"
+    for item in SITE["main"]:
+        for prefix in [item["path"]] + item.get("also", []):
+            if prefix != "/" and path.startswith(prefix):
+                return item["label"]
+    return None
 
 
 def _links(root, current, indent):
     out = []
-    for label, href in NAV:
+    for label, path in NAV:
         cur = ' aria-current="page"' if label == current else ""
-        out.append(f'{indent}<a href="{href.format(root=root)}"{cur}>{label}</a>')
+        out.append(f'{indent}<a href="{_esc(_href(path, root))}"{cur}>{_esc(label)}</a>')
     return "\n".join(out)
 
 
-def header(root, current=None):
-    """root: relative path back to the design root ("../" or "../../")."""
-    return f"""<header class="site-header">
-    <a class="brand" href="{root}" aria-label="ProsperGenics home">
-      <img src="{root}assets/logo.png" alt="" width="42" height="40" />
-      <span class="brand-text">ProsperGenics</span>
-    </a>
-    <nav class="nav-links" aria-label="Main">
+def _account():
+    """Visitor links (static pages can't see a login): Log in and Join (contact form)."""
+    join = "/contact/?subject=" + quote(SITE["join_subject"])
+    return [("login", "Log in", "/wp-login.php"), ("join", "Join", join)]
+
+
+def header(root, current=None, autohide=False):
+    """root: relative path back to the design root ("", "../" or "../../")."""
+    # the homepage header starts hidden (the hero already shows the menu links); see site-chrome.js
+    cls = "site-header site-header--autohide is-hidden" if autohide else "site-header"
+    cta = SITE["cta"]
+    cta_href = _esc(_href(cta["path"], root))
+    desk = "\n".join(
+        f'    <a class="{"nav-account-link nav-account-join" if key == "join" else "nav-account-link"}" href="{_esc(href)}">{label}</a>'
+        for key, label, href in _account())
+    panel = "\n".join(f'        <a href="{_esc(href)}">{label}</a>' for _key, label, href in _account())
+    return f"""<a class="skip-link" href="#main">Skip to content</a>
+<header class="{cls}">
+  <a class="brand" href="{_href("/", root)}" aria-label="ProsperGenics home">
+    <img src="{root}assets/logo.webp" alt="" width="42" height="40" />
+    <span class="brand-text">ProsperGenics</span>
+  </a>
+  <nav class="nav-links" aria-label="Main">
+{_links(root, current, "    ")}
+  </nav>
+  <div class="nav-account" data-static>
+{desk}
+  </div>
+  <a class="nav-cta" href="{cta_href}">{_esc(cta["label"])}</a>
+  <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-menu" aria-label="Open menu">
+    <span class="nav-toggle-bars" aria-hidden="true"></span>
+  </button>
+  <div class="nav-panel" id="mobile-menu" hidden>
+    <nav aria-label="Mobile">
 {_links(root, current, "      ")}
+      <div class="nav-panel-account">
+{panel}
+      </div>
+      <a class="nav-panel-cta" href="{cta_href}">{_esc(cta["label"])}</a>
     </nav>
-    <a class="nav-cta" href="{root}#value-test">Take the test</a>
-    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-menu" aria-label="Open menu">
-      <span class="nav-toggle-bars" aria-hidden="true"></span>
-    </button>
-    <div class="nav-panel" id="mobile-menu" hidden>
-      <nav aria-label="Mobile">
-{_links(root, current, "        ")}
-        <a class="nav-panel-cta" href="{root}#value-test">Take the test</a>
-      </nav>
-    </div>
-  </header>"""
+  </div>
+</header>"""
 
 
 def footer(root):
+    cols = []
+    for col in SITE["footer"]:
+        items = []
+        for item in col["links"]:
+            ext = ' target="_blank" rel="noopener"' if "url" in item else ""
+            items.append(f'        <li><a href="{_esc(_item_href(item, root))}"{ext}>{_esc(item["label"])}</a></li>')
+        cols.append(f"    <div>\n      <h2>{_esc(col['title'])}</h2>\n      <ul>\n" + "\n".join(items) + "\n      </ul>\n    </div>")
+    legal = "\n".join(f'      <a href="{_esc(_item_href(item, root))}">{_esc(item["label"])}</a>' for item in SITE["legal"])
     return f"""<footer class="site-footer">
-    <div class="site-footer-inner">
-      <div class="f-brand">
-        <img src="{root}assets/logo.png" alt="ProsperGenics" width="46" height="44" />
-        <p>A community in Kenya and the Netherlands researching and practising how value is created.</p>
-      </div>
-      <div>
-        <h2>Explore</h2>
-        <ul>
-          <li><a href="/courses">Courses</a></li>
-          <li><a href="/tools">Tools</a></li>
-          <li><a href="/services">Services</a></li>
-          <li><a href="/partners">Partners</a></li>
-        </ul>
-      </div>
-      <div>
-        <h2>Community</h2>
-        <ul>
-          <li><a href="{root}about/">About us</a></li>
-          <li><a href="{root}experts/">Our experts</a></li>
-          <li><a href="{root}community/">Community stories</a></li>
-          <li><a href="/blog/">Blog</a></li>
-        </ul>
-      </div>
-      <div>
-        <h2>Get in touch</h2>
-        <ul>
-          <li><a href="/contact/">Contact us</a></li>
-          <li><a href="https://wa.me/254741619743" target="_blank" rel="noopener">WhatsApp +254 741 619743</a></li>
-          <li><a href="{root}#value-test">Take the value test</a></li>
-        </ul>
-      </div>
+  <div class="site-footer-inner">
+    <div class="f-brand">
+      <img src="{root}assets/logo.webp" alt="ProsperGenics" width="46" height="44" />
+      <p>{_esc(ORG['short'])}</p>
     </div>
-    <div class="site-footer-base">
-      <span>© ProsperGenics</span>
-      <nav aria-label="Legal">
-        <a href="/privacy-policy/">Privacy policy</a>
-        <a href="/cookie-policy/">Cookie policy</a>
-      </nav>
-    </div>
-  </footer>"""
+""" + "\n".join(cols) + f"""
+  </div>
+  <div class="site-footer-base">
+    <span>© ProsperGenics</span>
+    <nav aria-label="Legal">
+{legal}
+    </nav>
+  </div>
+</footer>"""
 
 
 def _replace_block(text, name, content, css=False):
@@ -238,18 +205,39 @@ def _replace_block(text, name, content, css=False):
     return pattern.sub(lambda _m: f"{start}\n{content}\n  {end}", text, count=1)
 
 
-def update_about():
-    path = os.path.join(HERE, "about", "index.html")
+def _update(rel, header_html, footer_html, js):
+    path = os.path.join(HERE, rel)
     with open(path, encoding="utf-8") as f:
         html = f.read()
     html = _replace_block(html, "css", CSS, css=True)
-    html = _replace_block(html, "header", "  " + header("../", current="About"))
-    html = _replace_block(html, "footer", "  " + footer("../"))
-    html = _replace_block(html, "js", "  " + JS)
+    html = _replace_block(html, "header", header_html)
+    html = _replace_block(html, "footer", footer_html)
+    html = _replace_block(html, "js", "  " + js)
     with open(path, "w", encoding="utf-8") as f:
         f.write(html)
-    print("updated about/index.html")
+    print(f"updated {rel}")
+
+
+def about_meta():
+    """The About page's description and sharing description: the short organisation text."""
+    d = _esc(ORG["short"])
+    return f'<meta name="description" content="{d}" />\n<meta property="og:description" content="{d}" />'
+
+
+def update_about():
+    _update(os.path.join("about", "index.html"), header("../", current=current_label("/about/")), footer("../"), JS)
+    path = os.path.join(HERE, "about", "index.html")
+    with open(path, encoding="utf-8") as f:
+        html = f.read()
+    html = _replace_block(html, "meta", about_meta())
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(html)
+
+
+def update_index():
+    _update("index.html", header("", autohide=True), footer(""), MENU_JS)
 
 
 if __name__ == "__main__":
+    update_index()
     update_about()
