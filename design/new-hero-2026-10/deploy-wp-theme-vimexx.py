@@ -21,6 +21,7 @@ Uploads:
   people/index.html             -> public_html/people/index.html (redirect to the people list)
   experts/index.html            -> public_html/experts/index.html
   community/index.html          -> public_html/community/index.html
+  (last) version.json           -> public_html/version.json: the deployed commit, read by the board (#7145)
                                    (relative asset URLs rewritten to the theme assets URL)
   team/<slug>/index.html        -> redirect stub to /people/<slug>/ (the profiles
                                    briefly lived under /team/ on 18-10)
@@ -443,6 +444,36 @@ def deploy_static(ftp, dry):
     return len(pages)
 
 
+VERSION_FILE = f"{REMOTE_ROOT}/version.json"
+
+
+def version_info(now=None):
+    """What /version.json says about this deploy (card #7145). The board reads "commit" (also as
+    "version") to see which merged work the test site runs, and moves cards to testing by itself."""
+    sha = commit_sha()
+    branch = os.environ.get("GITHUB_REF_NAME") or subprocess.run(
+        ["git", "-C", REPO, "rev-parse", "--abbrev-ref", "HEAD"], capture_output=True, text=True).stdout.strip()
+    run = None
+    if os.environ.get("GITHUB_RUN_ID") and os.environ.get("GITHUB_REPOSITORY"):
+        run = f"{os.environ.get('GITHUB_SERVER_URL', 'https://github.com')}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}"
+    when = (now or datetime.datetime.now(datetime.timezone.utc)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return {"version": sha, "commit": sha, "branch": branch or "unknown", "deployed_at": when, "theme": THEME_SLUG, "run": run}
+
+
+def publish_version(ftp, dry, restored=False):
+    """Write /version.json last, once everything else is up: it says what the site now runs.
+    A restore from a backup (--theme-dir) is not this checkout's commit, so it marks the file as such."""
+    info = version_info()
+    if restored:
+        info.update({"version": "restored-backup", "commit": "restored-backup", "branch": "restored-backup"})
+    if dry:
+        print(f"version: would write {VERSION_FILE} ({info['commit'][:12]})")
+        return info
+    Uploader(ftp).put((json.dumps(info, indent=2) + "\n").encode("utf-8"), VERSION_FILE)
+    print(f"version: {VERSION_FILE} -> {info['commit'][:12]}")
+    return info
+
+
 def connect():
     # CI (GitHub Actions, .github/workflows/deploy-test.yml) passes the FTPS login as
     # environment variables from repository secrets; on Martien's machine it comes from the vault.
@@ -499,6 +530,7 @@ def main():
     count = len(files)
     if not args.theme_only:
         count += deploy_static(ftp, args.dry_run)
+    publish_version(ftp, args.dry_run, restored=os.path.abspath(args.theme_dir) != os.path.abspath(THEME))
     ftp.quit()
     print(f"deploy {'dry run ' if args.dry_run else ''}klaar: {count} bestanden naar {FTP_HOST}")
 
