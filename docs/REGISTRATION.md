@@ -7,7 +7,7 @@ the wizard state and the profile slug come from WordPress' own `user_register` h
 
 Code: `inc/profiles/register.php` (rules, IAM call, member creation), `pg-register.php` (the page),
 `inc/profiles/routes.php` (URL and template). Tests: `tests/test-platform-register.php` (87 checks, a
-fake WordPress) and section 10 of `tests/e2e/role-matrix.js` (a real WordPress).
+fake WordPress) and section 11 of `tests/e2e/role-matrix.js` (a real WordPress).
 
 ## Switching it on
 
