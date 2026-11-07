@@ -467,3 +467,8 @@ Playwright 1440 and 390 px: no overflow, axe 0 violations, no console errors. Ex
 Left: the IAM provisioning endpoint does not exist yet (IAM has public registration off); until it does
 members are flagged _pg_register_iam=pending. Martien: tick "Anyone can register" on test to try it.
 
+
+## 2026-11-07 - task 6459
+Done: front-end article editor at /articles/write/ (editor.php, views/write.php, article-editor.js), My articles now links to it.
+Verified: new php test passes, existing platform tests pass, browser check of the script against a stubbed REST backend; not run against a live WordPress.
+Left: check on the test site with a contributor and an author account.
