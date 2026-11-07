@@ -178,3 +178,23 @@ a.pga-author-name:hover{text-decoration-color:#fff;}
 .pg-apply-form .field{display:grid;gap:6px;margin:0 0 14px;}
 .pg-apply-form label{font-weight:600;color:var(--green-900);}
 .pg-apply-hint{font-size:14px;color:#4a5d52;}
+
+/* #6459: the front-end article editor (/articles/write/) */
+.pgw-form{display:grid;gap:20px;}
+.pgw-field{display:grid;gap:6px;}
+.pgw-field label,.pgw-label{font-family:'Sora',sans-serif;font-weight:600;font-size:14px;color:var(--green-900);}
+.pgw-opt,.pgw-help{font-weight:400;font-size:13px;color:var(--muted);margin:0;}
+.pgw-field input[type=text],.pgw-field input[type=datetime-local],.pgw-field select,.pgw-field textarea{width:100%;min-height:44px;padding:10px 14px;border:1px solid var(--line);border-radius:10px;background:#fff;font:inherit;color:inherit;box-sizing:border-box;}
+.pgw-field input:focus-visible,.pgw-field select:focus-visible,.pgw-field textarea:focus-visible,.pgw-body:focus-visible,.pgw-toolbar button:focus-visible{outline:3px solid var(--focus-ring,#1a7a46);outline-offset:2px;}
+.pgw-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;}
+.pgw-statusbar{display:flex;gap:12px;align-items:center;margin:0;}
+.pgw-saved{font-size:13px;color:var(--muted);}
+.pgw-cover{display:flex;flex-wrap:wrap;gap:12px;align-items:center;}
+.pgw-cover-preview img{display:block;max-width:240px;height:auto;border-radius:10px;}
+.pgw-toolbar{display:flex;flex-wrap:wrap;gap:6px;padding:8px;border:1px solid var(--line);border-bottom:0;border-radius:10px 10px 0 0;background:var(--paper-2);}
+.pgw-toolbar button{min-height:40px;min-width:40px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--green-900);font:inherit;font-size:14px;cursor:pointer;}
+.pgw-toolbar button:hover{border-color:var(--green-500);}
+.pgw-body{min-height:340px;padding:16px 18px;border:1px solid var(--line);border-radius:0 0 10px 10px;background:#fff;overflow-wrap:anywhere;}
+.pgw-body img{max-width:100%;height:auto;}
+.pgw-body pre{overflow:auto;padding:12px;background:var(--paper-2);border-radius:8px;}
+.pgw-actions{display:flex;flex-wrap:wrap;gap:10px;}
