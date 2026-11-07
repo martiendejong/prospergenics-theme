@@ -185,7 +185,7 @@ a.pga-author-name:hover{text-decoration-color:#fff;}
 .pgw-field label,.pgw-label{font-family:'Sora',sans-serif;font-weight:600;font-size:14px;color:var(--green-900);}
 .pgw-opt,.pgw-help{font-weight:400;font-size:13px;color:var(--muted);margin:0;}
 .pgw-field input[type=text],.pgw-field input[type=datetime-local],.pgw-field select,.pgw-field textarea{width:100%;min-height:44px;padding:10px 14px;border:1px solid var(--line);border-radius:10px;background:#fff;font:inherit;color:inherit;box-sizing:border-box;}
-.pgw-field input:focus-visible,.pgw-field select:focus-visible,.pgw-field textarea:focus-visible,.pgw-body:focus-visible,.pgw-toolbar button:focus-visible{outline:3px solid var(--green-500);outline-offset:2px;}
+.pgw-field input:focus-visible,.pgw-field select:focus-visible,.pgw-field textarea:focus-visible,.pgw-body:focus-visible,.pgw-toolbar button:focus-visible{outline:3px solid var(--focus-ring,#1a7a46);outline-offset:2px;}
 .pgw-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;}
 .pgw-statusbar{display:flex;gap:12px;align-items:center;margin:0;}
 .pgw-saved{font-size:13px;color:var(--muted);}
