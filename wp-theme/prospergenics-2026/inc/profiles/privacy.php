@@ -52,6 +52,8 @@ function prospergenics_profiles_personal_data_exporter( $email, $page = 1 ) {
         'Email address confirmed' => prospergenics_profiles_is_verified( $uid ) ? ( $verified_at ? gmdate( 'Y-m-d H:i', $verified_at ) . ' UTC' : 'yes' ) : 'not yet',
         'Onboarding'         => $state['status'],
         'Hidden by the ProsperGenics team' => get_user_meta( $uid, '_pg_profiles_hidden', true ) ? 'yes, since ' . gmdate( 'Y-m-d H:i', (int) get_user_meta( $uid, '_pg_profiles_hidden', true ) ) . ' UTC' : '',
+        'Signed up through'  => 'register' === get_user_meta( $uid, '_pg_register_source', true ) ? 'the registration page (/register/)' : '',
+        'Jengo IAM account'  => (string) get_user_meta( $uid, 'jengo_iam_sub', true ) ? 'linked (id ' . get_user_meta( $uid, 'jengo_iam_sub', true ) . ')' : ( 'pending' === get_user_meta( $uid, '_pg_register_iam', true ) ? 'not created yet' : '' ),
         'Instructor access since' => defined( 'PROSPERGENICS_COURSES_INSTRUCTOR_META' ) && get_user_meta( $uid, PROSPERGENICS_COURSES_INSTRUCTOR_META, true ) ? gmdate( 'Y-m-d H:i', (int) get_user_meta( $uid, PROSPERGENICS_COURSES_INSTRUCTOR_META, true ) ) . ' UTC' : '',
         'Previous profile URLs' => array_map( function ( $s ) {
             return home_url( '/in/' . $s . '/' );

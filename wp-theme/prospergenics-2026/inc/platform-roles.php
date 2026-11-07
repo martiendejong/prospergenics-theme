@@ -239,6 +239,14 @@ function prospergenics_roles_save_field( $user_id ) {
 	$role = sanitize_key( wp_unslash( $_POST['pg_platform_role'] ) );
 	if ( in_array( $role, PROSPERGENICS_ROLES_ASSIGNABLE, true ) ) {
 		prospergenics_roles_assign( (int) $user_id, $role );
+		// These hooks run before WordPress saves the form itself (edit_user()), and that save calls
+		// set_role() with the main Role field, which drops every other role, the platform role included.
+		// Apply it again once WordPress has saved (profile_update runs after the role is written).
+		add_action( 'profile_update', function ( $saved_id ) use ( $user_id, $role ) {
+			if ( (int) $saved_id === (int) $user_id ) {
+				prospergenics_roles_assign( (int) $user_id, $role );
+			}
+		}, 20 );
 	}
 }
 add_action( 'personal_options_update', 'prospergenics_roles_save_field' );

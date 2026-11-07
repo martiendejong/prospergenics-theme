@@ -105,5 +105,11 @@ ok( false !== strpos( $src, "current_user_can( 'promote_users' )" ) && false !==
 $app = file_get_contents( $theme . '/inc/profiles/applications.php' );
 ok( false !== strpos( $app, "prospergenics_roles_assign( \$member->ID, 'instructor' )" ), 'an approved "Apply to teach" goes through the same assignment' );
 
+// WordPress' own user save (edit_user() → set_role() with the main Role field) runs after the
+// *_profile_update hooks and drops every other role: the platform role is applied again on
+// profile_update (seen in a real WordPress: "Company" on Users → Edit did not stick before this).
+$roles_src = file_get_contents( $theme . '/inc/platform-roles.php' );
+ok( (bool) preg_match( "#add_action\\( 'profile_update', function \\( \\\$saved_id \\) use \\( \\\$user_id, \\\$role \\) \\{\\s*if \\( \\(int\\) \\\$saved_id === \\(int\\) \\\$user_id \\) \\{\\s*prospergenics_roles_assign\\( \\(int\\) \\\$user_id, \\\$role \\);#", $roles_src ), 'the platform role is applied again after WordPress saves the main Role field' );
+
 echo $failures ? "\n$failures FAILED\n" : "\nAll passed\n";
 exit( $failures ? 1 : 0 );

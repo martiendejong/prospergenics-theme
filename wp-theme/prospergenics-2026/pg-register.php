@@ -29,9 +29,19 @@ get_header();
       <fieldset>
         <legend>Your details</legend>
         <?php
-        $attrs = function ( $name, array $base ) use ( $fields ) {
+        $first_bad = '';
+        foreach ( array( 'name', 'email', 'password' ) as $f ) {
+            if ( '' === $first_bad && isset( $fields[ $f ] ) ) {
+                $first_bad = $f;
+            }
+        }
+        $attrs = function ( $name, array $base ) use ( $fields, $first_bad ) {
             if ( isset( $fields[ $name ] ) ) {
-                $base['aria-invalid'] = 'true';
+                $base['aria-invalid']     = 'true';
+                $base['aria-errormessage'] = 'pgr-' . $name . '-error';
+            }
+            if ( $name === $first_bad ) {
+                $base['autofocus'] = true; // after a failed submit, the cursor lands on the first field to fix
             }
             return $base;
         };
