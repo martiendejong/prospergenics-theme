@@ -20,7 +20,7 @@ const PROSPERGENICS_ARTICLES_READING_META = '_pg_articles_reading_minutes';
 
 /** Slugs an article may not take: they are sub-paths of /articles/ used by this track. */
 function prospergenics_articles_reserved_slugs() {
-    return array( 'mine', 'category', 'tag', 'page', 'feed', 'embed' );
+    return array( 'mine', 'write', 'category', 'tag', 'page', 'feed', 'embed' );
 }
 
 add_action( 'init', function () {
