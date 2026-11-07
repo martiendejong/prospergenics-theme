@@ -457,3 +457,8 @@ Left: Martien's review; port the copy to the live WordPress About page only
 after approval (production not touched). Knowledge docs 554/154/526 could not
 be opened here (JK MCP needs OAuth) - copy taken from the approved draft.
 
+
+## 2026-11-07 - task 6459
+Done: front-end article editor at /articles/write/ (editor.php, views/write.php, article-editor.js), My articles now links to it.
+Verified: new php test passes, existing platform tests pass, browser check of the script against a stubbed REST backend; not run against a live WordPress.
+Left: check on the test site with a contributor and an author account.

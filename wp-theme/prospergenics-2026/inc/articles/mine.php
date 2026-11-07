@@ -7,8 +7,8 @@
  * WordPress administrators: they get one page in the site's own look with their drafts, pending,
  * scheduled and published articles (filterable), reading time and claps per article and in
  * total, and the actions the card asks for. Writing, autosave (every 30 s), publishing and
- * scheduling (date/time picker, published by WP-Cron) stay in the block editor, which the page
- * links to. The wp-admin list (Articles > All articles) shows the same claps column.
+ * scheduling (published by WP-Cron) happen in the front-end editor at /articles/write/
+ * (editor.php, #6459), which the page links to; the block editor in wp-admin still works. The wp-admin list (Articles > All articles) shows the same claps column.
  *
  * Members who cannot write yet get the "Apply to write" form here instead (audit ARC-8,
  * inc/profiles/applications.php).
