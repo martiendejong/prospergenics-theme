@@ -55,6 +55,7 @@ require get_template_directory() . '/inc/platform-search.php';   // #6393 /find/
 require get_template_directory() . '/inc/platform-articles.php';
 require get_template_directory() . '/inc/platform-profiles.php';
 require get_template_directory() . '/inc/platform-courses.php';
+require get_template_directory() . '/inc/platform-roles.php';     // #6341 member / company / instructor / admin
 require get_template_directory() . '/inc/platform-projects.php'; // #6388 portfolios: /projects/, contributions
 // The staff area at /manage/ (card #6457): overview, members, contact messages, articles for review.
 require get_template_directory() . '/inc/platform-manage.php';

@@ -120,8 +120,8 @@ function prospergenics_2026_request_path() {
 /**
  * Account links for the header: Log in + Join for visitors; My profile, My courses, My articles,
  * Instructor dashboard (instructors only), Manage (staff only, card #6457), Settings and Log out for
- * members (audit NAV-16: My articles
- * also offers members who cannot write yet the "Apply to write" form). Registration is closed, so Join opens the contact form on "Joining the community".
+ * members (audit NAV-16: My articles also offers members who cannot write yet the "Apply to write" form).
+ * Join opens /register/ while registration is on (Settings, General, "Anyone can register"), else the contact form on "Joining the community".
  *
  * @return array<int,array{label:string,url:string,key:string}>
  */
@@ -129,7 +129,7 @@ function prospergenics_2026_account_links() {
     if ( ! is_user_logged_in() ) {
         return array(
             array( 'key' => 'login', 'label' => 'Log in', 'url' => wp_login_url( home_url( add_query_arg( array() ) ) ) ),
-            array( 'key' => 'join', 'label' => 'Join', 'url' => prospergenics_2026_contact_url( prospergenics_2026_site_nav()['join_subject'] ) ),
+            array( 'key' => 'join', 'label' => 'Join', 'url' => function_exists( 'prospergenics_register_is_open' ) && prospergenics_register_is_open() ? home_url( '/register/' ) : prospergenics_2026_contact_url( prospergenics_2026_site_nav()['join_subject'] ) ),
         );
     }
     $links = array();
@@ -265,6 +265,40 @@ function prospergenics_2026_site_chrome_script() {
     return "<script>\n" . file_get_contents( __DIR__ . '/site-chrome/site-chrome.js' ) . "</script>\n";
 }
 
+/** Styles for the plugin's course lesson pages (cards #7143, #7144). */
+function prospergenics_2026_learn_css() {
+    return (string) file_get_contents( __DIR__ . '/site-chrome/learn.css' );
+}
+
+/** The course lesson scripts (the Try-it playground, #7146; one session at a time, agent and OS picker, #7144), in one <script> element. */
+function prospergenics_2026_learn_script() {
+    return '<script id="prospergenics-learn-js">' . "\n"
+        . file_get_contents( __DIR__ . '/site-chrome/playground.js' ) . "\n"
+        . file_get_contents( __DIR__ . '/site-chrome/learn.js' ) . "</script>\n";
+}
+
+/** Whether a buffered jengo-listings page is a course lesson page: its lesson layout exactly once (pure). */
+function prospergenics_2026_listings_is_lesson_page( $html ) {
+    $html = (string) $html;
+    return 1 === substr_count( $html, '<div class="learn-wrap">' )
+        && 1 === substr_count( $html, '<div class="learn-grid">' )
+        && 1 === substr_count( $html, 'id="learnBody"' )
+        && 1 === substr_count( $html, 'id="tocLinks"' );
+}
+
+/**
+ * Course lesson pages (/courses/<slug>/learn/, cards #7143 and #7144): put the lesson styles right
+ * before the plugin's <div class="learn-wrap">, after the plugin's own styles (pure). The script
+ * goes after the plugin's scripts, see prospergenics_2026_listings_takeover().
+ */
+function prospergenics_2026_listings_add_lesson_css( $html, $css ) {
+    if ( '' === trim( (string) $css ) || ! prospergenics_2026_listings_is_lesson_page( $html ) ) {
+        return $html;
+    }
+    $at = strpos( $html, '<div class="learn-wrap">' );
+    return substr_replace( $html, '<style id="prospergenics-learn-css">' . "\n" . $css . "</style>\n", $at, 0 );
+}
+
 /* ───────────────────── jengo-listings takeover (NAV-1/2/3/5) ─────────────────────
  *
  * The plugin prints its own page: its own <nav class="pg-nav"> (a different menu, links centred,
@@ -379,7 +413,14 @@ function prospergenics_2026_listings_takeover( $html, $path, array $chrome ) {
         $out = prospergenics_2026_listings_add_member_badges( $out, (array) apply_filters( 'prospergenics_2026_listings_member_badges', array(), $slugs ) );
     }
 
-    return rtrim( $out ) . "\n\n" . $chrome['footer'] . "\n" . $chrome['script'] . "\n";
+    // Course lesson pages: the lesson column stays on screen, one session at a time (#7143, #7144).
+    $lesson_js = '';
+    if ( ! empty( $chrome['learn_css'] ) && prospergenics_2026_listings_is_lesson_page( $out ) ) {
+        $out       = prospergenics_2026_listings_add_lesson_css( $out, $chrome['learn_css'] );
+        $lesson_js = isset( $chrome['learn_script'] ) ? (string) $chrome['learn_script'] : '';
+    }
+
+    return rtrim( $out ) . "\n\n" . $chrome['footer'] . "\n" . $chrome['script'] . "\n" . ( '' !== $lesson_js ? $lesson_js . "\n" : '' );
 }
 
 /** The card pattern of the jengo-listings /members/ directory: <a class="dir-card" href=".../members/<slug>/">. */
@@ -443,5 +484,7 @@ add_action( 'wp_footer', function () {
         'footer' => prospergenics_2026_site_footer(),
         'css'    => prospergenics_2026_site_chrome_css(),
         'script' => prospergenics_2026_site_chrome_script(),
+        'learn_css'    => prospergenics_2026_learn_css(),
+        'learn_script' => prospergenics_2026_learn_script(),
     ) );
 }, PHP_INT_MIN );

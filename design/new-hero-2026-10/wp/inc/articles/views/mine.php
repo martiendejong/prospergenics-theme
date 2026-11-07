@@ -49,6 +49,8 @@ if ( $pga_can ) {
 $pga_notices = array(
     'unpublished' => array( 'ok', 'The article is a draft again and no longer visible to readers.' ),
     'published'   => array( 'ok', 'The article is published.' ),
+    'submitted'   => array( 'ok', 'Your article was sent for review. You will get an email when it is published or sent back.' ),
+    'scheduled'   => array( 'ok', 'The article is scheduled and will be published at the chosen time.' ),
     'failed'      => array( 'error', 'That did not work. The article may already have changed; please try again.' ),
 );
 $pga_done = isset( $_GET['done'] ) ? sanitize_key( wp_unslash( $_GET['done'] ) ) : '';
@@ -61,7 +63,7 @@ get_header();
     <h1>My articles</h1>
     <p class="ph-excerpt">Your drafts, scheduled and published articles<?php echo $pga_can ? esc_html( sprintf( ', with %s %s in total.', number_format_i18n( $pga_claps ), _n( 'clap', 'claps', $pga_claps ) ) ) : '.'; ?></p>
     <?php if ( $pga_can ) : ?>
-      <p class="pga-hero-actions"><a class="pga-btn pga-btn-light" href="<?php echo esc_url( admin_url( 'post-new.php?post_type=pg_article' ) ); ?>">Write a new article</a></p>
+      <p class="pga-hero-actions"><a class="pga-btn pga-btn-light" href="<?php echo esc_url( prospergenics_articles_write_url() ); ?>">Write a new article</a></p>
     <?php endif; ?>
   </div>
 </div>
@@ -117,7 +119,7 @@ get_header();
             </div>
             <div class="pga-mine-actions">
               <?php if ( current_user_can( 'edit_post', $pga_post->ID ) ) : ?>
-                <a class="pga-btn" href="<?php echo esc_url( get_edit_post_link( $pga_post->ID, 'url' ) ); ?>">Edit<span class="screen-reader-text"> “<?php echo esc_html( $pga_title ); ?>”</span></a>
+                <a class="pga-btn" href="<?php echo esc_url( prospergenics_articles_write_url( $pga_post->ID ) ); ?>">Edit<span class="screen-reader-text"> “<?php echo esc_html( $pga_title ); ?>”</span></a>
               <?php endif; ?>
               <?php if ( 'publish' === $pga_status ) : ?>
                 <a class="pga-btn pga-btn-ghost" href="<?php echo esc_url( get_permalink( $pga_post ) ); ?>">View<span class="screen-reader-text"> “<?php echo esc_html( $pga_title ); ?>”</span></a>
@@ -159,7 +161,7 @@ get_header();
     <?php elseif ( $pga_queue ) : ?>
       <p class="empty-note">No articles are waiting for review.</p>
     <?php else : ?>
-      <p class="empty-note">Nothing here yet. <a href="<?php echo esc_url( admin_url( 'post-new.php?post_type=pg_article' ) ); ?>">Write your first article</a>: it saves as a draft while you write.</p>
+      <p class="empty-note">Nothing here yet. <a href="<?php echo esc_url( prospergenics_articles_write_url() ); ?>">Write your first article</a>: it saves as a draft while you write.</p>
     <?php endif; ?>
   <?php endif; ?>
 </div>

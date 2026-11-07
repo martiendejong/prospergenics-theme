@@ -236,6 +236,10 @@ function prospergenics_profiles_decide_application( $user_id, $type, $approve, $
 /** Give the member what they asked for. */
 function prospergenics_profiles_grant( WP_User $member, $type ) {
     if ( 'teach' === $type ) {
+        // #6341: one place changes a platform role; staff keep their role (and teach already)
+        if ( function_exists( 'prospergenics_roles_assign' ) && ! is_wp_error( prospergenics_roles_assign( $member->ID, 'instructor' ) ) ) {
+            return;
+        }
         update_user_meta( $member->ID, PROSPERGENICS_COURSES_INSTRUCTOR_META, time() );
         clean_user_cache( $member->ID );
         return;

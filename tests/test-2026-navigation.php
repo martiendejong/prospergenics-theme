@@ -388,6 +388,42 @@ ok( '' === prospergenics_2026_admin_redirect_target( 'index.php', true, false, 7
 ok( isset( $GLOBALS['__hooks']['admin_init'], $GLOBALS['__hooks']['admin_page_access_denied'] ), 'checked on admin_init and on screens WordPress refuses (edit.php, ...)' );
 ok( isset( $GLOBALS['__hooks']['login_headerurl'], $GLOBALS['__hooks']['login_enqueue_scripts'] ) && TEST_HOME . '/' === $GLOBALS['__hooks']['login_headerurl'][0](), 'branded login page, logo links home' );
 
+echo "course lesson pages (cards #7143, #7144)\n";
+// The saved jengo-listings lesson page (AI Software Lifecycle), behind a plugin nav as the takeover sees it.
+$learn      = file_get_contents( __DIR__ . '/fixtures/jengo-listings/course-learn.html' );
+$learn_page = '<html><head></head><body><nav class="pg-nav"><a href="/">x</a></nav>' . $learn;
+$lchrome    = $chrome + array( 'learn_css' => prospergenics_2026_learn_css(), 'learn_script' => prospergenics_2026_learn_script() );
+ok( prospergenics_2026_listings_is_lesson_page( $learn ), 'the saved lesson page is recognised' );
+ok( ! prospergenics_2026_listings_is_lesson_page( $buffer_service ) && ! prospergenics_2026_listings_is_lesson_page( $dir_page ), 'service and directory pages are not lesson pages' );
+ok( ! prospergenics_2026_listings_is_lesson_page( $learn . '<div class="learn-grid">' ), 'a page with the lesson grid twice is left alone' );
+$lout = prospergenics_2026_listings_takeover( $learn_page, '/courses/ai-software-lifecycle/learn/', $lchrome );
+ok( 1 === substr_count( $lout, '<style id="prospergenics-learn-css">' ) && (bool) preg_match( '#<style id="prospergenics-learn-css">.*?</style>\s*<div class="learn-wrap">#s', $lout ), 'lesson styles printed right before the lesson, after the plugin\'s styles' );
+ok( strpos( $lout, '.learn-grid{display:grid;grid-template-columns:270px 1fr' ) < strpos( $lout, 'prospergenics-learn-css' ), 'the plugin\'s grid rule comes first, so the fix wins' );
+ok( 1 === substr_count( $lout, '<script id="prospergenics-learn-js">' ) && strpos( $lout, "getElementById('tocLinks')" ) < strpos( $lout, 'prospergenics-learn-js' ) && strpos( $lout, '<footer class="site-footer">' ) < strpos( $lout, 'prospergenics-learn-js' ), 'lesson script after the plugin\'s table of contents and the site footer' );
+ok( false !== strpos( $lout, '<header class="site-header">' ) && false === strpos( $lout, '<nav class="pg-nav">' ), 'the lesson page still gets the site header' );
+$lcss = prospergenics_2026_learn_css();
+ok( false !== strpos( $lcss, '.learn-wrap .learn-grid { grid-template-columns: 270px minmax(0, 1fr); }' ) && false !== strpos( $lcss, 'grid-template-columns: minmax(0, 1fr); }' ), 'the lesson column can shrink below its widest screenshot (minmax(0,1fr)), on desktop and phone' );
+ok( (bool) preg_match( '#\.learn-body img,[^{]*\{ max-width: 100%; height: auto; \}#', $lcss ) && false !== strpos( $lcss, 'overflow-x: auto' ), 'screenshots scale down; code blocks and tables scroll inside the column' );
+foreach ( array( $buffer_service, $dir_page ) as $other ) {
+	ok( false === strpos( prospergenics_2026_listings_takeover( $other, '/services/coachos/', $lchrome ), 'prospergenics-learn' ), 'other plugin pages get no lesson styles or script' );
+}
+ok( false === strpos( prospergenics_2026_listings_takeover( $learn_page, '/courses/x/learn/', $chrome ), 'prospergenics-learn' ), 'without lesson assets the lesson page is only re-chromed' );
+$ljs = prospergenics_2026_learn_script();
+ok( false !== strpos( $ljs, "body.hasAttribute('data-pg-sessions')" ) && false !== strpos( $ljs, "c.tagName === 'HR'" ), 'the script runs once and splits the lesson at the plugin\'s <hr> session breaks' );
+ok( false !== strpos( $ljs, "'#session-' + (i + 2)" ) && false !== strpos( $ljs, "addEventListener('hashchange'" ), 'Previous / Next are links to #session-N, so back and forward work' );
+ok( false !== strpos( $ljs, ".tool-section[data-tool]" ) && false !== strpos( $ljs, ".os-section[data-os]" ) && false !== strpos( $ljs, "localStorage" ), 'agent and computer pickers show only the matching steps and remember the choice' );
+ok( false === strpos( file_get_contents( $theme . '/inc/site-chrome/learn.js' ), 'innerHTML' ), 'the lesson script builds its markup with textContent only (no HTML from the page is re-parsed)' );
+// The Try-it playground (card #7146): a theme copy of the [5818] playground, in the same lesson script.
+$pjs = file_get_contents( $theme . '/inc/site-chrome/playground.js' );
+ok( strpos( $ljs, 'window.__pgPlayground = {' ) !== false && strpos( $ljs, 'window.__pgPlayground = {' ) < strpos( $ljs, "body.hasAttribute('data-pg-sessions')" ), 'the playground is defined before the lesson script that starts it' );
+ok( false !== strpos( $pjs, "if (window.__pgPlayground) { return; }" ), 'it steps aside when the original playground runs again' );
+ok( false !== strpos( $pjs, "frame.setAttribute('sandbox', 'allow-scripts');" ) && 1 === substr_count( $pjs, "setAttribute('sandbox'" ) && ! preg_match( '#allow-scripts[ \'"]+allow-same-origin|allow-same-origin[ \'"]+allow-scripts#', $pjs ), 'lesson code runs in a sandboxed frame without the page\'s origin (no cookies, storage or page access)' );
+ok( false !== strpos( $pjs, "/npm/skulpt' + '@' + '1.2.0/dist/'" ) && false === strpos( $pjs, 'skulpt@' ), 'the Skulpt URL is built so email obfuscation cannot mangle it' );
+ok( false === strpos( $ljs, '</script>' . "\n" . '(function' ) && 1 === substr_count( $ljs, '</script>' ), 'no closing script tag inside the inlined scripts' );
+ok( false !== strpos( $ljs, '/* Lesson playground' ) && false !== strpos( $ljs, 'else\\s*\\{\\s*scan\\(document\\);' ), 'the stranded playground code is removed from its header comment to its last line' );
+ok( false !== strpos( prospergenics_2026_learn_css(), '.editor-container textarea {' ) && false !== strpos( prospergenics_2026_learn_css(), '.learn-body .analogy, .learn-body .info-box {' ), 'the editors and lesson callouts are styled again' );
+ok( preg_match_all( '#data-tool="([a-z]+)"#', $learn, $tm ) && 5 === count( array_unique( $tm[1] ) ) && 8 === substr_count( $learn, '<hr>' ), 'the saved course has 5 coding agents and 9 sessions (8 breaks)' );
+
 echo $failures ? "\n$failures FAILED\n" : "\nAll assertions passed.\n";
 exit( $failures ? 1 : 0 );
 

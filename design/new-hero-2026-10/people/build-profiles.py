@@ -90,7 +90,7 @@ PROFILES = [
         ],
     },
     {
-        "slug": "simitia", "name": "Simitia Mpoe", "role": "Co-Founder, Software Developer, Entrepreneur",
+        "slug": "simitia", "name": "Simitia Mpoe", "role": "Founding team, Software Developer, Entrepreneur",
         "tags": ["expert", "member"], "slider": True,
         "img": "sandra_profile-300x300.webp", "pos": "center 25%",
         "quote": "I design and build web products, and I'm growing my own business with everything I learn.",
@@ -105,7 +105,7 @@ PROFILES = [
             {"name": "Entrepreneurship"},
         ],
         "work": [
-            ("Co-Founder & software developer", "ProsperGenics", "Design and front-end work on the community's websites and products."),
+            ("Founding team & software developer", "ProsperGenics", "Design and front-end work on the community's websites and products."),
             ("Entrepreneur", "", "Building her own business alongside her development work."),
         ],
         "education": [
@@ -113,7 +113,7 @@ PROFILES = [
         ],
     },
     {
-        "slug": "diko", "name": "Diko Mohamed", "role": "Co-Founder, Software Developer, Entrepreneur",
+        "slug": "diko", "name": "Diko Mohamed", "role": "Founding team, Software Developer, Entrepreneur",
         "tags": ["expert", "member"], "slider": True,
         "img": "diko_profile-300x300.webp", "pos": "center 30%",
         "quote": "I turn opportunities into products. Right now that means integrations and new partnerships.",
@@ -128,14 +128,14 @@ PROFILES = [
             {"name": "Business development"},
         ],
         "work": [
-            ("Co-Founder & software developer", "ProsperGenics", "Product development, integrations and partner contacts."),
+            ("Founding team & software developer", "ProsperGenics", "Product development, integrations and partner contacts."),
         ],
         "education": [
             ("Hands-on developer training", "ProsperGenics", "Learning by building, on real projects with real users."),
         ],
     },
     {
-        "slug": "sjoerd", "name": "Sjoerd Schepman", "role": "Curator Perridon Holdings",
+        "slug": "sjoerd", "name": "Sjoerd Schepman", "role": "Curator Perridon Holdings, Supporting member",
         "tags": ["expert"], "slider": True,
         "img": "sjoerd-wide.webp", "pos": "50% 15%",
         "quote": "I curate the Perridon collection, researching the provenance and the stories behind every piece.",
@@ -196,11 +196,11 @@ PROFILES = [
         ],
     },
     {
-        "slug": "lessy", "name": "Lesiamon Mpoe", "role": "Co-Founder, Trainer, Software Developer",
+        "slug": "lessy", "name": "Lesiamon Mpoe", "role": "Founding team, Trainer, Software Developer",
         "tags": ["expert", "member"], "slider": True,
         "img": "lessy_profile-300x300.webp", "pos": "center 25%",
         "quote": "I develop software and train new developers. Good software starts with understanding people.",
-        "story": "Lesiamon co-founded ProsperGenics and carries two of its pillars: he builds software, and he builds the people who build software. New developers in the community learn the craft from him, task by task. His conviction: good software starts with understanding people.",
+        "story": "Lesiamon is part of the ProsperGenics founding team and carries two of its pillars: he builds software, and he builds the people who build software. New developers in the community learn the craft from him, task by task. His conviction: good software starts with understanding people.",
         "contributions": [
             ("Developer training", "Trains the community's new developers, from first task to production work."),
             ("Websites & web applications", "Builds and maintains software across the community's projects."),
@@ -211,14 +211,14 @@ PROFILES = [
             {"name": "WordPress & websites"},
         ],
         "work": [
-            ("Co-Founder, trainer & software developer", "ProsperGenics", "Websites and web applications across the community's projects, and training for new developers."),
+            ("Founding team, trainer & software developer", "ProsperGenics", "Websites and web applications across the community's projects, and training for new developers."),
         ],
         "education": [
             ("Hands-on developer training", "ProsperGenics", "Learning by building, on real projects with real users."),
         ],
     },
     {
-        "slug": "frank", "name": "Frank", "role": "Co-Founder, Trainer, Software Developer",
+        "slug": "frank", "name": "Frank", "role": "Founding team, Trainer, Software Developer",
         "tags": ["expert", "member"], "slider": True,
         "img": "frank_profile-300x300.webp", "pos": "center 25%",
         "quote": "I build and ship features for our web platforms, with real responsibility from day one.",
@@ -231,7 +231,7 @@ PROFILES = [
             {"name": "Shipping & deployment"},
         ],
         "work": [
-            ("Co-Founder, trainer & software developer", "ProsperGenics", "Feature development on the community's web platforms, and training for new developers."),
+            ("Founding team, trainer & software developer", "ProsperGenics", "Feature development on the community's web platforms, and training for new developers."),
         ],
         "education": [
             ("Hands-on developer training", "ProsperGenics", "Learning by building, on real projects with real users."),
@@ -260,7 +260,7 @@ PROFILES = [
         ],
     },
     {
-        "slug": "mayiani", "name": "Mayiani Nanana Mpoe", "role": "Community member",
+        "slug": "mayiani", "name": "Mayiani Nanana Mpoe", "role": "Active community member",
         "tags": ["member"], "slider": True,
         "img": None, "initial": "M",
         "quote": "I'm learning digital skills step by step and putting them to work in daily life.",
@@ -279,7 +279,7 @@ PROFILES = [
         ],
     },
     {
-        "slug": "lou", "name": "Lou Marten", "role": "Marketing, Community member",
+        "slug": "lou", "name": "Lou Marten", "role": "Marketing, Supporting member",
         "tags": ["expert", "member"], "slider": True,
         "img": None, "initial": "L",
         "quote": "I work on our brand and marketing, finding the right words for what we build.",

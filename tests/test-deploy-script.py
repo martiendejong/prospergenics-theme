@@ -82,5 +82,37 @@ ok(unlisted == ["inc/hand.php", "inc/old.php"], "no manifest: extra files are on
 ok(deploy.DEPLOY_DIR == "domains/test.prospergenics.com/deploy", "manifest and switch folders live outside public_html")
 ok(not deploy.MANIFEST.startswith(deploy.REMOTE_ROOT + "/"), "manifest is not web-served")
 
+# /version.json (card #7145): the deployed commit, written last, web-served, never for a restore
+class RecFTP:
+    def __init__(self): self.stored, self.renamed = {}, []
+    def mkd(self, p): pass
+    def cwd(self, p): pass
+    def mlsd(self, path, facts=None): return iter(())
+    def storbinary(self, cmd, fp, blocksize=0): self.stored[cmd[5:]] = fp.read()
+    def rename(self, a, b): self.stored[b] = self.stored.pop(a); self.renamed.append(b)
+    def delete(self, p): self.stored.pop(p, None)
+
+os.environ.update({"GITHUB_SHA": "a" * 40, "GITHUB_REF_NAME": "design/new-hero-2026-10", "GITHUB_RUN_ID": "42", "GITHUB_REPOSITORY": "o/r"})
+info = deploy.version_info(deploy.datetime.datetime(2026, 11, 5, 18, 0, tzinfo=deploy.datetime.timezone.utc))
+ok(info["commit"] == info["version"] == "a" * 40 and info["branch"] == "design/new-hero-2026-10", "version.json names the deployed commit and branch")
+ok(info["deployed_at"] == "2026-11-05T18:00:00Z" and info["run"] == "https://github.com/o/r/actions/runs/42", "with the deploy time and the workflow run")
+ok(deploy.VERSION_FILE == deploy.REMOTE_ROOT + "/version.json", "served at /version.json (inside public_html)")
+rec = RecFTP()
+try:
+    deploy.ensure_dir = lambda ftp, path: None
+    deploy.publish_version(rec, False)
+    written = deploy.json.loads(rec.stored[deploy.VERSION_FILE].decode())
+    ok(written["commit"] == "a" * 40 and deploy.VERSION_FILE in rec.renamed, "written atomically (temp file, then rename)")
+    deploy.publish_version(rec, False, restored=True)
+    ok(deploy.json.loads(rec.stored[deploy.VERSION_FILE].decode())["commit"] == "restored-backup", "a restore from a backup does not claim the checkout's commit")
+    before = dict(rec.stored)
+    deploy.publish_version(rec, True)
+    ok(rec.stored == before, "a dry run writes nothing")
+except Exception as e:  # noqa: BLE001
+    ok(False, f"publish_version raised {e!r}")
+src = open(deploy.__file__).read()
+ok(src.index("publish_version(ftp, args.dry_run") > src.index("deploy_static(ftp, args.dry_run)") and src.index("publish_version(ftp, args.dry_run") < src.index("ftp.quit()\n    print"), "version.json is written after the theme and static pages")
+for k in ("GITHUB_SHA", "GITHUB_REF_NAME", "GITHUB_RUN_ID", "GITHUB_REPOSITORY"): os.environ.pop(k, None)
+
 print(f"\n{'all passed' if not fails else str(fails) + ' failed'}")
 sys.exit(1 if fails else 0)
