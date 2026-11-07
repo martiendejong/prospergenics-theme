@@ -219,6 +219,13 @@ function prospergenics_2026_front_page_schema() {
                 'logo'         => get_template_directory_uri() . '/assets/logo.png',
                 'description'  => prospergenics_2026_org_description( 'long' ),
                 'areaServed'   => array( 'Kenya', 'Netherlands' ),
+                // Task 6529: Martien is the founder; the others are the founding team, so only he is a schema.org founder.
+                'founder'      => array(
+                    '@type'    => 'Person',
+                    'name'     => 'Martien de Jong',
+                    'url'      => $home . 'people/martien/',
+                    'jobTitle' => 'Founder',
+                ),
                 'contactPoint' => array(
                     '@type'       => 'ContactPoint',
                     'contactType' => 'customer service',
