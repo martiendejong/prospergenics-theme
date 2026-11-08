@@ -24,7 +24,6 @@ in WordPress (homepage, About, every inner page) the header comes from PHP and k
 import json
 import os
 import re
-from urllib.parse import quote
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 CHROME = os.path.join(HERE, "wp", "inc", "site-chrome")
@@ -128,9 +127,10 @@ def _links(root, current, indent):
 
 
 def _account():
-    """Visitor links (static pages can't see a login): Log in and Join (contact form)."""
-    join = "/contact/?subject=" + quote(SITE["join_subject"])
-    return [("login", "Log in", "/wp-login.php"), ("join", "Join", join)]
+    """Visitor links (static pages can't see a login or the registration switch): Log in, and Join at
+    /join/, which WordPress sends on to /register/ while registration is open, else to the contact form
+    on "Joining the community" (inc/profiles/routes.php)."""
+    return [("login", "Log in", "/wp-login.php"), ("join", "Join", "/join/")]
 
 
 def header(root, current=None, autohide=False):

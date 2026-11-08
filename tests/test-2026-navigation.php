@@ -388,6 +388,15 @@ ok( '' === prospergenics_2026_admin_redirect_target( 'index.php', true, false, 7
 ok( isset( $GLOBALS['__hooks']['admin_init'], $GLOBALS['__hooks']['admin_page_access_denied'] ), 'checked on admin_init and on screens WordPress refuses (edit.php, ...)' );
 ok( isset( $GLOBALS['__hooks']['login_headerurl'], $GLOBALS['__hooks']['login_enqueue_scripts'] ) && TEST_HOME . '/' === $GLOBALS['__hooks']['login_headerurl'][0](), 'branded login page, logo links home' );
 
+echo "Join on static pages follows the registration switch (#6338)\n";
+$people_page = file_get_contents( $root . '/design/new-hero-2026-10/people/lessy/index.html' );
+ok( false !== strpos( $people_page, 'href="/join/"' ) && false === strpos( $people_page, '/contact/?subject=Joining' ), 'static pages link Join to /join/, not straight to the contact form' );
+$routes_src = file_get_contents( $theme . '/inc/profiles/routes.php' );
+ok( false !== strpos( $routes_src, "add_rewrite_rule( '^join/?\$', 'index.php?pg_profile_page=join', 'top' );" ), '/join/ is a theme route' );
+ok( (bool) preg_match( '#function prospergenics_profiles_join_target\( \$uid \) \{\s*if \( \$uid \) \{\s*return home_url\( \'/profile/\' \);\s*\}\s*if \( function_exists\( \'prospergenics_register_is_open\' \) && prospergenics_register_is_open\(\) \) \{\s*return home_url\( \'/register/\' \);\s*\}\s*return prospergenics_2026_contact_url\( prospergenics_2026_site_nav\(\)\[\'join_subject\'\] \);#', $routes_src ), '/join/ sends members to their profile, visitors to /register/ while it is open, else to the contact form' );
+$account_src = file_get_contents( $theme . '/inc/profiles/account.php' );
+ok( false !== strpos( $account_src, 'const PROSPERGENICS_PROFILES_PASSWORD_MIN    = 10;' ) && false !== strpos( $account_src, 'prospergenics_register_password_problem( $new,' ), 'changing a password in /profile/settings/ uses the registration rule (10 characters, no common passwords)' );
+
 echo "course lesson pages (cards #7143, #7144)\n";
 // The saved jengo-listings lesson page (AI Software Lifecycle), behind a plugin nav as the takeover sees it.
 $learn      = file_get_contents( __DIR__ . '/fixtures/jengo-listings/course-learn.html' );
