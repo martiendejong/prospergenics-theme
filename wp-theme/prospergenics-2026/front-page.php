@@ -42,6 +42,14 @@
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
   }
+  /* No sideways scrolling, ever. body { overflow-x: hidden } alone is passed on to the viewport,
+     which still scrolls sideways when something pokes out: by script, by focusing an off-screen
+     link, and with touch or a trackpad in Safari. With the root clipping instead, body is no
+     scroll container, so sticky headers keep working and there is nothing to scroll to. */
+  @supports (overflow: clip) {
+    html { overflow-x: hidden; }
+    body { overflow-x: clip; }
+  }
 
   /* site-chrome:css */
 
@@ -544,9 +552,9 @@
   }
 
   /* ───────────────  VALUE TEST · "How valuable are you?"  ─────────────── */
-  /* bottom padding reserves room for the 1.2 scroll-zoom (origin top, box grows downward)
-     so the banner heading below never collides with the scaled test panel */
-  .vtest { max-width: 1500px; margin: 0 auto; padding: clamp(28px, 3.6vw, 52px) clamp(24px, 5vw, 72px) clamp(40px, 8vw, 130px); }
+  /* the test panel grows in to its own width (scroll-scale 0.84 -> 1, origin top, card #7215):
+     at 1.2 it reached past both screen edges (-87 to 1498 px at 1440) and made the page scroll sideways */
+  .vtest { max-width: 1500px; margin: 0 auto; padding: clamp(28px, 3.6vw, 52px) clamp(24px, 5vw, 72px) clamp(36px, 5vw, 72px); }
   .vtest .projects-head { text-align: center; }
   .vtest .projects-head p { margin-left: auto; margin-right: auto; }
   .vtest-box {
@@ -1067,7 +1075,7 @@
       <h2>How valuable <span class="accent">are you?</span></h2>
       <p>Five honest questions. Take the test and find out where your value lies.</p>
     </div>
-    <div class="vtest-box" data-scroll-scale="1.2" data-scroll-scale-window="0.65">
+    <div class="vtest-box" data-scroll-scale="1" data-scroll-scale-from="0.84" data-scroll-scale-window="0.65">
       <div class="vtest-in" id="vtStage">
         <div class="vt-progress" id="vtProgress" aria-hidden="true"></div>
         <div class="vt-question" id="vtQuestion"></div>
