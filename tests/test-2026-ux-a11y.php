@@ -93,6 +93,11 @@ ok( $halo_ok && ( (float) $hm[2] / (float) $hm[1] ) > ( (float) $hm[3] / 100 ), 
 $fade_ok = (bool) preg_match( '~\.hero-top-photo \{[^}]*?mask-image: linear-gradient\(to bottom, transparent 0%,[^#]*#000 ([\d.]+)%~s', $home, $fm );
 ok( $fade_ok && (float) $fm[1] <= 10, 'the hero photo is fully visible from 10% down (top fade ' . ( $fade_ok ? $fm[1] : '?' ) . '%)' );
 
+// The photo starts flush at the top of the hero (Martien, 4 Nov): the CSS says top: 0, and the
+// desktop parallax must not put the old 34 px back (card #7228).
+ok( (bool) preg_match( '~\.hero-top-photo \{\s*position: absolute; top: 0;~', $home ), 'the hero photo starts at top: 0' );
+ok( false !== strpos( $home, "photo.style.top = (y * 0.5) + 'px';" ) && ! preg_match( '~photo\.style\.top = \([^)]*\+\s*\d~', $home ), 'the parallax moves it at half scroll speed from 0, with no offset added' );
+
 echo "UX-16 homepage H1\n";
 ok( false !== strpos( $home, '<h1 class="reveal d1">You create <span class="accent">value</span></h1>' ), 'H1 text content is "You create value"' );
 

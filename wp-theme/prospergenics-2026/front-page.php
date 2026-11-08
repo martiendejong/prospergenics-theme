@@ -1680,7 +1680,8 @@
       function update() {
         if (!mobile.matches) {
           const y = window.scrollY;
-          photo.style.top = (y * 0.5 + 34) + 'px';
+          // half scroll speed from the top of the hero: flush at the top, as the CSS (Martien, 4 Nov, #7228)
+          photo.style.top = (y * 0.5) + 'px';
           // bottom edge slides from 0 to -100px over the first 500px of scroll
           photo.style.bottom = (Math.min(y, 500) / 500 * -100) + 'px';
           // showcase panel bulge: ramps up over the first 250px of scroll and stays; eases back only when scrolling up
