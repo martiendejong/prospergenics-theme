@@ -47,3 +47,48 @@ call using the default `python-requests` User-Agent header
 blocked. `scripts/bump-modified-date.py` already sends a browser-style UA to
 work around this — reuse that header if you write another script against
 this site's REST API.
+
+## Legacy pages imported from the old site (cards #6488, #6520)
+
+The theme already sends these URLs to their new home with a 301 (`inc/legacy-pages.txt` and
+`inc/person-redirects.txt`, on `init`, also while the page is still published) and leaves them out
+of `wp-sitemap.xml` (`inc/sitemap.php`). The pages themselves are content in the database, which a
+theme deploy cannot change. Unpublishing them is the clean end state: it also takes their old text
+(with "Finehas Mpoe" and "Diko Mohamend") out of the public REST API
+(`/wp-json/wp/v2/pages`), and the redirects keep working afterwards.
+
+| ID on test | Slug | Title | Redirects to |
+|---|---|---|---|
+| 181 | our-team | Our Team | /members/ |
+| 183 | frank-2 | Frank | /people/frank/ |
+| 184 | lessy-2 | Lessy… | /people/lessy/ |
+| 185 | diko-2 | Diko | /people/diko/ |
+| 186 | martien-2 | Martien de Jong, Founder | /people/martien/ |
+| 187 | sandra-2 | Sandra Simitia Mpoe, Team Lead | /people/simitia/ |
+| 188 | kennisbank | Kennisbank | /articles/ |
+| 197 | about-legacy | About | /about/ |
+| 198 | home-legacy | info | / |
+| 2 | sample-page | Sample Page | / |
+| 173 | knowledge-base | Knowledge Base | /articles/ |
+| 177 | our-programs | Our Programs | /courses/ |
+| 179 | colibri-wp | Home | / |
+| 180 | join-our-community | Contact | /join/ |
+| 190 | trainings | Trainings & Tutorials | /courses/ |
+
+On each site (test first, then production), as an administrator:
+
+1. Before touching anything, check the owners' answer on card #6520: Lesiamon for /lessy-2/,
+   Simitia (Sandra) for /sandra-2/. Default without an answer: keep nothing, the /people/ profiles
+   are the source of truth. Anything to keep goes into `people/build-profiles.py` PROFILES first.
+2. wp-admin → *Pages* → search for the title (or open `post.php?post=<ID>&action=edit`), check the
+   slug in the URL matches the table (IDs can differ on production).
+3. *Quick Edit* → *Status* → **Draft** → *Update*. (Or tick all of them on the list, *Bulk actions*
+   → *Edit* → *Status: Draft* → *Update*.) Draft rather than Trash keeps the text for reference.
+4. Check: `curl -sI https://test.prospergenics.com/our-team/` gives `301` with the Location from the
+   table, for every row; `curl -s https://test.prospergenics.com/wp-sitemap-posts-page-1.xml` lists
+   none of the slugs; `curl -s 'https://test.prospergenics.com/wp-json/wp/v2/pages?search=Finehas'`
+   returns `[]`.
+
+Not in these cards and left alone: `entrepreneurship-support`, `community-development`,
+`ai-and-technology-training`, `claude-code-cursor-coaching(-nl)` and `privacy-policy-2` (the footer
+links `/privacy-policy/`, which WordPress forwards to `/privacy-policy-2/`).

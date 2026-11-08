@@ -22,12 +22,21 @@ cards in ../index.html are generated from it (write_slider, audit CON-10), so th
 slider can't drift from PROFILES (tests/test-2026-people-sync.php). Who is on it
 is the owner's call: today Sjoerd (expert only) is on it and Farid (member) is not.
 Keep the number of slider people a multiple of 3 (the build stops otherwise).
+"members": every person is on the /members/ list unless the profile says
+"members": False ("members are a subset of people", Martien 7 Nov, card #6517). Today all
+13 are on it: Sjoerd and Lou as supporting members, Farid as a community member.
+"img" must be a .webp portrait in ../assets/ (the build stops otherwise, card #6523).
 
 Also generated from PROFILES:
   ../wp/inc/people.json  name/role/photo per slug, for WordPress (an /in/ account
                          linked to a person through user meta _pg_people_slug
-                         links to /people/<slug>/ and borrows the photo and role)
-  index.html             /people/ itself: a redirect to the people list (CON-15)
+                         links to /people/<slug>/ and borrows the photo and role),
+                         plus quote, expertises and the /members/ flag: the theme
+                         builds the /members/ list cards from it (cards #6516, #6517)
+  members-collection.json  the same people as records for the jengo-listings
+                         "members" collection (deploy_collections.py), so the
+                         listings API can be brought back in line (card #6516)
+  index.html             /people/ itself: a redirect to the /members/ list (CON-15)
 
 Asset URLs are relative so the pages work in the static preview;
 deploy-wp-theme-vimexx.py rewrites them to the theme directory on upload.
@@ -502,6 +511,8 @@ LIST_PAGE = """<!DOCTYPE html>
   h1 {{ font-weight:800; font-size:clamp(38px,6vw,76px); line-height:1; letter-spacing:-.03em; margin-top:22px; max-width:20ch; }}
   h1 .accent {{ background:linear-gradient(100deg,var(--green-700) 0%,#1f9a55 100%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }}
   .lede {{ margin-top:22px; max-width:56ch; font-size:clamp(16.5px,1.8vw,19.5px); line-height:1.6; color:var(--body); }}
+  .l-all {{ margin-top:14px; font-size:15.5px; }}
+  .l-all a {{ color:var(--green-700); font-weight:600; text-decoration:underline; text-underline-offset:3px; }}
   .grid {{ display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:clamp(18px,2.5vw,28px); padding:clamp(34px,5vw,56px) 0 0; }}
   .pcard {{ display:block; text-decoration:none; background:#fff; border:1px solid var(--line); border-radius:22px; overflow:hidden; box-shadow:0 18px 44px -30px rgba(11,32,22,.4); transition:transform .25s var(--ease), box-shadow .25s var(--ease); }}
   .pcard:hover {{ transform:translateY(-4px); box-shadow:0 26px 54px -30px rgba(11,32,22,.5); }}
@@ -527,6 +538,7 @@ LIST_PAGE = """<!DOCTYPE html>
         <p class="eyebrow"><span class="dot"></span>{eyebrow}</p>
         <h1>{heading}</h1>
         <p class="lede">{lede}</p>
+        <p class="l-all">{all_link}</p>
       </div>
     </section>
     <section class="l-list">
@@ -630,7 +642,7 @@ def list_card(m):
           </a>"""
 
 
-def build_list(folder, tag, title, eyebrow, heading, lede, meta_desc):
+def build_list(folder, tag, title, eyebrow, heading, lede, meta_desc, all_text):
     people = [m for m in PROFILES if tag in m["tags"]]
     jsonld = {
         "@context": "https://schema.org",
@@ -648,6 +660,7 @@ def build_list(folder, tag, title, eyebrow, heading, lede, meta_desc):
         head_meta=head_meta(f"{SITE}/{folder}/", f"{title} · ProsperGenics", meta_desc, f"{SITE}/wp-content/themes/prospergenics-2026/assets/og-image.jpg"),
         style=STYLE, title=title, meta_desc=meta_desc, eyebrow=eyebrow,
         heading=heading, lede=lede,
+        all_link=f'{all_text} <a href="..{PEOPLE_LIST}">All members &rarr;</a>',
         jsonld=json.dumps(jsonld, indent=2),
         cards="\n".join(list_card(m) for m in people),
     )
@@ -663,10 +676,10 @@ def build_list(folder, tag, title, eyebrow, heading, lede, meta_desc):
 INDEX = os.path.normpath(os.path.join(HERE, "..", "index.html"))
 PEOPLE_JSON = os.path.normpath(os.path.join(HERE, "..", "wp", "inc", "people.json"))
 SLIDER_START, SLIDER_END = "<!-- people:slider -->", "<!-- /people:slider -->"
-# Where /people/ (no slug) sends visitors. /community/ is generated from PROFILES and links every
-# card to /people/<slug>/; /members/ is still the separate jengo-listings dataset (CON-1). Switch to
-# /members/ once that list is generated from PROFILES too.
-PEOPLE_LIST = "/community/"
+# Where /people/ (no slug) sends visitors, and where /experts/ and /community/ link back to: the
+# /members/ list, whose cards the theme builds from people.json (inc/members-directory.php, cards
+# #6516, #6517), so every list and card comes from PROFILES.
+PEOPLE_LIST = "/members/"
 
 
 def _text(t):
@@ -741,13 +754,87 @@ def write_slider():
     return len(slider_people())
 
 
+def on_members(m):
+    """Whether a person is on the /members/ list (card #6517): yes unless the profile says "members": False."""
+    return m.get("members", True) is not False
+
+
+def check_photos():
+    """Every portrait is a .webp file in ../assets/ (card #6523): the old .png/.jpg copies are gone
+    from the theme, so a name that is not .webp, or a file that is missing, would be a broken image."""
+    bad = []
+    for m in PROFILES:
+        img = m.get("img")
+        if not img:
+            if not m.get("initial"):
+                bad.append(f"{m['slug']}: no img and no initial")
+            continue
+        if not img.endswith(".webp"):
+            bad.append(f"{m['slug']}: {img} is not a .webp")
+        elif _webp_size(img) is None:
+            bad.append(f"{m['slug']}: assets/{img} is missing or not a WebP file")
+    if bad:
+        sys.exit("portraits: " + "; ".join(bad))
+
+
+MEMBERS_COLLECTION = os.path.join(HERE, "members-collection.json")
+
+
+def members_collection():
+    """The /members/ people as jengo-listings "members" records, in the shape the listings API
+    serves (GET /collections/members/slug/<slug>): slug = the /people/ slug, photo = the .webp."""
+    from html import escape
+    items = []
+    for m in PROFILES:
+        if not on_members(m):
+            continue
+        topics = [e["name"] for e in m["expertises"]]
+        items.append({
+            "slug": m["slug"],
+            "title": m["name"],
+            "company": "ProsperGenics",
+            "primary_skills": topics[0] if topics else "",
+            "description_seo": f"<p>{escape(m['story'], quote=False)}</p>",
+            "fields": {
+                "role": m["role"],
+                "quote": m["quote"],
+                "photo": m.get("img") or "",
+                "photo_pos": m.get("pos") or "center",
+                "initial": m.get("initial") or m["name"][:1],
+                "topics": topics,
+                "profile_url": f"/people/{m['slug']}/",
+            },
+        })
+    return items
+
+
+def write_members_collection():
+    data = {
+        "_comment": "Generated by design/new-hero-2026-10/people/build-profiles.py from PROFILES; do not edit. "
+                    "The jengo-listings 'members' collection: deploy it with jengo-listings deploy_collections.py "
+                    "(replace the whole collection, so records no longer in PROFILES are removed), then run "
+                    "python3 tests/smoke/check-listings-members.py (card #6516).",
+        "collection": "members",
+        "items": members_collection(),
+    }
+    with open(MEMBERS_COLLECTION, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+        f.write("\n")
+    return len(data["items"])
+
+
 def write_people_json():
     data = {
         "_comment": "Generated by design/new-hero-2026-10/people/build-profiles.py from PROFILES; do not edit. "
                     "Read by inc/platform-profiles.php: a WordPress user with user meta _pg_people_slug links to /people/<slug>/ "
-                    "and borrows photo and role while their /in/ profile is empty (audit CON-11).",
-        "people": {m["slug"]: dict({"name": m["name"], "role": m["role"], "img": m.get("img") or "", "pos": m.get("pos") or "center"},
-                                   **{k: m[k] for k in ("aka", "pronouns") if m.get(k)}) for m in PROFILES},
+                    "and borrows photo and role while their /in/ profile is empty (audit CON-11). "
+                    "inc/members-directory.php builds the /members/ list cards from it, in this order (cards #6516, #6517).",
+        "people": {m["slug"]: {
+            "name": m["name"], "role": m["role"], "img": m.get("img") or "", "pos": m.get("pos") or "center",
+            "initial": m.get("initial") or m["name"][:1], "quote": m["quote"],
+            "expertises": [e["name"] for e in m["expertises"]], "members": on_members(m),
+            **{k: m[k] for k in ("aka", "pronouns") if m.get(k)},  # the homepage chat's context (inc/coach-context.php)
+        } for m in PROFILES},
     }
     with open(PEOPLE_JSON, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
@@ -776,25 +863,29 @@ def write_people_index():
 def dump():
     """PROFILES as JSON, for tests/test-2026-people-sync.php."""
     keys = ("slug", "name", "role", "quote", "img", "pos", "initial", "tags", "slider")
-    print(json.dumps([{k: m.get(k) for k in keys} for m in PROFILES], ensure_ascii=False))
+    print(json.dumps([dict({k: m.get(k) for k in keys}, members=on_members(m), expertises=[e["name"] for e in m["expertises"]]) for m in PROFILES], ensure_ascii=False))
 
 
 def build():
+    check_photos()
     build_profiles()
     n_exp = build_list(
         "experts", "expert", "ProsperGenics experts", "Our experts",
         'Experts who <span class="accent">build value.</span>',
         "From AI agent platforms to provenance research: the experts in and around the ProsperGenics community, each with their own story and the value they contribute.",
-        "The experts in and around the ProsperGenics community: AI, software, design, marketing, art and more.")
+        "The experts in and around the ProsperGenics community: AI, software, design, marketing, art and more.",
+        "Our experts are some of our members.")
     n_com = build_list(
         "community", "member", "ProsperGenics community", "Community stories",
         'Stories of <span class="accent">value creation.</span>',
         "ProsperGenics is a community of people creating value: some write software, some run a store, some grow a herd. These are their stories and contributions.",
-        "Stories and value contributions of the ProsperGenics community members.")
+        "Stories and value contributions of the ProsperGenics community members.",
+        "Founders, supporting members and experts are on the members list too.")
     n_slider = write_slider()
     write_people_json()
+    n_mem = write_members_collection()
     write_people_index()
-    print(f"built {len(PROFILES)} profiles, {n_exp} experts, {n_com} community members, {n_slider} slider cards")
+    print(f"built {len(PROFILES)} profiles, {n_mem} on /members/, {n_exp} experts, {n_com} community members, {n_slider} slider cards")
 
 
 if __name__ == "__main__":

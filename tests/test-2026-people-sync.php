@@ -124,16 +124,18 @@ $pj = json_decode( file_get_contents( $design . '/wp/inc/people.json' ), true );
 $same = is_array( $pj ) && count( $pj['people'] ) === count( $profiles );
 foreach ( $profiles as $m ) {
 	$p    = isset( $pj['people'][ $m['slug'] ] ) ? $pj['people'][ $m['slug'] ] : null;
-	$same = $same && $p && $p['name'] === $m['name'] && $p['role'] === $m['role'] && $p['img'] === (string) $m['img'];
+	$same = $same && $p && $p['name'] === $m['name'] && $p['role'] === $m['role'] && $p['img'] === (string) $m['img']
+		&& $p['quote'] === $m['quote'] && $p['expertises'] === $m['expertises'] && $p['members'] === $m['members'];
 }
-ok( $same, 'inc/people.json has every PROFILES person with the same name, role and photo' );
+ok( $same, 'inc/people.json has every PROFILES person with the same name, role, photo, quote, expertises and /members/ flag' );
+ok( array_keys( $pj['people'] ) === array_column( $profiles, 'slug' ), 'inc/people.json keeps the PROFILES order (the /members/ card order)' );
 ok( file_get_contents( $design . '/wp/inc/people.json' ) === file_get_contents( $theme . '/inc/people.json' ), 'the theme ships the same people.json' );
 
 echo "/people/ itself (CON-15)\n";
 $pi = file_get_contents( $design . '/people/index.html' );
-ok( false !== strpos( $pi, '<meta http-equiv="refresh" content="0; url=/community/" />' ), 'meta refresh to /community/' );
-ok( false !== strpos( $pi, '<link rel="canonical" href="https://test.prospergenics.com/community/" />' ), 'canonical to /community/' );
-ok( false !== strpos( $pi, 'location.replace("/community/")' ), 'script redirect for browsers that ignore the refresh' );
+ok( false !== strpos( $pi, '<meta http-equiv="refresh" content="0; url=/members/" />' ), 'meta refresh to /members/ (card #6517)' );
+ok( false !== strpos( $pi, '<link rel="canonical" href="https://test.prospergenics.com/members/" />' ), 'canonical to /members/' );
+ok( false !== strpos( $pi, 'location.replace("/members/")' ), 'script redirect for browsers that ignore the refresh' );
 ok( false !== strpos( $pi, 'noindex' ), 'the redirect page itself is noindex' );
 ok( is_file( $design . '/community/index.html' ), '/community/ exists' );
 ok( false !== strpos( file_get_contents( $design . '/deploy-wp-theme-vimexx.py' ), '/people/index.html' ), 'the deploy uploads people/index.html' );

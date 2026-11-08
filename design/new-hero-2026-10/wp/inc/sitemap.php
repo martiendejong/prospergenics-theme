@@ -108,6 +108,46 @@ function prospergenics_2026_shadowed_page_ids() {
     return $ids;
 }
 
+/**
+ * Old paths that always redirect (person-redirects.txt, legacy-pages.txt) and are a single page
+ * slug: the imported pages /our-team/, /lessy-2/, /home-legacy/ ... (pure).
+ *
+ * @param array<string,string>[] $rule_sets parsed rule sets
+ * @return string[]
+ */
+function prospergenics_2026_redirected_page_slugs( array $rule_sets ) {
+    $slugs = array();
+    foreach ( $rule_sets as $rules ) {
+        foreach ( array_keys( (array) $rules ) as $source ) {
+            if ( preg_match( '#^[a-z0-9-]+$#', (string) $source ) ) {
+                $slugs[] = (string) $source;
+            }
+        }
+    }
+    return array_values( array_unique( $slugs ) );
+}
+
+/** IDs of published top-level pages whose URL always redirects (cards #6488, #6520): never in the sitemap. */
+function prospergenics_2026_redirected_page_ids() {
+    if ( ! function_exists( 'prospergenics_2026_legacy_page_rules' ) ) {
+        return array();
+    }
+    $slugs = prospergenics_2026_redirected_page_slugs( array( prospergenics_2026_person_redirect_rules(), prospergenics_2026_legacy_page_rules() ) );
+    if ( ! $slugs ) {
+        return array();
+    }
+    return array_map( 'intval', get_posts( array(
+        'post_type'        => 'page',
+        'post_status'      => 'publish',
+        'post_name__in'    => $slugs,
+        'post_parent'      => 0,
+        'fields'           => 'ids',
+        'posts_per_page'   => -1,
+        'no_found_rows'    => true,
+        'suppress_filters' => true,
+    ) ) );
+}
+
 function prospergenics_2026_current_static_urls() {
     return prospergenics_2026_static_page_urls( ABSPATH, home_url( '/' ) );
 }
@@ -156,9 +196,10 @@ add_action( 'init', function () {
 } );
 
 // The page that /courses/ shadows is not a page of its own: the listing provider has the URL.
+// Nor are the imported legacy pages that always redirect (#6488, #6520).
 add_filter( 'wp_sitemaps_posts_query_args', function ( $args, $post_type ) {
     if ( 'page' === $post_type ) {
-        $ids = prospergenics_2026_shadowed_page_ids();
+        $ids = array_merge( prospergenics_2026_shadowed_page_ids(), prospergenics_2026_redirected_page_ids() );
         if ( $ids ) {
             $args['post__not_in'] = array_merge( isset( $args['post__not_in'] ) ? (array) $args['post__not_in'] : array(), $ids );
         }
