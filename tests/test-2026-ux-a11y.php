@@ -168,7 +168,8 @@ ok( false !== strpos( $home, '<button class="launcher-orb" type="button" aria-ha
 
 echo "NAV-7 / NAV-14 homepage links\n";
 ok( false === strpos( $home, 'href="/jengo"' ) && false !== strpos( $home, 'href="/tools/jengo/"' ), 'Jengo card links /tools/jengo/' );
-ok( false === strpos( $home, 'href="/citizenship"' ) && false !== strpos( $home, 'href="/contact/?subject=Courses%20and%20certification"' ), 'Citizenship card opens the contact form on "Courses and certification"' );
+// the citizenship card left the homepage with the tools showcase (8 Nov, tests/test-2026-tools-showcase.php)
+ok( false === strpos( $home, 'href="/citizenship"' ), 'no link to the non-existent /citizenship page' );
 preg_match_all( '~href(?:="|:")(/[^"?\#]*)"~', $home, $hrefs );
 $bad = array_filter( $hrefs[1], function ( $h ) { return '/' !== substr( $h, -1 ) && ! preg_match( '#\.[a-z0-9]{2,4}$#', $h ); } );
 ok( ! $bad, 'every root-relative link on the homepage ends in a slash' . ( $bad ? ': ' . implode( ', ', $bad ) : '' ) );
