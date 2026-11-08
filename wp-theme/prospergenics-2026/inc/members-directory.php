@@ -64,8 +64,9 @@ function prospergenics_2026_members_card( $slug, array $p, $home, $assets ) {
     if ( ! empty( $p['img'] ) ) {
         $thumb = '<img src="' . esc_url( $assets . '/' . $p['img'] ) . '" alt="' . esc_attr( $name ) . '" style="object-position:' . esc_attr( ! empty( $p['pos'] ) ? $p['pos'] : 'center' ) . '" loading="lazy" />';
     } else {
-        $initial = ! empty( $p['initial'] ) ? (string) $p['initial'] : substr( $name, 0, 1 );
-        $thumb   = '<div class="dc-initial">' . esc_html( $initial ) . '</div>';
+        // no photo yet: the branded pattern of the /courses/ cards, not a big initial (card #6538);
+        // the same texture as on the homepage slider and the /people/ page (by slug)
+        $thumb = '<span class="pg-pattern pg-pattern--' . ( abs( crc32( (string) $slug ) ) % 3 + 1 ) . '" aria-hidden="true"></span>';
     }
     $tags = '';
     foreach ( array_slice( isset( $p['expertises'] ) ? (array) $p['expertises'] : array(), 0, 3 ) as $tag ) {

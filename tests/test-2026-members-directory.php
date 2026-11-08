@@ -5,7 +5,7 @@
  *
  *   - the takeover replaces the plugin's 12 stale cards with one card per PROFILES person on the
  *     list (13: Farid in), each with the name, role and quote of its /people/ page, a .webp
- *     portrait (or the initial), and a link to /people/<slug>/; the count says 13;
+ *     portrait (or the branded pattern by slug, never an initial, #6538), and a link to /people/<slug>/; the count says 13;
  *   - no placeholder quote, no "Lessy" name, no .png/.jpg portrait and no /members/<slug>/ link is left;
  *   - the plugin's search (?keyword=) is answered from PROFILES, with the plugin's own "no results";
  *   - the theme header, the /find/ link and the member badges still work on the new cards;
@@ -91,7 +91,7 @@ foreach ( $listed as $i => $m ) {
 		&& false !== strpos( $c[2], '<div class="dc-quote">“' . esc_html( $m['quote'] ) . '”</div>' )
 		&& ( $m['img']
 			? false !== strpos( $c[2], 'src="' . TEST_HOME . '/wp-content/themes/prospergenics-2026/assets/' . $m['img'] . '"' )
-			: false !== strpos( $c[2], '<div class="dc-initial">' . $m['initial'] . '</div>' ) );
+			: false !== strpos( $c[2], '<div class="dc-thumb"><span class="pg-pattern pg-pattern--' . ( abs( crc32( $m['slug'] ) ) % 3 + 1 ) . '" aria-hidden="true"></span></div>' ) && false === strpos( $c[2], 'dc-initial' ) );
 	ok( $this_ok, "card " . ( $i + 1 ) . ": {$m['name']} → /people/{$m['slug']}/, same name, role, quote and photo as PROFILES" );
 	$all_match = $all_match && $this_ok;
 }
