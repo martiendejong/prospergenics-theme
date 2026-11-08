@@ -12,7 +12,11 @@
  *     buffer starts: a buffer around the whole page (started on init, used only once wp_head has
  *     shown it is a listings page) runs prospergenics_2026_listings_document() on it:
  *       - fonts (card #7231): the plugin's Google Fonts <link>s and preconnects go, the theme's
- *         self-hosted assets/fonts/fonts.css (Sora, Inter) comes in their place, as on theme pages.
+ *         self-hosted assets/fonts/fonts.css (Sora, Inter) comes in their place, as on theme pages;
+ *       - one <title> (card #7233): the /vacancies/ template's bare <title>ProsperGenics</title>
+ *         goes when the plugin prints the page's own;
+ *       - sharing tags (card #7233): og:title, og:description, twitter:title and
+ *         twitter:description from the page's own <title> and description, where missing.
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -104,13 +108,100 @@ function prospergenics_2026_listings_self_host_fonts( $html, $fonts_css ) {
     return $new . substr( $head, $at ) . substr( $html, $end );
 }
 
+/** The text of every <title> in the <head>, with its offset and full tag: [[tag, offset, text], ...] (pure). */
+function prospergenics_2026_listings_titles( $html ) {
+    $end = prospergenics_2026_listings_head_end( $html );
+    if ( false === $end || ! preg_match_all( '#<title\b[^>]*>(.*?)</title>#is', substr( (string) $html, 0, $end ), $m, PREG_SET_ORDER | PREG_OFFSET_CAPTURE ) ) {
+        return array();
+    }
+    $out = array();
+    foreach ( $m as $t ) {
+        $out[] = array( $t[0][0], $t[0][1], trim( html_entity_decode( wp_strip_all_tags( $t[1][0] ), ENT_QUOTES, 'UTF-8' ) ) );
+    }
+    return $out;
+}
+
+/**
+ * One <title> (card #7233). The /vacancies/ template prints <title>ProsperGenics</title> at the
+ * top of its <head> and the plugin then prints the page's own (<title>Vacancies</title>) from
+ * wp_head; browsers and scrapers take the first. A <title> that is only the site name goes when
+ * the <head> has another one with real text; any other combination is left alone (pure).
+ */
+function prospergenics_2026_listings_one_title( $html, $site_name = 'ProsperGenics' ) {
+    $titles = prospergenics_2026_listings_titles( $html );
+    if ( count( $titles ) < 2 ) {
+        return $html;
+    }
+    $bare = array_filter( $titles, function ( $t ) use ( $site_name ) { return 0 === strcasecmp( $t[2], (string) $site_name ); } );
+    $real = array_filter( $titles, function ( $t ) use ( $site_name ) { return '' !== $t[2] && 0 !== strcasecmp( $t[2], (string) $site_name ); } );
+    if ( ! $bare || ! $real ) {
+        return $html;
+    }
+    foreach ( array_reverse( $bare ) as $t ) { // from the end, so the earlier offsets stay right
+        $len  = strlen( $t[0] );
+        $len += preg_match( '#\G[ \t]*\R#', $html, $nl, 0, $t[1] + $len ) ? strlen( $nl[0] ) : 0;
+        $html = substr_replace( $html, '', $t[1], $len );
+    }
+    return $html;
+}
+
+/**
+ * Sharing tags for a jengo-listings page from the page itself (card #7233). The plugin prints the
+ * page's <title> and <meta name="description"> (the item's name and summary on a detail page, the
+ * list's on a list page); the theme prints og:url, og:image and twitter:card (inc/seo.php) but has
+ * no title or description of its own for these pages. Add og:title, og:description, twitter:title
+ * and twitter:description from that title and description, right after og:url, each only when
+ * the page doesn't have it yet. Pure; a page without a <head>, title or description gets nothing
+ * for that value.
+ */
+function prospergenics_2026_listings_share_tags( $html ) {
+    $html = (string) $html;
+    $end  = prospergenics_2026_listings_head_end( $html );
+    if ( false === $end ) {
+        return $html;
+    }
+    $head   = substr( $html, 0, $end );
+    $titles = prospergenics_2026_listings_titles( $html );
+    // one title and one description, or that value is unclear and stays out
+    $title = 1 === count( $titles ) ? $titles[0][2] : '';
+    $desc  = '';
+    if ( 1 === preg_match_all( '#<meta\s+name=["\']description["\']\s+content=(["\'])(.*?)\1[^>]*>#is', $head, $d ) ) {
+        $desc = trim( html_entity_decode( $d[2][0], ENT_QUOTES, 'UTF-8' ) );
+    }
+    $want = array(
+        array( 'property', 'og:title', $title ),
+        array( 'property', 'og:description', $desc ),
+        array( 'name', 'twitter:title', $title ),
+        array( 'name', 'twitter:description', $desc ),
+    );
+    $tags = '';
+    foreach ( $want as $w ) {
+        if ( '' !== $w[2] && ! preg_match( '#<meta\s[^>]*\b(?:property|name)=["\']' . preg_quote( $w[1], '#' ) . '["\']#i', $head ) ) {
+            $tags .= '<meta ' . $w[0] . '="' . $w[1] . '" content="' . esc_attr( $w[2] ) . '" />' . "\n";
+        }
+    }
+    if ( '' === $tags ) {
+        return $html;
+    }
+    if ( preg_match( '#<meta\s+property=["\']og:url["\'][^>]*>[ \t]*\R?#i', $head, $u, PREG_OFFSET_CAPTURE ) ) {
+        $at   = $u[0][1] + strlen( $u[0][0] );
+        $tags = "\n" === substr( $u[0][0], -1 ) ? $tags : "\n" . $tags;
+    } else {
+        $at = $end;
+    }
+    return substr_replace( $html, $tags, $at, 0 );
+}
+
 /**
  * Everything the theme changes on a whole jengo-listings page, <head> included (pure).
  *
- * @param array $args 'fonts_css' => URL of the theme's fonts.css.
+ * @param array $args 'fonts_css' => URL of the theme's fonts.css; 'site_name' => the bare site
+ *                    title (default ProsperGenics).
  */
 function prospergenics_2026_listings_document( $html, array $args ) {
     $html = prospergenics_2026_listings_self_host_fonts( $html, isset( $args['fonts_css'] ) ? $args['fonts_css'] : '' );
+    $html = prospergenics_2026_listings_one_title( $html, isset( $args['site_name'] ) ? $args['site_name'] : 'ProsperGenics' );
+    $html = prospergenics_2026_listings_share_tags( $html );
     return $html;
 }
 
@@ -135,6 +226,7 @@ add_action( 'init', function () {
         $prospergenics_2026_listings_document = false;
         return prospergenics_2026_listings_document( $html, array(
             'fonts_css' => get_template_directory_uri() . '/assets/fonts/fonts.css',
+            'site_name' => get_bloginfo( 'name' ),
         ) );
     } );
 }, 2 );

@@ -11,6 +11,7 @@
   <!-- /site-chrome:meta -->
 <!-- test/preview environment: keep out of search indexes (production About page lives on prospergenics.com) -->
 <meta property="og:type" content="website" />
+<meta property="og:url" content="<?php echo esc_url( home_url( '/about/' ) ); ?>" />
 <meta property="og:title" content="About ProsperGenics — exploring how value is created" />
 <meta property="og:image" content="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/hero-top.jpg" />
 <link rel="icon" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/logo.webp" />

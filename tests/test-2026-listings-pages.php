@@ -11,7 +11,11 @@
  *   - fonts (#7231): the plugin's Google Fonts stylesheet and preconnects leave the <head>, the
  *     theme's fonts.css takes the stylesheet's place (once); the body, other shapes and pages
  *     without Google Fonts are untouched; the whole-page buffer (init) acts only on a listings page,
- *     only on a page that went out in one piece, and not on POSTs.
+ *     only on a page that went out in one piece, and not on POSTs;
+ *   - one <title> and sharing tags (#7233): /vacancies/ (fixture: its <head> as test sent it) loses
+ *     the bare <title>ProsperGenics</title>; list and item pages get og:title, og:description,
+ *     twitter:title and twitter:description from their own <title> and description, after og:url,
+ *     never twice, escaped; unclear shapes get nothing; /about/ has og:url.
  *
  * Run with: php tests/test-2026-listings-pages.php
  */
@@ -203,6 +207,80 @@ $_SERVER['REQUEST_METHOD'] = 'POST';
 list( $opened, $o ) = through_buffer( $buffer, $flag, $pages['members'] );
 ok( ! $opened && $o === $pages['members'], 'a POST: no buffer at all' );
 $_SERVER['REQUEST_METHOD'] = 'GET';
+
+echo "One <title> and the sharing tags (#7233)\n";
+function metas( $html ) {
+	$end = stripos( $html, '</head>' );
+	preg_match_all( '#<meta\s+(?:property|name)="([^"]+)"\s+content="([^"]*)"#', substr( $html, 0, $end ), $m, PREG_SET_ORDER );
+	$out = array();
+	foreach ( $m as $t ) { $out[ $t[1] ][] = html_entity_decode( $t[2], ENT_QUOTES, 'UTF-8' ); }
+	return $out;
+}
+$vac = file_get_contents( "$fixture/vacancies-head.html" );
+ok( 2 === substr_count( $vac, '<title' ) && false !== strpos( $vac, "<title>ProsperGenics</title>\n" ) && false !== strpos( $vac, '<title>Vacancies</title>' ), 'fixture: /vacancies/ as test sent it, two <title>s, the bare site name first' );
+$one = prospergenics_2026_listings_one_title( $vac );
+ok( 1 === substr_count( $one, '<title' ) && false !== strpos( $one, '<title>Vacancies</title>' ) && $one === str_replace( "<title>ProsperGenics</title>\n", '', $vac ), '/vacancies/: the bare <title>ProsperGenics</title> goes (with its line), the page\'s own stays, nothing else changes' );
+ok( $one === prospergenics_2026_listings_one_title( $one ), 'one title: nothing to do' );
+$two_real = str_replace( '<title>ProsperGenics</title>', '<title>Jobs</title>', $vac );
+ok( $two_real === prospergenics_2026_listings_one_title( $two_real ), 'two titles that both say something: left alone' );
+$two_bare = str_replace( '<title>Vacancies</title>', '<title>ProsperGenics</title>', $vac );
+ok( $two_bare === prospergenics_2026_listings_one_title( $two_bare ), 'only the site name twice: left alone (no title would be left)' );
+$other_site = prospergenics_2026_listings_one_title( str_replace( '<title>ProsperGenics</title>', '<title>Other</title>', $vac ), 'Other' );
+ok( 1 === substr_count( $other_site, '<title' ) && false !== strpos( $other_site, '<title>Vacancies</title>' ), 'the site name comes from WordPress (get_bloginfo)' );
+$body_title = str_replace( '</body>', '<svg><title>ProsperGenics</title></svg></body>', $one );
+ok( $body_title === prospergenics_2026_listings_one_title( $body_title ), 'a <title> in the body (an SVG): not counted, not touched' );
+
+$tool = file_get_contents( "$fixture/tool-detail.html" );
+$m0   = metas( $tool );
+ok( isset( $m0['og:url'], $m0['og:image'], $m0['twitter:card'] ) && ! isset( $m0['og:title'], $m0['og:description'], $m0['twitter:title'], $m0['twitter:description'] ), 'fixture: a tool page with og:url and og:image from the theme, no title or description tags' );
+$t  = prospergenics_2026_listings_share_tags( $tool );
+$m1 = metas( $t );
+preg_match( '#<meta name="description" content="([^"]*)"#', $tool, $plugin_desc );
+$plugin_desc = html_entity_decode( $plugin_desc[1], ENT_QUOTES, 'UTF-8' );
+ok( array( 'Jengo Meet — ProsperGenics Tools' ) === $m1['og:title'] && $m1['og:title'] === $m1['twitter:title'], 'tool page: og:title and twitter:title are the page\'s own <title> ("Jengo Meet — ProsperGenics Tools")' );
+ok( array( $plugin_desc ) === $m1['og:description'] && $m1['og:description'] === $m1['twitter:description'] && 0 === strpos( $plugin_desc, 'Jengo Meet records and transcribes meetings' ), 'og:description and twitter:description are its own description' );
+ok( false !== strpos( $t, '<meta property="og:url" content="' . TEST_HOME . '/tools/jengo-meet/" />' . "\n" . '<meta property="og:title" content="Jengo Meet — ProsperGenics Tools" />' . "\n" . '<meta property="og:description" content="' ), 'right after og:url, one per line' );
+ok( $tool === str_replace( array( "<meta property=\"og:title\" content=\"Jengo Meet — ProsperGenics Tools\" />\n", "<meta name=\"twitter:title\" content=\"Jengo Meet — ProsperGenics Tools\" />\n" ), '', preg_replace( '#<meta (?:property="og|name="twitter):description" content="[^"]*" />\n#', '', $t ) ), 'nothing else changes' );
+ok( $t === prospergenics_2026_listings_share_tags( $t ), 'tags that are there are never added twice (running it again changes nothing)' );
+
+$members = file_get_contents( "$fixture/members-head.html" );
+$m2      = metas( prospergenics_2026_listings_document( $members, array( 'fonts_css' => $fonts ) ) );
+ok( array( 'Members — ProsperGenics' ) === $m2['og:title'] && array( 'Engineers, designers, researchers and entrepreneurs. The people who turn skills, ideas and opportunities into real value.' ) === $m2['og:description'] && $m2['og:title'] === $m2['twitter:title'] && $m2['og:description'] === $m2['twitter:description'] && array( TEST_HOME . '/members/' ) === $m2['og:url'], '/members/ (list page, as test sent it): the list\'s own title and description, its own og:url' );
+$vd = prospergenics_2026_listings_document( $vac, array( 'fonts_css' => $fonts ) );
+$m3 = metas( $vd );
+ok( 1 === substr_count( $vd, '<title' ) && array( 'Vacancies' ) === $m3['og:title'] && array( 'Browse 38 vacancies. Filter by city, skill, and more.' ) === $m3['og:description'] && 1 === substr_count( $vd, 'fonts/fonts.css' ), '/vacancies/: one title, and the sharing tags take that one, not "ProsperGenics"' );
+
+$amp = str_replace( '<title>Jengo Meet — ProsperGenics Tools</title>', '<title>R&amp;D &quot;tools&quot; — ProsperGenics</title>', $tool );
+$m4  = metas( prospergenics_2026_listings_share_tags( $amp ) );
+ok( array( 'R&D "tools" — ProsperGenics' ) === $m4['og:title'] && false !== strpos( prospergenics_2026_listings_share_tags( $amp ), 'content="R&amp;D &quot;tools&quot; — ProsperGenics"' ), 'entities in the title: decoded once, escaped once' );
+$has = str_replace( '<meta name="twitter:card"', '<meta property="og:title" content="Set by the plugin" />' . "\n" . '<meta name="twitter:card"', $tool );
+$m5  = metas( prospergenics_2026_listings_share_tags( $has ) );
+ok( array( 'Set by the plugin' ) === $m5['og:title'] && array( 'Jengo Meet — ProsperGenics Tools' ) === $m5['twitter:title'] && isset( $m5['og:description'] ), 'a tag the page already has (once the plugin prints its own) is kept; only the missing ones come' );
+$old = file_get_contents( "$fixture/services.html" ); // before #6522: the homepage's tags and a second description
+ok( $old === prospergenics_2026_listings_share_tags( $old ), 'two descriptions and existing og:title/twitter tags (an older shape): nothing added' );
+$no_desc = preg_replace( '#<meta name="description"[^>]*>\n#', '', $tool );
+$m6      = metas( prospergenics_2026_listings_share_tags( $no_desc ) );
+ok( isset( $m6['og:title'], $m6['twitter:title'] ) && ! isset( $m6['og:description'] ) && ! isset( $m6['twitter:description'] ), 'no description: title tags only' );
+$no_url = str_replace( '<meta property="og:url" content="' . TEST_HOME . '/tools/jengo-meet/" />' . "\n", '', $tool );
+$t7     = prospergenics_2026_listings_share_tags( $no_url );
+ok( isset( metas( $t7 )['og:title'] ) && strpos( $t7, 'og:title' ) < stripos( $t7, '</head>' ) && strpos( $t7, 'og:title' ) > strpos( $t7, '<title>' ), 'no og:url: the tags go at the end of the <head>' );
+ok( 'x<p>no head</p>' === prospergenics_2026_listings_share_tags( 'x<p>no head</p>' ), 'no <head>: untouched' );
+$xss = str_replace( '<title>Jengo Meet — ProsperGenics Tools</title>', '<title>&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;</title>', $tool );
+ok( false === strpos( prospergenics_2026_listings_share_tags( $xss ), '"><script>' ), 'a title with markup in it stays text in the attribute' );
+
+// In the whole-page buffer, together with the fonts.
+$GLOBALS['__hooks']['prospergenics_2026_listings_takeover'] = array( function () { return true; } );
+function get_bloginfo( $k ) { return 'ProsperGenics'; }
+list( $opened, $o ) = through_buffer( $buffer, $flag, $vac );
+ok( 1 === substr_count( $o, '<title' ) && isset( metas( $o )['og:title'] ), 'the whole-page buffer applies them on a listings page' );
+
+echo "/about/ has its og:url (#7233)\n";
+$about_src = file_get_contents( $design . '/about/index.html' );
+$about_php = file_get_contents( $theme . '/page-about.php' );
+ok( 1 === substr_count( $about_src, '<meta property="og:url" content="https://test.prospergenics.com/about/" />' ), 'about/index.html: og:url is the About page' );
+ok( 1 === substr_count( $about_php, '<meta property="og:url" content="<?php echo esc_url( home_url( \'/about/\' ) ); ?>" />' ) && false === strpos( $about_php, 'content="https://test.prospergenics.com/about/"' ), 'page-about.php: og:url from home_url(), so it is right on any site' );
+preg_match_all( '#<meta property="(og:[a-z_]+)"#', $about_php, $og );
+ok( array( 'og:description', 'og:image', 'og:title', 'og:type', 'og:url' ) === array_values( array_unique( ( function ( $a ) { sort( $a ); return $a; } )( $og[1] ) ) ) && count( $og[1] ) === count( array_unique( $og[1] ) ), 'About: og:type, og:url, og:title, og:description and og:image, each once' );
 
 echo $failures ? "\n$failures FAILED\n" : "\nAll assertions passed.\n";
 exit( $failures ? 1 : 0 );
