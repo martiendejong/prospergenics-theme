@@ -1228,9 +1228,7 @@
 
   <!-- ProsperGenics coach chat (CoachOS tenant 'prospergenics'): takeover mode, the launcher
        orb is the trigger so the widget renders no floating button of its own -->
-  <script src="https://coaching.martiendejong.nl/coaching/embed.js?v=2" data-tenant="prospergenics"
-          data-lang="en" data-title="Chat with ProsperGenics" data-color="#1a7a46"
-          data-trigger=".launcher-orb" data-position="right" async></script>
+  <?php echo prospergenics_2026_coach_embed(); // phpcs:ignore WordPress.Security.EscapeOutput -- built and escaped in inc/coach-context.php ?>
 
   <script>
     const SLIDES = [

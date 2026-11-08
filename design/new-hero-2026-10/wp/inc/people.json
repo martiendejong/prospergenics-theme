@@ -11,7 +11,8 @@
       "name": "Simitia Mpoe",
       "role": "Founding team, Software Developer, Entrepreneur",
       "img": "sandra_profile-300x300.webp",
-      "pos": "center 25%"
+      "pos": "center 25%",
+      "aka": "Sandra"
     },
     "diko": {
       "name": "Diko Mohamed",
@@ -41,7 +42,9 @@
       "name": "Lesiamon Mpoe",
       "role": "Founding team, Trainer, Software Developer",
       "img": "lessy_profile-300x300.webp",
-      "pos": "center 25%"
+      "pos": "center 25%",
+      "aka": "Lessy",
+      "pronouns": "he/him"
     },
     "frank": {
       "name": "Frank",
