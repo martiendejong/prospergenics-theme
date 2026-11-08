@@ -63,7 +63,8 @@
 .learn-wrap .learn-body .pg-session-pager a.pg-next {
   margin-left: auto; text-align: right; background: var(--green-700, #1a7a46); border-color: var(--green-700, #1a7a46);
 }
-.learn-wrap .pg-session-pager a.pg-next small { color: rgba(255,255,255,.8); }
+/* #7236: "Next: lesson N" is 12px, so it needs 4.5:1; #e6f3ec on #1a7a46 is 4.7:1 (the 80% white was 4.03:1) */
+.learn-wrap .pg-session-pager a.pg-next small { color: #e6f3ec; }
 .learn-wrap .pg-session-pager a.pg-next b { color: #fff; }
 .learn-wrap .learn-body .pg-session-pager a.pg-next:hover { background: var(--green-900, #0f3d28); border-color: var(--green-900, #0f3d28); }
 
@@ -107,7 +108,9 @@
 .learn-body .editor-container, .editor-container {
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; margin: 20px 0; align-items: stretch;
 }
-@media (max-width: 760px) { .editor-container { grid-template-columns: minmax(0, 1fr); } }
+/* code above its result on phones (with .learn-body in the selector too, or the two-column rule above wins and
+   both panels were 168px wide at 390) */
+@media (max-width: 760px) { .learn-body .editor-container, .editor-container { grid-template-columns: minmax(0, 1fr); } }
 .editor-container .editor-panel, .editor-container .preview-panel {
   display: flex; flex-direction: column; min-width: 0; overflow: hidden;
   border: 1px solid var(--line, rgba(15, 61, 40, .18)); border-radius: 10px; background: #fff;

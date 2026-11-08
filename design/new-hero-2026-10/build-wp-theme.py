@@ -100,6 +100,11 @@ def build():
     about = about.replace('href="../"', f'href="{HOME}"')
     about = about.replace('href="./"', f'href="{HOME}about/"')
     about = about.replace('href="../#', f'href="{HOME}#')
+    # its own address for sharing (card #7233), on whichever site WordPress runs
+    if about.count('<meta property="og:url" content="https://test.prospergenics.com/about/" />') != 1:
+        raise SystemExit("about/index.html: og:url not found")
+    about = about.replace('<meta property="og:url" content="https://test.prospergenics.com/about/" />',
+                          "<meta property=\"og:url\" content=\"<?php echo esc_url( home_url( '/about/' ) ); ?>\" />")
     with open(os.path.join(OUT, "page-about.php"), "w", encoding="utf-8") as f:
         f.write("<?php /* About page - generated from design/new-hero-2026-10/about/index.html by build-wp-theme.py; edit the source, not this file. */ ?>\n" + about)
 

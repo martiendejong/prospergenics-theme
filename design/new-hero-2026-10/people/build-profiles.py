@@ -36,7 +36,10 @@ Also generated from PROFILES:
   members-collection.json  the same people as records for the jengo-listings
                          "members" collection (deploy_collections.py), so the
                          listings API can be brought back in line (card #6516)
-  .htaccess              /people/ itself: a real 301 to the /members/ list (card #7226)
+  .htaccess              the security headers WordPress sends, for every page under /people/
+                         (Apache serves these files itself, card #6449; ../static_headers.py),
+                         and /people/ itself: a real 301 to the /members/ list (card #7226);
+                         ../experts/.htaccess and ../community/.htaccess get the same headers
   index.html             the same as a meta refresh, the fallback where .htaccess is ignored (CON-15)
 
 Asset URLs are relative so the pages work in the static preview;
@@ -46,6 +49,7 @@ import json, os, sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import site_chrome  # noqa: E402  shared header, mobile menu and footer
+import static_headers  # noqa: E402  the security headers for the static folders' .htaccess (#6449)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SITE = "https://test.prospergenics.com"
@@ -396,14 +400,12 @@ PROFILE_PAGE = """<!DOCTYPE html>
   .p-hero .wrap {{ position:relative; z-index:2; display:grid; grid-template-columns:300px minmax(0,1fr); gap:clamp(28px,5vw,64px); align-items:center; }}
   .p-portrait {{ position:relative; width:300px; height:330px; overflow:hidden; clip-path:polygon(26px 0,100% 0,calc(100% - 26px) 100%,0 100%); background:linear-gradient(165deg,var(--green-100),var(--paper-2) 70%); }}
   .p-portrait img {{ width:100%; height:100%; object-fit:cover; }}
-  .p-portrait.p-initial {{ display:grid; place-items:center; font-family:'Sora',sans-serif; font-weight:800; font-size:110px; color:#fff; background:linear-gradient(150deg,var(--green-600),var(--green-300)); }}
   h1 {{ font-weight:800; font-size:clamp(36px,5.4vw,64px); line-height:1; letter-spacing:-.03em; }}
   .p-role {{ margin-top:10px; font-family:'Sora',sans-serif; font-weight:600; font-size:clamp(15px,1.8vw,19px); color:var(--green-700); }}
   .p-quote {{ margin-top:22px; max-width:46ch; font-family:'Sora',sans-serif; font-weight:500; font-size:clamp(17px,2vw,22px); line-height:1.45; color:var(--green-900); border-left:3px solid var(--green-500); padding-left:16px; }}
   @media (max-width:760px) {{
     .p-hero .wrap {{ grid-template-columns:1fr; }}
     .p-portrait {{ width:232px; height:252px; clip-path:polygon(20px 0,100% 0,calc(100% - 20px) 100%,0 100%); }}
-    .p-portrait.p-initial {{ font-size:84px; }}
   }}
   .pv {{ padding:clamp(20px,3vw,36px) 0 0; }}
   .pv-block {{ margin-top:clamp(34px,4.5vw,56px); }}
@@ -519,7 +521,6 @@ LIST_PAGE = """<!DOCTYPE html>
   .pcard:hover {{ transform:translateY(-4px); box-shadow:0 26px 54px -30px rgba(11,32,22,.5); }}
   .pc-media {{ position:relative; height:240px; overflow:hidden; background:linear-gradient(165deg,var(--green-100),var(--paper-2) 70%); }}
   .pc-media img {{ width:100%; height:100%; object-fit:cover; }}
-  .pc-media.pc-initial {{ display:grid; place-items:center; font-family:'Sora',sans-serif; font-weight:800; font-size:84px; color:#fff; background:linear-gradient(150deg,var(--green-600),var(--green-300)); }}
   .pc-body {{ padding:18px 20px 22px; }}
   .pc-body h2 {{ font-weight:800; font-size:20px; letter-spacing:-.01em; color:var(--ink); }}
   .pc-role {{ font-size:13.5px; color:var(--green-700); font-weight:600; margin:4px 0 10px; font-family:'Sora',sans-serif; }}
@@ -600,8 +601,9 @@ def build_profiles():
             portrait = f"<img src=\"../../assets/{m['img']}\" alt=\"{m['name']}\" style=\"object-position: {m['pos']}\" />"
             initial_class = ""
         else:
-            portrait = m["initial"]
-            initial_class = " p-initial"
+            # no photo yet: the branded pattern, not a big initial (card #6538); never a made-up photo
+            portrait = site_chrome.pattern(m["slug"])
+            initial_class = " p-nophoto"
         eyebrow = "ProsperGenics expert" if "expert" in m["tags"] else "ProsperGenics community"
         url = f"{SITE}/people/{m['slug']}/"
         image = f"{SITE}/wp-content/themes/prospergenics-2026/assets/{m['img']}" if m.get("img") else f"{SITE}/wp-content/themes/prospergenics-2026/assets/og-image.jpg"
@@ -628,7 +630,7 @@ def list_card(m):
     if m.get("img"):
         media = f"<div class=\"pc-media\"><img src=\"../assets/{m['img']}\" alt=\"{m['name']}\" style=\"object-position: {m['pos']}\" /></div>"
     else:
-        media = f"<div class=\"pc-media pc-initial\">{m['initial']}</div>"
+        media = f"<div class=\"pc-media pc-nophoto\">{site_chrome.pattern(m['slug'])}</div>"
     chips = "\n".join(f"              <span class=\"chip\">{e['name']}</span>" for e in m["expertises"][:3])
     return f"""          <a class="pcard" href="../people/{m['slug']}/">
             {media}
@@ -669,6 +671,9 @@ def build_list(folder, tag, title, eyebrow, heading, lede, meta_desc, all_text):
     os.makedirs(out_dir, exist_ok=True)
     with open(os.path.join(out_dir, "index.html"), "w", encoding="utf-8") as f:
         f.write(html)
+    # Apache serves this folder itself: the security headers WordPress would send (card #6449)
+    with open(os.path.join(out_dir, ".htaccess"), "w", encoding="utf-8", newline="\n") as f:
+        f.write(static_headers.htaccess(folder))
     return len(people)
 
 
@@ -724,7 +729,8 @@ def slider_card(m, duplicate):
         dims = f' width="{size[0]}" height="{size[1]}"' if size else ""
         portrait = f'<span class="fc-portrait"><img loading="lazy" decoding="async"{dims} src="assets/{m["img"]}" alt="{alt}" style="object-position: {m["pos"]}" /></span>'
     else:
-        portrait = f'<span class="fc-portrait fc-initial"{hidden}>{m["initial"]}</span>'
+        # no photo yet: the branded pattern, not a big initial (card #6538)
+        portrait = f'<span class="fc-portrait fc-nophoto">{site_chrome.pattern(m["slug"])}</span>'
     return (f'          <a class="flow-card" href="people/{m["slug"]}/"{tab}>\n'
             f'            <span class="fc-ring"{hidden}></span>\n'
             f'            {portrait}\n'
@@ -873,8 +879,9 @@ def write_people_index():
     html = PEOPLE_INDEX.format(target=PEOPLE_LIST, canonical=SITE + PEOPLE_LIST, target_js=json.dumps(PEOPLE_LIST))
     with open(os.path.join(HERE, "index.html"), "w", encoding="utf-8") as f:
         f.write(html)
+    # the security headers for every page under /people/ (card #6449), then the 301
     with open(os.path.join(HERE, ".htaccess"), "w", encoding="utf-8", newline="\n") as f:
-        f.write(PEOPLE_HTACCESS.format(target=PEOPLE_LIST))
+        f.write(static_headers.htaccess("people", PEOPLE_HTACCESS.format(target=PEOPLE_LIST)))
 
 
 def dump():

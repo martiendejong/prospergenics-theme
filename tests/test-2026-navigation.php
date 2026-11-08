@@ -285,7 +285,10 @@ ok( (bool) preg_match( '#<nav class="pg-breadcrumb pg-crumbs pg-crumbs--light" a
 $learn = "<div class=\"pg-breadcrumb\">\n  <a href=\"/\">Home</a>\n  <span class=\"sep\">›</span>\n  <a href=\"/courses/\">Courses</a>\n  <span class=\"sep\">›</span>\n  <a href=\"/courses/ai/\">AI</a>\n  <span class=\"sep\">›</span>\n  <span>Course</span>\n</div>\n\n<div class=\"learn-hero\">\n  <div class=\"learn-hero-inner\">\n    <div class=\"lh-eyebrow\"><span class=\"dot\"></span>Course content</div>\n";
 $learn_out = prospergenics_2026_listings_breadcrumb( $learn );
 ok( false !== strpos( $learn_out, '<div class="learn-hero pg-hero--crumbs">' ) && false !== strpos( $learn_out, 'Course content</div>' ) && strpos( $learn_out, 'pg-crumbs--on-hero' ) < strpos( $learn_out, 'lh-eyebrow' ), 'lesson page: inside the banner; an eyebrow that says something else stays' );
+ok( false !== strpos( $learn_out, "<span aria-current=\"page\">Lessons</span>\n</nav>" ) && false === strpos( $learn_out, '>Course</span>' ), 'lesson page: the last item reads "Lessons", not "Course" (#7236)' );
+ok( '<a href="/x/">Course</a> <span aria-current="page">Lessons</span>' === prospergenics_2026_listings_lesson_crumb( '<a href="/x/">Course</a> <span aria-current="page">Course</span>' ) && '<span aria-current="page">Course design</span>' === prospergenics_2026_listings_lesson_crumb( '<span aria-current="page">Course design</span>' ), 'only the current item, and only when it is exactly "Course"' );
 $course = str_replace( array( 'learn-hero', 'lh-eyebrow', 'Course content' ), array( 'course-hero', 'ch-eyebrow', 'ProsperGenics' ), $learn );
+ok( false !== strpos( prospergenics_2026_listings_breadcrumb( $course ), '<span aria-current="page">Course</span>' ), 'a course page (not a lesson page) keeps its own last item' );
 ok( false !== strpos( $c = prospergenics_2026_listings_breadcrumb( str_replace( "\n\n<div class=\"course-hero\">", "\r\n<!-- HERO BAND -->\r\n<div class=\"course-hero\">", $course ) ), '<!-- HERO BAND -->' . "\r\n" . '<div class="course-hero pg-hero--crumbs">' ) && false !== strpos( $c, 'pg-crumbs--on-hero' ), 'course page (a comment and CRLF before the banner, as live): inside the banner' );
 ok( $learn . $learn === prospergenics_2026_listings_breadcrumb( $learn . $learn ), 'two breadcrumbs: the page is left as it was' );
 ok( 'x' === prospergenics_2026_listings_breadcrumb( 'x' ), 'no breadcrumb: nothing changes' );
@@ -449,6 +452,16 @@ ok( false === strpos( $ljs, '</script>' . "\n" . '(function' ) && 1 === substr_c
 ok( false !== strpos( $ljs, '/* Lesson playground' ) && false !== strpos( $ljs, 'else\\s*\\{\\s*scan\\(document\\);' ), 'the stranded playground code is removed from its header comment to its last line' );
 ok( false !== strpos( prospergenics_2026_learn_css(), '.editor-container textarea {' ) && false !== strpos( prospergenics_2026_learn_css(), '.learn-body .analogy, .learn-body .info-box {' ), 'the editors and lesson callouts are styled again' );
 ok( preg_match_all( '#data-tool="([a-z]+)"#', $learn, $tm ) && 5 === count( array_unique( $tm[1] ) ) && 8 === substr_count( $learn, '<hr>' ), 'the saved course has 5 coding agents and 9 sessions (8 breaks)' );
+// An example with a <textarea> of its own (HTML lesson 36): the takeover puts it back in its editor (#7146).
+require $theme . '/inc/lesson-editors.php';
+$l36_page = '<html><head></head><body><nav class="pg-nav"><a href="/">x</a></nav>' . file_get_contents( __DIR__ . '/fixtures/jengo-listings/html-learn-lesson36.html' );
+$l36_out  = prospergenics_2026_listings_takeover( $l36_page, '/courses/html/learn/', $lchrome );
+ok( 1 === substr_count( $l36_page, '<button class="btn btn-primary" type="submit">Submit</button>' ) && false === strpos( $l36_out, '<button class="btn btn-primary" type="submit">Submit</button>' ) && false !== strpos( $l36_out, '&lt;button class="btn btn-primary" type="submit"&gt;Submit&lt;/button&gt;' ), 'lesson pages: the example\'s spilled buttons are back in its editor, as text' );
+ok( false !== strpos( file_get_contents( $theme . '/functions.php' ), "require get_template_directory() . '/inc/lesson-editors.php';" ), 'the theme loads inc/lesson-editors.php' );
+ok( false === strpos( prospergenics_2026_listings_takeover( $buffer_service, '/services/coachos/', $lchrome ), '&lt;/textarea&gt;' ), 'other pages are not mended' );
+ok( false !== strpos( $lcss, '@media (max-width: 760px) { .learn-body .editor-container, .editor-container { grid-template-columns: minmax(0, 1fr); } }' ), 'on phones the code sits above its result, full width (the phone rule is as specific as the two-column one)' );
+// The lesson pager (#7236): "Next: lesson N" is 12px on #1a7a46, so it needs 4.5:1.
+ok( false !== strpos( $lcss, '.learn-wrap .pg-session-pager a.pg-next small { color: #e6f3ec; }' ) && false === strpos( $lcss, 'a.pg-next small { color: rgba(255,255,255,.8); }' ), 'the pager\'s "Next" label is #e6f3ec (4.7:1 on #1a7a46), no longer 80% white (4.03:1)' );
 
 echo "skip link target on every jengo-listings page type (card #7227)\n";
 // Only the plugin's detail pages have a <main>; its list, course and lesson pages have none, so

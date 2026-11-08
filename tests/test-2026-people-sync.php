@@ -49,18 +49,19 @@ function slider_sets( $html ) {
 	$sets = array();
 	preg_match_all( '#<div class="flow-set"( aria-hidden="true")?>(.*?)\n        </div>#s', $m[1], $sm, PREG_SET_ORDER );
 	foreach ( $sm as $set ) {
-		preg_match_all( '#<a class="flow-card" href="[^"]*people/([a-z0-9-]+)/"( tabindex="-1")?>.*?<span class="fc-portrait[^"]*"[^>]*>(?:<img [^>]*src="[^"]*assets/([^"]+)" alt="([^"]*)"[^>]*/>|([^<]+))</span>\s*<div class="fc-name">(.*?)</div>\s*<div class="fc-role">(.*?)</div>\s*<p class="fc-quote">"(.*?)"</p>#s', $set[2], $cm, PREG_SET_ORDER );
+		preg_match_all( '#<a class="flow-card" href="[^"]*people/([a-z0-9-]+)/"( tabindex="-1")?>.*?<span class="fc-portrait[^"]*"[^>]*>(?:<img [^>]*src="[^"]*assets/([^"]+)" alt="([^"]*)"[^>]*/>|<span class="pg-pattern pg-pattern--([1-3])" aria-hidden="true"></span>|([^<]+))</span>\s*<div class="fc-name">(.*?)</div>\s*<div class="fc-role">(.*?)</div>\s*<p class="fc-quote">"(.*?)"</p>#s', $set[2], $cm, PREG_SET_ORDER );
 		$cards = array();
 		foreach ( $cm as $c ) {
 			$cards[] = array(
-				'slug'  => $c[1],
-				'tab'   => '' !== $c[2],
-				'img'   => '' !== $c[3] ? $c[3] : null,
-				'alt'   => $c[4],
-				'init'  => isset( $c[5] ) ? $c[5] : '',
-				'name'  => html_entity_decode( $c[6], ENT_QUOTES, 'UTF-8' ),
-				'role'  => html_entity_decode( $c[7], ENT_QUOTES, 'UTF-8' ),
-				'quote' => html_entity_decode( $c[8], ENT_QUOTES, 'UTF-8' ),
+				'slug'    => $c[1],
+				'tab'     => '' !== $c[2],
+				'img'     => '' !== $c[3] ? $c[3] : null,
+				'alt'     => $c[4],
+				'pattern' => $c[5],
+				'init'    => $c[6],
+				'name'    => html_entity_decode( $c[7], ENT_QUOTES, 'UTF-8' ),
+				'role'    => html_entity_decode( $c[8], ENT_QUOTES, 'UTF-8' ),
+				'quote'   => html_entity_decode( $c[9], ENT_QUOTES, 'UTF-8' ),
 			);
 		}
 		$sets[] = array( 'hidden' => '' !== $set[1], 'cards' => $cards );
@@ -88,8 +89,12 @@ function slider_diff( $html, array $slider ) {
 					return "set $i card $n: $k is '{$c[$k]}', PROFILES says '{$m[$k]}'";
 				}
 			}
-			if ( ( $m['img'] ? $m['img'] : null ) !== $c['img'] || ( ! $m['img'] && $c['init'] !== $m['initial'] ) ) {
+			if ( ( $m['img'] ? $m['img'] : null ) !== $c['img'] ) {
 				return "set $i card $n ({$m['slug']}): photo differs";
+			}
+			// no photo: the branded pattern (by slug, as on /members/), never a big initial (#6538)
+			if ( ! $m['img'] && ( '' !== trim( $c['init'] ) || (string) ( abs( crc32( $m['slug'] ) ) % 3 + 1 ) !== $c['pattern'] ) ) {
+				return "set $i card $n ({$m['slug']}): no photo, so the pattern (pg-pattern--" . ( abs( crc32( $m['slug'] ) ) % 3 + 1 ) . "), not '{$c['init']}'";
 			}
 			if ( $i && ( ! $c['tab'] || '' !== $c['alt'] ) ) {
 				return "duplicate card {$m['slug']} must be tabindex=-1 with an empty alt";
@@ -115,6 +120,41 @@ $changed = preg_replace( '#(<p class="fc-quote">")[^"]+#', '$1Something else ent
 ok( '' !== slider_diff( $changed, $slider ), 'a changed quote is caught' );
 $dropped = preg_replace( '#\s*<a class="flow-card" href="people/frank/">.*?</a>#s', '', $index, 1 );
 ok( '' !== slider_diff( $dropped, $slider ), 'a missing card is caught' );
+$letter = preg_replace( '#<span class="fc-portrait fc-nophoto"><span class="pg-pattern[^"]*" aria-hidden="true"></span></span>#', '<span class="fc-portrait fc-initial">M</span>', $index, 1 );
+ok( $letter !== $index && '' !== slider_diff( $letter, $slider ), 'a letter tile instead of the pattern is caught (#6538)' );
+
+echo "No single-letter tiles for people without a photo (#6538)\n";
+$no_photo = array_values( array_filter( $profiles, function ( $m ) { return empty( $m['img'] ); } ) );
+ok( count( $no_photo ) >= 3, count( $no_photo ) . ' people without a photo (' . implode( ', ', array_column( $no_photo, 'slug' ) ) . ')' );
+$static = array( 'index.html' => $index, 'front-page.php' => $front );
+foreach ( array( 'community', 'experts' ) as $list ) {
+	$static[ "$list/index.html" ] = file_get_contents( $design . "/$list/index.html" );
+}
+foreach ( $profiles as $m ) {
+	$static[ "people/{$m['slug']}/index.html" ] = file_get_contents( $design . "/people/{$m['slug']}/index.html" );
+}
+$letters = array();
+foreach ( $static as $name => $html ) {
+	// the old tiles: an element of class *-initial with one or two letters in it
+	if ( preg_match( '#class="(?:fc-portrait fc|pc-media pc|p-portrait p)-initial"[^>]*>\s*[A-Za-z]{1,2}\s*<#', $html ) || ( false !== strpos( $html, 'pg-pattern pg-pattern--' ) && false === strpos( $html, '.pg-pattern {' ) ) ) {
+		$letters[] = $name;
+	}
+}
+ok( ! $letters, 'no letter tile on the homepage, /community/, /experts/ or any /people/<slug>/ page, and the pattern styles come along wherever the pattern is used' . ( $letters ? ': ' . implode( ', ', $letters ) : '' ) );
+$want = 0;
+$have = 0;
+foreach ( $no_photo as $m ) {
+	$tile  = '<span class="pg-pattern pg-pattern--' . ( abs( crc32( $m['slug'] ) ) % 3 + 1 ) . '" aria-hidden="true"></span>';
+	$want += 1;
+	$have += (int) ( false !== strpos( $static[ "people/{$m['slug']}/index.html" ], '<div class="p-portrait p-nophoto">' . $tile . '</div>' ) );
+	if ( in_array( 'member', (array) $m['tags'], true ) ) {
+		$want += 1;
+		$have += (int) ( 1 === preg_match( '#<a class="pcard" href="\.\./people/' . $m['slug'] . '/">\s*<div class="pc-media pc-nophoto">' . preg_quote( $tile, '#' ) . '</div>#', $static['community/index.html'] ) );
+	}
+}
+ok( $want === $have, "the profile page and the /community/ card of each of them show the pattern, by slug ($have/$want)" );
+ok( false === strpos( $index . $front, 'fc-initial' ), 'the homepage has no .fc-initial left (markup or styles)' );
+
 $slugs = array_column( $slider, 'slug' );
 ok( in_array( 'sjoerd', $slugs, true ) && ! in_array( 'farid', $slugs, true ), 'membership as on the live slider (Sjoerd on it, Farid not): owner decision, see build-profiles.py' );
 ok( false !== strpos( file_get_contents( $design . '/people/build-profiles.py' ), 'def write_slider' ), 'build-profiles.py writes the slider' );

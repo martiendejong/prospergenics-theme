@@ -179,6 +179,33 @@
   .pg-breadcrumb.pg-crumbs--on-hero .sep { opacity: .6; }
   .pg-breadcrumb.pg-crumbs--on-hero [aria-current="page"] { color: #fff; }
 
+  /* no photo or logo: the branded pattern of the /courses/ cards (assets/platform/courses.css, audit
+     UX-8, card #6538) instead of a big single letter: the ProsperGenics sprout on the brand green,
+     with one of three textures (pg-pattern--1..3, picked by slug). Here for every page type: the
+     jengo-listings cards (inc/listings-pages.php, inc/members-directory.php), the homepage slider and
+     the static people/, experts/ and community/ pages (people/build-profiles.py). Decorative
+     (aria-hidden): the name is always next to it. Literal colours, as in the rest of this file. */
+  .pg-pattern { display: block; width: 100%; height: 100%; min-height: 120px; background-color: #0f3d28; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' fill='none' stroke='white' stroke-opacity='.6' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M32 52V24'/%3E%3Cpath d='M32 34c-9 0-15-6-15-14 9 0 15 6 15 14z'/%3E%3Cpath d='M32 28c0-8 6-14 14-14 0 8-6 14-14 14z'/%3E%3Cpath d='M32 52l-9 5M32 52l9 5M32 52v7'/%3E%3Ccircle cx='22' cy='58' r='1.6'/%3E%3Ccircle cx='42' cy='58' r='1.6'/%3E%3C/svg%3E"), var(--pg-texture), linear-gradient(140deg, #0f3d28, #1a7a46 70%, #1d8e4f); background-repeat: no-repeat, repeat, no-repeat; background-position: center, 0 0, 0 0; background-size: clamp(48px, 22%, 96px) auto, var(--pg-texture-size), cover; }
+  .pg-pattern--1 { --pg-texture: radial-gradient(rgba(255,255,255,.14) 1.5px, transparent 1.7px); --pg-texture-size: 18px 18px; }
+  .pg-pattern--2 { --pg-texture: repeating-linear-gradient(135deg, rgba(255,255,255,.08) 0 2px, transparent 2px 16px); --pg-texture-size: auto; }
+  .pg-pattern--3 { --pg-texture: repeating-radial-gradient(circle at 85% 15%, rgba(255,255,255,.09) 0 2px, transparent 2px 22px); --pg-texture-size: auto; }
+  /* filling its frame edge to edge: a jengo-listings card thumb (152px, the status pill on top), the
+     homepage slider portrait, the profile portrait and the experts/community card picture */
+  .dc-thumb > .pg-pattern, .fc-portrait > .pg-pattern, .p-portrait > .pg-pattern, .pc-media > .pg-pattern { position: absolute; inset: 0; min-height: 0; }
+  .dc-thumb > .dc-status { z-index: 1; }
+
+  /* jengo-listings search box (/members/, /tools/, /services/, /partners/, card #7234): the plugin
+     drops the input's outline and only tints the top and bottom border on focus (its clip-path cuts
+     the slanted sides away), so focus was invisible. The site's 3px ring instead: the box goes
+     square while it has focus, so the clip-path can't cut the ring; #1a7a46 is 5.07:1 on paper. */
+  .search-wrap .search-box:focus-within { clip-path: none; border-color: #1a7a46; outline: 3px solid var(--focus-ring, #1a7a46); outline-offset: 2px; }
+
+  /* the accent words of the jengo-listings list headings ("Members who create value", /tools/,
+     /services/, /partners/, card #7235): the plugin fades them to #34c759 and #86e0a6 (2.1:1 and
+     1.6:1 on paper); the homepage's accent gradient instead, #1a7a46 to #1f9a55 (5.07:1 and 3.4:1).
+     Only the image: the plugin's background-clip: text stays. */
+  header.pg-header h1 .accent { background-image: linear-gradient(100deg, #1a7a46 0%, #1f9a55 100%); }
+
   /* /site-chrome:css */
   :focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; }
   /* homepage only: room under the footer for the fixed (compact) chat launcher at full scroll */
@@ -576,7 +603,9 @@
     margin-top: 22px; transform: skewX(-3deg);
     background: var(--paper); border: 1.5px solid var(--line); transition: border-color .2s;
   }
-  .vt-field:focus-within { border-color: var(--green-600); }
+  /* focus: the site's 3px ring (card #7234; a 1.5px #22a65a border alone was about 3:1 and easy to
+     miss), on the field box, so it follows the skew; #1a7a46 on the white panel is 5.36:1 */
+  .vt-field:focus-within { border-color: var(--focus-ring, #1a7a46); outline: 3px solid var(--focus-ring, #1a7a46); outline-offset: 2px; }
   .vt-answer {
     display: block; transform: skewX(3deg);
     width: calc(100% - 12px); margin: 0 auto; min-height: 110px; resize: vertical;
@@ -706,11 +735,8 @@
     background: linear-gradient(165deg, var(--green-100), var(--paper-2) 70%);
   }
   .fc-portrait img { width: 100%; height: 100%; object-fit: cover; }
-  /* no photo yet: initial on a brand gradient, swap for a real portrait later */
-  .fc-portrait.fc-initial {
-    display: grid; place-items: center; font-family:'Sora',sans-serif; font-weight: 800;
-    font-size: 58px; color: #fff; background: linear-gradient(150deg, var(--green-600), var(--green-300));
-  }
+  /* no photo yet (.fc-nophoto): the branded pattern of site-chrome.css fills the portrait (card
+     #6538); swap for a real portrait once there is one */
   .fc-name { grid-column: 2; grid-row: 2; font-family:'Sora',sans-serif; font-weight: 800; font-size: 17.5px; color: var(--green-900); line-height: 1.2; }
   .fc-role { grid-column: 2; grid-row: 3; font-size: 13px; color: var(--muted); margin: 4px 0 10px; }
   .fc-quote { grid-column: 2; grid-row: 4; font-size: 14px; line-height: 1.6; color: var(--ink); }
@@ -733,7 +759,6 @@
   @media (max-width: 640px){
     .flow-card { width: 384px; margin-right: 40px; grid-template-columns: 172px minmax(0, 1fr); column-gap: 16px; }
     .fc-portrait { width: 172px; height: 184px; clip-path: polygon(16px 0, 100% 0, calc(100% - 16px) 100%, 0 100%); }
-    .fc-portrait.fc-initial { font-size: 48px; }
     .flow-tri { width: 38px; }
     .flow-tri span { width: 38px; height: 35px; }
     .flow-tri2 { width: 30px; }
@@ -1173,21 +1198,21 @@
           </a>
           <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/mayiani/">
             <span class="fc-ring" aria-hidden="true"></span>
-            <span class="fc-portrait fc-initial" aria-hidden="true">M</span>
+            <span class="fc-portrait fc-nophoto"><span class="pg-pattern pg-pattern--1" aria-hidden="true"></span></span>
             <div class="fc-name">Mayiani Nanana Mpoe</div>
             <div class="fc-role">Active community member</div>
             <p class="fc-quote">"I'm learning digital skills step by step and putting them to work in daily life."</p>
           </a>
           <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/lou/">
             <span class="fc-ring" aria-hidden="true"></span>
-            <span class="fc-portrait fc-initial" aria-hidden="true">L</span>
+            <span class="fc-portrait fc-nophoto"><span class="pg-pattern pg-pattern--2" aria-hidden="true"></span></span>
             <div class="fc-name">Lou Marten</div>
             <div class="fc-role">Marketing, Supporting member</div>
             <p class="fc-quote">"I work on our brand and marketing, finding the right words for what we build."</p>
           </a>
           <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/natumi/">
             <span class="fc-ring" aria-hidden="true"></span>
-            <span class="fc-portrait fc-initial" aria-hidden="true">N</span>
+            <span class="fc-portrait fc-nophoto"><span class="pg-pattern pg-pattern--2" aria-hidden="true"></span></span>
             <div class="fc-name">Natumi</div>
             <div class="fc-role">Livestock keeper, Community member</div>
             <p class="fc-quote">"People invested in me. I grew my herd and the results now pay the school fees."</p>
@@ -1259,21 +1284,21 @@
           </a>
           <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/mayiani/" tabindex="-1">
             <span class="fc-ring"></span>
-            <span class="fc-portrait fc-initial">M</span>
+            <span class="fc-portrait fc-nophoto"><span class="pg-pattern pg-pattern--1" aria-hidden="true"></span></span>
             <div class="fc-name">Mayiani Nanana Mpoe</div>
             <div class="fc-role">Active community member</div>
             <p class="fc-quote">"I'm learning digital skills step by step and putting them to work in daily life."</p>
           </a>
           <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/lou/" tabindex="-1">
             <span class="fc-ring"></span>
-            <span class="fc-portrait fc-initial">L</span>
+            <span class="fc-portrait fc-nophoto"><span class="pg-pattern pg-pattern--2" aria-hidden="true"></span></span>
             <div class="fc-name">Lou Marten</div>
             <div class="fc-role">Marketing, Supporting member</div>
             <p class="fc-quote">"I work on our brand and marketing, finding the right words for what we build."</p>
           </a>
           <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/natumi/" tabindex="-1">
             <span class="fc-ring"></span>
-            <span class="fc-portrait fc-initial">N</span>
+            <span class="fc-portrait fc-nophoto"><span class="pg-pattern pg-pattern--2" aria-hidden="true"></span></span>
             <div class="fc-name">Natumi</div>
             <div class="fc-role">Livestock keeper, Community member</div>
             <p class="fc-quote">"People invested in me. I grew my herd and the results now pay the school fees."</p>

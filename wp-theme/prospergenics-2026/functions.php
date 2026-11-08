@@ -21,6 +21,7 @@ require get_template_directory() . '/inc/account.php';
 require get_template_directory() . '/inc/avatars.php';     // one avatar (photo or initials), no Gravatar
 require get_template_directory() . '/inc/coach-context.php'; // the homepage chat knows the team and who is logged in
 require get_template_directory() . '/inc/tool-demos.php';    // #7218 "See it work" on /tools/<slug>/ from assets/tool-demos/<slug>/
+require get_template_directory() . '/inc/lesson-editors.php'; // #7146 lesson examples with a <textarea> of their own, whole in their editor
 
 // Contact form: every enquiry is stored before any email is attempted, with spam flagged
 // (never discarded) and the delivery result recorded. Ported from PR #20 for production.
@@ -60,6 +61,7 @@ require get_template_directory() . '/inc/platform-articles.php';
 require get_template_directory() . '/inc/platform-profiles.php';
 require get_template_directory() . '/inc/members-directory.php'; // #6516/#6517 /members/ cards from PROFILES (people.json)
 require get_template_directory() . '/inc/services.php';          // #7219 /services/ cards and "What you get", from services.json (as on the homepage)
+require get_template_directory() . '/inc/listings-pages.php';    // #6538 jengo-listings cards: the branded pattern, no letter tiles
 require get_template_directory() . '/inc/platform-courses.php';
 require get_template_directory() . '/inc/platform-roles.php';     // #6341 member / company / instructor / admin
 require get_template_directory() . '/inc/platform-projects.php'; // #6388 portfolios: /projects/, contributions

@@ -10,6 +10,8 @@ $pgc_active  = $pgc_filters['category'] || $pgc_filters['level'] || 'newest' !==
 global $wp_query;
 // the courses in the jengo-listings system (Martien's courses), shown on the unfiltered first page
 $pgc_listings = ( ! $pgc_active && (int) get_query_var('paged') < 2 && function_exists('prospergenics_courses_listings') ) ? prospergenics_courses_listings() : array();
+// no courses at all (theme or listings) and nothing filtered: no filters or "0 courses", only the next steps (card #6537)
+$pgc_none = ! $pgc_active && ! have_posts() && ! $pgc_listings;
 ?>
 
 <div class="post-hero">
@@ -24,6 +26,7 @@ $pgc_listings = ( ! $pgc_active && (int) get_query_var('paged') < 2 && function_
 </div>
 
 <div class="pgc-wrap">
+  <?php if (! $pgc_none) : ?>
   <form class="pgc-filters" method="get" action="<?= esc_url(home_url('/courses/')) ?>" role="search" aria-label="Filter courses">
     <div class="pgc-field">
       <label for="pgc-filter-category">Category</label>
@@ -60,6 +63,7 @@ $pgc_listings = ( ! $pgc_active && (int) get_query_var('paged') < 2 && function_
     $pgc_n = (int) $wp_query->found_posts + count($pgc_listings);
     echo esc_html(sprintf(_n('%d course', '%d courses', $pgc_n, 'prospergenics-2026'), $pgc_n) . ($pgc_filters['category'] || $pgc_filters['level'] ? ' match your filters' : ''));
   ?></p>
+  <?php endif; ?>
 
   <?php if (have_posts() || $pgc_listings) : ?>
     <div class="pgc-grid">

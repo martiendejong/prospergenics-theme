@@ -114,9 +114,11 @@ function prospergenics_2026_is_homepage_request() {
 /**
  * Sharing tags for a jengo-listings page. The plugin prints its own <title>, description and
  * canonical but no Open Graph tags; until it prints og:title / og:description / og:image from its
- * item (plugin work), this gives the page its own URL instead of the homepage's, and scrapers fall
- * back to the page's <title> and description for the rest. Filter
- * 'prospergenics_2026_listings_share_tags' to false once the plugin prints its own.
+ * item (plugin work), this gives the page its own URL instead of the homepage's, and
+ * inc/listings-pages.php adds og:title, og:description and the twitter title and description
+ * from the page's own <title> and description (card #7233; on the finished page, since the plugin
+ * prints its title after these tags). Filter 'prospergenics_2026_listings_share_tags' to false once the plugin
+ * prints its own.
  */
 function prospergenics_2026_listings_meta( $path ) {
     return array(
