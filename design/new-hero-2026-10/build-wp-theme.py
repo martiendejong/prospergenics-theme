@@ -60,7 +60,10 @@ def php_chrome(html, header_args):
     # after the header (so the skip link stays the first Tab stop): member notices such as the
     # email-verification banner, the same hook header.php fires (ARC-19)
     html = swap(html, "header", f"<?php echo prospergenics_2026_site_header( {header_args} ); // phpcs:ignore WordPress.Security.EscapeOutput ?>\n  <?php do_action( 'prospergenics_2026_after_site_header' ); ?>")
-    return swap(html, "footer", "<?php echo prospergenics_2026_site_footer(); // phpcs:ignore WordPress.Security.EscapeOutput ?>")
+    html = swap(html, "footer", "<?php echo prospergenics_2026_site_footer(); // phpcs:ignore WordPress.Security.EscapeOutput ?>")
+    # the CoachOS chat gets the team facts and who is logged in as page context (inc/coach-context.php)
+    coach = re.compile(r"<!-- coach:embed -->.*?<!-- /coach:embed -->", re.S)
+    return coach.sub(lambda _m: "<?php echo prospergenics_2026_coach_embed(); // phpcs:ignore WordPress.Security.EscapeOutput -- built and escaped in inc/coach-context.php ?>", html, count=1)
 
 
 def build():
@@ -71,6 +74,8 @@ def build():
     # homepage
     with open(os.path.join(HERE, "index.html"), encoding="utf-8") as f:
         home = php_chrome(convert(f.read(), ""), "array( 'autohide' => true )")
+    if "prospergenics_2026_coach_embed()" not in home:
+        raise SystemExit("coach:embed block not found in index.html")
     home = home.replace('href="about/"', f'href="{HOME}about/"')
     home = home.replace('href="people/', f'href="{HOME}people/')
     home = home.replace('href="experts/"', f'href="{HOME}experts/"')

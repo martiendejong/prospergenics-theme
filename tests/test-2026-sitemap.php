@@ -79,6 +79,16 @@ ok( 1 === preg_match( "#core_sitemaps_enabled\\(\\) \\) \\{\\s*wp_safe_redirect\
 ok( 1 === preg_match( "#add_filter\\( 'robots_txt', function \\( \\\$output \\) \\{\\s*if \\( prospergenics_2026_core_sitemaps_enabled\\(\\) \\) \\{\\s*return \\\$output;#", $src ), 'robots.txt names /people-sitemap.xml only when an SEO plugin replaced the core sitemap' );
 ok( false !== strpos( $src, 'return call_user_func( $this->list ) ? 1 : 0;' ), 'an empty list is not in the sitemap index (no 404 sitemap)' );
 
+echo "Legacy pages that always redirect leave the page sitemap (cards #6488, #6520)\n";
+$slugs = prospergenics_2026_redirected_page_slugs( array(
+	array( 'our-team' => '/members/', 'lessy-2' => '/people/lessy/', 'members/lessy' => '/people/lessy/', 'author/diko' => '/people/diko/' ),
+	array( 'home-legacy' => '/', 'our-team' => '/members/', 'programs/*' => '/courses/' ),
+) );
+sort( $slugs );
+ok( array( 'home-legacy', 'lessy-2', 'our-team' ) === $slugs, 'single page slugs only, once each (' . implode( ', ', $slugs ) . ')' );
+ok( false !== strpos( $src, 'prospergenics_2026_shadowed_page_ids(), prospergenics_2026_redirected_page_ids()' ), 'the page sitemap leaves out both the shadowed and the redirected pages' );
+ok( false !== strpos( $src, "'post_status'      => 'publish'" ) && false !== strpos( $src, "'post_name__in'    => \$slugs" ), 'the redirected pages are found by slug in one query' );
+
 array_map( 'unlink', glob( "$root/*/index.html" ) );
 array_map( 'unlink', glob( "$root/people/*/index.html" ) );
 
