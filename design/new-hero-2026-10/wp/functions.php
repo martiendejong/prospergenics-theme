@@ -21,6 +21,7 @@ require get_template_directory() . '/inc/account.php';
 require get_template_directory() . '/inc/avatars.php';     // one avatar (photo or initials), no Gravatar
 require get_template_directory() . '/inc/coach-context.php'; // the homepage chat knows the team and who is logged in
 require get_template_directory() . '/inc/tool-demos.php';    // #7218 "See it work" on /tools/<slug>/ from assets/tool-demos/<slug>/
+require get_template_directory() . '/inc/lesson-editors.php'; // #7146 lesson examples with a <textarea> of their own, whole in their editor
 
 // Contact form: every enquiry is stored before any email is attempted, with spam flagged
 // (never discarded) and the delivery result recorded. Ported from PR #20 for production.

@@ -427,6 +427,8 @@ function prospergenics_2026_listings_takeover( $html, $path, array $chrome ) {
     $lesson_js = '';
     if ( ! empty( $chrome['learn_css'] ) && prospergenics_2026_listings_is_lesson_page( $out ) ) {
         $out       = prospergenics_2026_listings_add_lesson_css( $out, $chrome['learn_css'] );
+        // examples that hold a <textarea> of their own back in their editor (#7146, inc/lesson-editors.php)
+        $out       = function_exists( 'prospergenics_2026_lesson_mend_editors' ) ? prospergenics_2026_lesson_mend_editors( $out ) : $out;
         $lesson_js = isset( $chrome['learn_script'] ) ? (string) $chrome['learn_script'] : '';
     }
 
