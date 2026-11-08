@@ -91,7 +91,7 @@ def build():
     home = home.replace('href="community/"', f'href="{HOME}community/"')
     # contact buttons (/contact/?subject=...) -> the theme's helper, prospergenics_2026_contact_url()
     home = re.sub(r'href="/contact/\?subject=([^"&]+)"', lambda m: contact_php(m.group(1)), home)
-    with open(os.path.join(OUT, "front-page.php"), "w", encoding="utf-8") as f:
+    with open(os.path.join(OUT, "front-page.php"), "w", encoding="utf-8", newline="\n") as f:
         f.write("<?php /* Front page - generated from design/new-hero-2026-10/index.html by build-wp-theme.py; edit the source, not this file. */ ?>\n" + home)
 
     # about page (template auto-applies to the page with slug "about")
@@ -105,7 +105,7 @@ def build():
         raise SystemExit("about/index.html: og:url not found")
     about = about.replace('<meta property="og:url" content="https://test.prospergenics.com/about/" />',
                           "<meta property=\"og:url\" content=\"<?php echo esc_url( home_url( '/about/' ) ); ?>\" />")
-    with open(os.path.join(OUT, "page-about.php"), "w", encoding="utf-8") as f:
+    with open(os.path.join(OUT, "page-about.php"), "w", encoding="utf-8", newline="\n") as f:
         f.write("<?php /* About page - generated from design/new-hero-2026-10/about/index.html by build-wp-theme.py; edit the source, not this file. */ ?>\n" + about)
 
     shutil.copytree(os.path.join(HERE, "assets"), os.path.join(OUT, "assets"))
@@ -120,7 +120,7 @@ def build():
         if os.path.isdir(os.path.join(wp_src, "inc")):
             shutil.copytree(os.path.join(wp_src, "inc"), os.path.join(OUT, "inc"))
 
-    with open(os.path.join(OUT, "style.css"), "w", encoding="utf-8") as f:
+    with open(os.path.join(OUT, "style.css"), "w", encoding="utf-8", newline="\n") as f:
         f.write("""/*
 Theme Name: Prospergenics 2026
 Theme URI: https://prospergenics.com
