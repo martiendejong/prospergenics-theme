@@ -144,3 +144,9 @@
      the slanted sides away), so focus was invisible. The site's 3px ring instead: the box goes
      square while it has focus, so the clip-path can't cut the ring; #1a7a46 is 5.07:1 on paper. */
   .search-wrap .search-box:focus-within { clip-path: none; border-color: #1a7a46; outline: 3px solid var(--focus-ring, #1a7a46); outline-offset: 2px; }
+
+  /* the accent words of the jengo-listings list headings ("Members who create value", /tools/,
+     /services/, /partners/, card #7235): the plugin fades them to #34c759 and #86e0a6 (2.1:1 and
+     1.6:1 on paper); the homepage's accent gradient instead, #1a7a46 to #1f9a55 (5.07:1 and 3.4:1).
+     Only the image: the plugin's background-clip: text stays. */
+  header.pg-header h1 .accent { background-image: linear-gradient(100deg, #1a7a46 0%, #1f9a55 100%); }
