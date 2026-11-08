@@ -139,6 +139,18 @@ ok( false !== strpos( $pi, 'location.replace("/members/")' ), 'script redirect f
 ok( false !== strpos( $pi, 'noindex' ), 'the redirect page itself is noindex' );
 ok( is_file( $design . '/community/index.html' ), '/community/ exists' );
 ok( false !== strpos( file_get_contents( $design . '/deploy-wp-theme-vimexx.py' ), '/people/index.html' ), 'the deploy uploads people/index.html' );
+// A real 301 (card #7226): Apache serves the people/ folder before WordPress, so the redirect is in
+// people/.htaccess; index.html above stays as the fallback where .htaccess is ignored.
+$hta = (string) @file_get_contents( $design . '/people/.htaccess' );
+ok( 1 === preg_match( '#^<IfModule mod_alias\.c>\nRedirectMatch 301 (\S+) /members/\n</IfModule>$#m', $hta, $hm ), 'people/.htaccess answers with a 301 to /members/ (mod_alias, the FileInfo override WordPress itself needs)' );
+$hre = isset( $hm[1] ) ? '#' . str_replace( '#', '\#', $hm[1] ) . '#' : '#^$#';
+foreach ( array( '/people/', '/people', '/people/index.html' ) as $p ) {
+	ok( 1 === preg_match( $hre, $p ), "$p is redirected" );
+}
+foreach ( array( '/people/lessy/', '/people/martien/index.html', '/people/martien-de-jong/', '/peoplex/', '/members/', '/x/people/' ) as $p ) {
+	ok( 0 === preg_match( $hre, $p ), "$p is not" );
+}
+ok( false !== strpos( file_get_contents( $design . '/people/build-profiles.py' ), 'with open(os.path.join(HERE, ".htaccess"), "w"' ), 'build-profiles.py generates it' );
 
 echo "/in/ accounts linked to /people/ (CON-11)\n";
 // WordPress stubs, then the real functions extracted from the theme sources

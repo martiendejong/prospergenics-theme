@@ -13,6 +13,8 @@
  *     when the account is linked to a /people/ page (_pg_people_slug). Never the email address.
  * The knowledge base itself should still be corrected in CoachOS (Martien).
  *
+ * The same embed opens from the "Try it live" button on /tools/coachos/ (inc/tool-demos.php, card #7218).
+ *
  * Filter prospergenics_2026_coach_context changes the text; prospergenics_2026_coach_embed_attrs the tag.
  */
 
@@ -108,8 +110,11 @@ function prospergenics_2026_coach_context( $user_id = null ) {
     return function_exists( 'mb_substr' ) ? mb_substr( $text, 0, PROSPERGENICS_2026_COACH_CONTEXT_MAX ) : substr( $text, 0, PROSPERGENICS_2026_COACH_CONTEXT_MAX );
 }
 
-/** The CoachOS script tag for the homepage, with the context as data-page-content. */
-function prospergenics_2026_coach_embed() {
+/**
+ * The CoachOS embed settings. $overrides win over the filter: the /tools/coachos/ page (card #7218)
+ * opens the chat from its own "Try it live" button, so it sets data-trigger to that button.
+ */
+function prospergenics_2026_coach_embed_attrs( array $overrides = array() ) {
     $attrs = (array) apply_filters( 'prospergenics_2026_coach_embed_attrs', array(
         'src'               => 'https://coaching.martiendejong.nl/coaching/embed.js?v=2',
         'data-tenant'       => 'prospergenics',
@@ -120,7 +125,28 @@ function prospergenics_2026_coach_embed() {
         'data-position'     => 'right',
         'data-page-content' => prospergenics_2026_coach_context(),
     ) );
-    $html = '<script';
+    return array_merge( $attrs, $overrides );
+}
+
+/**
+ * The chat page embed.js loads in its panel: {origin}{path before /embed.js}/{tenant}/widget?taal={lang},
+ * built the same way embed.js builds it. A link to it is the fallback while embed.js has not loaded
+ * (slow connection, blocked script): the visitor still gets the real chat, full page.
+ */
+function prospergenics_2026_coach_widget_url( array $attrs ) {
+    $src = isset( $attrs['src'] ) ? (string) $attrs['src'] : '';
+    if ( ! preg_match( '#^(https://[a-z0-9.-]+(?::\d+)?)(/[^?\#]*?)?/embed\.js(?:[?\#].*)?$#i', $src, $m ) ) {
+        return '';
+    }
+    $tenant = preg_replace( '/[^a-z0-9_-]/i', '', isset( $attrs['data-tenant'] ) ? (string) $attrs['data-tenant'] : '' );
+    $lang   = substr( preg_replace( '/[^a-z]/i', '', isset( $attrs['data-lang'] ) ? (string) $attrs['data-lang'] : '' ), 0, 2 );
+    return $m[1] . ( isset( $m[2] ) ? $m[2] : '' ) . ( '' !== $tenant ? '/' . $tenant : '' ) . '/widget' . ( '' !== $lang ? '?taal=' . $lang : '' );
+}
+
+/** The CoachOS script tag (the homepage, and /tools/coachos/ with its own trigger), with the context as data-page-content. */
+function prospergenics_2026_coach_embed( array $overrides = array() ) {
+    $attrs = prospergenics_2026_coach_embed_attrs( $overrides );
+    $html  = '<script';
     foreach ( $attrs as $k => $v ) {
         $html .= ' ' . preg_replace( '/[^a-z0-9_-]/', '', strtolower( (string) $k ) ) . '="' . ( 'src' === $k ? esc_url( $v ) : esc_attr( (string) $v ) ) . '"';
     }

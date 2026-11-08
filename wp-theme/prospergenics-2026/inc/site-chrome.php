@@ -352,7 +352,9 @@ function prospergenics_2026_listings_see_also() {
  *
  * @param string $html   Everything printed between the end of wp_head and the start of wp_footer.
  * @param string $path   Request path, e.g. '/services/coachos/'.
- * @param array  $chrome 'header', 'footer', 'css', 'script' markup.
+ * @param array  $chrome 'header', 'footer', 'css', 'script' markup; optional 'learn_css', 'learn_script'
+ *                       (lesson pages) and 'tool_demo', 'tool_demo_css', 'tool_demo_script', 'tool_try_live'
+ *                       (tool pages, see prospergenics_2026_tool_demo_chrome()).
  * @return string The page with the theme's header and footer, or $html unchanged.
  */
 function prospergenics_2026_listings_takeover( $html, $path, array $chrome ) {
@@ -428,7 +430,50 @@ function prospergenics_2026_listings_takeover( $html, $path, array $chrome ) {
         $lesson_js = isset( $chrome['learn_script'] ) ? (string) $chrome['learn_script'] : '';
     }
 
-    return rtrim( $out ) . "\n\n" . $chrome['footer'] . "\n" . $chrome['script'] . "\n" . ( '' !== $lesson_js ? $lesson_js . "\n" : '' );
+    // Tool pages (/tools/<slug>/, card #7218): "See it work" from the tool's demo folder and, for a
+    // tool that runs on this site (CoachOS), "Try it live"; before "← All tools" (inc/tool-demos.php).
+    $demo_js = '';
+    if ( ( ! empty( $chrome['tool_demo'] ) || ! empty( $chrome['tool_try_live'] ) ) && function_exists( 'prospergenics_2026_listings_add_tool_demo' ) ) {
+        list( $out, $demo_js ) = prospergenics_2026_listings_add_tool_demo( $out, $key, $chrome );
+    }
+
+    // Pages without a <main> of the plugin's: the skip link still needs its target (#7227).
+    $out = prospergenics_2026_listings_skip_target( $out, $header );
+
+    return rtrim( $out ) . "\n\n" . $chrome['footer'] . "\n" . $chrome['script'] . "\n" . ( '' !== $lesson_js ? $lesson_js . "\n" : '' ) . ( '' !== $demo_js ? $demo_js . "\n" : '' );
+}
+
+/**
+ * The skip link's target on a jengo-listings page without a <main> (card #7227). The plugin's
+ * detail pages have one, which gets id="main" in the takeover; its list pages (/tools/, /members/,
+ * ...), course pages and lesson pages have none, so "Skip to content" pointed at nothing. There the
+ * first element after the site header (the breadcrumb on a list page, the green banner on a course
+ * page) becomes #main, with tabindex="-1" so it takes the focus. Pure; a page that already has an
+ * id="main", or where the header isn't found, is left as it was.
+ */
+function prospergenics_2026_listings_skip_target( $html, $header ) {
+    $html = (string) $html;
+    $at   = '' !== (string) $header ? strpos( $html, (string) $header ) : false;
+    if ( false === $at || preg_match( '#\sid=["\']main["\']#', $html ) ) {
+        return $html;
+    }
+    // skip whitespace, comments (<!-- HERO BAND -->) and style/script blocks
+    $skip = '(?:\s+|<!--(?:(?!-->).)*-->|<(style|script)\b[^>]*>.*?</\1>)*';
+    if ( ! preg_match( '#\G' . $skip . '<([a-z][a-z0-9-]*)\b([^>]*)>#si', $html, $m, PREG_OFFSET_CAPTURE, $at + strlen( $header ) ) ) {
+        return $html;
+    }
+    // a breadcrumb is navigation too: skip past it to the page itself (the list pages' header)
+    if ( 'nav' === strtolower( $m[2][0] ) && false !== strpos( $m[3][0], 'pg-breadcrumb' ) ) {
+        $end = stripos( $html, '</nav>', $m[0][1] );
+        if ( false === $end || ! preg_match( '#\G' . $skip . '<([a-z][a-z0-9-]*)\b([^>]*)>#si', $html, $m, PREG_OFFSET_CAPTURE, $end + 6 ) ) {
+            return $html;
+        }
+    }
+    $tag = $m[2][1] - 1;
+    if ( preg_match( '#\sid=#i', $m[3][0] ) ) {
+        return substr_replace( $html, '<div id="main" tabindex="-1"></div>', $tag, 0 );
+    }
+    return substr_replace( $html, ' id="main" tabindex="-1"', $m[3][1], 0 );
 }
 
 /**
@@ -540,5 +585,5 @@ add_action( 'wp_footer', function () {
         'script' => prospergenics_2026_site_chrome_script(),
         'learn_css'    => prospergenics_2026_learn_css(),
         'learn_script' => prospergenics_2026_learn_script(),
-    ) );
+    ) + ( function_exists( 'prospergenics_2026_tool_demo_chrome' ) ? prospergenics_2026_tool_demo_chrome( prospergenics_2026_request_path() ) : array() ) );
 }, PHP_INT_MIN );

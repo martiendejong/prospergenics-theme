@@ -114,5 +114,19 @@ src = open(deploy.__file__).read()
 ok(src.index("publish_version(ftp, args.dry_run") > src.index("deploy_static(ftp, args.dry_run)") and src.index("publish_version(ftp, args.dry_run") < src.index("ftp.quit()\n    print"), "version.json is written after the theme and static pages")
 for k in ("GITHUB_SHA", "GITHUB_REF_NAME", "GITHUB_RUN_ID", "GITHUB_REPOSITORY"): os.environ.pop(k, None)
 
+# /people/ (card #7226): Apache serves the real people/ folder before WordPress, so its 301 to the
+# members list comes from people/.htaccess, uploaded with the static pages; index.html stays as the
+# fallback.
+rec = RecFTP()
+try:
+    deploy.deploy_static(rec, False)
+    root = deploy.REMOTE_ROOT + "/people/"
+    hta = rec.stored.get(root + ".htaccess", b"").decode()
+    ok("RedirectMatch 301 ^/people(/|/index\\.html)?$ /members/" in hta, "the static deploy uploads people/.htaccess with the 301 to /members/")
+    ok(root + "index.html" in rec.stored and b'http-equiv="refresh"' in rec.stored[root + "index.html"], "and people/index.html, the meta refresh fallback")
+    ok(all(root + s + "/index.html" in rec.stored for s in ("martien", "lessy")) and not any(k.startswith(root + ".htaccess/") for k in rec.stored), "the profiles under /people/<slug>/ are uploaded as before")
+except Exception as e:  # noqa: BLE001
+    ok(False, f"deploy_static raised {e!r}")
+
 print(f"\n{'all passed' if not fails else str(fails) + ' failed'}")
 sys.exit(1 if fails else 0)

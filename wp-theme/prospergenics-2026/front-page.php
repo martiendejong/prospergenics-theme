@@ -42,6 +42,14 @@
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
   }
+  /* No sideways scrolling, ever. body { overflow-x: hidden } alone is passed on to the viewport,
+     which still scrolls sideways when something pokes out: by script, by focusing an off-screen
+     link, and with touch or a trackpad in Safari. With the root clipping instead, body is no
+     scroll container, so sticky headers keep working and there is nothing to scroll to. */
+  @supports (overflow: clip) {
+    html { overflow-x: hidden; }
+    body { overflow-x: clip; }
+  }
 
   /* site-chrome:css */
 
@@ -59,6 +67,8 @@
   /* skip link (audit UX-16): first in <body> on every page, off screen until it has focus */
   .skip-link { position: fixed; top: calc(12px + var(--wp-admin--admin-bar--height, 0px)); left: 16px; z-index: 100000; padding: 12px 18px; border-radius: 10px; background: #0f3d28; color: #fff; font: 600 15px/1.2 'Inter', system-ui, sans-serif; text-decoration: none; transform: translateY(calc(-100% - 24px - var(--wp-admin--admin-bar--height, 0px))); }
   .skip-link:focus { transform: none; }
+  /* where the target is a whole banner or breadcrumb given tabindex="-1" (jengo-listings, #7227) */
+  #main[tabindex="-1"]:focus { outline: none; }
   .site-header { position: sticky; top: 0; z-index: 50; box-sizing: border-box; width: 100%; max-width: none; margin: 0; display: flex; align-items: center; gap: 28px; min-height: 76px; padding: 14px clamp(20px, 5vw, 72px); background: rgba(244,250,246,.94); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border: 0; border-bottom: 1px solid rgba(15,61,40,.12); font-family: 'Inter', system-ui, sans-serif; transition: transform .3s cubic-bezier(.22,.61,.36,1); }
   .site-header *, .site-header *::before, .site-header *::after { box-sizing: border-box; }
   .site-header .brand { display: flex; align-items: center; gap: 10px; flex-shrink: 0; margin: 0 auto 0 0; padding: 0; text-decoration: none; }
@@ -544,9 +554,9 @@
   }
 
   /* ───────────────  VALUE TEST · "How valuable are you?"  ─────────────── */
-  /* bottom padding reserves room for the 1.2 scroll-zoom (origin top, box grows downward)
-     so the banner heading below never collides with the scaled test panel */
-  .vtest { max-width: 1500px; margin: 0 auto; padding: clamp(28px, 3.6vw, 52px) clamp(24px, 5vw, 72px) clamp(40px, 8vw, 130px); }
+  /* the test panel grows in to its own width (scroll-scale 0.84 -> 1, origin top, card #7215):
+     at 1.2 it reached past both screen edges (-87 to 1498 px at 1440) and made the page scroll sideways */
+  .vtest { max-width: 1500px; margin: 0 auto; padding: clamp(28px, 3.6vw, 52px) clamp(24px, 5vw, 72px) clamp(36px, 5vw, 72px); }
   .vtest .projects-head { text-align: center; }
   .vtest .projects-head p { margin-left: auto; margin-right: auto; }
   .vtest-box {
@@ -637,6 +647,12 @@
      button (audit UX-10, WCAG 2.2.2); under reduced motion it doesn't move at all */
   .flow:hover .flow-track, .flow:focus-within .flow-track { animation-play-state: paused; }
   .flow.is-paused .flow-track, .flow.is-paused .flow-track *, .flow.is-paused .flow-tri, .flow.is-paused .flow-tri * { animation-play-state: paused !important; }
+  /* keyboard focus on a portrait (card #7225, WCAG 2.4.7): the stream is paused and the script
+     below slides the focused card into the middle (the track can be thousands of pixels off screen).
+     While focus is inside, no edge fade and no scroll-zoom, so the whole ring is visible; the ring
+     sits just inside the card, which is nearly as wide as a phone screen. */
+  .flow:focus-within { -webkit-mask-image: none; mask-image: none; transform: none !important; }
+  a.flow-card:focus-visible { outline-offset: -3px; border-radius: 6px; }
   .flow-toggle { display: inline-flex; align-items: center; gap: 8px; font-family: 'Sora', sans-serif; font-weight: 600; font-size: 14px; color: var(--green-900); background: transparent; border: 1.5px solid var(--line); border-radius: 999px; padding: 8px 16px; cursor: pointer; }
   .flow-toggle:hover { border-color: var(--green-700); }
   .flow-toggle.is-stopped .sc-toggle-icon { width: 0; height: 0; border-style: solid; border-width: 6px 0 6px 10px; border-color: transparent transparent transparent currentColor; }
@@ -726,45 +742,83 @@
     .flow-lens { width: 56vw; height: 256px; }
   }
 
-  /* ───────────────  SERVICES · expanding strip  ─────────────── */
+  /* ───────────────  SERVICES · four cards  ─────────────── */
   .projects { max-width: 1500px; margin: 0 auto; padding: clamp(28px, 3.6vw, 52px) clamp(24px, 5vw, 72px) 110px; }
-  .pstrip { display: flex; margin-top: 34px; height: 340px; }
-  .pstrip + .pstrip { margin-top: 16px; }
-  .pcard {
-    position: relative; flex: 1; min-width: 0; display: block; overflow: hidden; text-decoration: none;
-    background-color: var(--green-900); background-size: cover; background-position: center;
-    clip-path: polygon(28px 0, 100% 0, calc(100% - 28px) 100%, 0 100%);
-    transition: flex .6s var(--ease);
+  /* The cards and their styles come from wp/inc/services/ (one copy, also used on /services/);
+     site_chrome.py writes the block below and the cards in the section (card #7219). No scroll-zoom:
+     nothing scales or moves this section. */
+  /* services:css */
+
+  /* ── service cards (card #7219): wp/inc/services/services.css, the one copy ──
+     The homepage "Our services" section (site_chrome.py copies it into index.html) and the
+     jengo-listings /services/ pages (inc/services.php prints it) use the same cards, from
+     inc/services/services.json. Literal colours, every rule under .svc-*, so the plugin's own
+     stylesheet can't change it. Contrast on white: #0b2016 17:1, #4a6555 6.4:1, #1a7a46 5.4:1;
+     the example label is white on #0b2016 at .88 over any image (>= 9:1). */
+  .svc-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(16px, 1.8vw, 24px); }
+  .projects-head + .svc-grid { margin-top: clamp(24px, 3vw, 40px); }
+  @media (max-width: 1100px) { .svc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 640px) { .svc-grid { grid-template-columns: minmax(0, 1fr); } }
+  .svc-card {
+    position: relative; display: flex; flex-direction: column; min-width: 0; overflow: hidden;
+    background: #fff; border: 1px solid #d6e8dc; border-radius: 16px; box-shadow: 0 1px 2px rgba(11,32,22,.05);
+    transition: transform .25s cubic-bezier(.22,.61,.36,1), box-shadow .25s cubic-bezier(.22,.61,.36,1);
   }
-  .pcard + .pcard { margin-left: -12px; }
-  .pcard:hover, .pcard:focus-visible { flex: 2.6; }
-  .pcard::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(8,26,17,.18), rgba(8,26,17,0) 40%); }
-  .pc-tag {
-    position: absolute; top: 16px; left: 36px; z-index: 2;
-    font-family:'Sora',sans-serif; font-weight: 700; font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase;
-    color: #fff; background: rgba(8,26,17,.55); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
-    padding: 6px 11px; border-radius: 999px;
+  .svc-card:hover { transform: translateY(-3px); box-shadow: 0 18px 40px -24px rgba(11,32,22,.45); }
+  /* the brand's slanted bottom cut; a real example carries a visible label, CoachOS a branded panel */
+  .svc-media {
+    position: relative; margin: 0; aspect-ratio: 16 / 9; overflow: hidden;
+    background: linear-gradient(140deg, #0f3d28, #1a7a46 60%, #1d8e4f);
+    clip-path: polygon(0 0, 100% 0, 100% 88%, 0 100%);
   }
-  .pc-tag.live::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--green-500); margin-right: 7px; }
-  /* the strips grow in as one block from the top edge, up to their own width and never past it
-     (data-scroll-scale="1", from 0.84): a factor above 1 pushed the outer cards off the screen */
-  .pstrips { transform-origin: 50% 0; }
-  .pc-caption {
-    position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; height: 52%;
-    display: flex; flex-direction: column; justify-content: flex-end; padding: 0 44px 20px 28px;
-    background: linear-gradient(183deg, rgba(8,26,17,0) 0%, rgba(8,26,17,.55) 30%, rgba(8,26,17,.95) 75%);
-    clip-path: polygon(0 12%, 100% 26%, 100% 100%, 0 100%);
+  .svc-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+  .svc-ex {
+    position: absolute; left: 12px; bottom: 18px; max-width: calc(100% - 24px);
+    padding: 4px 10px; border-radius: 999px; background: rgba(11,32,22,.88); color: #fff;
+    font: 600 12.5px/1.35 'Inter', system-ui, sans-serif; text-shadow: none;
   }
-  /* no project names (Martien 07-10): only the short description, large enough to fill the block */
-  .pc-caption p {
-    font-family:'Sora',sans-serif; font-weight: 600; font-size: 16.5px; line-height: 1.35;
-    color: #fff; letter-spacing: -.01em; max-width: 30ch;
+  .svc-media--brand { display: grid; place-items: center; color: #fff; }
+  .svc-media--brand svg { width: 56px; height: 56px; }
+  .svc-body { display: flex; flex-direction: column; gap: 12px; flex: 1; padding: 20px 22px 22px; }
+  .svc-name { margin: 0; font-family: 'Sora', sans-serif; font-weight: 800; font-size: 21px; line-height: 1.2; letter-spacing: -.01em; color: #0b2016; }
+  .svc-promise { margin: 0; font-size: 15.5px; line-height: 1.55; color: #4a6555; }
+  .svc-points { list-style: none; display: grid; gap: 7px; margin: 0; padding: 0; font-size: 14.5px; line-height: 1.45; color: #0b2016; }
+  .svc-points li { display: flex; gap: 9px; align-items: baseline; }
+  .svc-points li::before { content: ""; flex: none; width: 7px; height: 7px; border-radius: 50%; background: #22a65a; transform: translateY(-1px); }
+  .svc-more { margin-top: auto; padding-top: 4px; font-family: 'Inter', system-ui, sans-serif; font-weight: 700; font-size: 15px; color: #1a7a46; text-decoration: none; }
+  /* (Inter, not Sora: Sora has no → glyph.) The whole card is the link's target; the link stays the
+     one tab stop, and its focus ring sits in the card body, clear of the clipped image (#7225). */
+  .svc-more::after { content: ""; position: absolute; inset: 0; z-index: 1; border-radius: 16px; }
+  .svc-card:hover .svc-more { text-decoration: underline; text-underline-offset: 3px; }
+  .svc-more:focus-visible { outline: 3px solid var(--focus-ring, #1a7a46); outline-offset: 3px; border-radius: 4px; }
+  .svc-card:has(.svc-more:focus-visible) { outline: 3px solid var(--focus-ring, #1a7a46); outline-offset: 3px; }
+  .svc-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin-top: clamp(24px, 3vw, 36px); }
+  .svc-cta-btn {
+    display: inline-flex; align-items: center; gap: 8px; padding: 13px 24px; border-radius: 999px;
+    background: #1a7a46; color: #fff; font-family: 'Inter', system-ui, sans-serif; font-weight: 700; font-size: 16px; line-height: 1.2;
+    text-decoration: none; white-space: nowrap; transition: background-color .2s;
   }
-  @media (max-width: 760px){
-    .pstrip { flex-direction: column; height: auto; }
-    .pcard { flex: none; height: 190px; clip-path: polygon(18px 0, 100% 0, calc(100% - 18px) 100%, 0 100%); }
-    .pcard + .pcard { margin-left: 0; margin-top: 14px; }
+  .svc-cta-btn:hover { background: #0f3d28; }
+  .svc-cta-btn:focus-visible { outline: 3px solid var(--focus-ring, #1a7a46); outline-offset: 3px; }
+  .svc-cta-note { margin: 0; max-width: 62ch; font-size: 15.5px; line-height: 1.55; color: #4a6555; }
+  /* /services/<slug>/: "What you get" and the example, in the plugin's main column */
+  .svc-get { margin-top: clamp(28px, 4vw, 44px); }
+  .svc-get h2 { margin: 0 0 16px; font-family: 'Sora', sans-serif; font-weight: 800; font-size: clamp(22px, 2.4vw, 30px); letter-spacing: -.02em; color: #0b2016; }
+  .svc-get .svc-points { font-size: 16px; gap: 10px; }
+  .svc-get .svc-media { margin-top: 24px; border-radius: 16px; max-width: 640px; }
+  @media (prefers-reduced-motion: reduce) {
+    .svc-card, .svc-cta-btn { transition: none; }
+    .svc-card:hover { transform: none; }
   }
+
+  /* /services:css */
+  /* homepage only: the fixed chat launcher (orb + WhatsApp, bottom right) never covers the section.
+     The button row keeps out of the right 300px of the viewport, as the hero's CTA does, and the
+     section ends with enough room that, scrolled to its end, the cards sit above the launcher
+     (desktop: 30px + 186px orb; from 880px down the compact 96px orb). */
+  .svc-section { padding-bottom: 180px; }
+  @media (min-width: 881px){ .svc-section .svc-cta { padding-right: max(0px, calc(300px - max(0px, (100vw - 1500px) / 2) - clamp(24px, 5vw, 72px))); } }
+  @media (max-width: 880px){ .svc-section { padding-bottom: 150px; } }
 
   /* ───────────────  TOOLS · list + fixed preview panel  ─────────────── */
   /* Same pattern as the hero showcase: a list of the seven tools (real links to /tools/<slug>/,
@@ -1023,7 +1077,7 @@
       <h2>How valuable <span class="accent">are you?</span></h2>
       <p>Five honest questions. Take the test and find out where your value lies.</p>
     </div>
-    <div class="vtest-box" data-scroll-scale="1.2" data-scroll-scale-window="0.65">
+    <div class="vtest-box" data-scroll-scale="1" data-scroll-scale-from="0.84" data-scroll-scale-window="0.65">
       <div class="vtest-in" id="vtStage">
         <div class="vt-progress" id="vtProgress" aria-hidden="true"></div>
         <div class="vt-question" id="vtQuestion"></div>
@@ -1314,32 +1368,56 @@
   <!-- SERVICES · what we do for clients; each card leads to a showcase page with the
        real projects as examples (CoachOS: POG dorpsgids, citizenship, Karibu Mara;
        research: Art Revisionist; provenance: Bugatti Insights; online presence:
-       SEO God, Port of Giethoorn, Art Revisionist). -->
-  <section class="projects" id="services">
+       SEO God, Port of Giethoorn, Art Revisionist). Card #7219 (Lesiamon, "build it"): white cards
+       with a labelled real example (CoachOS has no screenshot of its own, so a branded panel), three
+       "what you get" points and a "See ..." link each; the content is wp/inc/services/services.json,
+       shared with /services/, written in here by site_chrome.py. -->
+  <section class="projects svc-section" id="services">
     <div class="projects-head">
       <h2>Our <span class="accent">services</span></h2>
       <p>What we do for organisations, powered by the systems above.</p>
     </div>
-    <div class="pstrips" data-scroll-scale="1" data-scroll-scale-from="0.84">
-      <div class="pstrip">
-        <a class="pcard" href="/services/coachos/" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/jengo-telefoon-chat.webp'); background-color: var(--paper-2)">
-          <span class="pc-tag">CoachOS</span>
-          <div class="pc-caption"><p>AI chat, courses and avatar videos for your organisation, on your own platform.</p></div>
-        </a>
-        <a class="pcard" href="/services/research/" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/artrevisionist.webp'); background-position: 28% 35%">
-          <span class="pc-tag">Research &amp; investigation</span>
-          <div class="pc-caption"><p>Deep research that corrects the record, with evidence anyone can verify.</p></div>
-        </a>
-        <a class="pcard" href="/services/provenance/" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/bugatti-insights.webp')">
-          <span class="pc-tag">Provenance</span>
-          <div class="pc-caption"><p>Provenance systems that give objects a verifiable history.</p></div>
-        </a>
-        <a class="pcard" href="/services/online-presence/" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/seomagic.webp')">
-          <span class="pc-tag">Online presence</span>
-          <div class="pc-caption"><p>Websites, SEO, AI-optimisation and social media promotion that get you found.</p></div>
-        </a>
-      </div>
+    <!-- services:cards -->
+    <div class="svc-grid">
+      <article class="svc-card">
+        <div class="svc-media svc-media--brand" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8 12h32v20H22l-8 7v-7H8z"/><path d="M16 20h16M16 26h10"/></svg></div>
+        <div class="svc-body">
+          <h3 class="svc-name">CoachOS</h3>
+          <p class="svc-promise">AI chat, courses and avatar videos for your organisation, on your own platform.</p>
+          <ul class="svc-points"><li>A chat assistant trained on your knowledge</li><li>Courses with progress tracking</li><li>Avatar videos, under your own brand</li></ul>
+          <a class="svc-more" href="/services/coachos/">See CoachOS <span aria-hidden="true">→</span></a>
+        </div>
+      </article>
+      <article class="svc-card">
+        <figure class="svc-media"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/artrevisionist-home.webp" width="1351" height="760" alt="" loading="lazy" decoding="async" style="object-position:50% 20%" /><figcaption class="svc-ex">Example: Art Revisionist</figcaption></figure>
+        <div class="svc-body">
+          <h3 class="svc-name">Research &amp; investigation</h3>
+          <p class="svc-promise">Deep research that corrects the record, with evidence anyone can verify.</p>
+          <ul class="svc-points"><li>Every claim traced to a source</li><li>Art attribution and historical questions</li><li>Findings published so others can check them</li></ul>
+          <a class="svc-more" href="/services/research/">See research <span aria-hidden="true">→</span></a>
+        </div>
+      </article>
+      <article class="svc-card">
+        <figure class="svc-media"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/bugatti-insights.webp" width="512" height="512" alt="" loading="lazy" decoding="async" style="object-position:50% 60%" /><figcaption class="svc-ex">Example: Bugatti Insights</figcaption></figure>
+        <div class="svc-body">
+          <h3 class="svc-name">Provenance</h3>
+          <p class="svc-promise">Provenance systems that give objects a verifiable history.</p>
+          <ul class="svc-points"><li>Structured records of who, when and where</li><li>Documented sources for each claim</li><li>A public page that tells the object&#039;s story</li></ul>
+          <a class="svc-more" href="/services/provenance/">See provenance <span aria-hidden="true">→</span></a>
+        </div>
+      </article>
+      <article class="svc-card">
+        <figure class="svc-media"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/seomagic-hero.webp" width="854" height="480" alt="" loading="lazy" decoding="async" style="object-position:50% 0%" /><figcaption class="svc-ex">Example: our SEO tool</figcaption></figure>
+        <div class="svc-body">
+          <h3 class="svc-name">Online presence</h3>
+          <p class="svc-promise">Websites, SEO, AI-optimisation and social media that get you found.</p>
+          <ul class="svc-points"><li>A website built and run for you</li><li>Found in search and in AI answers</li><li>Social media promotion as one system</li></ul>
+          <a class="svc-more" href="/services/online-presence/">See online presence <span aria-hidden="true">→</span></a>
+        </div>
+      </article>
     </div>
+    <div class="svc-cta"><a class="svc-cta-btn" href="<?php echo esc_url( prospergenics_2026_contact_url( 'Services for my organisation' ) ); ?>">Discuss your project <span aria-hidden="true">→</span></a><p class="svc-cta-note">Not sure which fits? Tell us the problem and we&#039;ll suggest one.</p></div>
+    <!-- /services:cards -->
   </section>
 
   <!-- PARTNERS · mirrors the Partners slide in the hero; /partners becomes the full
@@ -1477,6 +1555,35 @@
         const paused = flow.classList.toggle('is-paused');
         btn.classList.toggle('is-stopped', paused);
         btn.querySelector('.flow-toggle-label').textContent = paused ? 'Play the moving portraits' : 'Pause the moving portraits';
+      });
+    })();
+
+    // Keyboard focus on a portrait card (#7225): the focused card can be far off screen (the track is
+    // two card sets wide and only paused, not moved, by :focus-within). Slide the track with the
+    // `translate` property, which adds to the paused animation's transform, until the card sits in
+    // the middle of the screen; back to the stream's own position when focus leaves.
+    (function () {
+      const flow = document.querySelector('.flow');
+      const track = flow && flow.querySelector('.flow-track');
+      if (!track) return;
+      let shift = 0;
+      flow.addEventListener('focusin', function (e) {
+        const card = e.target.closest ? e.target.closest('.flow-card') : null;
+        if (!card) return;
+        const r = card.getBoundingClientRect();
+        const mid = document.documentElement.clientWidth / 2;
+        shift += mid - (r.left + r.width / 2);
+        track.style.translate = Math.round(shift) + 'px 0';
+        // focusing an off-screen link may have scrolled the page sideways (body is overflow-x: hidden)
+        // (only when it did: any scroll call would cancel the browser's smooth vertical scroll to the card)
+        window.requestAnimationFrame(function () {
+          [document.documentElement, document.body].forEach(function (el) { if (el.scrollLeft) el.scrollLeft = 0; });
+        });
+      });
+      flow.addEventListener('focusout', function (e) {
+        if (e.relatedTarget && flow.contains(e.relatedTarget)) return;
+        shift = 0;
+        track.style.translate = '';
       });
     })();
 
@@ -1678,7 +1785,8 @@
       function update() {
         if (!mobile.matches) {
           const y = window.scrollY;
-          photo.style.top = (y * 0.5 + 34) + 'px';
+          // half scroll speed from the top of the hero: flush at the top, as the CSS (Martien, 4 Nov, #7228)
+          photo.style.top = (y * 0.5) + 'px';
           // bottom edge slides from 0 to -100px over the first 500px of scroll
           photo.style.bottom = (Math.min(y, 500) / 500 * -100) + 'px';
           // showcase panel bulge: ramps up over the first 250px of scroll and stays; eases back only when scrolling up
