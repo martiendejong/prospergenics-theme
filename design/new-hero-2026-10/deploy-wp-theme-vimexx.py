@@ -18,10 +18,12 @@ TLS session reuse verplicht). FTP root = DA home, so paths start at domains/.
 Uploads:
   wp-theme/prospergenics-2026/  -> public_html/wp-content/themes/prospergenics-2026/
   people/<slug>/index.html      -> public_html/people/<slug>/index.html
-  people/.htaccess              -> public_html/people/.htaccess (a 301 from /people/ to the members list)
+  people/.htaccess              -> public_html/people/.htaccess (the security headers WordPress sends,
+                                   card #6449, and a 301 from /people/ to the members list)
   people/index.html             -> public_html/people/index.html (the same as a meta refresh, the fallback)
-  experts/index.html            -> public_html/experts/index.html
-  community/index.html          -> public_html/community/index.html
+  experts/index.html, .htaccess -> public_html/experts/ (.htaccess: the security headers)
+  community/index.html, .htaccess -> public_html/community/ (the same)
+  (generated) team/.htaccess    -> public_html/team/.htaccess (the same, static_headers.py)
   (last) version.json           -> public_html/version.json: the deployed commit, read by the board (#7145)
                                    (relative asset URLs rewritten to the theme assets URL)
   team/<slug>/index.html        -> redirect stub to /people/<slug>/ (the profiles
@@ -53,6 +55,7 @@ import argparse, datetime, ftplib, hashlib, io, json, os, posixpath, re, subproc
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import deploy_guard  # noqa: E402
+import static_headers  # noqa: E402  security headers for the static folders (#6449)
 
 HERE   = os.path.dirname(os.path.abspath(__file__))
 REPO   = os.path.normpath(os.path.join(HERE, "..", ".."))
@@ -438,6 +441,11 @@ def deploy_static(ftp, dry):
         with open(os.path.join(HERE, folder, "index.html"), encoding="utf-8") as f:
             html = f.read().replace("../assets/", THEME_ASSETS)
         pages.append((f"{REMOTE_ROOT}/{folder}/index.html", html))
+        # the security headers WordPress sends, which Apache's static files would miss (#6449)
+        with open(os.path.join(HERE, folder, ".htaccess"), encoding="utf-8") as f:
+            pages.append((f"{REMOTE_ROOT}/{folder}/.htaccess", f.read()))
+    # and for the /team/<slug>/ redirect stubs
+    pages.append((f"{REMOTE_ROOT}/team/.htaccess", static_headers.htaccess("team")))
     if dry:
         print(f"static pages: would upload {len(pages)} files (people/, team/, experts/, community/)")
         return 0
