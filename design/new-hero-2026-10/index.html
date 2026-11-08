@@ -193,6 +193,12 @@
   .dc-thumb > .pg-pattern, .fc-portrait > .pg-pattern, .p-portrait > .pg-pattern, .pc-media > .pg-pattern { position: absolute; inset: 0; min-height: 0; }
   .dc-thumb > .dc-status { z-index: 1; }
 
+  /* jengo-listings search box (/members/, /tools/, /services/, /partners/, card #7234): the plugin
+     drops the input's outline and only tints the top and bottom border on focus (its clip-path cuts
+     the slanted sides away), so focus was invisible. The site's 3px ring instead: the box goes
+     square while it has focus, so the clip-path can't cut the ring; #1a7a46 is 5.07:1 on paper. */
+  .search-wrap .search-box:focus-within { clip-path: none; border-color: #1a7a46; outline: 3px solid var(--focus-ring, #1a7a46); outline-offset: 2px; }
+
   /* /site-chrome:css */
   :focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; }
   /* homepage only: room under the footer for the fixed (compact) chat launcher at full scroll */
@@ -590,7 +596,9 @@
     margin-top: 22px; transform: skewX(-3deg);
     background: var(--paper); border: 1.5px solid var(--line); transition: border-color .2s;
   }
-  .vt-field:focus-within { border-color: var(--green-600); }
+  /* focus: the site's 3px ring (card #7234; a 1.5px #22a65a border alone was about 3:1 and easy to
+     miss), on the field box, so it follows the skew; #1a7a46 on the white panel is 5.36:1 */
+  .vt-field:focus-within { border-color: var(--focus-ring, #1a7a46); outline: 3px solid var(--focus-ring, #1a7a46); outline-offset: 2px; }
   .vt-answer {
     display: block; transform: skewX(3deg);
     width: calc(100% - 12px); margin: 0 auto; min-height: 110px; resize: vertical;

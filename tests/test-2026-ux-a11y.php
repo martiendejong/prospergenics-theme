@@ -72,6 +72,23 @@ foreach ( $sources as $label => $text ) {
 	ok( (bool) preg_match( '#outline:\s*3px solid var\(--focus-ring#', $text ), "$label: outlines use var(--focus-ring)" );
 }
 
+echo "#7234 the ring on the /members/ search box and the value-test fields\n";
+// jengo-listings search box: the plugin's own rule (fixture) hides the input outline and only tints
+// the border, which its clip-path cuts on the slanted sides.
+$plugin = file_get_contents( __DIR__ . '/fixtures/jengo-listings/members.html' );
+ok( false !== strpos( $plugin, '.search-box:focus-within{border-color:var(--green-600);}' ) && (bool) preg_match( '#\.search-box input\{[^}]*outline:none#', $plugin ) && (bool) preg_match( '#\.search-box\{[^}]*clip-path:polygon#', $plugin ), 'fixture: the plugin\'s search box has no outline and a clip-path' );
+$ring = '.search-wrap .search-box:focus-within { clip-path: none; border-color: #1a7a46; outline: 3px solid var(--focus-ring, #1a7a46); outline-offset: 2px; }';
+ok( false !== strpos( $css, $ring ), 'site-chrome.css: the box drops the clip-path and gets the 3px var(--focus-ring) ring while it has focus' );
+// (class and pseudo-class count: the selector wins over the plugin's whatever the order)
+$specificity = function ( $sel ) { return preg_match_all( '#[.:][a-z]#', $sel ); };
+ok( $specificity( '.search-wrap .search-box:focus-within' ) > $specificity( '.search-box:focus-within' ), 'more specific than the plugin\'s .search-box:focus-within (3 against 2)' );
+ok( false !== strpos( file_get_contents( $theme . '/inc/site-chrome.php' ), "\$css = '<style id=\"prospergenics-site-chrome-css\">' . \"\\n\" . \$chrome['css']" ), 'the takeover prints site-chrome.css on every listings page' );
+foreach ( array( 'index.html' => $home, 'front-page.php' => $front ) as $label => $text ) {
+	ok( false !== strpos( $text, '.vt-field:focus-within { border-color: var(--focus-ring, #1a7a46); outline: 3px solid var(--focus-ring, #1a7a46); outline-offset: 2px; }' ) && false === strpos( $text, '.vt-field:focus-within { border-color: var(--green-600); }' ), "$label: the value-test answer and email fields get the 3px ring (not just the 1.5px #22a65a border)" );
+}
+ok( 2 === preg_match_all( '#<div class="vt-field"><(?:textarea|input type="email") class="vt-answer#', $home ), 'both fields (the answer and the email) sit in .vt-field' );
+ok( contrast( '#1a7a46', '#ffffff' ) >= 3 && contrast( '#1a7a46', '#f4faf6' ) >= 3, sprintf( 'the ring against the value-test panel (white) %.2f:1 and the listings page (paper) %.2f:1', contrast( '#1a7a46', '#ffffff' ), contrast( '#1a7a46', '#f4faf6' ) ) );
+
 echo "UX-15 contrast on About and the accent headings\n";
 foreach ( array( '.values-label', '.card .tag', '.question-card .q-label' ) as $sel ) {
 	ok( (bool) preg_match( '#' . preg_quote( $sel, '#' ) . ' \{[^}]*color: var\(--green-700\)#', $about ), "About $sel uses green-700" );

@@ -226,6 +226,12 @@
   .dc-thumb > .pg-pattern, .fc-portrait > .pg-pattern, .p-portrait > .pg-pattern, .pc-media > .pg-pattern { position: absolute; inset: 0; min-height: 0; }
   .dc-thumb > .dc-status { z-index: 1; }
 
+  /* jengo-listings search box (/members/, /tools/, /services/, /partners/, card #7234): the plugin
+     drops the input's outline and only tints the top and bottom border on focus (its clip-path cuts
+     the slanted sides away), so focus was invisible. The site's 3px ring instead: the box goes
+     square while it has focus, so the clip-path can't cut the ring; #1a7a46 is 5.07:1 on paper. */
+  .search-wrap .search-box:focus-within { clip-path: none; border-color: #1a7a46; outline: 3px solid var(--focus-ring, #1a7a46); outline-offset: 2px; }
+
 </style>
 </head>
 <body>
