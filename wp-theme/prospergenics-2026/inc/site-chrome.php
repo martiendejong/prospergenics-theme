@@ -352,7 +352,9 @@ function prospergenics_2026_listings_see_also() {
  *
  * @param string $html   Everything printed between the end of wp_head and the start of wp_footer.
  * @param string $path   Request path, e.g. '/services/coachos/'.
- * @param array  $chrome 'header', 'footer', 'css', 'script' markup.
+ * @param array  $chrome 'header', 'footer', 'css', 'script' markup; optional 'learn_css', 'learn_script'
+ *                       (lesson pages) and 'tool_demo', 'tool_demo_css', 'tool_demo_script', 'tool_try_live'
+ *                       (tool pages, see prospergenics_2026_tool_demo_chrome()).
  * @return string The page with the theme's header and footer, or $html unchanged.
  */
 function prospergenics_2026_listings_takeover( $html, $path, array $chrome ) {
@@ -428,7 +430,14 @@ function prospergenics_2026_listings_takeover( $html, $path, array $chrome ) {
         $lesson_js = isset( $chrome['learn_script'] ) ? (string) $chrome['learn_script'] : '';
     }
 
-    return rtrim( $out ) . "\n\n" . $chrome['footer'] . "\n" . $chrome['script'] . "\n" . ( '' !== $lesson_js ? $lesson_js . "\n" : '' );
+    // Tool pages (/tools/<slug>/, card #7218): "See it work" from the tool's demo folder and, for a
+    // tool that runs on this site (CoachOS), "Try it live"; before "← All tools" (inc/tool-demos.php).
+    $demo_js = '';
+    if ( ( ! empty( $chrome['tool_demo'] ) || ! empty( $chrome['tool_try_live'] ) ) && function_exists( 'prospergenics_2026_listings_add_tool_demo' ) ) {
+        list( $out, $demo_js ) = prospergenics_2026_listings_add_tool_demo( $out, $key, $chrome );
+    }
+
+    return rtrim( $out ) . "\n\n" . $chrome['footer'] . "\n" . $chrome['script'] . "\n" . ( '' !== $lesson_js ? $lesson_js . "\n" : '' ) . ( '' !== $demo_js ? $demo_js . "\n" : '' );
 }
 
 /**
@@ -540,5 +549,5 @@ add_action( 'wp_footer', function () {
         'script' => prospergenics_2026_site_chrome_script(),
         'learn_css'    => prospergenics_2026_learn_css(),
         'learn_script' => prospergenics_2026_learn_script(),
-    ) );
+    ) + ( function_exists( 'prospergenics_2026_tool_demo_chrome' ) ? prospergenics_2026_tool_demo_chrome( prospergenics_2026_request_path() ) : array() ) );
 }, PHP_INT_MIN );
