@@ -145,6 +145,23 @@ foreach ( array_unique( $person_rules ) as $target ) {
 	}
 }
 
+echo "Production's indexed person URLs (card #6521)\n";
+$indexed = 0;
+foreach ( preg_split( '/\R/', file_get_contents( $root . '/tests/fixtures/production-person-urls.txt' ) ) as $line ) {
+	$line = trim( preg_replace( '/#.*$/', '', $line ) );
+	if ( '' === $line ) {
+		continue;
+	}
+	list( $old, $want ) = preg_split( '/\s+/', $line );
+	$indexed++;
+	$r = person_route( $old );
+	ok( $r && 'https://prospergenics.com' . $want === $r[0] && 301 === $r[1], "$old -> 301 $want" );
+	// One hop: the target itself is never redirected again, and it is a page that exists.
+	ok( null === person_route( $want ) && ( '/members/' === $want || is_file( $root . '/design/new-hero-2026-10' . $want . 'index.html' ) ), "$want is a final page" );
+	ok( false === strpos( (string) ( $r ? $r[0] : '' ), '/wp-content/' ), "$old does not end at an uploaded file" );
+}
+ok( 26 === $indexed, "all 26 indexed person URLs checked ($indexed)" );
+
 echo "Rule matching\n";
 $rules = prospergenics_2026_parse_redirects( "# comment\nold-page   /new-page/   # trailing comment\nshop/*   /tools/\nshop/special/*  /services/\nshop/item  /partners/\nout  https://example.org/x\n\n" );
 ok( 5 === count( $rules ), 'parser reads 5 rules and skips comments and blank lines' );

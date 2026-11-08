@@ -7,7 +7,10 @@
 # run on init, before plugins render and before WordPress guesses a page for a 404 (CON-4).
 #
 # Same format as redirects.txt:  <old path>  <new path>
-# Not here yet, waiting for the owners: Sonia, Timothy and Toperian (production-only profiles).
+# Every person URL production (prospergenics.com) has in its sitemaps (team_member-sitemap.xml,
+# page-sitemap.xml, author-sitemap.xml, fetched 8 Nov 2026) is listed in
+# tests/fixtures/production-person-urls.txt; tests/test-2026-routing.php checks that each one
+# matches a rule here that ends at a published /people/ profile or at the /members/ list (card #6521).
 
 # Martien de Jong
 members/martien-de-jong      /people/martien/
@@ -77,3 +80,12 @@ members/farid-harrak         /people/farid/
 
 # The old team page lists outdated names, roles and photos
 our-team                     /community/
+
+# Production-only profiles with no /people/ page: Sonia, Timothy, Toperian (card #6521).
+# DECISION PENDING (owners): give them a profile in build-profiles.py PROFILES (then point these
+# rules at /people/<slug>/) or keep them off the site. Until then they go to the members list,
+# the least surprising landing for someone looking for a person who has no page.
+members/sonia                /members/
+members/timothy              /members/
+author/timothy               /members/
+members/toperian             /members/
