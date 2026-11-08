@@ -6,9 +6,10 @@
  *   /manage/            overview: new members, verified members, enrolments, completions and
  *                       certificates over the last 7 and 30 days; what is waiting (articles for
  *                       review, unread contact messages, open reports, writer/instructor requests)
- *   /manage/members/    search (name or email), filters, paging, and per member: role (subscriber or
- *                       writer), mark verified, resend the confirmation link, hide or show the
- *                       profile, suspend or unsuspend
+ *   /manage/members/    a compact table (cards on phones): summary chips with counts, search (name,
+ *                       username or email), filters, sort, 25/50/100 per page, and per member a
+ *                       "Manage" panel: role (subscriber or writer), mark verified, resend the
+ *                       confirmation link, hide or show the profile, suspend or unsuspend
  *   /manage/messages/   the contact messages (pg_contact_msg): unread, open, handled, spam; reply by
  *                       email; mark read, unread, handled
  *   /manage/articles/   articles waiting for review (the "Waiting for review" queue of
