@@ -25,6 +25,8 @@ import json
 import os
 import re
 
+import services_section
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 CHROME = os.path.join(HERE, "wp", "inc", "site-chrome")
 
@@ -236,6 +238,12 @@ def update_about():
 
 def update_index():
     _update("index.html", header("", autohide=True), footer(""), MENU_JS)
+    # the "Our services" cards and their styles, from wp/inc/services/ (services_section.py)
+    path = os.path.join(HERE, "index.html")
+    with open(path, encoding="utf-8") as f:
+        html = services_section.update(f.read())
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(html)
 
 
 if __name__ == "__main__":

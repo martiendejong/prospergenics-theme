@@ -22,6 +22,7 @@ the interactive front-end (slider, parallax, scroll effects) keeps working as-is
 Re-run after every design change, then deploy with deploy-wp-theme-to-test.py.
 """
 import os, re, shutil
+from urllib.parse import unquote
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.normpath(os.path.join(HERE, "..", "..", "wp-theme", "prospergenics-2026"))
@@ -66,6 +67,14 @@ def php_chrome(html, header_args):
     return coach.sub(lambda _m: "<?php echo prospergenics_2026_coach_embed(); // phpcs:ignore WordPress.Security.EscapeOutput -- built and escaped in inc/coach-context.php ?>", html, count=1)
 
 
+def contact_php(encoded):
+    """href for /contact/?subject=<encoded> on the static page -> the same URL from the PHP helper."""
+    subject = unquote(encoded)
+    if not re.fullmatch(r"[A-Za-z0-9 ,.-]+", subject):
+        raise SystemExit(f"unexpected contact subject: {subject!r}")
+    return f"href=\"<?php echo esc_url( prospergenics_2026_contact_url( '{subject}' ) ); ?>\""
+
+
 def build():
     if os.path.isdir(OUT):
         shutil.rmtree(OUT)
@@ -80,6 +89,8 @@ def build():
     home = home.replace('href="people/', f'href="{HOME}people/')
     home = home.replace('href="experts/"', f'href="{HOME}experts/"')
     home = home.replace('href="community/"', f'href="{HOME}community/"')
+    # contact buttons (/contact/?subject=...) -> the theme's helper, prospergenics_2026_contact_url()
+    home = re.sub(r'href="/contact/\?subject=([^"&]+)"', lambda m: contact_php(m.group(1)), home)
     with open(os.path.join(OUT, "front-page.php"), "w", encoding="utf-8") as f:
         f.write("<?php /* Front page - generated from design/new-hero-2026-10/index.html by build-wp-theme.py; edit the source, not this file. */ ?>\n" + home)
 

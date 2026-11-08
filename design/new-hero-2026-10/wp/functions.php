@@ -58,6 +58,7 @@ require get_template_directory() . '/inc/platform-search.php';   // #6393 /find/
 require get_template_directory() . '/inc/platform-articles.php';
 require get_template_directory() . '/inc/platform-profiles.php';
 require get_template_directory() . '/inc/members-directory.php'; // #6516/#6517 /members/ cards from PROFILES (people.json)
+require get_template_directory() . '/inc/services.php';          // #7219 /services/ cards and "What you get", from services.json (as on the homepage)
 require get_template_directory() . '/inc/platform-courses.php';
 require get_template_directory() . '/inc/platform-roles.php';     // #6341 member / company / instructor / admin
 require get_template_directory() . '/inc/platform-projects.php'; // #6388 portfolios: /projects/, contributions

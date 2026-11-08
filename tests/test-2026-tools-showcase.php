@@ -11,7 +11,7 @@
  *     name, a description, the three skills and an "Explore <Tool>" link to the same page,
  *   - real screenshots only for Jengo and SEO God (with alt text and a size); the other five get the
  *     branded panel (icon + tagline), never an <img>,
- *   - no expanding strip and no scroll-zoom past 1 here or in the services strip (that pushed the
+ *   - no expanding strip and no scroll-zoom past 1 here, none at all on the services cards (that pushed the
  *     outer cards off the screen); the focus ring is the shared token; reduced motion is respected,
  *   - the switching script: hover, focus and a touch tap switch the preview, no autoplay,
  *   - front-page.php is rebuilt from it.
@@ -88,8 +88,9 @@ foreach ( $panels as $i => $p ) {
 ok( false === strpos( $sec, 'sandra.webp' ) && false === strpos( $sec, 'jengo-werkplek-duo.webp' ), 'no photo of a person or unrelated app screenshot standing in for a tool' );
 
 echo "No overflow, focus, reduced motion\n";
-preg_match_all( '#data-scroll-scale="([\d.]+)"#', $sec . section( $home, 'services' ), $scales );
-ok( 2 === count( $scales[1] ) && max( array_map( 'floatval', $scales[1] ) ) <= 1.0, 'tools and services grow in to at most their own width (data-scroll-scale ' . implode( ', ', $scales[1] ) . ')' );
+preg_match_all( '#data-scroll-scale="([\d.]+)"#', $sec, $scales );
+ok( 1 === count( $scales[1] ) && max( array_map( 'floatval', $scales[1] ) ) <= 1.0, 'tools grow in to at most their own width (data-scroll-scale ' . implode( ', ', $scales[1] ) . ')' );
+ok( preg_match( '#<section class="projects svc-section" id="services">.*?</section>#s', $home, $svc ) && false === strpos( $svc[0], 'data-scroll-scale' ), 'the services section is not scaled at all (card #7219, tests/test-2026-services.php)' );
 preg_match( '#/\* ─+  TOOLS · list \+ fixed preview panel  ─+ \*/(.*?)/\* ─+  PARTNERS#su', $home, $css );
 $css = isset( $css[1] ) ? $css[1] : '';
 ok( '' !== $css && false === strpos( $css, 'transition: flex' ) && false === strpos( $css, 'flex: 2.6' ), 'no width-changing flex animation' );
