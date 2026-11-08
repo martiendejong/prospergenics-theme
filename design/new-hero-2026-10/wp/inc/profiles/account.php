@@ -10,7 +10,7 @@ defined( 'ABSPATH' ) || exit;
 
 const PROSPERGENICS_PROFILES_PASSWORD_TRIES  = 5;
 const PROSPERGENICS_PROFILES_PASSWORD_LOCK   = 900;
-const PROSPERGENICS_PROFILES_PASSWORD_MIN    = 8;
+const PROSPERGENICS_PROFILES_PASSWORD_MIN    = 10; // the same minimum as registration (PROSPERGENICS_REGISTER_PASSWORD_MIN)
 
 /**
  * Check the member's current password (with a lock after repeated failures).
@@ -75,7 +75,15 @@ function prospergenics_profiles_change_password( $user_id, $current, $new, $conf
         return $ok;
     }
     $new = (string) $new;
-    if ( strlen( $new ) < PROSPERGENICS_PROFILES_PASSWORD_MIN ) {
+    // The same rule as registration (inc/profiles/register.php, #6338): length, common passwords, key runs,
+    // the member's own email or name, so a password /register/ refuses can't be set here either.
+    if ( function_exists( 'prospergenics_register_password_problem' ) ) {
+        $member  = get_userdata( (int) $user_id );
+        $problem = prospergenics_register_password_problem( $new, $member ? $member->user_email : '', $member ? $member->display_name : '' );
+        if ( '' !== $problem ) {
+            return new WP_Error( 'pg_profiles_new_password', $problem, array( 'field' => 'new' ) );
+        }
+    } elseif ( strlen( $new ) < PROSPERGENICS_PROFILES_PASSWORD_MIN ) {
         return new WP_Error( 'pg_profiles_new_password', sprintf( 'Use at least %d characters for your new password.', PROSPERGENICS_PROFILES_PASSWORD_MIN ), array( 'field' => 'new' ) );
     }
     if ( $new !== (string) $confirm ) {

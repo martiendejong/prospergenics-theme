@@ -472,3 +472,38 @@ members are flagged _pg_register_iam=pending. Martien: tick "Anyone can register
 Done: front-end article editor at /articles/write/ (editor.php, views/write.php, article-editor.js), My articles now links to it.
 Verified: new php test passes, existing platform tests pass, browser check of the script against a stubbed REST backend; not run against a live WordPress.
 Left: check on the test site with a contributor and an author account.
+
+## 2026-11-07 - PR #67 (claude/wizardly-babbage-35o2ct into design/new-hero-2026-10): tasks 6338, 6459 and 6341 brought to test
+Done: Jengo's feature/6338-member-registration and feature/6459-article-editor (PR #65) merged unchanged into
+design/new-hero-2026-10, so they deploy to test. Added on top, for Martien and Jengo to keep track:
+- 6459: PR #65 changed only the generated wp-theme/, so the next build would have removed the editor and CI's
+  "generated theme matches its design source" check fails. The same files are now in design/new-hero-2026-10
+  (assets/platform/article-editor.js, articles.css, wp/inc/articles/{editor,content,mine}.php,
+  views/{write,mine}.php, platform-articles.php): an exact copy, every source was identical to its generated
+  file before. The editor's focus outline used --green-500 (#34c759, 2.1:1); now --focus-ring (#1a7a46).
+  Rule for later work: edit design/new-hero-2026-10/, then run site_chrome.py, people/build-profiles.py and
+  build-wp-theme.py; never edit wp-theme/ by hand.
+- 6341 (Martien's PR #64): the Users > Edit "Platform role" was saved on edit_user_profile_update, which runs
+  BEFORE WordPress' own edit_user(); that save calls set_role() with the main Role field and drops every other
+  role. In a real WordPress "Company" did not stick and "Instructor" only worked through the legacy
+  _pg_courses_instructor flag. prospergenics_roles_save_field() now also re-applies the role on
+  profile_update (after WordPress wrote the role). Verified: Company, Instructor and Writer+Instructor stick.
+- 6338: after a failed submit the first field to fix gets autofocus and aria-errormessage (pg-register.php);
+  the personal data export shows "Signed up through" and the IAM link state (_pg_register_source,
+  _pg_register_iam, jengo_iam_sub) in inc/profiles/privacy.php.
+Verified: 40 tests/*.php pass; e2e role matrix 341/341; Playwright at 390/1440 with registration on: Join ->
+/register/, field errors + focus, axe no serious/critical, good sign-up -> /profile/welcome/.
+Left: an admin ticks "Anyone can register" on test (it is off, so Join still opens the contact form).
+
+## 2026-11-08 - task 6338 follow-ups (claude/wizardly-babbage-35o2ct)
+Done:
+- /join/ (inc/profiles/routes.php, rewrite version 4): one Join address for links that cannot ask WordPress
+  whether registration is open. Members -> /profile/; visitors -> /register/ while "Anyone can register" is on,
+  else the contact form on "Joining the community" (same as the header's Join). The static people, experts
+  and community pages (site_chrome.py) now link Join to /join/, so they follow the switch too.
+- /profile/settings/ password change uses the registration rule (prospergenics_register_password_problem():
+  at least 10 characters, no common passwords, no key runs, not the member's own email or name);
+  PROSPERGENICS_PROFILES_PASSWORD_MIN is now 10 (was 8), so a password /register/ refuses can't be set there.
+Verified: tests/test-2026-navigation.php (4 new checks); e2e 341/341; in WordPress: /join/ -> contact form when
+closed, -> /register/ when open, -> profile when logged in; "ninechars" and "password123" refused in settings,
+"river lantern copper hills" accepted.
