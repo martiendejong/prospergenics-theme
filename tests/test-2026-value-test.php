@@ -51,7 +51,8 @@ preg_match_all( '#"([^"]+)"#', $q[1] ?? '', $found );
 ok( $questions === $found[1], 'the five original questions, in order' );
 ok( false !== strpos( $section, '<textarea class="vt-answer" id="vtAnswer" rows="4"' ), 'open answers in a text box' );
 ok( false !== strpos( $js, "'Reveal my value <span class=\"arrow\">&rarr;</span>'" ) && false !== strpos( $js, "hintEl.textContent = (step + 1) + ' / ' + QUESTIONS.length;" ), 'progress, and "Reveal my value" on the last question' );
-ok( false !== strpos( $section, 'data-scroll-scale="1.2" data-scroll-scale-window="0.65"' ), 'the test box grows in on scroll, as before' );
+ok( false !== strpos( $section, 'data-scroll-scale="1" data-scroll-scale-from="0.84" data-scroll-scale-window="0.65"' ), 'the test box grows in on scroll, to its own width (at 1.2 it reached past the screen edges, card #7215)' );
+ok( (bool) preg_match( '#@supports \(overflow: clip\) \{\s*html \{ overflow-x: hidden; \}\s*body \{ overflow-x: clip; \}\s*\}#', $home ), 'the homepage cannot scroll sideways: the root clips, body is no scroll container (sticky header keeps working)' );
 
 echo "Email and profile\n";
 ok( false !== strpos( $js, 'Almost there - where can we send your value profile?' ), 'the email step follows the questions' );

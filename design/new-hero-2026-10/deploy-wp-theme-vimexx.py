@@ -18,7 +18,8 @@ TLS session reuse verplicht). FTP root = DA home, so paths start at domains/.
 Uploads:
   wp-theme/prospergenics-2026/  -> public_html/wp-content/themes/prospergenics-2026/
   people/<slug>/index.html      -> public_html/people/<slug>/index.html
-  people/index.html             -> public_html/people/index.html (redirect to the people list)
+  people/.htaccess              -> public_html/people/.htaccess (a 301 from /people/ to the members list)
+  people/index.html             -> public_html/people/index.html (the same as a meta refresh, the fallback)
   experts/index.html            -> public_html/experts/index.html
   community/index.html          -> public_html/community/index.html
   (last) version.json           -> public_html/version.json: the deployed commit, read by the board (#7145)
@@ -427,9 +428,12 @@ def deploy_static(ftp, dry):
         pages.append((f"{REMOTE_ROOT}/people/{slug}/index.html", html))
         # the profiles briefly lived under /team/<slug>/ (18-10): leave a redirect
         pages.append((f"{REMOTE_ROOT}/team/{slug}/index.html", REDIRECT.format(slug=slug)))
-    # /people/ itself: a redirect to the people list (build-profiles.py), so it is no 403
-    with open(os.path.join(PEOPLE, "index.html"), encoding="utf-8") as f:
-        pages.append((f"{REMOTE_ROOT}/people/index.html", f.read()))
+    # /people/ itself: a 301 to the members list from .htaccess (Apache serves the real people/
+    # folder before WordPress, card #7226), and index.html, a meta refresh, as the fallback; both
+    # from build-profiles.py, so it is no 403
+    for name in (".htaccess", "index.html"):
+        with open(os.path.join(PEOPLE, name), encoding="utf-8") as f:
+            pages.append((f"{REMOTE_ROOT}/people/{name}", f.read()))
     for folder in LISTS:
         with open(os.path.join(HERE, folder, "index.html"), encoding="utf-8") as f:
             html = f.read().replace("../assets/", THEME_ASSETS)

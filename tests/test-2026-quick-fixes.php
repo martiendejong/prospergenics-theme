@@ -65,7 +65,12 @@ ok( false !== strpos( $front, 'class="vt-privacy"' ), 'value test shows a privac
 ok( false !== strpos( $front, '/privacy-policy/' ), 'privacy notice links the privacy policy' );
 
 echo "Chat launcher and WhatsApp (C6, H4)\n";
-ok( false === strpos( $front, '254XXXXXXXXX' ), 'no placeholder WhatsApp number left' );
+$wa_placeholder = '254' . str_repeat( 'X', 9 ); // spelled out, so the repository holds no copy of it (card #7222)
+ok( false === strpos( $front, $wa_placeholder ), 'no placeholder WhatsApp number left' );
+// The old root theme (repo root, still in the repository) uses the real number too (card #7222).
+$root_front = file_get_contents( $root . '/front-page.php' );
+ok( false === strpos( $root_front, $wa_placeholder ) && 1 === preg_match_all( '#<a class="wa-btn" href="https://wa\.me/254741619743"#', $root_front ), 'old root theme: its WhatsApp button opens the real number' );
+ok( ! preg_match( '#wa\.me/(?!254741619743\b)#', $root_front . file_get_contents( $root . '/header.php' ) . file_get_contents( $root . '/functions.php' ) ), 'old root theme: no other WhatsApp number anywhere' );
 ok( false !== strpos( $front, 'https://wa.me/254741619743' ), 'WhatsApp links use the real number' );
 ok( ! preg_match( '#<button class="launcher-orb"[^>]*>(?:(?!</button>).)*<a #s', $front ), 'WhatsApp link is not nested inside the chat button' );
 // Martien's rule (2c8c456): full-size launcher on desktop, compact only on phones (<= 880px).

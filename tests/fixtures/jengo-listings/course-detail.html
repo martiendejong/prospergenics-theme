@@ -1,0 +1,255 @@
+<!-- Saved 8 Nov 2026 from test.prospergenics.com/courses/html/: the jengo-listings course page:
+     the plugin's page styles, then its page from the hero to the end of the content (the theme's
+     header and footer and the CoachOS assistant left out; the breadcrumb put back where the plugin
+     prints it, before the banner, as the takeover receives it). -->
+<style>
+:root{
+  --ink:#0b2016;--green-900:#0f3d28;--green-700:#1a7a46;--green-600:#22a65a;
+  --green-500:#34c759;--green-300:#86e0a6;--green-100:#d9f5e3;
+  --paper:#f4faf6;--paper-2:#eaf5ee;--line:rgba(15,61,40,.12);
+  --muted:#4a6555;--shadow:0 24px 60px -20px rgba(11,32,22,.35);
+  --ease:cubic-bezier(.22,.61,.36,1);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);background:var(--paper);-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+
+/* NAV */
+.pg-nav{
+  position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;
+  padding:18px clamp(24px,5vw,72px);
+  background:rgba(244,250,246,.92);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);
+}
+.pg-nav .brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.pg-nav .brand img{height:38px;width:auto;display:block;}
+.brand-text{font-family:'Sora',sans-serif;font-weight:800;font-size:20px;color:var(--green-900);letter-spacing:-.02em;}
+.nav-links{display:flex;align-items:center;gap:28px;}
+.nav-links a{font-size:14.5px;font-weight:500;color:var(--green-900);text-decoration:none;opacity:.8;transition:opacity .2s;}
+.nav-links a:hover,.nav-links a.current{opacity:1;}
+.nav-cta{font-family:'Sora',sans-serif;font-weight:600;font-size:13.5px;padding:9px 17px;border-radius:999px;border:1.5px solid var(--green-700);color:var(--green-900);background:transparent;text-decoration:none;transition:all .2s;}
+.nav-cta:hover{background:var(--green-700);color:#fff;}
+@media(max-width:800px){.nav-links{display:none;}}
+
+/* BREADCRUMB */
+.pg-breadcrumb{
+  max-width:1100px;margin:0 auto;padding:16px clamp(24px,5vw,72px) 0;
+  font-size:13px;color:var(--muted);display:flex;align-items:center;gap:7px;flex-wrap:wrap;
+}
+.pg-breadcrumb a{color:var(--muted);text-decoration:none;}
+.pg-breadcrumb a:hover{color:var(--green-700);}
+.pg-breadcrumb .sep{opacity:.45;}
+
+/* HERO BAND */
+.course-hero{
+  background:linear-gradient(140deg,var(--green-900) 0%,var(--green-700) 60%,#1d8e4f 100%);
+  padding:clamp(48px,6.5vw,88px) clamp(24px,5vw,72px) clamp(36px,4.5vw,64px);
+  position:relative;overflow:hidden;
+}
+.course-hero::before{
+  content:"";position:absolute;top:-120px;right:-80px;
+  width:520px;height:520px;border-radius:50%;
+  background:radial-gradient(circle,rgba(52,199,89,.18),transparent 65%);
+  pointer-events:none;
+}
+.course-hero-inner{max-width:1100px;margin:0 auto;position:relative;z-index:1;}
+.ch-eyebrow{
+  display:inline-flex;align-items:center;gap:9px;margin-bottom:16px;
+  font-family:'Sora',sans-serif;font-weight:700;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  color:rgba(255,255,255,.8);
+}
+.ch-eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--green-300);}
+.course-hero h1{
+  font-family:'Sora',sans-serif;font-weight:800;
+  font-size:clamp(36px,5vw,68px);line-height:1.0;letter-spacing:-.035em;
+  color:#fff;
+}
+.course-hero .ch-subtitle{
+  margin-top:14px;font-size:clamp(16px,1.55vw,19px);line-height:1.6;
+  color:rgba(255,255,255,.82);max-width:54ch;
+}
+.ch-meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px;}
+.ch-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:'Sora',sans-serif;font-weight:600;font-size:12.5px;
+  background:rgba(255,255,255,.12);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);
+  color:#fff;padding:7px 15px;border-radius:999px;
+  border:1px solid rgba(255,255,255,.2);
+}
+.ch-tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:18px;}
+.ch-tag{
+  font-size:12px;font-weight:500;
+  background:rgba(255,255,255,.14);color:rgba(255,255,255,.9);
+  border:1px solid rgba(255,255,255,.2);
+  padding:4px 11px;border-radius:999px;
+}
+.ch-cta{
+  margin-top:28px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+}
+.btn-primary{
+  display:inline-flex;align-items:center;gap:8px;text-decoration:none;
+  font-family:'Sora',sans-serif;font-weight:600;font-size:15.5px;
+  padding:15px 28px;border-radius:999px;
+  background:#fff;color:var(--green-900);
+  box-shadow:0 12px 28px -10px rgba(0,0,0,.25);
+  transition:transform .2s var(--ease),box-shadow .2s;
+}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 18px 36px -12px rgba(0,0,0,.3);}
+.btn-secondary{
+  display:inline-flex;align-items:center;gap:8px;text-decoration:none;
+  font-family:'Sora',sans-serif;font-weight:600;font-size:14px;
+  padding:14px 22px;border-radius:999px;
+  background:transparent;color:#fff;
+  border:1.5px solid rgba(255,255,255,.5);
+  transition:all .2s var(--ease);
+}
+.btn-secondary:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.8);}
+
+/* CONTENT */
+.course-content{max-width:1100px;margin:0 auto;padding:clamp(40px,5vw,72px) clamp(24px,5vw,72px) clamp(64px,8vw,112px);}
+.course-grid{display:grid;grid-template-columns:1fr 340px;gap:clamp(32px,5vw,72px);align-items:start;}
+
+/* main article */
+.course-body h2{
+  font-family:'Sora',sans-serif;font-weight:800;
+  font-size:clamp(22px,2.4vw,30px);line-height:1.1;letter-spacing:-.025em;
+  color:var(--ink);margin:36px 0 14px;
+}
+.course-body h2:first-child{margin-top:0;}
+.course-body h3{
+  font-family:'Sora',sans-serif;font-weight:700;font-size:18px;
+  letter-spacing:-.015em;color:var(--ink);margin:24px 0 10px;
+}
+.course-body p{font-size:16.5px;line-height:1.72;color:#2a3d30;margin-bottom:16px;}
+.course-body ul,.course-body ol{padding-left:22px;margin-bottom:16px;}
+.course-body li{font-size:16px;line-height:1.7;color:#2a3d30;margin-bottom:6px;}
+.course-body strong{font-weight:600;color:var(--ink);}
+.course-body code{
+  font-family:ui-monospace,'Cascadia Code','Fira Mono',monospace;
+  font-size:13.5px;background:var(--green-100);color:var(--green-900);
+  padding:2px 6px;border-radius:4px;
+}
+.course-body pre{
+  background:var(--ink);color:#c9e6d2;
+  padding:20px 22px;border-radius:12px;overflow-x:auto;
+  font-family:ui-monospace,monospace;font-size:13.5px;line-height:1.6;
+  margin:18px 0;
+}
+.course-body pre code{background:transparent;color:inherit;padding:0;}
+
+/* FAQs */
+.course-faqs{margin-top:48px;}
+.course-faqs h2{
+  font-family:'Sora',sans-serif;font-weight:800;font-size:clamp(22px,2.4vw,30px);
+  letter-spacing:-.025em;color:var(--ink);margin-bottom:20px;
+}
+.faq-item{
+  border:1px solid var(--line);margin-bottom:10px;
+  clip-path:polygon(12px 0,100% 0,calc(100% - 12px) 100%,0 100%);
+  background:#fff;
+}
+.faq-item summary{
+  font-family:'Sora',sans-serif;font-weight:700;font-size:16px;
+  color:var(--ink);padding:16px 22px;cursor:pointer;list-style:none;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.faq-item summary::-webkit-details-marker{display:none;}
+.faq-item summary::after{content:"+";}
+.faq-item[open] summary::after{content:"−";}
+.faq-item p{padding:0 22px 16px;font-size:15px;line-height:1.65;color:var(--muted);}
+
+/* SIDEBAR */
+.course-sidebar{}
+.sidebar-card{
+  background:#fff;border:1px solid var(--line);
+  clip-path:polygon(14px 0,100% 0,calc(100% - 14px) 100%,0 100%);
+  padding:26px 28px 28px;position:sticky;top:84px;
+}
+.sidebar-card h3{
+  font-family:'Sora',sans-serif;font-weight:800;font-size:17px;
+  color:var(--ink);margin-bottom:20px;
+}
+.sc-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:13px;font-size:14.5px;}
+.sc-row .lbl{color:var(--muted);font-weight:500;}
+.sc-row .val{color:var(--ink);font-weight:600;text-align:right;}
+.sc-divider{border:none;border-top:1px solid var(--line);margin:18px 0;}
+.sc-cta{
+  display:block;width:100%;text-align:center;text-decoration:none;
+  font-family:'Sora',sans-serif;font-weight:600;font-size:15px;
+  padding:14px 20px;border-radius:999px;
+  background:linear-gradient(100deg,var(--green-700),var(--green-600));
+  color:#fff;box-shadow:0 12px 28px -10px var(--green-600);
+  transition:transform .2s var(--ease);
+}
+.sc-cta:hover{transform:translateY(-2px);}
+.sc-back{
+  display:block;text-align:center;margin-top:14px;
+  font-size:13.5px;color:var(--muted);text-decoration:none;
+}
+.sc-back:hover{color:var(--green-700);}
+
+@media(max-width:900px){
+  .course-grid{grid-template-columns:1fr;}
+  .course-sidebar{order:-1;}
+  .sidebar-card{position:static;}
+}
+@media(max-width:640px){
+  .course-content{padding-left:20px;padding-right:20px;}
+}
+</style>
+
+<div class="pg-breadcrumb">
+  <a href="https://test.prospergenics.com/">Home</a>
+  <span class="sep">›</span>
+  <a href="https://test.prospergenics.com/courses/">Courses</a>
+  <span class="sep">›</span>
+  <span>HTML</span>
+</div>
+
+<!-- HERO BAND -->
+<div class="course-hero">
+  <div class="course-hero-inner">
+    <div class="ch-eyebrow"><span class="dot"></span>ProsperGenics</div>
+    <h1>HTML</h1>
+          <p class="ch-subtitle">Learn how web pages are built. Understand structure, elements, and how the browser reads your code.</p>
+        <div class="ch-meta">
+      <span class="ch-badge">📚 Beginner</span>      <span class="ch-badge">⏱ 45 lessons · ~8h</span>          </div>
+        <div class="ch-tags">
+              <span class="ch-tag">What is HTML?</span>
+              <span class="ch-tag">How to Write HTML</span>
+              <span class="ch-tag">HTML Documents</span>
+              <span class="ch-tag">HTML Elements</span>
+              <span class="ch-tag">HTML Attributes</span>
+              <span class="ch-tag">HTML Comments</span>
+          </div>
+        <div class="ch-cta">
+      <a class="btn-primary" href="https://test.prospergenics.com/courses/html/learn/">Start learning →</a>
+      <a class="btn-secondary" href="https://test.prospergenics.com/courses/">← All Courses</a>
+    </div>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="course-content">
+  <div class="course-grid">
+    <article class="course-body">
+              <p>Learn how web pages are built. Understand structure, elements, and how the browser reads your code.</p>
+      
+          </article>
+
+    <aside class="course-sidebar">
+      <div class="sidebar-card">
+        <h3>Course details</h3>
+                <div class="sc-row"><span class="lbl">Level</span><span class="val">Beginner</span></div>
+                        <div class="sc-row"><span class="lbl">Duration</span><span class="val">45 lessons · ~8h</span></div>
+                                <div class="sc-row" style="align-items:flex-start;">
+          <span class="lbl">Topics</span>
+          <span class="val" style="font-size:12.5px;line-height:1.7;">What is HTML?, How to Write HTML, HTML Documents, HTML Elements, HTML Attributes, HTML Comments, Headings, Paragraphs and Line Breaks</span>
+        </div>
+                <hr class="sc-divider" />
+        <a class="sc-cta" href="https://test.prospergenics.com/courses/html/learn/">Start learning</a>
+        <a class="sc-back" href="https://test.prospergenics.com/courses/">← All Courses</a>
+      </div>
+    </aside>
+  </div>
+</div>
