@@ -10,6 +10,8 @@ add_action( 'after_setup_theme', function () {
 // The templates carry their own <title>; keep WP/plugins from printing a second one.
 remove_action( 'wp_head', '_wp_render_title_tag', 1 );
 
+// First, so a fatal error in anything loaded after it is logged and emailed to staff (#6473).
+require get_template_directory() . '/inc/ops-alerts.php';
 require get_template_directory() . '/inc/security.php';
 require get_template_directory() . '/inc/seo.php';
 // The one site header + footer (menu in inc/site-chrome/nav.json), also put on jengo-listings
@@ -17,6 +19,7 @@ require get_template_directory() . '/inc/seo.php';
 require get_template_directory() . '/inc/site-chrome.php';
 require get_template_directory() . '/inc/account.php';
 require get_template_directory() . '/inc/avatars.php';     // one avatar (photo or initials), no Gravatar
+require get_template_directory() . '/inc/coach-context.php'; // the homepage chat knows the team and who is logged in
 
 // Contact form: every enquiry is stored before any email is attempted, with spam flagged
 // (never discarded) and the delivery result recorded. Ported from PR #20 for production.
@@ -54,6 +57,7 @@ require get_template_directory() . '/inc/sitemap.php';
 require get_template_directory() . '/inc/platform-search.php';   // #6393 /find/: people by skill, project or problem
 require get_template_directory() . '/inc/platform-articles.php';
 require get_template_directory() . '/inc/platform-profiles.php';
+require get_template_directory() . '/inc/members-directory.php'; // #6516/#6517 /members/ cards from PROFILES (people.json)
 require get_template_directory() . '/inc/platform-courses.php';
 require get_template_directory() . '/inc/platform-roles.php';     // #6341 member / company / instructor / admin
 require get_template_directory() . '/inc/platform-projects.php'; // #6388 portfolios: /projects/, contributions

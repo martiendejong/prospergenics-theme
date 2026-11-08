@@ -92,3 +92,15 @@ in through the SSO plugin (auto-provision on). There is no IAM delete in the con
 - `prospergenics_register_role` (filter): the member role (unprivileged roles only).
 - `prospergenics_register_iam_provisioner` (filter): replace the IAM call; return `array( 'status' => 'created'|'disabled', 'subject' => '' )` or a `WP_Error`.
 - `prospergenics_member_registered` (action, `$user_id`, `$iam`): after the member exists and is logged in.
+
+## Changes since Jengo's branch (PR #67, 7 Nov; follow-ups 8 Nov)
+- After a failed submit the first field to fix gets focus and `aria-errormessage` (`pg-register.php`).
+- The personal data export lists how the member signed up and the IAM link state (`_pg_register_source`,
+  `_pg_register_iam`, `jengo_iam_sub`), in `inc/profiles/privacy.php`.
+- `/join/` (`inc/profiles/routes.php`): one Join address that follows the switch. Members go to their profile;
+  visitors go to `/register/` while "Anyone can register" is on, otherwise to the contact form on "Joining the
+  community". The static people, experts and community pages link Join here (`site_chrome.py`); WordPress
+  pages keep the header's own logic in `prospergenics_2026_account_links()`.
+- Changing a password in `/profile/settings/` uses the same rule as registration
+  (`prospergenics_register_password_problem()`, at least 10 characters).
+

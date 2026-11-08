@@ -1,0 +1,38 @@
+# Person URLs that production (https://prospergenics.com, the old site) lists in its sitemaps,
+# fetched 8 Nov 2026 (card #6521): team_member-sitemap.xml, the person pages of page-sitemap.xml
+# and author-sitemap.xml. tests/test-2026-routing.php checks that every one of them is sent by
+# inc/person-redirects.txt, in one hop, to a published /people/<slug>/ page or the /members/ list.
+#
+# <old path>                 <expected target>
+
+# team_member-sitemap.xml (canonical /members/<slug>/)
+/members/lessy/              /people/lessy/
+/members/frank/              /people/frank/
+/members/sonia/              /members/
+/members/diko/               /people/diko/
+/members/sandra/             /people/simitia/
+/members/timothy/            /members/
+/members/toperian/           /members/
+/members/martien-de-jong/    /people/martien/
+/members/sjoerd-schepman/    /people/sjoerd/
+/members/farid/              /people/farid/
+/members/sofy/               /people/sophy/
+/members/natumi/             /people/natumi/
+/members/maxwell/            /people/maxwell/
+/members/lou-marten/         /people/lou/
+/members/faith-nkumun/       /people/faith/
+
+# page-sitemap.xml (person pages; on test media attachments own these slugs)
+/diko/                       /people/diko/
+/frank/                      /people/frank/
+/lessy/                      /people/lessy/
+/martien/                    /people/martien/
+/sandra/                     /people/simitia/
+
+# author-sitemap.xml
+/author/timothy/             /members/
+/author/diko/                /people/diko/
+/author/frank/               /people/frank/
+/author/lessy/               /people/lessy/
+/author/martien/             /people/martien/
+/author/sandra/              /people/simitia/

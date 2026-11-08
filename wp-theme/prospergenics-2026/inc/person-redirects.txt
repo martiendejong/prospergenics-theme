@@ -7,10 +7,17 @@
 # run on init, before plugins render and before WordPress guesses a page for a 404 (CON-4).
 #
 # Same format as redirects.txt:  <old path>  <new path>
-# Not here yet, waiting for the owners: Sonia, Timothy and Toperian (production-only profiles).
+# Every /people/ slug also has a members/<slug> rule, so /members/<slug>/ never shows the plugin's
+# old copy whichever slug is typed (card #6517); tests/test-2026-routing.php checks it.
+#
+# Every person URL production (prospergenics.com) has in its sitemaps (team_member-sitemap.xml,
+# page-sitemap.xml, author-sitemap.xml, fetched 8 Nov 2026) is listed in
+# tests/fixtures/production-person-urls.txt; tests/test-2026-routing.php checks that each one
+# matches a rule here that ends at a published /people/ profile or at the /members/ list (card #6521).
 
 # Martien de Jong
 members/martien-de-jong      /people/martien/
+members/martien              /people/martien/
 team_member/martien-de-jong  /people/martien/
 people/martien-de-jong       /people/martien/
 martien                      /people/martien/
@@ -19,6 +26,7 @@ author/martien               /people/martien/
 
 # Simitia Mpoe (Sandra on the old site)
 members/simitia-mpoe         /people/simitia/
+members/simitia              /people/simitia/
 members/sandra               /people/simitia/
 team_member/sandra           /people/simitia/
 people/sandra                /people/simitia/
@@ -35,10 +43,12 @@ author/diko                  /people/diko/
 
 # Sjoerd Schepman
 members/sjoerd-schepman      /people/sjoerd/
+members/sjoerd               /people/sjoerd/
 team_member/sjoerd-schepman  /people/sjoerd/
 
 # Faith Nkumun
 members/faith-nkumun         /people/faith/
+members/faith                /people/faith/
 team_member/faith-nkumun     /people/faith/
 
 # Maxwell
@@ -60,13 +70,16 @@ author/frank                 /people/frank/
 
 # Sophy Nashipae de Jong
 members/sophy-nashipae-de-jong  /people/sophy/
+members/sophy                /people/sophy/
 members/sofy                 /people/sophy/
 
 # Mayiani Nanana Mpoe
 members/mayiani-nanana-mpoe  /people/mayiani/
+members/mayiani              /people/mayiani/
 
 # Lou Marten
 members/lou-marten           /people/lou/
+members/lou                  /people/lou/
 
 # Natumi
 members/natumi               /people/natumi/
@@ -75,5 +88,15 @@ members/natumi               /people/natumi/
 members/farid                /people/farid/
 members/farid-harrak         /people/farid/
 
-# The old team page lists outdated names, roles and photos
-our-team                     /community/
+# The old team page (page 181) lists outdated names, roles and photos ("Finehas Mpoe", "Diko
+# Mohamend"): the members list is the one people list now (cards #6520, #6517)
+our-team                     /members/
+
+# Production-only profiles with no /people/ page: Sonia, Timothy, Toperian (card #6521).
+# DECISION PENDING (owners): give them a profile in build-profiles.py PROFILES (then point these
+# rules at /people/<slug>/) or keep them off the site. Until then they go to the members list,
+# the least surprising landing for someone looking for a person who has no page.
+members/sonia                /members/
+members/timothy              /members/
+author/timothy               /members/
+members/toperian             /members/

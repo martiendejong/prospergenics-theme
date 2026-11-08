@@ -27,6 +27,7 @@ on:
 
 permissions:
   contents: read
+  issues: write   # the alert issue when the upload or the smoke check fails (#6473)
 
 concurrency:
   group: deploy-test
@@ -58,6 +59,7 @@ jobs:
           fi
 
       - name: Build and upload
+        id: upload
         if: steps.creds.outputs.ready == 'true'
         env:
           PG_FTP_USER: ${{ secrets.TEST_FTP_USERNAME }}
@@ -78,5 +80,26 @@ jobs:
       # Static pages, the platform routes (/courses/, /articles/, /profile/, the REST API), the old
       # /members/ redirect, the value test on the homepage and the shared header on every page.
       - name: Smoke-check the test site
+        id: smoke
         if: steps.creds.outputs.ready == 'true'
-        run: bash tests/smoke/smoke-check.sh https://test.prospergenics.com
+        shell: bash
+        run: bash tests/smoke/smoke-check.sh https://test.prospergenics.com | tee "$RUNNER_TEMP/smoke.txt"
+
+      # A failed upload or smoke check means the live site may be broken: open (or comment on) the
+      # issue "Deploy to test failing" (label "alert"), which notifies every repository watcher and
+      # the logins in the repository variable ALERT_ASSIGNEES; the next good deploy closes it.
+      # A failing test before the upload changes nothing on the site and only fails the run.
+      - name: Open or update the alert issue
+        if: failure() && (steps.upload.outcome == 'failure' || steps.smoke.outcome == 'failure')
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          ALERT_ASSIGNEES: ${{ vars.ALERT_ASSIGNEES }}
+        run: bash tests/smoke/alert-issue.sh open "Deploy to test failing" "$RUNNER_TEMP/smoke.txt"
+
+      - name: Close the alert issue
+        if: success() && steps.smoke.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: bash tests/smoke/alert-issue.sh close "Deploy to test failing"

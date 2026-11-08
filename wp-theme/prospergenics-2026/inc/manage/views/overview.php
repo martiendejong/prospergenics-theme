@@ -65,6 +65,8 @@ prospergenics_manage_open( 'overview', 'Sign-ups, enrolments and completions at 
     </div>
   </section>
 
+  <?php echo function_exists( 'prospergenics_2026_ops_manage_html' ) ? prospergenics_2026_ops_manage_html() : ''; // administrators only, escaped inside (#6473) ?>
+
   <section class="pgm-section" aria-labelledby="pgm-more-h">
     <h2 class="pgm-h2" id="pgm-more-h">More tools</h2>
     <?php echo prospergenics_manage_other_queues_html( $pgm_queues ); // escaped inside ?>

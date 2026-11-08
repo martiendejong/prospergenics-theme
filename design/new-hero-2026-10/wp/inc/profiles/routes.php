@@ -13,13 +13,14 @@
 
 defined( 'ABSPATH' ) || exit;
 
-const PROSPERGENICS_PROFILES_REWRITE_VERSION = '3';
+const PROSPERGENICS_PROFILES_REWRITE_VERSION = '4';
 
 add_action( 'init', function () {
     add_rewrite_rule( '^in/([^/]+)/?$', 'index.php?pg_profile=$matches[1]', 'top' );
     add_rewrite_rule( '^profile/(settings|following|welcome|verify|deleted)/?$', 'index.php?pg_profile_page=$matches[1]', 'top' );
     add_rewrite_rule( '^profile/?$', 'index.php?pg_profile_page=me', 'top' );
     add_rewrite_rule( '^register/?$', 'index.php?pg_profile_page=register', 'top' );
+    add_rewrite_rule( '^join/?$', 'index.php?pg_profile_page=join', 'top' );
     // flush once when the rules change (a cheap option read on every request otherwise)
     if ( get_option( '_pg_profiles_rewrite_version' ) !== PROSPERGENICS_PROFILES_REWRITE_VERSION ) {
         flush_rewrite_rules( false );
@@ -42,7 +43,7 @@ function prospergenics_profiles_route() {
         return 'profile';
     }
     $page = (string) get_query_var( 'pg_profile_page' );
-    return in_array( $page, array( 'me', 'settings', 'following', 'welcome', 'verify', 'deleted', 'register' ), true ) ? $page : '';
+    return in_array( $page, array( 'me', 'settings', 'following', 'welcome', 'verify', 'deleted', 'register', 'join' ), true ) ? $page : '';
 }
 
 /** The member whose profile is being requested (set in template_redirect). */
@@ -108,6 +109,11 @@ add_action( 'template_redirect', function () {
         return;
     }
 
+    if ( 'join' === $route ) {
+        wp_safe_redirect( prospergenics_profiles_join_target( $uid ), 302 );
+        exit;
+    }
+
     if ( 'verify' === $route ) {
         prospergenics_profiles_handle_verify();
         return;
@@ -162,6 +168,22 @@ function prospergenics_profiles_handle_register( $uid ) {
     }
     wp_safe_redirect( home_url( '/profile/welcome/' ) );
     exit;
+}
+
+/**
+ * /join/: one "Join" address that always leads somewhere useful, for links that can't ask WordPress
+ * whether registration is open (the static people, experts and community pages). Members go to their
+ * profile; visitors to /register/ while registration is on (Settings, General, "Anyone can register"),
+ * else to the contact form on "Joining the community", like the header's Join link.
+ */
+function prospergenics_profiles_join_target( $uid ) {
+    if ( $uid ) {
+        return home_url( '/profile/' );
+    }
+    if ( function_exists( 'prospergenics_register_is_open' ) && prospergenics_register_is_open() ) {
+        return home_url( '/register/' );
+    }
+    return prospergenics_2026_contact_url( prospergenics_2026_site_nav()['join_subject'] );
 }
 
 /** Magic link (GET) and "send again" (POST). */

@@ -1,0 +1,31 @@
+# Pages imported from the old site that are still published in the database (cards #6488, #6520).
+#
+# Like person-redirects.txt these rules always apply (on init), also while the page is still
+# published: a theme deploy cannot unpublish content, and redirects.txt only fires on a 404.
+# inc/sitemap.php leaves the pages listed here out of wp-sitemap.xml. Unpublishing them in wp-admin
+# is still the clean end state (it also takes them out of the REST API); the rules keep working
+# after that. The person pages (-2 copies, /our-team/) are in person-redirects.txt.
+#
+# Same format as redirects.txt:  <old path>  <new path>
+# Live state on test.prospergenics.com, 8 Nov 2026, in the comment after each rule.
+
+# Old homepage and About copies (#6520 step 3)
+home-legacy          /            # page 198 "info", 193 words, "Founded by Martien de Jong"
+home                 /            # production lists /home/; on test WordPress guessed /home-legacy/
+about-legacy         /about/      # page 197 "About", 94 words
+colibri-wp           /            # page 179 "Home", empty (old Colibri theme front page); production 301s it to /
+
+# WordPress' example page (#6520, #6488): no content of ours
+sample-page          /            # page 2 "Sample Page"
+
+# Old programme pages: the courses are the programmes now (#6488 step 4)
+our-programs         /courses/    # page 177 "Our Programs", 56 words of teaser text
+trainings            /courses/    # page 190 "Trainings & Tutorials", empty
+
+# Old knowledge base: the articles are its successor (#6488 step 4)
+knowledge-base       /articles/   # page 173 "Knowledge Base", empty
+kennisbank           /articles/   # page 188 "Kennisbank", only a shortcode of a plugin that is not installed
+
+# Old contact page with the community sign-up form (#6488 step 2). /join/ is the theme's join
+# route: the registration form while it is open, else the contact form ("Joining the community").
+join-our-community   /join/       # page 180 "Contact", 30 words (a form that needs a missing plugin)
