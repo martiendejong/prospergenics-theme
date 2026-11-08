@@ -9,7 +9,9 @@
  *     and the rest of the card stay; through the takeover's page filter; the styles are in
  *     site-chrome.css, so they come with the takeover; other shapes are left alone;
  *   - fonts (#7231): the plugin's Google Fonts stylesheet and preconnects leave the <head>, the
- *     theme's fonts.css takes the stylesheet's place (once); the body, other shapes and pages
+ *     theme's fonts.css takes the stylesheet's place (once); the plugin's listings.css (fixture),
+ *     which @imports them again, is printed inline without that @import (only that handle, only
+ *     a .css file inside the plugins folder); the body, other shapes and pages
  *     without Google Fonts are untouched; the whole-page buffer (init) acts only on a listings page,
  *     only on a page that went out in one piece, and not on POSTs;
  *   - one <title> and sharing tags (#7233): /vacancies/ (fixture: its <head> as test sent it) loses
@@ -207,6 +209,44 @@ $_SERVER['REQUEST_METHOD'] = 'POST';
 list( $opened, $o ) = through_buffer( $buffer, $flag, $pages['members'] );
 ok( ! $opened && $o === $pages['members'], 'a POST: no buffer at all' );
 $_SERVER['REQUEST_METHOD'] = 'GET';
+
+// The plugin's own stylesheet @imports the same Google Fonts (fixture: listings.css as test served it).
+$plugin_css = file_get_contents( "$fixture/listings.css" );
+ok( 1 === preg_match_all( '#@import url\(\'https://fonts\.googleapis\.com/css2\?family=Sora[^\']*\'\);#', $plugin_css ), 'fixture: listings.css @imports Sora and Inter from Google' );
+$clean = prospergenics_2026_listings_css_without_google( $plugin_css );
+ok( ! preg_match( $google, $clean ) && $clean === preg_replace( '#@import url\(\'https://fonts[^\n]*\n#', '', $plugin_css ) && false !== strpos( $clean, '.jengo-listings-page' ), 'the @import line goes, every rule stays' );
+foreach ( array( '@import "https://fonts.googleapis.com/css?family=Lato";', "@import url(https://fonts.googleapis.com/css2?family=A;B) screen;", '@IMPORT url( "https://fonts.googleapis.com/x" );' ) as $v ) {
+	ok( "a{}\n" === prospergenics_2026_listings_css_without_google( $v . "\na{}\n" ), "and the other ways to write it: $v" );
+}
+ok( "@import url('/x.css');\na{}" === prospergenics_2026_listings_css_without_google( "@import url('/x.css');\na{}" ), 'another @import stays' );
+$link   = "<link rel='stylesheet' id='jengo-listings-css' href='" . TEST_HOME . "/wp-content/plugins/jengo-listings/assets/listings.css?ver=1.5.0' media='all' />\n";
+$href   = TEST_HOME . '/wp-content/plugins/jengo-listings/assets/listings.css?ver=1.5.0';
+$inline = prospergenics_2026_listings_inline_style( $link, $plugin_css, $href, 'jengo-listings-css' );
+ok( 0 === strpos( $inline, '<style id="jengo-listings-css">' . "\n" ) && false !== strpos( $inline, '.jengo-listings-page' ) && ! preg_match( $google, $inline ) && "</style>\n" === substr( $inline, -9 ), 'the <link> becomes an inline <style id="jengo-listings-css"> without the @import, in the same place' );
+ok( $link === prospergenics_2026_listings_inline_style( $link, $clean, $href, 'jengo-listings-css' ), 'a stylesheet without the Google @import (a plugin update): its <link> stays' );
+ok( $link === prospergenics_2026_listings_inline_style( $link, '', $href, 'jengo-listings-css' ), 'a stylesheet that could not be read: its <link> stays' );
+$rel = prospergenics_2026_listings_inline_style( $link, "@import url('https://fonts.googleapis.com/css2?family=Sora');\n.a{background:url('../img/a.png')}.b{background:url(data:image/png;base64,xx)}.c{background:url(/x.png)}.d{background:url(https://cdn/x.png)}", $href, 'jengo-listings-css', 'screen' );
+ok( false !== strpos( $rel, "url('" . TEST_HOME . "/wp-content/plugins/jengo-listings/assets/../img/a.png')" ) && false !== strpos( $rel, 'url(data:image/png;base64,xx)' ) && false !== strpos( $rel, 'url(/x.png)' ) && false !== strpos( $rel, 'url(https://cdn/x.png)' ) && 0 === strpos( $rel, '<style id="jengo-listings-css" media="screen">' ), 'relative url()s point at the plugin\'s folder; data:, root and absolute ones stay; the media attribute comes along' );
+$evil = prospergenics_2026_listings_inline_style( $link, "@import url('https://fonts.googleapis.com/x');\n.a{content:'</style><script>alert(1)</script>'}", $href, 'jengo-listings-css' );
+ok( 1 === substr_count( strtolower( $evil ), '</style' ) && "</style>\n" === substr( $evil, -9 ), 'a "</style" inside the CSS cannot close the element early' );
+// Which file: only a .css file inside the plugins folder.
+define( 'WP_PLUGIN_DIR', sys_get_temp_dir() . '/pg-listings-test-' . getmypid() . '/plugins' );
+@mkdir( WP_PLUGIN_DIR . '/jengo-listings/assets', 0777, true );
+file_put_contents( WP_PLUGIN_DIR . '/jengo-listings/assets/listings.css', $plugin_css );
+file_put_contents( dirname( WP_PLUGIN_DIR ) . '/secret.css', 'x' );
+function plugins_url() { return TEST_HOME . '/wp-content/plugins'; }
+function set_url_scheme( $u, $s ) { return preg_replace( '#^https?://#', $s . '://', (string) $u ); }
+ok( realpath( WP_PLUGIN_DIR . '/jengo-listings/assets/listings.css' ) === prospergenics_2026_listings_plugin_file( $href ) && prospergenics_2026_listings_plugin_file( str_replace( 'https://', 'http://', $href ) ) === prospergenics_2026_listings_plugin_file( $href ), 'the plugin\'s stylesheet URL (http or https, with ?ver=) maps to its file' );
+ok( '' === prospergenics_2026_listings_plugin_file( TEST_HOME . '/wp-content/plugins/../secret.css' ) && '' === prospergenics_2026_listings_plugin_file( TEST_HOME . '/wp-content/plugins/jengo-listings/assets/../../../secret.css' ) && '' === prospergenics_2026_listings_plugin_file( TEST_HOME . '/wp-content/plugins/jengo-listings/listings.php' ) && '' === prospergenics_2026_listings_plugin_file( 'https://evil.example/wp-content/plugins/jengo-listings/assets/listings.css' ) && '' === prospergenics_2026_listings_plugin_file( TEST_HOME . '/wp-content/plugins/jengo-listings/assets/missing.css' ), 'nothing outside the plugins folder, no other host, no .php, no missing file' );
+$tag_filter = end( $GLOBALS['__hooks']['style_loader_tag'] );
+ok( false !== strpos( $tag_filter( $link, 'jengo-listings', $href, 'all' ), '<style id="jengo-listings-css">' ) && $link === $tag_filter( $link, 'other-plugin', $href, 'all' ), 'style_loader_tag: only the jengo-listings handle is printed inline' );
+unlink( WP_PLUGIN_DIR . '/jengo-listings/assets/listings.css' );
+ok( $link === $tag_filter( $link, 'jengo-listings', $href, 'all' ), 'and its <link> stays when the file is not there' );
+@unlink( dirname( WP_PLUGIN_DIR ) . '/secret.css' );
+@rmdir( WP_PLUGIN_DIR . '/jengo-listings/assets' );
+@rmdir( WP_PLUGIN_DIR . '/jengo-listings' );
+@rmdir( WP_PLUGIN_DIR );
+@rmdir( dirname( WP_PLUGIN_DIR ) );
 
 echo "One <title> and the sharing tags (#7233)\n";
 function metas( $html ) {

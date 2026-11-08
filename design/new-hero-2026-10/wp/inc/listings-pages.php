@@ -12,7 +12,9 @@
  *     buffer starts: a buffer around the whole page (started on init, used only once wp_head has
  *     shown it is a listings page) runs prospergenics_2026_listings_document() on it:
  *       - fonts (card #7231): the plugin's Google Fonts <link>s and preconnects go, the theme's
- *         self-hosted assets/fonts/fonts.css (Sora, Inter) comes in their place, as on theme pages;
+ *         self-hosted assets/fonts/fonts.css (Sora, Inter) comes in their place, as on theme pages
+ *         (and the plugin's own listings.css, which @imports them again, is printed inline
+ *         without that @import: the 'style_loader_tag' filter below);
  *       - one <title> (card #7233): the /vacancies/ template's bare <title>ProsperGenics</title>
  *         goes when the plugin prints the page's own;
  *       - sharing tags (card #7233): og:title, og:description, twitter:title and
@@ -191,6 +193,64 @@ function prospergenics_2026_listings_share_tags( $html ) {
     }
     return substr_replace( $html, $tags, $at, 0 );
 }
+
+/**
+ * The plugin's own stylesheet (assets/listings.css) loads the same Google Fonts once more, with
+ *   @import url('https://fonts.googleapis.com/css2?family=Sora:...&family=Inter:...&display=swap');
+ * on its second line (card #7231). The @import rules to Google come out (pure); the rest stays.
+ */
+function prospergenics_2026_listings_css_without_google( $css ) {
+    $out = preg_replace( '#@import\s+(?:url\(\s*)?(["\']?)https://fonts\.googleapis\.com/[^"\')\s]*\1\s*\)?[^;]*;[ \t]*\R?#i', '', (string) $css );
+    return null === $out ? (string) $css : $out;
+}
+
+/**
+ * The plugin's <link rel="stylesheet" id="jengo-listings-css"> as an inline <style> without its
+ * Google Fonts @import, when it has one (pure). Relative url()s are made absolute against the
+ * stylesheet's own URL, so they still point at the plugin's files. A stylesheet without a Google
+ * @import, or one that could not be read ($css ''), keeps its <link>.
+ *
+ * @param string $tag   The <link> WordPress would print.
+ * @param string $css   The stylesheet's text.
+ * @param string $href  Its URL.
+ * @param string $id    The handle's element id (jengo-listings-css).
+ * @param string $media Its media attribute.
+ */
+function prospergenics_2026_listings_inline_style( $tag, $css, $href, $id, $media = 'all' ) {
+    $clean = prospergenics_2026_listings_css_without_google( $css );
+    if ( '' === trim( (string) $css ) || $clean === (string) $css ) {
+        return $tag;
+    }
+    $base  = preg_replace( '#[?\#].*$#', '', (string) $href );
+    $base  = substr( $base, 0, strrpos( $base, '/' ) + 1 );
+    $clean = preg_replace_callback( '#url\(\s*(["\']?)(?![a-z][a-z0-9+.-]*:|/|\#)([^"\')]+)\1\s*\)#i', function ( $m ) use ( $base ) {
+        return 'url(' . $m[1] . $base . $m[2] . $m[1] . ')';
+    }, $clean );
+    $media = ( '' !== (string) $media && 'all' !== $media ) ? ' media="' . esc_attr( $media ) . '"' : '';
+    return '<style id="' . esc_attr( $id ) . '"' . $media . ">\n" . str_replace( '</style', '<\/style', (string) $clean ) . "\n</style>\n";
+}
+
+/** The file behind a URL under the plugins folder, or '' (a .css file inside WP_PLUGIN_DIR only). */
+function prospergenics_2026_listings_plugin_file( $href ) {
+    $url  = preg_replace( '#[?\#].*$#', '', (string) $href );
+    $base = untrailingslashit( set_url_scheme( plugins_url(), 'https' ) );
+    $url  = set_url_scheme( $url, 'https' );
+    if ( 0 !== strpos( $url, $base . '/' ) || '.css' !== strtolower( substr( $url, -4 ) ) ) {
+        return '';
+    }
+    $dir  = realpath( WP_PLUGIN_DIR );
+    $file = realpath( WP_PLUGIN_DIR . '/' . rawurldecode( substr( $url, strlen( $base ) + 1 ) ) );
+    return $dir && $file && 0 === strpos( $file, $dir . DIRECTORY_SEPARATOR ) && is_readable( $file ) ? $file : '';
+}
+
+add_filter( 'style_loader_tag', function ( $tag, $handle, $href, $media = 'all' ) {
+    if ( 'jengo-listings' !== $handle || is_admin() ) {
+        return $tag;
+    }
+    $file = prospergenics_2026_listings_plugin_file( $href );
+    $css  = '' !== $file ? (string) file_get_contents( $file ) : '';
+    return prospergenics_2026_listings_inline_style( $tag, $css, $href, $handle . '-css', $media );
+}, 10, 4 );
 
 /**
  * Everything the theme changes on a whole jengo-listings page, <head> included (pure).
