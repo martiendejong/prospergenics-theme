@@ -375,6 +375,9 @@ function prospergenics_2026_listings_takeover( $html, $path, array $chrome ) {
         $out = preg_replace( '#<main(?![^>]*\bid=)(?=[\s>])#', '<main id="main"', $out, 1 );
     }
 
+    // The plugin's breadcrumb strip: a labelled nav, inside the green banner where there is one.
+    $out = prospergenics_2026_listings_breadcrumb( $out );
+
     // Detail pages: the main button links to the homepage; send it to the contact form instead.
     $home = preg_quote( untrailingslashit( home_url() ), '#' );
     $out  = preg_replace_callback(
@@ -426,6 +429,49 @@ function prospergenics_2026_listings_takeover( $html, $path, array $chrome ) {
     }
 
     return rtrim( $out ) . "\n\n" . $chrome['footer'] . "\n" . $chrome['script'] . "\n" . ( '' !== $lesson_js ? $lesson_js . "\n" : '' );
+}
+
+/**
+ * The plugin's breadcrumb (<div class="pg-breadcrumb">Home › Tools › Jengo Meet</div>) sits in a
+ * pale strip of its own between the site header and the page, and on detail pages it doesn't line
+ * up with the title (Lessy, 8 Nov). Pure; the page is left as it was unless the breadcrumb is there
+ * exactly once.
+ *   - It becomes <nav aria-label="Breadcrumb">, the current page gets aria-current="page" and the
+ *     separators are hidden from screen readers.
+ *   - Directly before a green banner (tool, service, partner, member and course pages, lesson
+ *     pages) it moves into the banner, above the title and aligned with it, in light text
+ *     (class pg-crumbs--on-hero; the banner gets pg-hero--crumbs for a shorter top padding). The
+ *     banner's eyebrow is dropped when it only repeats the section the breadcrumb already names
+ *     ("TOOLS" under "Home › Tools › …").
+ *   - Before a light page header (the /tools/, /members/ lists) it stays where it is, lined up with
+ *     that header (pg-crumbs--light). Styles: site-chrome.css.
+ */
+function prospergenics_2026_listings_breadcrumb( $html ) {
+    $re = '#<div class="pg-breadcrumb">(.*?)</div>\s*#s';
+    if ( 1 !== preg_match_all( $re, (string) $html, $all ) || false !== strpos( $all[1][0], '<div' ) ) {
+        return $html;
+    }
+    $inner = $all[1][0];
+    $inner = str_replace( '<span class="sep">', '<span class="sep" aria-hidden="true">', $inner );
+    $inner = preg_replace( '#<span>((?:(?!</span>).)*)</span>(\s*)$#s', '<span aria-current="page">$1</span>$2', $inner, 1 );
+    $at    = strpos( $html, $all[0][0] );
+    $after = substr( $html, $at + strlen( $all[0][0] ) );
+
+    // (the plugin may put a comment such as <!-- HERO BAND --> in between)
+    if ( preg_match( '#^((?:<!--(?:(?!-->).)*-->\s*)*<(header|div) class="(dir|course|learn)-hero)(">\s*<div class="\3-hero-inner">)(\s*)#s', $after, $h ) ) {
+        $nav  = '<nav class="pg-breadcrumb pg-crumbs pg-crumbs--on-hero" aria-label="Breadcrumb">' . $inner . '</nav>' . $h[5];
+        $rest = substr( $after, strlen( $h[0] ) );
+        // The eyebrow right under it, when it only repeats the section ("Tools" in Home › Tools › …).
+        $crumbs = preg_match_all( '#<a [^>]*>(.*?)</a>#s', $inner, $links ) ? $links[1] : array();
+        $parent = $crumbs ? strtolower( trim( wp_strip_all_tags( end( $crumbs ) ) ) ) : '';
+        if ( '' !== $parent && preg_match( '#^((?:<div class="dh-copy">\s*)?)<div class="' . $h[3][0] . 'h-eyebrow"><span class="dot"></span>([^<]*)</div>\s*#', $rest, $e ) && strtolower( trim( $e[2] ) ) === $parent ) {
+            $rest = $e[1] . substr( $rest, strlen( $e[0] ) );
+        }
+        return substr( $html, 0, $at ) . $h[1] . ' pg-hero--crumbs' . $h[4] . $h[5] . $nav . $rest;
+    }
+
+    $nav = '<nav class="pg-breadcrumb pg-crumbs' . ( 0 === strpos( $after, '<header class="pg-header">' ) ? ' pg-crumbs--light' : '' ) . '" aria-label="Breadcrumb">' . $inner . '</nav>' . "\n\n";
+    return substr( $html, 0, $at ) . $nav . $after;
 }
 
 /**

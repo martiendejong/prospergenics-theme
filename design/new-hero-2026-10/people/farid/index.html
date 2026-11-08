@@ -190,6 +190,29 @@
     .site-footer .f-brand { grid-column: 1 / -1; }
   }
 
+  /* jengo-listings breadcrumb (inc/site-chrome.php, prospergenics_2026_listings_breadcrumb): no pale
+     strip of its own. On green banners it sits inside, above the title and aligned with it; on the
+     light list pages it lines up with the page header. */
+  .pg-breadcrumb.pg-crumbs { line-height: 1.4; }
+  .pg-breadcrumb.pg-crumbs a { border-radius: 4px; }
+  .pg-breadcrumb.pg-crumbs a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .pg-breadcrumb.pg-crumbs a:focus-visible { outline: 3px solid var(--focus-ring, #1a7a46); outline-offset: 2px; }
+  .pg-breadcrumb.pg-crumbs [aria-current="page"] { font-weight: 600; color: var(--green-900, #0f3d24); }
+  .pg-breadcrumb.pg-crumbs--light { max-width: 1500px; padding: 18px clamp(24px, 5vw, 72px) 0; }
+  .pg-hero--crumbs.dir-hero, .pg-hero--crumbs.course-hero { padding-top: clamp(22px, 2.6vw, 34px); }
+  .pg-hero--crumbs.learn-hero { padding-top: clamp(18px, 2.2vw, 28px); }
+  .pg-breadcrumb.pg-crumbs--on-hero {
+    --focus-ring: #fff;
+    max-width: none; margin: 0 0 clamp(26px, 3.6vw, 52px); padding: 0; flex: 0 0 100%;
+    font-size: 13.5px; color: rgba(255,255,255,.9);
+  }
+  .dir-hero-inner > .pg-breadcrumb.pg-crumbs--on-hero { margin-bottom: clamp(2px, 1vw, 10px); }
+  .learn-hero-inner > .pg-breadcrumb.pg-crumbs--on-hero { margin-bottom: clamp(16px, 2vw, 24px); }
+  .pg-breadcrumb.pg-crumbs--on-hero a { color: rgba(255,255,255,.9); }
+  .pg-breadcrumb.pg-crumbs--on-hero a:hover { color: #fff; }
+  .pg-breadcrumb.pg-crumbs--on-hero .sep { opacity: .6; }
+  .pg-breadcrumb.pg-crumbs--on-hero [aria-current="page"] { color: #fff; }
+
 </style>
 </head>
 <body>
