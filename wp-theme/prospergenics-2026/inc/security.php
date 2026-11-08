@@ -19,47 +19,25 @@ defined( 'ABSPATH' ) || exit;
  * from the console on test.prospergenics.com: Cloudflare Web Analytics (beacon script and its
  * reporting endpoint). No Google Fonts hosts: the theme's fonts are self-hosted, and since card
  * #7231 the jengo-listings pages use them too (inc/listings-pages.php strips the plugin's links).
+ * Permissions-Policy keeps the microphone for this site: the CoachOS chat has a voice-input button.
+ *
+ * The values live in inc/security-headers.json, which static_headers.py also reads to give the
+ * static people/, experts/, community/ and team/ folders (served by Apache, never by WordPress)
+ * the same headers in their .htaccess (card #6449).
  *
  * @param bool $is_ssl Whether the request is over HTTPS.
  * @return array<string,string> header name => value
  */
 function prospergenics_2026_security_headers( $is_ssl ) {
-    $headers = array(
-        'X-Content-Type-Options'  => 'nosniff',
-        'X-Frame-Options'         => 'SAMEORIGIN',
-        'Referrer-Policy'         => 'strict-origin-when-cross-origin',
-        // microphone stays available to this site: the CoachOS chat has a voice-input button
-        'Permissions-Policy'      => 'camera=(), geolocation=(), payment=(), usb=(), microphone=(self)',
-        'Content-Security-Policy' => implode( '; ', array(
-            "default-src 'self' https: data: blob:",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:",
-            "style-src 'self' 'unsafe-inline' https:",
-            "img-src 'self' https: data: blob:",
-            "font-src 'self' https: data:",
-            "connect-src 'self' https:",
-            "worker-src 'self' blob:",
-            "frame-ancestors 'self'",
-            "base-uri 'self'",
-            "object-src 'none'",
-        ) ),
-        'Content-Security-Policy-Report-Only' => implode( '; ', array(
-            "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' https://coaching.martiendejong.nl https://static.cloudflareinsights.com",
-            "style-src 'self' 'unsafe-inline'",
-            "img-src 'self' data: blob: https://secure.gravatar.com https://coaching.martiendejong.nl",
-            "font-src 'self' data:",
-            "connect-src 'self' https://coaching.martiendejong.nl https://listings.prospergenics.com https://cloudflareinsights.com",
-            "frame-src 'self' https://coaching.martiendejong.nl https://www.youtube-nocookie.com https://www.youtube.com https://player.vimeo.com",
-            "media-src 'self' https://coaching.martiendejong.nl",
-            "worker-src 'self' blob:",
-            "frame-ancestors 'self'",
-            "base-uri 'self'",
-            "form-action 'self'",
-            "object-src 'none'",
-        ) ),
-    );
-    if ( $is_ssl ) {
-        $headers['Strict-Transport-Security'] = 'max-age=31536000';
+    static $spec = null;
+    if ( null === $spec ) {
+        $spec = json_decode( (string) file_get_contents( __DIR__ . '/security-headers.json' ), true );
+        $spec = is_array( $spec ) ? $spec : array();
+        $spec += array( 'headers' => array(), 'https_only' => array() );
+    }
+    $headers = array();
+    foreach ( $is_ssl ? array_merge( $spec['headers'], $spec['https_only'] ) : $spec['headers'] as $name => $value ) {
+        $headers[ $name ] = is_array( $value ) ? implode( '; ', $value ) : (string) $value;
     }
     return $headers;
 }
@@ -73,6 +51,18 @@ add_action( 'send_headers', function () {
     }
     header_remove( 'X-Powered-By' );
 } );
+
+/*
+ * PHP's X-Powered-By (expose_php) on the responses that never reach send_headers: wp-login.php,
+ * the REST API (/wp-json/, answered on parse_request) and security.txt (answered on init, below).
+ * init runs on every WordPress request, these included, before any of them prints (card #6449).
+ * The host setting expose_php = Off would drop it for PHP files outside WordPress too.
+ */
+add_action( 'init', function () {
+    if ( ! headers_sent() ) {
+        header_remove( 'X-Powered-By' );
+    }
+}, 0 );
 
 /**
  * RFC 9116 security.txt, served virtually at /.well-known/security.txt and /security.txt.

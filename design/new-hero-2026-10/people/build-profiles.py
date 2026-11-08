@@ -36,7 +36,10 @@ Also generated from PROFILES:
   members-collection.json  the same people as records for the jengo-listings
                          "members" collection (deploy_collections.py), so the
                          listings API can be brought back in line (card #6516)
-  .htaccess              /people/ itself: a real 301 to the /members/ list (card #7226)
+  .htaccess              the security headers WordPress sends, for every page under /people/
+                         (Apache serves these files itself, card #6449; ../static_headers.py),
+                         and /people/ itself: a real 301 to the /members/ list (card #7226);
+                         ../experts/.htaccess and ../community/.htaccess get the same headers
   index.html             the same as a meta refresh, the fallback where .htaccess is ignored (CON-15)
 
 Asset URLs are relative so the pages work in the static preview;
@@ -46,6 +49,7 @@ import json, os, sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import site_chrome  # noqa: E402  shared header, mobile menu and footer
+import static_headers  # noqa: E402  the security headers for the static folders' .htaccess (#6449)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SITE = "https://test.prospergenics.com"
@@ -667,6 +671,9 @@ def build_list(folder, tag, title, eyebrow, heading, lede, meta_desc, all_text):
     os.makedirs(out_dir, exist_ok=True)
     with open(os.path.join(out_dir, "index.html"), "w", encoding="utf-8") as f:
         f.write(html)
+    # Apache serves this folder itself: the security headers WordPress would send (card #6449)
+    with open(os.path.join(out_dir, ".htaccess"), "w", encoding="utf-8", newline="\n") as f:
+        f.write(static_headers.htaccess(folder))
     return len(people)
 
 
@@ -872,8 +879,9 @@ def write_people_index():
     html = PEOPLE_INDEX.format(target=PEOPLE_LIST, canonical=SITE + PEOPLE_LIST, target_js=json.dumps(PEOPLE_LIST))
     with open(os.path.join(HERE, "index.html"), "w", encoding="utf-8") as f:
         f.write(html)
+    # the security headers for every page under /people/ (card #6449), then the 301
     with open(os.path.join(HERE, ".htaccess"), "w", encoding="utf-8", newline="\n") as f:
-        f.write(PEOPLE_HTACCESS.format(target=PEOPLE_LIST))
+        f.write(static_headers.htaccess("people", PEOPLE_HTACCESS.format(target=PEOPLE_LIST)))
 
 
 def dump():

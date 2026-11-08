@@ -5,7 +5,10 @@
  *
  * Loads the real modules with minimal WordPress stubs and checks:
  *   - security headers (CSP with worker-src blob:, strict Report-Only policy, HSTS on HTTPS
- *     only, Referrer-Policy, Permissions-Policy that keeps the chat microphone),
+ *     only, Referrer-Policy, Permissions-Policy that keeps the chat microphone), from
+ *     inc/security-headers.json; X-Powered-By dropped on init too (wp-login.php, REST, security.txt),
+ *   - the static people/, experts/, community/ (and team/) folders: their .htaccess sets the same
+ *     headers with the same values (static_headers.py, card #6449), people/ keeps its 301,
  *   - security.txt (RFC 9116 required fields, expiry one year out),
  *   - noindex for every host except prospergenics.com / www,
  *   - meta description helpers (homepage text length, word-boundary summaries),
@@ -96,6 +99,48 @@ ok( false === strpos( $h['Content-Security-Policy-Report-Only'], 's.w.org' ), 'r
 ok( hooked( 'remove', 'wp_head', 'print_emoji_detection_script' ) && hooked( 'remove', 'wp_print_styles', 'print_emoji_styles' ), 'WordPress emoji script and styles are removed' );
 ok( false !== strpos( $h['Permissions-Policy'], 'microphone=(self)' ) && false !== strpos( $h['Permissions-Policy'], 'camera=()' ), 'Permissions-Policy keeps the chat microphone, blocks the camera' );
 ok( ! isset( prospergenics_2026_security_headers( false )['Strict-Transport-Security'] ), 'no HSTS over plain HTTP' );
+ok( 'max-age=31536000' === $h['Strict-Transport-Security'] && 'SAMEORIGIN' === $h['X-Frame-Options'] && 'nosniff' === $h['X-Content-Type-Options'] && 'strict-origin-when-cross-origin' === $h['Referrer-Policy'], 'the values as before (now read from inc/security-headers.json)' );
+ok( array( 'X-Content-Type-Options', 'X-Frame-Options', 'Referrer-Policy', 'Permissions-Policy', 'Content-Security-Policy', 'Content-Security-Policy-Report-Only', 'Strict-Transport-Security' ) === array_keys( $h ), 'in the same order' );
+// PHP's X-Powered-By also on wp-login.php, /wp-json/ and security.txt, which never reach send_headers (#6449)
+$init0 = null;
+foreach ( $GLOBALS['_hooks'] as $hk ) {
+	if ( 'add' === $hk[0] && 'init' === $hk[1] && $hk[2] instanceof Closure ) {
+		$rf = new ReflectionFunction( $hk[2] );
+		$body = implode( '', array_slice( file( $rf->getFileName() ), $rf->getStartLine() - 1, $rf->getEndLine() - $rf->getStartLine() + 1 ) );
+		if ( false !== strpos( $body, "header_remove( 'X-Powered-By' )" ) ) { $init0 = $body; }
+	}
+}
+$sec_src = file_get_contents( $theme . '/inc/security.php' );
+ok( null !== $init0 && false !== strpos( $init0, '! headers_sent()' ) && (bool) preg_match( "#add_action\( 'init', function \(\) \{\s*if \( ! headers_sent\(\) \) \{\s*header_remove\( 'X-Powered-By' \);\s*\}\s*\}, 0 \);#", $sec_src ), 'init (priority 0, every WordPress request: wp-login.php, REST, security.txt) drops X-Powered-By' );
+ok( strpos( $sec_src, "header_remove( 'X-Powered-By' );\n    }\n}, 0 );" ) < strpos( $sec_src, "'/.well-known/security.txt' !== \$path" ), 'registered before security.txt answers on init' );
+
+echo "Static folders: the same headers from .htaccess (#6449)\n";
+$design = $root . '/design/new-hero-2026-10';
+$spec   = json_decode( file_get_contents( $design . '/wp/inc/security-headers.json' ), true );
+ok( is_array( $spec ) && isset( $spec['headers']['Content-Security-Policy'], $spec['https_only']['Strict-Transport-Security'] ) && file_get_contents( $design . '/wp/inc/security-headers.json' ) === file_get_contents( $theme . '/inc/security-headers.json' ), 'inc/security-headers.json is the one source, copied into the theme' );
+/** The "Header always set" lines of an .htaccess: name => [value, condition]. */
+function htaccess_headers( $text ) {
+	preg_match_all( '#^Header always set ([A-Za-z-]+) "((?:[^"\\\\]|\\\\.)*)"(?: ("expr=[^"]+"))?$#m', $text, $m, PREG_SET_ORDER );
+	$out = array();
+	foreach ( $m as $l ) { $out[ $l[1] ] = array( stripslashes( $l[2] ), isset( $l[3] ) ? $l[3] : '' ); }
+	return $out;
+}
+foreach ( array( 'people', 'experts', 'community' ) as $folder ) {
+	$hta = file_get_contents( "$design/$folder/.htaccess" );
+	$got = htaccess_headers( $hta );
+	$same = array_keys( $got ) === array_keys( $h );
+	foreach ( $h as $name => $value ) {
+		$same = $same && isset( $got[ $name ] ) && $got[ $name ][0] === $value && ( 'Strict-Transport-Security' === $name ? '"expr=%{HTTPS} == \'on\'"' : '' ) === $got[ $name ][1];
+	}
+	ok( $same, "$folder/.htaccess sets every header WordPress sends, with the same value (HSTS only over HTTPS)" );
+	ok( 1 === substr_count( $hta, '<IfModule mod_headers.c>' ) && (bool) preg_match( '#<IfModule mod_headers\.c>\n(Header always set [^\n]+\n){7}</IfModule>#', $hta ), "$folder/.htaccess: inside <IfModule mod_headers.c>, so a server without the module still serves the page" );
+}
+$people_hta = file_get_contents( "$design/people/.htaccess" );
+ok( 1 === substr_count( $people_hta, 'RedirectMatch 301 ^/people(/|/index\.html)?$ /members/' ) && strpos( $people_hta, 'RedirectMatch' ) > strpos( $people_hta, '</IfModule>' ), 'people/.htaccess keeps the /people/ 301 to /members/ (#7226)' );
+$py = shell_exec( 'python3 -c ' . escapeshellarg( 'import sys; sys.path.insert(0, ' . var_export( $design, true ) . '); import static_headers, json; print(json.dumps([static_headers.headers(True), static_headers.headers(False), static_headers.htaccess("team")]))' ) );
+$py = json_decode( (string) $py, true );
+ok( is_array( $py ) && $py[0] === $h && $py[1] === prospergenics_2026_security_headers( false ), 'static_headers.py builds the same header set as prospergenics_2026_security_headers() (with and without HTTPS)' );
+ok( is_array( $py ) && htaccess_headers( $py[2] ) == htaccess_headers( $people_hta ) && false === strpos( $py[2], 'RedirectMatch' ), 'the team/ stubs get the same block, and no redirect' );
 
 echo "security.txt\n";
 $now = 1793000000;

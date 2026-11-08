@@ -125,6 +125,21 @@ try:
     ok("RedirectMatch 301 ^/people(/|/index\\.html)?$ /members/" in hta, "the static deploy uploads people/.htaccess with the 301 to /members/")
     ok(root + "index.html" in rec.stored and b'http-equiv="refresh"' in rec.stored[root + "index.html"], "and people/index.html, the meta refresh fallback")
     ok(all(root + s + "/index.html" in rec.stored for s in ("martien", "lessy")) and not any(k.startswith(root + ".htaccess/") for k in rec.stored), "the profiles under /people/<slug>/ are uploaded as before")
+    # card #6449: Apache serves these folders as files, so each gets the security headers
+    # WordPress sends, from its .htaccess (static_headers.py, from wp/inc/security-headers.json)
+    import static_headers
+    want = [f'Header always set {n} "{v}"' for n, v in static_headers.headers(True).items()]
+    for folder in ("people", "experts", "community", "team"):
+        hta = rec.stored.get(f"{deploy.REMOTE_ROOT}/{folder}/.htaccess", b"").decode()
+        ok(all(line in hta for line in want) and "<IfModule mod_headers.c>" in hta and 'Strict-Transport-Security "max-age=31536000" "expr=%{HTTPS} == \'on\'"' in hta,
+           f"the static deploy uploads {folder}/.htaccess with every security header ({len(want)})")
+    ok("X-Frame-Options" in static_headers.headers(True) and "Content-Security-Policy" in static_headers.headers(True)
+       and "Strict-Transport-Security" not in static_headers.headers(False), "the header set: X-Frame-Options, CSP, ...; HSTS only over HTTPS")
+    for folder in ("experts", "community"):
+        local = open(os.path.join(deploy.HERE, folder, ".htaccess"), encoding="utf-8").read()
+        ok(rec.stored[f"{deploy.REMOTE_ROOT}/{folder}/.htaccess"].decode() == local, f"{folder}/.htaccess goes up as committed")
+    ok("RedirectMatch" not in rec.stored[deploy.REMOTE_ROOT + "/team/.htaccess"].decode() and "RedirectMatch" not in rec.stored[deploy.REMOTE_ROOT + "/experts/.htaccess"].decode(), "only people/ has a redirect")
+    ok(not any(k.endswith(".htaccess") and k.split("/")[-2] not in ("people", "experts", "community", "team") for k in rec.stored), "no .htaccess anywhere else (the site root's stays WordPress')")
 except Exception as e:  # noqa: BLE001
     ok(False, f"deploy_static raised {e!r}")
 
