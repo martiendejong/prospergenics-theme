@@ -90,7 +90,8 @@ ok( false !== strpos( $h['Content-Security-Policy-Report-Only'], 'https://coachi
 $ro = array();
 foreach ( explode( '; ', $h['Content-Security-Policy-Report-Only'] ) as $d ) { $p = explode( ' ', $d ); $ro[ array_shift( $p ) ] = $p; }
 ok( in_array( 'https://static.cloudflareinsights.com', $ro['script-src'], true ) && in_array( 'https://cloudflareinsights.com', $ro['connect-src'], true ), 'report-only CSP allows Cloudflare Web Analytics (beacon script and its endpoint)' );
-ok( in_array( 'https://fonts.googleapis.com', $ro['style-src'], true ) && in_array( 'https://fonts.gstatic.com', $ro['font-src'], true ), 'report-only CSP allows the Google Fonts that jengo-listings loads' );
+ok( array( "'self'", "'unsafe-inline'" ) === $ro['style-src'] && array( "'self'", 'data:' ) === $ro['font-src'], 'report-only CSP: styles and fonts from this site only' );
+ok( false === strpos( $h['Content-Security-Policy-Report-Only'], 'fonts.googleapis.com' ) && false === strpos( $h['Content-Security-Policy-Report-Only'], 'fonts.gstatic.com' ), 'report-only CSP no longer lists the Google Fonts hosts: every page, the jengo-listings ones included, self-hosts its fonts (#7231)' );
 ok( false === strpos( $h['Content-Security-Policy-Report-Only'], 's.w.org' ), 'report-only CSP does not need s.w.org (emoji script is removed)' );
 ok( hooked( 'remove', 'wp_head', 'print_emoji_detection_script' ) && hooked( 'remove', 'wp_print_styles', 'print_emoji_styles' ), 'WordPress emoji script and styles are removed' );
 ok( false !== strpos( $h['Permissions-Policy'], 'microphone=(self)' ) && false !== strpos( $h['Permissions-Policy'], 'camera=()' ), 'Permissions-Policy keeps the chat microphone, blocks the camera' );

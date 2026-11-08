@@ -17,8 +17,8 @@ defined( 'ABSPATH' ) || exit;
  * Report-Only: browsers log what it *would* block in the console, so it can be checked on
  * test and then promoted to the enforced policy without breaking anything. Its list comes
  * from the console on test.prospergenics.com: Cloudflare Web Analytics (beacon script and its
- * reporting endpoint) and the Google Fonts that the jengo-listings plugin loads on /courses/
- * and /members/. The theme's own fonts are self-hosted.
+ * reporting endpoint). No Google Fonts hosts: the theme's fonts are self-hosted, and since card
+ * #7231 the jengo-listings pages use them too (inc/listings-pages.php strips the plugin's links).
  *
  * @param bool $is_ssl Whether the request is over HTTPS.
  * @return array<string,string> header name => value
@@ -45,9 +45,9 @@ function prospergenics_2026_security_headers( $is_ssl ) {
         'Content-Security-Policy-Report-Only' => implode( '; ', array(
             "default-src 'self'",
             "script-src 'self' 'unsafe-inline' https://coaching.martiendejong.nl https://static.cloudflareinsights.com",
-            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+            "style-src 'self' 'unsafe-inline'",
             "img-src 'self' data: blob: https://secure.gravatar.com https://coaching.martiendejong.nl",
-            "font-src 'self' data: https://fonts.gstatic.com",
+            "font-src 'self' data:",
             "connect-src 'self' https://coaching.martiendejong.nl https://listings.prospergenics.com https://cloudflareinsights.com",
             "frame-src 'self' https://coaching.martiendejong.nl https://www.youtube-nocookie.com https://www.youtube.com https://player.vimeo.com",
             "media-src 'self' https://coaching.martiendejong.nl",
