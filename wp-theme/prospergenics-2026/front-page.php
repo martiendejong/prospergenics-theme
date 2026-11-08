@@ -637,6 +637,12 @@
      button (audit UX-10, WCAG 2.2.2); under reduced motion it doesn't move at all */
   .flow:hover .flow-track, .flow:focus-within .flow-track { animation-play-state: paused; }
   .flow.is-paused .flow-track, .flow.is-paused .flow-track *, .flow.is-paused .flow-tri, .flow.is-paused .flow-tri * { animation-play-state: paused !important; }
+  /* keyboard focus on a portrait (card #7225, WCAG 2.4.7): the stream is paused and the script
+     below slides the focused card into the middle (the track can be thousands of pixels off screen).
+     While focus is inside, no edge fade and no scroll-zoom, so the whole ring is visible; the ring
+     sits just inside the card, which is nearly as wide as a phone screen. */
+  .flow:focus-within { -webkit-mask-image: none; mask-image: none; transform: none !important; }
+  a.flow-card:focus-visible { outline-offset: -3px; border-radius: 6px; }
   .flow-toggle { display: inline-flex; align-items: center; gap: 8px; font-family: 'Sora', sans-serif; font-weight: 600; font-size: 14px; color: var(--green-900); background: transparent; border: 1.5px solid var(--line); border-radius: 999px; padding: 8px 16px; cursor: pointer; }
   .flow-toggle:hover { border-color: var(--green-700); }
   .flow-toggle.is-stopped .sc-toggle-icon { width: 0; height: 0; border-style: solid; border-width: 6px 0 6px 10px; border-color: transparent transparent transparent currentColor; }
@@ -1539,6 +1545,35 @@
         const paused = flow.classList.toggle('is-paused');
         btn.classList.toggle('is-stopped', paused);
         btn.querySelector('.flow-toggle-label').textContent = paused ? 'Play the moving portraits' : 'Pause the moving portraits';
+      });
+    })();
+
+    // Keyboard focus on a portrait card (#7225): the focused card can be far off screen (the track is
+    // two card sets wide and only paused, not moved, by :focus-within). Slide the track with the
+    // `translate` property, which adds to the paused animation's transform, until the card sits in
+    // the middle of the screen; back to the stream's own position when focus leaves.
+    (function () {
+      const flow = document.querySelector('.flow');
+      const track = flow && flow.querySelector('.flow-track');
+      if (!track) return;
+      let shift = 0;
+      flow.addEventListener('focusin', function (e) {
+        const card = e.target.closest ? e.target.closest('.flow-card') : null;
+        if (!card) return;
+        const r = card.getBoundingClientRect();
+        const mid = document.documentElement.clientWidth / 2;
+        shift += mid - (r.left + r.width / 2);
+        track.style.translate = Math.round(shift) + 'px 0';
+        // focusing an off-screen link may have scrolled the page sideways (body is overflow-x: hidden)
+        // (only when it did: any scroll call would cancel the browser's smooth vertical scroll to the card)
+        window.requestAnimationFrame(function () {
+          [document.documentElement, document.body].forEach(function (el) { if (el.scrollLeft) el.scrollLeft = 0; });
+        });
+      });
+      flow.addEventListener('focusout', function (e) {
+        if (e.relatedTarget && flow.contains(e.relatedTarget)) return;
+        shift = 0;
+        track.style.translate = '';
       });
     })();
 

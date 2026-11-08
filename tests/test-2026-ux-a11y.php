@@ -107,6 +107,15 @@ ok( false === strpos( $home, "window.location.href = SLIDES[i].href" ), 'tabs na
 ok( false !== strpos( $home, '.flow:hover .flow-track, .flow:focus-within .flow-track { animation-play-state: paused; }' ), 'the member stream pauses on focus-within' );
 ok( (bool) preg_match( '#<button class="flow-toggle" id="flowToggle" type="button">.*?Pause the moving portraits</span></button>#', $home ), 'the member stream has a pause button' );
 
+echo "#7225 keyboard focus on the portrait cards\n";
+// The track is two card sets wide and only paused by :focus-within, so a focused card could sit
+// thousands of pixels off screen (seen on the e2e site: every card at left < 0).
+ok( false !== strpos( $home, '.flow:focus-within { -webkit-mask-image: none; mask-image: none; transform: none !important; }' ), 'while focus is in the stream: no edge fade, no scroll-zoom' );
+ok( false !== strpos( $home, 'a.flow-card:focus-visible { outline-offset: -3px;' ), 'the ring sits just inside the card (the card is nearly as wide as a phone screen)' );
+ok( (bool) preg_match( "#flow\.addEventListener\('focusin'.*?closest\('\.flow-card'\).*?track\.style\.translate = .*?flow\.addEventListener\('focusout'.*?track\.style\.translate = '';#s", $home ), 'the focused card slides to the middle of the screen; back when focus leaves' );
+preg_match( '#<div class="flow-set" aria-hidden="true">(.*?)<!-- /people:slider -->#s', $home, $copy );
+ok( ! empty( $copy[1] ) && substr_count( $copy[1], '<a class="flow-card"' ) === substr_count( $copy[1], 'tabindex="-1"' ), 'only the first set of portraits is focusable (the copy is aria-hidden, tabindex -1)' );
+
 echo "UX-8 placeholders and pending partners\n";
 ok( false === stripos( $home, 'Pending' ) && false === stripos( $home, 'coming soon' ), 'no Pending / coming soon on the homepage' );
 $courses_render  = file_get_contents( $design . '/wp/inc/courses/render.php' );
