@@ -263,7 +263,7 @@ foreach ( array( 'service-detail' => '/services/coachos/', 'member-detail' => '/
 	$chrome['header'] = prospergenics_2026_site_header();
 	$out = prospergenics_2026_listings_takeover( $buffer, $path, $chrome );
 	ok( false === strpos( $out, '<nav class="pg-nav">' ) && false !== strpos( $buffer, '<nav class="pg-nav">' ), "$fixture: the plugin's own nav is gone" );
-	ok( 1 === substr_count( $out, '<header class="site-header">' ) && strpos( $out, '<header class="site-header">' ) < strpos( $out, 'class="pg-breadcrumb"' ), "$fixture: the site header sits where the plugin nav was" );
+	ok( 1 === substr_count( $out, '<header class="site-header">' ) && strpos( $out, '<header class="site-header">' ) < strpos( $out, 'class="pg-breadcrumb' ), "$fixture: the site header sits where the plugin nav was" );
 	ok( $expected === main_menu( $out ), "$fixture: main menu " . implode( ', ', $expected ) );
 	ok( false !== strpos( $out, 'aria-controls="mobile-menu"' ) && false !== strpos( $out, "getElementById('mobile-menu')" ), "$fixture: mobile menu and its script" );
 	ok( (bool) preg_match( '#<style id="prospergenics-site-chrome-css">.*</style>\s*</head>#s', $out ), "$fixture: header CSS printed before </head>, after the plugin's styles" );
@@ -273,6 +273,23 @@ foreach ( array( 'service-detail' => '/services/coachos/', 'member-detail' => '/
 	$cta[ $fixture ] = block( $out, '#<a class="facts-cta"[^>]*>[^<]*</a>#' );
 	$outs[ $fixture ] = $out;
 }
+// The breadcrumb strip (Lessy, 8 Nov): a labelled nav, inside the green banner, aligned with the title
+$svc = $outs['service-detail'];
+ok( 1 === substr_count( $svc, '<nav class="pg-breadcrumb pg-crumbs pg-crumbs--on-hero" aria-label="Breadcrumb">' ) && false === strpos( $svc, '<div class="pg-breadcrumb">' ), 'service page: the breadcrumb is one labelled nav, no strip left' );
+ok( (bool) preg_match( '#<header class="dir-hero pg-hero--crumbs">\s*<div class="dir-hero-inner">\s*<nav class="pg-breadcrumb pg-crumbs pg-crumbs--on-hero"#', $svc ), 'service page: it is the first thing inside the green banner' );
+ok( false !== strpos( $svc, '<span aria-current="page">CoachOS</span>' ) && 2 === substr_count( $svc, '<span class="sep" aria-hidden="true">' ), 'the current page is marked, the separators are hidden from screen readers' );
+ok( false === strpos( $svc, '<div class="dh-eyebrow"><span class="dot"></span>Services</div>' ) && false !== strpos( $buffer_svc = file_get_contents( __DIR__ . '/fixtures/jengo-listings/service-detail.html' ), '<div class="dh-eyebrow"><span class="dot"></span>Services</div>' ), 'the "SERVICES" eyebrow that only repeats the breadcrumb is dropped' );
+ok( false !== strpos( $outs['member-detail'], 'pg-crumbs--on-hero' ) && false !== strpos( $outs['member-detail'], '<span aria-current="page">Lessy</span>' ), 'member page: same' );
+$list_out = prospergenics_2026_listings_breadcrumb( $lp = file_get_contents( __DIR__ . '/fixtures/jengo-listings/members.html' ) );
+ok( (bool) preg_match( '#<nav class="pg-breadcrumb pg-crumbs pg-crumbs--light" aria-label="Breadcrumb">.*?<span aria-current="page">Members</span>\s*</nav>\s*<header class="pg-header">#s', $list_out ), 'list page: stays above the light header, lined up with it' );
+$learn = "<div class=\"pg-breadcrumb\">\n  <a href=\"/\">Home</a>\n  <span class=\"sep\">›</span>\n  <a href=\"/courses/\">Courses</a>\n  <span class=\"sep\">›</span>\n  <a href=\"/courses/ai/\">AI</a>\n  <span class=\"sep\">›</span>\n  <span>Course</span>\n</div>\n\n<div class=\"learn-hero\">\n  <div class=\"learn-hero-inner\">\n    <div class=\"lh-eyebrow\"><span class=\"dot\"></span>Course content</div>\n";
+$learn_out = prospergenics_2026_listings_breadcrumb( $learn );
+ok( false !== strpos( $learn_out, '<div class="learn-hero pg-hero--crumbs">' ) && false !== strpos( $learn_out, 'Course content</div>' ) && strpos( $learn_out, 'pg-crumbs--on-hero' ) < strpos( $learn_out, 'lh-eyebrow' ), 'lesson page: inside the banner; an eyebrow that says something else stays' );
+$course = str_replace( array( 'learn-hero', 'lh-eyebrow', 'Course content' ), array( 'course-hero', 'ch-eyebrow', 'ProsperGenics' ), $learn );
+ok( false !== strpos( $c = prospergenics_2026_listings_breadcrumb( str_replace( "\n\n<div class=\"course-hero\">", "\r\n<!-- HERO BAND -->\r\n<div class=\"course-hero\">", $course ) ), '<!-- HERO BAND -->' . "\r\n" . '<div class="course-hero pg-hero--crumbs">' ) && false !== strpos( $c, 'pg-crumbs--on-hero' ), 'course page (a comment and CRLF before the banner, as live): inside the banner' );
+ok( $learn . $learn === prospergenics_2026_listings_breadcrumb( $learn . $learn ), 'two breadcrumbs: the page is left as it was' );
+ok( 'x' === prospergenics_2026_listings_breadcrumb( 'x' ), 'no breadcrumb: nothing changes' );
+ok( false !== strpos( $css, '.pg-breadcrumb.pg-crumbs--on-hero a { color: rgba(255,255,255,.9); }' ) && false !== strpos( $css, '.pg-breadcrumb.pg-crumbs a:focus-visible { outline: 3px solid var(--focus-ring, #1a7a46);' ), 'light links on the banner, with a visible focus ring' );
 // CoachOS is a tool and a service: each page links the other, as one more fact (CON-12)
 $see = '<div class="fact"><span class="fl">See also</span><a href="' . TEST_HOME . '/tools/coachos/">CoachOS, the platform behind it</a></div>';
 ok( 1 === substr_count( $outs['service-detail'], $see ) && strpos( $outs['service-detail'], $see ) < strpos( $outs['service-detail'], '<a class="facts-cta"' ), '/services/coachos/ links /tools/coachos/ in its facts box, before the button' );
