@@ -126,6 +126,69 @@ function prospergenics_2026_listings_meta( $path ) {
     );
 }
 
+/**
+ * The theme's own section pages that have no page text to summarise (card #7224): /contact/ and
+ * /blog/ (templates; on test their WordPress page is empty or not there at all), /register/ (a
+ * theme route) and the /courses/ and /projects/ archives. Each gets the intro line it shows under
+ * its title as its description, and the full set of sharing tags.
+ *
+ * @return array<string,array{title:string,description:string}> keyed by section
+ */
+function prospergenics_2026_section_pages() {
+    return (array) apply_filters( 'prospergenics_2026_section_pages', array(
+        'contact'  => array( 'title' => 'Contact', 'description' => 'Questions about courses, our tools or working with the team? Send ProsperGenics a message, or reach us directly on WhatsApp.' ),
+        'register' => array( 'title' => 'Create your member account', 'description' => 'Create your ProsperGenics member account: one account for your profile, courses and articles. It takes a minute.' ),
+        'blog'     => array( 'title' => 'Blog', 'description' => 'Stories, lessons and updates from the ProsperGenics community.' ),
+        'courses'  => array( 'title' => 'Courses', 'description' => 'Courses from the ProsperGenics community: learn by doing, track your progress and earn a verifiable certificate.' ),
+        'projects' => array( 'title' => 'Projects', 'description' => 'Projects, products, services and employers of ProsperGenics members, with each member’s role, contribution and evidence.' ),
+    ) );
+}
+
+/** Which of those section pages this request is, or ''. */
+function prospergenics_2026_section_page() {
+    if ( is_post_type_archive( 'pg_course' ) ) {
+        return 'courses';
+    }
+    if ( is_post_type_archive( 'pg_project' ) ) {
+        return 'projects';
+    }
+    if ( function_exists( 'prospergenics_profiles_route' ) && 'register' === prospergenics_profiles_route() ) {
+        return 'register';
+    }
+    $path = trim( (string) parse_url( isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '', PHP_URL_PATH ), '/' );
+    // /contact/ is also served without a WordPress page (functions.php), as a former 404
+    if ( is_page( 'contact' ) || ( 'contact' === $path && ! is_singular() ) ) {
+        return 'contact';
+    }
+    if ( is_page( 'blog' ) || ( is_home() && ! is_front_page() ) ) {
+        return 'blog';
+    }
+    return '';
+}
+
+/** Sharing tags for a section page: its own text, or the page's excerpt when an editor wrote one. */
+function prospergenics_2026_section_meta( $key ) {
+    $pages = prospergenics_2026_section_pages();
+    if ( ! isset( $pages[ $key ] ) ) {
+        return array();
+    }
+    $post = is_singular() ? get_queried_object() : null;
+    $desc = ( $post && has_excerpt( $post ) ) ? prospergenics_2026_summarize( get_the_excerpt( $post ) ) : $pages[ $key ]['description'];
+    $archive = array( 'courses' => 'pg_course', 'projects' => 'pg_project' );
+    if ( isset( $archive[ $key ] ) ) {
+        $url = get_post_type_archive_link( $archive[ $key ] );
+    } else {
+        $url = $post ? get_permalink( $post ) : home_url( '/' . $key . '/' );
+    }
+    return array(
+        'title'       => $pages[ $key ]['title'] . ' — ProsperGenics',
+        'description' => $desc,
+        'image'       => get_template_directory_uri() . '/assets/og-image.jpg',
+        'url'         => $url ? $url : home_url( '/' . $key . '/' ),
+        'type'        => 'website',
+    );
+}
+
 /** Collect the meta tags for the current request, or an empty array when there are none. */
 function prospergenics_2026_current_meta() {
     if ( prospergenics_2026_is_homepage_request() ) {
@@ -136,6 +199,10 @@ function prospergenics_2026_current_meta() {
     }
     if ( function_exists( 'prospergenics_2026_is_listings_page' ) && prospergenics_2026_is_listings_page() ) {
         return apply_filters( 'prospergenics_2026_listings_share_tags', true ) ? prospergenics_2026_listings_meta( prospergenics_2026_request_path() ) : array();
+    }
+    $section = prospergenics_2026_section_page();
+    if ( '' !== $section ) {
+        return prospergenics_2026_section_meta( $section );
     }
     // page-about.php carries its own hand-written description and sharing tags.
     if ( is_page( 'about' ) || ! is_singular() ) {

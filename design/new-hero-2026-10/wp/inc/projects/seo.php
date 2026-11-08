@@ -94,7 +94,7 @@ function prospergenics_projects_schema( WP_Post $post ) {
 
 add_action( 'wp_head', function () {
     if ( is_post_type_archive( 'pg_project' ) && function_exists( 'prospergenics_2026_seo_plugin_active' ) && ! prospergenics_2026_seo_plugin_active() ) {
-        echo '<meta name="description" content="' . esc_attr( 'Projects, products, services and employers of ProsperGenics members, with each member’s role, contribution and evidence.' ) . '" />' . "\n";
+        // its description and sharing tags come from inc/seo.php (card #7224)
         echo '<link rel="canonical" href="' . esc_url( prospergenics_projects_archive_canonical() ) . '" />' . "\n";
         return;
     }
