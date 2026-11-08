@@ -120,6 +120,11 @@ add_action( 'wp_enqueue_scripts', function () {
     $css = '/assets/platform/manage.css';
     $dir = get_template_directory();
     wp_enqueue_style( 'pg-manage', get_template_directory_uri() . $css, array(), file_exists( $dir . $css ) ? (string) filemtime( $dir . $css ) : PROSPERGENICS_MANAGE_VERSION );
+    if ( 'members' === prospergenics_manage_view() ) {
+        // in the head, so the list is drawn compact from the start (the Manage buttons, see manage.js)
+        $js = '/assets/platform/manage.js';
+        wp_enqueue_script( 'pg-manage', get_template_directory_uri() . $js, array(), file_exists( $dir . $js ) ? (string) filemtime( $dir . $js ) : PROSPERGENICS_MANAGE_VERSION, false );
+    }
 } );
 
 /* ───────────────────────── markup shared by the screens ───────────────────────── */
