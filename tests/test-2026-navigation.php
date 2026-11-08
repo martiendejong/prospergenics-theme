@@ -450,6 +450,37 @@ ok( false !== strpos( $ljs, '/* Lesson playground' ) && false !== strpos( $ljs, 
 ok( false !== strpos( prospergenics_2026_learn_css(), '.editor-container textarea {' ) && false !== strpos( prospergenics_2026_learn_css(), '.learn-body .analogy, .learn-body .info-box {' ), 'the editors and lesson callouts are styled again' );
 ok( preg_match_all( '#data-tool="([a-z]+)"#', $learn, $tm ) && 5 === count( array_unique( $tm[1] ) ) && 8 === substr_count( $learn, '<hr>' ), 'the saved course has 5 coding agents and 9 sessions (8 breaks)' );
 
+echo "skip link target on every jengo-listings page type (card #7227)\n";
+// Only the plugin's detail pages have a <main>; its list, course and lesson pages have none, so
+// the header's "Skip to content" (#main) pointed at nothing there.
+$skip_header = prospergenics_2026_site_header();
+$skip_chrome = array( 'header' => $skip_header ) + $chrome;
+$skip_nav    = '<html><head></head><body><nav class="pg-nav"><a href="/">x</a></nav>';
+$skip_pages  = array(
+	'member-detail (detail page)' => array( substr( $md = file_get_contents( __DIR__ . '/fixtures/jengo-listings/member-detail.html' ), 0, strpos( $md, '<script type="speculationrules">' ) ), '/members/lessy/', '<main id="main" class="dir-main">' ),
+	'service-detail (detail page)' => array( $buffer_service, '/services/coachos/', '<main id="main" class="dir-main">' ),
+	'tool detail (detail page)'    => array( $tool_page, '/tools/coachos/', '<main id="main" class="dir-main">' ),
+	'members (list page)'          => array( $dir_page, '/members/', '<nav id="main" tabindex="-1" class="pg-breadcrumb pg-crumbs pg-crumbs--light" aria-label="Breadcrumb">' ),
+	'tools (list page)'            => array( str_replace( '/members/', '/tools/', $dir_page ), '/tools/', '<nav id="main" tabindex="-1" class="pg-breadcrumb pg-crumbs pg-crumbs--light" aria-label="Breadcrumb">' ),
+	'course-detail (course page)'  => array( $skip_nav . file_get_contents( __DIR__ . '/fixtures/jengo-listings/course-detail.html' ), '/courses/html/', '<div id="main" tabindex="-1" class="course-hero pg-hero--crumbs">' ),
+	'course-learn (lesson page)'   => array( $learn_page, '/courses/ai-software-lifecycle/learn/', '<div id="main" tabindex="-1" class="learn-hero">' ),
+);
+foreach ( $skip_pages as $label => $p ) {
+	$_SERVER['REQUEST_URI'] = $p[1];
+	$skip_chrome['header']  = prospergenics_2026_site_header();
+	$sout = prospergenics_2026_listings_takeover( $p[0], $p[1], $skip_chrome + array( 'learn_css' => prospergenics_2026_learn_css(), 'learn_script' => prospergenics_2026_learn_script() ) );
+	ok( false !== strpos( $sout, '<a class="skip-link" href="#main">Skip to content</a>' ), "$label: the site header's skip link is there" );
+	ok( 1 === preg_match_all( '#\sid="main"#', $sout ) && 1 === substr_count( $sout, $p[2] ), "$label: exactly one #main, on " . strtok( $p[2], ' ' ) . '>' );
+	ok( strpos( $sout, '</header>', strpos( $sout, '<header class="site-header">' ) ) < strpos( $sout, ' id="main"' ), "$label: #main comes after the site header, where the content starts" );
+}
+ok( false === strpos( file_get_contents( __DIR__ . '/fixtures/jengo-listings/course-detail.html' ), '<main' ), 'the saved course page has no <main> of its own (why it needs this)' );
+$skip_html = '<x>' . $skip_header . "\n<!-- HERO -->\n<style>.a{}</style>\n<div class=\"course-hero\">y</div>";
+ok( false !== strpos( prospergenics_2026_listings_skip_target( $skip_html, $skip_header ), "<style>.a{}</style>\n<div id=\"main\" tabindex=\"-1\" class=\"course-hero\">" ), 'comments and style blocks after the header are stepped over' );
+ok( false !== strpos( prospergenics_2026_listings_skip_target( $skip_header . '<div id="hero">y</div>', $skip_header ), '<div id="main" tabindex="-1"></div><div id="hero">' ), 'an element that has an id of its own keeps it; an empty target goes before it' );
+ok( 'x' === prospergenics_2026_listings_skip_target( 'x', $skip_header ) && $skip_header . '<p id="main">' === prospergenics_2026_listings_skip_target( $skip_header . '<p id="main">', $skip_header ), 'no header found, or a #main already there: the page is left as it was' );
+ok( false !== strpos( $css, '#main[tabindex="-1"]:focus { outline: none; }' ), 'the focused skip target (a whole banner or breadcrumb) gets no focus ring of its own' );
+ok( (bool) preg_match( '~target\.scrollIntoView\(\);\s*return;\s*\}\s*//[^\n]*#main[^\n]*\n[^\n]*\n\s*if \(target && !first\) return;~', $ljs ), 'on a lesson page the skip link moves to #main and leaves the open session alone (it used to reopen session 1)' );
+
 echo $failures ? "\n$failures FAILED\n" : "\nAll assertions passed.\n";
 exit( $failures ? 1 : 0 );
 

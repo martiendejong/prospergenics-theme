@@ -239,6 +239,9 @@
       target.scrollIntoView();
       return;
     }
+    // A link to something outside the lesson (the skip link's #main, #7227): the browser moves
+    // there; the open session stays.
+    if (target && !first) return;
     // No session in the link: on arrival, the session last opened; after Back to the bare page, the first.
     var last = first ? parseInt(load('pg-learn-session:' + course), 10) : 0;
     show(last > 0 ? last - 1 : 0, focus);
