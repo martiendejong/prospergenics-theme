@@ -437,7 +437,43 @@ function prospergenics_2026_listings_takeover( $html, $path, array $chrome ) {
         list( $out, $demo_js ) = prospergenics_2026_listings_add_tool_demo( $out, $key, $chrome );
     }
 
+    // Pages without a <main> of the plugin's: the skip link still needs its target (#7227).
+    $out = prospergenics_2026_listings_skip_target( $out, $header );
+
     return rtrim( $out ) . "\n\n" . $chrome['footer'] . "\n" . $chrome['script'] . "\n" . ( '' !== $lesson_js ? $lesson_js . "\n" : '' ) . ( '' !== $demo_js ? $demo_js . "\n" : '' );
+}
+
+/**
+ * The skip link's target on a jengo-listings page without a <main> (card #7227). The plugin's
+ * detail pages have one, which gets id="main" in the takeover; its list pages (/tools/, /members/,
+ * ...), course pages and lesson pages have none, so "Skip to content" pointed at nothing. There the
+ * first element after the site header (the breadcrumb on a list page, the green banner on a course
+ * page) becomes #main, with tabindex="-1" so it takes the focus. Pure; a page that already has an
+ * id="main", or where the header isn't found, is left as it was.
+ */
+function prospergenics_2026_listings_skip_target( $html, $header ) {
+    $html = (string) $html;
+    $at   = '' !== (string) $header ? strpos( $html, (string) $header ) : false;
+    if ( false === $at || preg_match( '#\sid=["\']main["\']#', $html ) ) {
+        return $html;
+    }
+    // skip whitespace, comments (<!-- HERO BAND -->) and style/script blocks
+    $skip = '(?:\s+|<!--(?:(?!-->).)*-->|<(style|script)\b[^>]*>.*?</\1>)*';
+    if ( ! preg_match( '#\G' . $skip . '<([a-z][a-z0-9-]*)\b([^>]*)>#si', $html, $m, PREG_OFFSET_CAPTURE, $at + strlen( $header ) ) ) {
+        return $html;
+    }
+    // a breadcrumb is navigation too: skip past it to the page itself (the list pages' header)
+    if ( 'nav' === strtolower( $m[2][0] ) && false !== strpos( $m[3][0], 'pg-breadcrumb' ) ) {
+        $end = stripos( $html, '</nav>', $m[0][1] );
+        if ( false === $end || ! preg_match( '#\G' . $skip . '<([a-z][a-z0-9-]*)\b([^>]*)>#si', $html, $m, PREG_OFFSET_CAPTURE, $end + 6 ) ) {
+            return $html;
+        }
+    }
+    $tag = $m[2][1] - 1;
+    if ( preg_match( '#\sid=#i', $m[3][0] ) ) {
+        return substr_replace( $html, '<div id="main" tabindex="-1"></div>', $tag, 0 );
+    }
+    return substr_replace( $html, ' id="main" tabindex="-1"', $m[3][1], 0 );
 }
 
 /**

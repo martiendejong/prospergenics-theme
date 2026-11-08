@@ -154,7 +154,7 @@ foreach ( $services as $s ) {
 ok( 3 === substr_count( $out, 'src="' . $assets . '/' ) && 3 === substr_count( $out, '<figcaption class="svc-ex">Example: ' ), 'the three labelled examples, from the theme assets' );
 ok( 1 === substr_count( $out, '<style id="prospergenics-services-css">' ) && (bool) preg_match( '#<style id="prospergenics-services-css">\s*' . preg_quote( substr( trim( $css_src ), 0, 60 ), '#' ) . '.*?</style>\s*</head>#s', $out ), 'services.css printed once, before </head>' );
 ok( false !== strpos( $out, '<h1>Services <span class="accent">that create value</span></h1>' ) && false !== strpos( $out, '<p class="pg-count">4 services</p>' ) && false !== strpos( $out, '<form class="search-box" method="get" action="' . TEST_HOME . '/services/">' ), "the plugin's heading, count and search box stay" );
-ok( (bool) preg_match( '#<nav class="pg-breadcrumb pg-crumbs pg-crumbs--light" aria-label="Breadcrumb">.*?<span aria-current="page">Services</span>\s*</nav>\s*<header class="pg-header">#s', $out ), 'the breadcrumb stays (PR #73)' );
+ok( (bool) preg_match( '#<nav class="pg-breadcrumb pg-crumbs pg-crumbs--light" aria-label="Breadcrumb">.*?<span aria-current="page">Services</span>\s*</nav>\s*<header [^>]*class="pg-header">#s', $out ), 'the breadcrumb stays (PR #73)' );
 ok( false !== strpos( $out, '<header class="site-header">HEADER</header>' ) && false !== strpos( $out, '<footer class="site-footer">FOOTER</footer>' ), 'the site header and footer as on every listings page' );
 ok( prospergenics_2026_services_div_end( $out, strpos( $out, '<div class="dir-wrap">' ) ) < strpos( $out, '<footer class="site-footer">' ), 'the card area is closed before the footer (balanced markup)' );
 

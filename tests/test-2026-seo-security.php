@@ -60,6 +60,19 @@ function add_query_arg( $k, $v, $url ) { return $url . ( false === strpos( $url,
 function esc_html( $s ) { return htmlspecialchars( (string) $s, ENT_QUOTES ); }
 function esc_attr( $s ) { return htmlspecialchars( (string) $s, ENT_QUOTES ); }
 function esc_url( $s ) { return (string) $s; }
+// the query for the section pages (card #7224), set per case through $GLOBALS['_q']
+$GLOBALS['_q'] = array();
+function q( $k ) { return isset( $GLOBALS['_q'][ $k ] ) ? $GLOBALS['_q'][ $k ] : null; }
+function is_post_type_archive( $pt ) { return q( '_archive' ) === $pt; }
+function is_page( $slug ) { return q( '_page' ) === $slug; }
+function is_home() { return (bool) q( '_home' ); }
+function is_singular( $t = '' ) { return (bool) q( '_singular' ); }
+function get_queried_object() { return (object) array( 'ID' => 8, 'post_name' => q( '_page' ) ); }
+function has_excerpt( $p ) { return null !== q( '_excerpt' ); }
+function get_the_excerpt( $p ) { return q( '_excerpt' ); }
+function get_permalink( $p ) { return home_url( '/' . $p->post_name . '/' ); }
+function get_post_type_archive_link( $pt ) { return home_url( 'pg_course' === $pt ? '/courses/' : '/projects/' ); }
+function prospergenics_profiles_route() { return (string) q( '_route' ); }
 
 require $theme . '/inc/security.php';
 require $theme . '/inc/seo.php';
@@ -160,6 +173,51 @@ $GLOBALS['_listings'] = false; $GLOBALS['_front'] = false;
 $seo_src = file_get_contents( $theme . '/inc/seo.php' );
 ok( 1 === preg_match( "#remove_action\\( 'wp_head', 'rel_canonical' \\)#", $seo_src ), "core's second canonical (to the homepage) is removed on listings pages" );
 ok( 2 === substr_count( $seo_src, 'prospergenics_2026_is_homepage_request() )' ), 'sharing tags and Organization schema both use the homepage check' );
+
+echo "Section pages: description and sharing tags (card #7224)\n";
+// /contact/, /register/ and /blog/ had no description; /courses/ and /projects/ no og/twitter tags.
+$want = array( 'description', 'og:title', 'og:description', 'og:url', 'og:image', 'twitter:card', 'twitter:title', 'twitter:description', 'twitter:image' );
+$cases = array(
+	'/contact/ (template page)'           => array( array( '_page' => 'contact', '_singular' => true ), '/contact/', 'contact', 'Contact — ProsperGenics', 'https://prospergenics.com/contact/' ),
+	'/contact/ (no WordPress page)'       => array( array(), '/contact/', 'contact', 'Contact — ProsperGenics', 'https://prospergenics.com/contact/' ),
+	'/register/'                          => array( array( '_route' => 'register' ), '/register/', 'register', 'Create your member account — ProsperGenics', 'https://prospergenics.com/register/' ),
+	'/blog/ (page with page-blog.php)'    => array( array( '_page' => 'blog', '_singular' => true ), '/blog/', 'blog', 'Blog — ProsperGenics', 'https://prospergenics.com/blog/' ),
+	'/blog/ (the posts page)'             => array( array( '_home' => true ), '/blog/', 'blog', 'Blog — ProsperGenics', 'https://prospergenics.com/blog/' ),
+	'/courses/'                           => array( array( '_archive' => 'pg_course' ), '/courses/?level=beginner', 'courses', 'Courses — ProsperGenics', 'https://prospergenics.com/courses/' ),
+	'/projects/'                          => array( array( '_archive' => 'pg_project' ), '/projects/page/2/', 'projects', 'Projects — ProsperGenics', 'https://prospergenics.com/projects/' ),
+);
+$sections = prospergenics_2026_section_pages();
+foreach ( $cases as $label => $c ) {
+	$GLOBALS['_q'] = $c[0];
+	$_SERVER['REQUEST_URI'] = $c[1];
+	ok( $c[2] === prospergenics_2026_section_page(), "$label is the '{$c[2]}' section page" );
+	$m    = prospergenics_2026_current_meta();
+	$rows = prospergenics_2026_meta_tags( $m );
+	$tags = array();
+	foreach ( $rows as $r ) { $tags[ $r[1] ] = $r[2]; }
+	ok( array() === array_diff( $want, array_keys( $tags ) ), "$label: description, og:title/description/url/image and twitter tags" );
+	ok( $sections[ $c[2] ]['description'] === $tags['description'] && $tags['description'] === $tags['og:description'] && $tags['description'] === $tags['twitter:description'], "$label: one description, the page's own intro line" );
+	ok( $c[3] === $tags['og:title'] && $c[4] === $tags['og:url'] && 'https://prospergenics.com/wp-content/themes/prospergenics-2026/assets/og-image.jpg' === $tags['og:image'], "$label: title \"{$c[3]}\", url {$c[4]}, the site's sharing image" );
+}
+foreach ( $sections as $key => $s ) {
+	$len = mb_strlen( $s['description'] );
+	ok( $len >= 50 && $len <= 160 && false !== strpos( $s['description'], 'ProsperGenics' ), "$key: description is $len characters (50-160) and names ProsperGenics" );
+}
+$GLOBALS['_q'] = array( '_page' => 'contact', '_singular' => true, '_excerpt' => 'Our team answers within two working days.' );
+$_SERVER['REQUEST_URI'] = '/contact/';
+ok( 'Our team answers within two working days.' === prospergenics_2026_current_meta()['description'], 'an excerpt an editor wrote for the page wins' );
+$GLOBALS['_q'] = array( '_page' => 'privacy-policy', '_singular' => true );
+$_SERVER['REQUEST_URI'] = '/privacy-policy/';
+ok( '' === prospergenics_2026_section_page(), 'other pages are not section pages (they keep the summary of their own text)' );
+$GLOBALS['_q'] = array( '_home' => true );
+$GLOBALS['_front'] = true;
+$_SERVER['REQUEST_URI'] = '/';
+ok( '' === prospergenics_2026_section_page(), 'the posts list on the front page is not /blog/' );
+$GLOBALS['_q'] = array(); $GLOBALS['_front'] = false;
+$crs_src = file_get_contents( $theme . '/inc/courses/routing.php' );
+$prj_src = file_get_contents( $theme . '/inc/projects/seo.php' );
+ok( false === strpos( $crs_src, '<meta name="description"' ) && false === strpos( $prj_src, '<meta name="description"' ), '/courses/ and /projects/ print their description once, through inc/seo.php' );
+ok( false !== strpos( $crs_src, 'prospergenics_courses_archive_canonical()' ) && false !== strpos( $prj_src, 'prospergenics_projects_archive_canonical()' ), 'their canonicals stay where they were' );
 
 echo "Paged canonicals (ARC-22)\n";
 ok( 'https://prospergenics.com/articles/' === prospergenics_2026_paged_url( 'https://prospergenics.com/articles/', 1 ), 'page 1 is the listing itself' );

@@ -92,6 +92,11 @@ members/farid-harrak         /people/farid/
 # Mohamend"): the members list is the one people list now (cards #6520, #6517)
 our-team                     /members/
 
+# /people/ itself: the members list (card #7226). On the server Apache answers it first, from
+# people/.htaccess (build-profiles.py); this rule covers a /people/ request that reaches WordPress.
+# Only the bare path: the profiles under /people/<slug>/ are not touched.
+people                       /members/
+
 # Production-only profiles with no /people/ page: Sonia, Timothy, Toperian (card #6521).
 # DECISION PENDING (owners): give them a profile in build-profiles.py PROFILES (then point these
 # rules at /people/<slug>/) or keep them off the site. Until then they go to the members list,

@@ -124,6 +124,8 @@ $person_cases = array(
 	'/lessy/'                   => '/people/lessy/',  // media attachment slug
 	'/Members/Sofy'             => '/people/sophy/',
 	'/our-team/'                => '/members/',
+	'/people/'                  => '/members/',       // the bare /people/ path, when it reaches WordPress (card #7226)
+	'/people'                   => '/members/',
 );
 foreach ( $person_cases as $from => $to ) {
 	$r = person_route( $from );

@@ -323,10 +323,9 @@ add_action( 'wp_enqueue_scripts', function () {
 	}
 } );
 
-/** Description and canonical for /courses/; schema.org Course for course pages. */
+/** Canonical for /courses/ (its description and sharing tags: inc/seo.php); schema.org Course for course pages. */
 add_action( 'wp_head', function () {
 	if ( is_post_type_archive( 'pg_course' ) && function_exists( 'prospergenics_2026_seo_plugin_active' ) && ! prospergenics_2026_seo_plugin_active() ) {
-		echo '<meta name="description" content="' . esc_attr( 'Courses from the ProsperGenics community: learn by doing, track your progress and earn a verifiable certificate.' ) . '" />' . "\n";
 		echo '<link rel="canonical" href="' . esc_url( prospergenics_courses_archive_canonical() ) . '" />' . "\n";
 	}
 	if ( ! is_singular( 'pg_course' ) ) {
