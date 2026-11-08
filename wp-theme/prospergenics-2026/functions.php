@@ -10,8 +10,18 @@ add_action( 'after_setup_theme', function () {
 // The templates carry their own <title>; keep WP/plugins from printing a second one.
 remove_action( 'wp_head', '_wp_render_title_tag', 1 );
 
+// First, so a fatal error in anything loaded after it is logged and emailed to staff (#6473).
+require get_template_directory() . '/inc/ops-alerts.php';
 require get_template_directory() . '/inc/security.php';
 require get_template_directory() . '/inc/seo.php';
+// The one site header + footer (menu in inc/site-chrome/nav.json), also put on jengo-listings
+// pages; and the account side: admin bar for staff only, members kept out of wp-admin, login page.
+require get_template_directory() . '/inc/site-chrome.php';
+require get_template_directory() . '/inc/account.php';
+require get_template_directory() . '/inc/avatars.php';     // one avatar (photo or initials), no Gravatar
+require get_template_directory() . '/inc/coach-context.php'; // the homepage chat knows the team and who is logged in
+require get_template_directory() . '/inc/tool-demos.php';    // #7218 "See it work" on /tools/<slug>/ from assets/tool-demos/<slug>/
+require get_template_directory() . '/inc/lesson-editors.php'; // #7146 lesson examples with a <textarea> of their own, whole in their editor
 
 // Contact form: every enquiry is stored before any email is attempted, with spam flagged
 // (never discarded) and the delivery result recorded. Ported from PR #20 for production.
@@ -43,3 +53,17 @@ add_action( 'template_redirect', function () {
 require get_template_directory() . '/inc/redirects.php';
 // Sitemap entries for the static /people/, /experts/ and /community/ pages.
 require get_template_directory() . '/inc/sitemap.php';
+
+// Prospergenics Platform features (JengoWork board "Prospergenics Platform"), one loader per
+// track so the tracks can be built independently. See docs/PLATFORM-BUILD.md.
+require get_template_directory() . '/inc/platform-search.php';   // #6393 /find/: people by skill, project or problem
+require get_template_directory() . '/inc/platform-articles.php';
+require get_template_directory() . '/inc/platform-profiles.php';
+require get_template_directory() . '/inc/members-directory.php'; // #6516/#6517 /members/ cards from PROFILES (people.json)
+require get_template_directory() . '/inc/services.php';          // #7219 /services/ cards and "What you get", from services.json (as on the homepage)
+require get_template_directory() . '/inc/listings-pages.php';    // #6538 jengo-listings cards: the branded pattern, no letter tiles
+require get_template_directory() . '/inc/platform-courses.php';
+require get_template_directory() . '/inc/platform-roles.php';     // #6341 member / company / instructor / admin
+require get_template_directory() . '/inc/platform-projects.php'; // #6388 portfolios: /projects/, contributions
+// The staff area at /manage/ (card #6457): overview, members, contact messages, articles for review.
+require get_template_directory() . '/inc/platform-manage.php';

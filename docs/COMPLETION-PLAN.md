@@ -21,7 +21,7 @@ everything the old theme earned for SEO and security, with a repeatable, tested 
 | F6 | The chat launcher overlaps the "Not sure where to start?" copy on desktop and covers content on mobile. | A visible layout bug. |
 | F7 | Theme assets total **22 MB**; several PNGs are 1.6–2.7 MB each. There's no `loading="lazy"`, `width`/`height`, WebP/AVIF or `srcset`. There are 3 Google Font families with 11 weights. | Poor LCP/CLS, so a weak Core Web Vitals score, especially on Kenyan mobile networks. |
 | F8 | 9 of 20 homepage images have empty `alt`. | Accessibility and image SEO. |
-| F9 | The WhatsApp link is still `wa.me/254XXXXXXXXX`. | A broken primary CTA. |
+| F9 | The WhatsApp link is still a placeholder (`wa.me/254` followed by nine X's). | A broken primary CTA. |
 | F10 | The 2026 design has **no contact form**. PR #20 (store-before-mail and spam protection) targets the old theme only. | Without a form, lead capture depends on WhatsApp and the chat. |
 | F11 | **There is no CI.** Deploys are manual Python FTP scripts that run from Martien's Windows machine and depend on the vault (`deploy-wp-theme-vimexx.py`). Production `functions.php` has drifted from git (SMTP block, task 797). | Deploys can't be repeated, are risky, and production isn't reproducible from git. |
 | F12 | Open PRs: #4 (homepage meta, old theme), #17 (favicon, 2026), #20 (contact form, old theme), #21 (Lessy pronouns, draft). | They need merging or porting before launch. |

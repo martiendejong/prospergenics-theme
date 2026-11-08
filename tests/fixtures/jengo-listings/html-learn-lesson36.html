@@ -1,0 +1,405 @@
+<!-- Saved 8 Nov 2026 from test.prospergenics.com/courses/html/learn/ (card #7146): the jengo-listings
+     lesson page from its learn-wrap to the end of its table-of-contents script, with only lesson 36
+     of the 45 in it (the plugin's styles, the theme's header and footer and the CoachOS assistant
+     left out). Its example holds a text box of its own, whose end tag ends the editor early.
+     Email addresses are as Cloudflare rewrote them. -->
+<div class="learn-wrap">
+  <div class="learn-grid">
+    <aside class="learn-toc" id="learnToc">
+      <h2>In this course</h2>
+      <nav id="tocLinks"></nav>
+      <a class="toc-back" href="https://test.prospergenics.com/courses/html/">← Course overview</a>
+    </aside>
+
+    <article class="learn-body" id="learnBody">
+<div class="lesson-header">
+<h1>Select, Textarea, and Buttons</h1>
+</div>
+<!-- SIMPLE EXPLANATION -->
+<section class="explain-simple">
+<h2>The Simple Version</h2>
+<p>Not everything fits in an <code>&lt;input&gt;</code> tag. Sometimes you need a dropdown menu, a large text area, or different types of buttons. </p>
+<ul>
+<li><code>&lt;select&gt;</code> - a dropdown menu (pick one from a list). </li>
+<li><code>&lt;textarea&gt;</code> - a multi-line text box (for long messages). </li>
+<li><code>&lt;button&gt;</code> - a clickable button (more flexible than <code>&lt;input type="submit"&gt;</code>)</li>
+</ul>
+<div class="analogy">
+                    If <code>&lt;input&gt;</code> is like a fill-in-the-blank question on an exam, then <code>&lt;select&gt;</code> is like a multiple-choice question (choose one answer from a list), and <code>&lt;textarea&gt;</code> is like an essay question (write as much as you want).
+                </div>
+</section>
+<!-- DEEP EXPLANATION -->
+<section class="explain-deep">
+<h2>What's Really Happening</h2>
+<p><strong>The <code>&lt;select&gt;</code> element:</strong></p>
+<pre><code>&lt;select name="county"&gt;
+  &lt;option value=""&gt;Choose a county...&lt;/option&gt;
+  &lt;option value="nairobi"&gt;Nairobi&lt;/option&gt;
+  &lt;option value="mombasa"&gt;Mombasa&lt;/option&gt;
+  &lt;option value="kisumu"&gt;Kisumu&lt;/option&gt;
+&lt;/select&gt;</code></pre>
+<ul>
+<li>Each <code>&lt;option&gt;</code> is one choice in the dropdown</li>
+<li><code>value</code> is what gets sent when the form submits (the user sees the text)</li>
+<li>Add <code>selected</code> to an option to make it the default choice</li>
+<li>Use <code>&lt;optgroup&gt;</code> to group options with a label</li>
+</ul>
+<p><strong>The <code>&lt;textarea&gt;</code> element:</strong></p>
+<pre><code>&lt;textarea name="message" rows="5" cols="40"
+  placeholder="Write your message..."&gt;&lt;/textarea&gt;</code></pre>
+<ul>
+<li><code>rows</code> - how many lines tall (visible height)</li>
+<li><code>cols</code> - how many characters wide (visible width)</li>
+<li>Users can type as much text as they want - it scrolls</li>
+<li>Unlike <code>&lt;input&gt;</code>, default text goes between the tags, not in a <code>value</code> attribute</li>
+</ul>
+<p><strong>The <code>&lt;button&gt;</code> element:</strong></p>
+<pre><code>&lt;button type="submit"&gt;Send&lt;/button&gt;
+&lt;button type="reset"&gt;Clear Form&lt;/button&gt;
+&lt;button type="button"&gt;Do Something&lt;/button&gt;</code></pre>
+<ul>
+<li><code>type="submit"</code> - submits the form (default inside a form)</li>
+<li><code>type="reset"</code> - clears all form fields back to defaults</li>
+<li><code>type="button"</code> - does nothing until JavaScript tells it to</li>
+</ul>
+<div class="info-box">
+<p><strong>Good to know:</strong> <code>&lt;button&gt;</code> is better than <code>&lt;input type="submit"&gt;</code> because you can put HTML inside a button - images, icons, styled text. <code>&lt;input type="submit"&gt;</code> can only show plain text.</p>
+</div>
+</section>
+<!-- TRY IT YOURSELF -->
+<section class="try-it">
+<h2>Try It Yourself</h2>
+<p>Try all three elements: select dropdowns, textareas, and buttons.</p>
+<div class="editor-container">
+<div class="editor-panel">
+<div class="panel-header">
+<span>HTML Code</span>
+<div class="editor-buttons">
+<button class="btn-run">Run</button>
+<button class="btn-reset">Reset</button>
+</div>
+</div>
+<textarea>&lt;style&gt;
+  body { font-family: Arial, sans-serif; padding: 20px; }
+  .group { margin-bottom: 20px; }
+  .group label { display: block; font-weight: bold; margin-bottom: 5px; }
+  select, textarea {
+    width: 100%; padding: 10px; border: 1px solid #ccc;
+    border-radius: 6px; font-size: 1em; font-family: inherit;
+    box-sizing: border-box;
+  }
+  .btn {
+    padding: 10px 25px; border: none; border-radius: 6px;
+    font-size: 1em; cursor: pointer; margin: 5px 5px 5px 0;
+  }
+  .btn-primary { background: #2196f3; color: white; }
+  .btn-success { background: #4caf50; color: white; }
+  .btn-danger { background: #f44336; color: white; }
+  .btn-outline { background: white; color: #333; border: 2px solid #ccc; }
+&lt;/style&gt;
+
+&lt;h1&gt;Select, Textarea &amp; Buttons&lt;/h1&gt;
+
+&lt;h2&gt;Select - Dropdown Menu&lt;/h2&gt;
+
+&lt;div class="group"&gt;
+  &lt;label&gt;County - Kaunti:&lt;/label&gt;
+  &lt;select name="county"&gt;
+    &lt;option value=""&gt;-- Choose a county - Chagua kaunti --&lt;/option&gt;
+    &lt;optgroup label="Central - Kati"&gt;
+      &lt;option value="nairobi"&gt;Nairobi&lt;/option&gt;
+      &lt;option value="kiambu"&gt;Kiambu&lt;/option&gt;
+      &lt;option value="nyeri"&gt;Nyeri&lt;/option&gt;
+    &lt;/optgroup&gt;
+    &lt;optgroup label="Coast - Pwani"&gt;
+      &lt;option value="mombasa"&gt;Mombasa&lt;/option&gt;
+      &lt;option value="kilifi"&gt;Kilifi&lt;/option&gt;
+      &lt;option value="kwale"&gt;Kwale&lt;/option&gt;
+    &lt;/optgroup&gt;
+    &lt;optgroup label="Western - Magharibi"&gt;
+      &lt;option value="kisumu"&gt;Kisumu&lt;/option&gt;
+      &lt;option value="kakamega"&gt;Kakamega&lt;/option&gt;
+    &lt;/optgroup&gt;
+  &lt;/select&gt;
+&lt;/div&gt;
+
+&lt;hr&gt;
+&lt;h2&gt;Textarea - Eneo la Maandishi&lt;/h2&gt;
+
+&lt;div class="group"&gt;
+  &lt;label&gt;Your Message - Ujumbe Wako:&lt;/label&gt;
+  &lt;textarea name="message" rows="5" placeholder="Type your message here... Andika ujumbe wako hapa..."&gt;</textarea>
+</div>
+<div class="group">
+<label>Short feedback (3 rows):</label>
+<textarea name="feedback" rows="3"></textarea>
+</div>
+<div class="les-sep"></div>
+<h2>Buttons</h2>
+<button class="btn btn-primary" type="submit">Submit</button>
+<button class="btn btn-success" type="button">Save</button>
+<button class="btn btn-danger" type="button">Delete</button>
+<button class="btn btn-outline" type="reset">Reset</button>
+</div>
+<div class="preview-panel">
+<div class="panel-header">
+<span>Result</span>
+</div>
+</div>
+</section>
+
+/* Lesson playground + migrated-lesson callouts [5818]. Standalone: every colour has a fallback, the learn template's variables are used when present. */
+.learn-body .editor-container, .editor-container {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; margin: 20px 0; align-items: stretch;
+}
+@media (max-width: 760px) { .editor-container { grid-template-columns: minmax(0, 1fr); } }
+.editor-container .editor-panel, .editor-container .preview-panel {
+  display: flex; flex-direction: column; min-width: 0; overflow: hidden;
+  border: 1px solid var(--line, rgba(15, 61, 40, .18)); border-radius: 10px; background: #fff;
+}
+.editor-container .panel-header {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 12px;
+  background: var(--green-900, #0f3d28); color: #fff;
+  font: 600 12px/1.2 'Sora', system-ui, sans-serif; letter-spacing: .05em; text-transform: uppercase;
+}
+.editor-container .editor-buttons { display: flex; gap: 6px; }
+.editor-container .editor-buttons button {
+  font: 600 12px/1 'Sora', system-ui, sans-serif; padding: 6px 12px; border-radius: 6px; cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, .35); background: rgba(255, 255, 255, .12); color: #fff;
+}
+.editor-container .editor-buttons .btn-run { background: var(--green-500, #34c759); border-color: var(--green-500, #34c759); color: #0b2016; }
+.editor-container .editor-buttons button:hover { filter: brightness(1.12); }
+.editor-container .editor-buttons button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.editor-container textarea {
+  flex: 1; width: 100%; min-height: 220px; resize: vertical; border: 0; outline: 0; margin: 0; padding: 12px 14px;
+  background: #1a1a1a; color: #e6e6e6; tab-size: 2; white-space: pre; overflow: auto;
+  font: 13.5px/1.55 ui-monospace, 'Cascadia Code', 'Fira Code', monospace;
+}
+.editor-container textarea:focus-visible { box-shadow: inset 0 0 0 2px var(--green-500, #34c759); }
+.editor-container iframe { flex: 1; width: 100%; min-height: 220px; border: 0; background: #fff; }
+.editor-container[data-pg-lang="javascript"] iframe, .editor-container[data-pg-lang="python"] iframe { background: #1a1a1a; }
+
+/* CodeHub lesson callouts and sections, unstyled in the plain learn template */
+.learn-body .analogy, .learn-body .info-box {
+  margin: 16px 0; padding: 14px 18px; border-radius: 10px; border-left: 4px solid var(--green-600, #22a65a);
+  background: var(--green-100, #d9f5e3); color: var(--green-900, #0f3d28); font-size: 15.5px; line-height: 1.65;
+}
+.learn-body .info-box { border-left-color: #2f7fd3; background: #e8f1fb; color: #123a63; }
+.learn-body .lesson-header h1 { font-family: 'Sora', system-ui, sans-serif; font-size: clamp(26px, 3vw, 36px); margin: 0 0 8px; }
+.learn-body .try-it, .learn-body .challenge { margin-top: 28px; }
+.learn-body .challenge { padding: 6px 18px 12px; border: 1px dashed var(--green-600, #22a65a); border-radius: 12px; }
+
+
+/* Lesson playground [5818]
+ *
+ * Makes the "Try it yourself" blocks of migrated CodeHub lessons work on the learn pages.
+ * A block is the markup CodeHub lessons already carry:
+ *
+ *   <div class="editor-container" data-lang="html|css|javascript|python">
+ *     <div class="editor-panel">
+ *       <div class="panel-header"><span>Label</span>
+ *         <div class="editor-buttons"><button class="btn-run">Run</button><button class="btn-reset">Reset</button></div></div>
+ *       <textarea>starter code (HTML-escaped)</textarea>
+ *     </div>
+ *     <div class="preview-panel"><div class="panel-header"><span>Result</span></div></div>
+ *   </div>
+ *
+ * No data-lang means html (the HTML and CSS course blocks). The code runs in a sandboxed iframe
+ * (sandbox="allow-scripts", no allow-same-origin): it cannot read the page, its cookies or storage.
+ * JavaScript mirrors console.* into the output; Python runs on Skulpt (loaded from jsDelivr, as CodeHub does).
+ * Plain ES5 on purpose: the file is inlined into WordPress pages without a build step.
+ */
+(function () {
+  'use strict';
+  if (window.__pgPlayground) { window.__pgPlayground.scan(document); return; }
+
+  var SKULPT = [
+    'https://cdn.jsdelivr.net/npm/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f4879f81988480b4c5dac6dac4">[email&#160;protected]</a>/dist/skulpt.min.js',
+    'https://cdn.jsdelivr.net/npm/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="f0839b859c8084b0c1dec2dec0">[email&#160;protected]</a>/dist/skulpt-stdlib.js'
+  ];
+  var AUTO_RUN_DELAY = 400;
+  var LANGS = { html: 1, css: 1, javascript: 1, python: 1 };
+
+  // Source text for a script that runs inside the generated document. JSON.stringify output is safe in a
+  // script block except for a closing script tag, an HTML comment opener and the two line separators, so escape
+  // every "&lt;&quot; and U+2028/2029.
+  function js(value) {
+    return JSON.stringify(value).replace(/&lt;/g, &#039;\\u003c&#039;).replace(/\u2028/g, &#039;\\u2028&#039;).replace(/\u2029/g, &#039;\\u2029&#039;);
+  }
+
+  var OUTPUT_STYLE =
+    &#039;body{font:13px/1.45 &quot;Cascadia Code&quot;,&quot;Fira Code&quot;,ui-monospace,monospace;padding:12px;margin:0;background:#1a1a1a;color:#d4d4d4}&#039; +
+    &#039;.line{padding:1px 0;white-space:pre-wrap;word-break:break-word}.warn{color:#e5c07b}.error{color:#e06c75}.info{color:#61afef}.hint{color:#8a8a8a;font-style:italic}&#039;;
+
+  function javascriptDoc(code) {
+    return &#039;' + OUTPUT_STYLE + '<div id="out"></div>' +
+      '(function(){var out=document.getElementById("out");' +
+      'function show(args,cls){var d=document.createElement("div");d.className="line"+(cls?" "+cls:"");' +
+      'd.textContent=Array.prototype.map.call(args,function(a){if(a===null)return "null";if(a===undefined)return "undefined";' +
+      'if(typeof a==="object"){try{return JSON.stringify(a,null,2)}catch(e){return String(a)}}return String(a)}).join(" ");out.appendChild(d)}' +
+      'console.log=function(){show(arguments,"")};console.info=function(){show(arguments,"info")};' +
+      'console.warn=function(){show(arguments,"warn")};console.error=function(){show(arguments,"error")};' +
+      'window.alert=function(m){show(["alert: "+m],"info")};' +
+      'window.addEventListener("error",function(e){show([e.message],"error")});' +
+      'window.addEventListener("unhandledrejection",function(e){show(["Unhandled rejection: "+(e.reason&amp;&amp;e.reason.message||e.reason)],"error")});' +
+      'try{(0,eval)(' + js(code) + ')}catch(e){show([String(e)],"error")}})();' +
+      '';
+  }
+
+  function pythonDoc(code) {
+    return '' + OUTPUT_STYLE + '<div id="out"><div class="line hint">Running...</div></div>' +
+      '' +
+      '(function(){var out=document.getElementById("out");' +
+      'function line(t,cls){var d=document.createElement("div");d.className="line"+(cls?" "+cls:"");d.textContent=t;out.appendChild(d)}' +
+      'if(typeof Sk==="undefined"){out.innerHTML="";line("Could not load the Python runtime. Check your connection and press Run again.","error");return}' +
+      'out.innerHTML="";' +
+      'function read(x){if(Sk.builtinFiles===undefined||Sk.builtinFiles.files[x]===undefined)throw "File not found: \'"+x+"\'";return Sk.builtinFiles.files[x]}' +
+      'Sk.configure({output:function(t){var parts=t.split("\\n");parts.forEach(function(p,i){if(i&lt;parts.length-1||p!==&quot;&quot;)line(p)})},&#039; +
+      &#039;read:read,__future__:Sk.python3,inputfun:function(){return &quot;&quot;}});&#039; +
+      &#039;Sk.misceval.asyncToPromise(function(){return Sk.importMainWithBody(&quot;",false,' + js(code) + ',true)})' +
+      '.catch(function(e){line(String(e),"error")})})();' +
+      '';
+  }
+
+  function htmlDoc(code) {
+    if (/&lt;!doctype|]/i.test(code)) { return code; }
+    return 'body{font-family:Arial,sans-serif;padding:16px}' + code + '';
+  }
+
+  function buildDoc(lang, code) {
+    if (lang === 'javascript') { return javascriptDoc(code); }
+    if (lang === 'python') { return pythonDoc(code); }
+    return htmlDoc(code);
+  }
+
+  function langOf(box) {
+    var l = (box.getAttribute('data-lang') || 'html').toLowerCase();
+    return Object.prototype.hasOwnProperty.call(LANGS, l) ? l : 'html';
+  }
+
+  function ensure(parent, selector, make) {
+    var el = parent.querySelector(selector);
+    if (!el) { el = make(); parent.appendChild(el); }
+    return el;
+  }
+
+  function element(tag, className, text) {
+    var e = document.createElement(tag);
+    if (className) { e.className = className; }
+    if (text) { e.textContent = text; }
+    return e;
+  }
+
+  function setup(box) {
+    if (box.getAttribute('data-pg-ready')) { return; }
+    var lang = langOf(box);
+    var editor = box.querySelector('.editor-panel');
+    var textarea = box.querySelector('textarea');
+    if (!editor || !textarea) { return; }
+    box.setAttribute('data-pg-ready', '1');
+    box.setAttribute('data-pg-lang', lang);
+
+    var preview = ensure(box, '.preview-panel', function () {
+      var p = element('div', 'preview-panel');
+      var h = element('div', 'panel-header');
+      h.appendChild(element('span', '', lang === 'html' || lang === 'css' ? 'Result' : 'Output'));
+      p.appendChild(h);
+      return p;
+    });
+    var frame = preview.querySelector('iframe');
+    if (!frame) {
+      frame = document.createElement('iframe');
+      preview.appendChild(frame);
+    }
+    frame.setAttribute('sandbox', 'allow-scripts');
+    frame.setAttribute('title', lang === 'html' || lang === 'css' ? 'Result' : 'Output');
+    frame.setAttribute('loading', 'lazy');
+    frame.setAttribute('referrerpolicy', 'no-referrer');
+    textarea.setAttribute('spellcheck', 'false');
+    textarea.setAttribute('aria-label', 'Code editor');
+
+    var buttons = ensure(editor.querySelector('.panel-header') || editor, '.editor-buttons', function () { return element('div', 'editor-buttons'); });
+    var run = buttons.querySelector('.btn-run') || buttons.appendChild(element('button', 'btn-run', 'Run'));
+    var reset = buttons.querySelector('.btn-reset') || buttons.appendChild(element('button', 'btn-reset', 'Reset'));
+    run.type = 'button';
+    reset.type = 'button';
+
+    var initial = textarea.value;
+    var live = lang === 'html' || lang === 'css';
+    var timer = null;
+
+    function render() {
+      if (timer) { clearTimeout(timer); timer = null; }
+      frame.srcdoc = buildDoc(lang, textarea.value);
+    }
+
+    run.addEventListener('click', render);
+    reset.addEventListener('click', function () {
+      textarea.value = initial;
+      if (live) { render(); } else { frame.srcdoc = emptyDoc(); }
+    });
+    textarea.addEventListener('keydown', function (e) {
+      if ((e.ctrlKey || e.metaKey) &amp;&amp; e.key === 'Enter') { e.preventDefault(); render(); }
+    });
+    if (live) {
+      textarea.addEventListener('input', function () {
+        if (timer) { clearTimeout(timer); }
+        timer = setTimeout(render, AUTO_RUN_DELAY);
+      });
+      render();
+    } else {
+      frame.srcdoc = emptyDoc();
+    }
+  }
+
+  function emptyDoc() {
+    return '' + OUTPUT_STYLE + '<div class="line hint">Press Run (or Ctrl+Enter) to see the output.</div>';
+  }
+
+  function scan(root) {
+    var boxes = (root || document).querySelectorAll('.editor-container');
+    for (var i = 0; i &lt; boxes.length; i++) { setup(boxes[i]); }
+  }
+
+  window.__pgPlayground = { scan: scan, buildDoc: buildDoc };
+  if (document.readyState === &#039;loading&#039;) { document.addEventListener(&#039;DOMContentLoaded&#039;, function () { scan(document); }); }
+  else { scan(document); }
+})();
+      <div class="learn-foot">
+        <div class="lf-txt">Questions while you work through the steps?
+          <small>The Course Coach (bottom right) knows this course inside out.</small>
+        </div>
+        <a class="lf-btn" href="https://test.prospergenics.com/courses/">Browse more courses →</a>
+      </div>
+    </article>
+  </div>
+</div>
+
+<script>
+(function(){
+  // Build the table of contents from the h2 headings in the course body
+  var body = document.getElementById('learnBody');
+  var toc  = document.getElementById('tocLinks');
+  var heads = body.querySelectorAll('h2');
+  heads.forEach(function(h, i){
+    if (!h.id) h.id = 'section-' + (i + 1);
+    var a = document.createElement('a');
+    a.href = '#' + h.id;
+    a.textContent = h.textContent;
+    toc.appendChild(a);
+  });
+
+  // Highlight the section currently in view
+  var links = toc.querySelectorAll('a');
+  function onScroll(){
+    var y = window.scrollY + 120, active = 0;
+    heads.forEach(function(h, i){ if (h.offsetTop <= y) active = i; });
+    links.forEach(function(l, i){ l.classList.toggle('active', i === active); });
+    var doc = document.documentElement;
+    var pct = (doc.scrollTop) / (doc.scrollHeight - doc.clientHeight) * 100;
+    document.getElementById('learnProgress').style.width = pct + '%';
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+})();
+</script>

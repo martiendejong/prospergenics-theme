@@ -15,12 +15,14 @@ Personal profile pages (people/<slug>/index.html) and the two list pages
 (experts/, community/) are static and deploy straight into public_html/ - see
 deploy-wp-theme-vimexx.py; they are not theme templates.
 
-The conversion only rewrites asset URLs to the theme directory and inserts the
-mandatory wp_head()/wp_footer() hooks. Everything else stays byte-identical so
+The conversion only rewrites asset URLs to the theme directory, inserts the
+mandatory wp_head()/wp_footer() hooks and swaps the static site header/footer blocks for
+the PHP-rendered ones (inc/site-chrome.php, same nav.json/CSS/JS). Everything else stays byte-identical so
 the interactive front-end (slider, parallax, scroll effects) keeps working as-is.
 Re-run after every design change, then deploy with deploy-wp-theme-to-test.py.
 """
 import os, re, shutil
+from urllib.parse import unquote
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.normpath(os.path.join(HERE, "..", "..", "wp-theme", "prospergenics-2026"))
@@ -34,6 +36,11 @@ def convert(html, asset_prefix):
     html = html.replace('<html lang="en" class="no-js">',
                         '<html class="no-js" <?php language_attributes(); ?>>', 1)
     html = html.replace("</head>", "<?php wp_head(); ?>\n</head>", 1)
+    # wp_body_open right after <body>, as in header.php (plugins hook in there; ARC-19)
+    # (the tag on its own line: "<body>" also appears inside a CSS comment)
+    html, found = re.subn(r"^<body>$", "<body>\n<?php wp_body_open(); ?>", html, count=1, flags=re.M)
+    if not found:
+        raise SystemExit("<body> line not found")
     html = html.replace("</body>", "<?php wp_footer(); ?>\n</body>", 1)
     # asset URLs -> theme directory (src/href/CSS url()/JS string literals)
     html = html.replace("https://test.prospergenics.com/assets/", f"{TPL}/assets/")
@@ -43,6 +50,31 @@ def convert(html, asset_prefix):
     return html
 
 
+def php_chrome(html, header_args):
+    """The static header/footer blocks (site_chrome.py) -> the same chrome rendered by
+    inc/site-chrome.php, so WordPress pages know who is logged in (account links, admin bar)."""
+    def swap(text, name, php):
+        pattern = re.compile(r"<!-- site-chrome:%s -->.*?<!-- /site-chrome:%s -->" % (name, name), re.S)
+        if not pattern.search(text):
+            raise SystemExit(f"site-chrome:{name} block not found")
+        return pattern.sub(lambda _m: f"<!-- site-chrome:{name} (inc/site-chrome.php) -->\n  {php}", text, count=1)
+    # after the header (so the skip link stays the first Tab stop): member notices such as the
+    # email-verification banner, the same hook header.php fires (ARC-19)
+    html = swap(html, "header", f"<?php echo prospergenics_2026_site_header( {header_args} ); // phpcs:ignore WordPress.Security.EscapeOutput ?>\n  <?php do_action( 'prospergenics_2026_after_site_header' ); ?>")
+    html = swap(html, "footer", "<?php echo prospergenics_2026_site_footer(); // phpcs:ignore WordPress.Security.EscapeOutput ?>")
+    # the CoachOS chat gets the team facts and who is logged in as page context (inc/coach-context.php)
+    coach = re.compile(r"<!-- coach:embed -->.*?<!-- /coach:embed -->", re.S)
+    return coach.sub(lambda _m: "<?php echo prospergenics_2026_coach_embed(); // phpcs:ignore WordPress.Security.EscapeOutput -- built and escaped in inc/coach-context.php ?>", html, count=1)
+
+
+def contact_php(encoded):
+    """href for /contact/?subject=<encoded> on the static page -> the same URL from the PHP helper."""
+    subject = unquote(encoded)
+    if not re.fullmatch(r"[A-Za-z0-9 ,.-]+", subject):
+        raise SystemExit(f"unexpected contact subject: {subject!r}")
+    return f"href=\"<?php echo esc_url( prospergenics_2026_contact_url( '{subject}' ) ); ?>\""
+
+
 def build():
     if os.path.isdir(OUT):
         shutil.rmtree(OUT)
@@ -50,20 +82,29 @@ def build():
 
     # homepage
     with open(os.path.join(HERE, "index.html"), encoding="utf-8") as f:
-        home = convert(f.read(), "")
+        home = php_chrome(convert(f.read(), ""), "array( 'autohide' => true )")
+    if "prospergenics_2026_coach_embed()" not in home:
+        raise SystemExit("coach:embed block not found in index.html")
     home = home.replace('href="about/"', f'href="{HOME}about/"')
     home = home.replace('href="people/', f'href="{HOME}people/')
     home = home.replace('href="experts/"', f'href="{HOME}experts/"')
     home = home.replace('href="community/"', f'href="{HOME}community/"')
+    # contact buttons (/contact/?subject=...) -> the theme's helper, prospergenics_2026_contact_url()
+    home = re.sub(r'href="/contact/\?subject=([^"&]+)"', lambda m: contact_php(m.group(1)), home)
     with open(os.path.join(OUT, "front-page.php"), "w", encoding="utf-8") as f:
         f.write("<?php /* Front page - generated from design/new-hero-2026-10/index.html by build-wp-theme.py; edit the source, not this file. */ ?>\n" + home)
 
     # about page (template auto-applies to the page with slug "about")
     with open(os.path.join(HERE, "about", "index.html"), encoding="utf-8") as f:
-        about = convert(f.read(), "../")
+        about = php_chrome(convert(f.read(), "../"), "array( 'current' => 'About' )")
     about = about.replace('href="../"', f'href="{HOME}"')
     about = about.replace('href="./"', f'href="{HOME}about/"')
     about = about.replace('href="../#', f'href="{HOME}#')
+    # its own address for sharing (card #7233), on whichever site WordPress runs
+    if about.count('<meta property="og:url" content="https://test.prospergenics.com/about/" />') != 1:
+        raise SystemExit("about/index.html: og:url not found")
+    about = about.replace('<meta property="og:url" content="https://test.prospergenics.com/about/" />',
+                          "<meta property=\"og:url\" content=\"<?php echo esc_url( home_url( '/about/' ) ); ?>\" />")
     with open(os.path.join(OUT, "page-about.php"), "w", encoding="utf-8") as f:
         f.write("<?php /* About page - generated from design/new-hero-2026-10/about/index.html by build-wp-theme.py; edit the source, not this file. */ ?>\n" + about)
 

@@ -1,0 +1,58 @@
+{
+  "_about": "The four services, the one copy (card #7219). site_chrome.py writes the homepage 'Our services' cards from it (index.html, between <!-- services:cards --> markers); inc/services.php renders the same cards on /services/ and the 'What you get' block on /services/<slug>/. Images live in assets/; 'label' is shown on the image, so the <img> itself has an empty alt.",
+  "cta": {
+    "label": "Discuss your project",
+    "subject": "Services for my organisation",
+    "note": "Not sure which fits? Tell us the problem and we'll suggest one."
+  },
+  "services": [
+    {
+      "slug": "coachos",
+      "name": "CoachOS",
+      "promise": "AI chat, courses and avatar videos for your organisation, on your own platform.",
+      "points": [
+        "A chat assistant trained on your knowledge",
+        "Courses with progress tracking",
+        "Avatar videos, under your own brand"
+      ],
+      "link": "See CoachOS",
+      "panel_svg": "<svg viewBox=\"0 0 48 48\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M8 12h32v20H22l-8 7v-7H8z\"/><path d=\"M16 20h16M16 26h10\"/></svg>"
+    },
+    {
+      "slug": "research",
+      "name": "Research & investigation",
+      "promise": "Deep research that corrects the record, with evidence anyone can verify.",
+      "points": [
+        "Every claim traced to a source",
+        "Art attribution and historical questions",
+        "Findings published so others can check them"
+      ],
+      "link": "See research",
+      "image": { "src": "artrevisionist-home.webp", "width": 1351, "height": 760, "position": "50% 20%", "label": "Example: Art Revisionist" }
+    },
+    {
+      "slug": "provenance",
+      "name": "Provenance",
+      "promise": "Provenance systems that give objects a verifiable history.",
+      "points": [
+        "Structured records of who, when and where",
+        "Documented sources for each claim",
+        "A public page that tells the object's story"
+      ],
+      "link": "See provenance",
+      "image": { "src": "bugatti-insights.webp", "width": 512, "height": 512, "position": "50% 60%", "label": "Example: Bugatti Insights" }
+    },
+    {
+      "slug": "online-presence",
+      "name": "Online presence",
+      "promise": "Websites, SEO, AI-optimisation and social media that get you found.",
+      "points": [
+        "A website built and run for you",
+        "Found in search and in AI answers",
+        "Social media promotion as one system"
+      ],
+      "link": "See online presence",
+      "image": { "src": "seomagic-hero.webp", "width": 854, "height": 480, "position": "50% 0%", "label": "Example: our SEO tool" }
+    }
+  ]
+}

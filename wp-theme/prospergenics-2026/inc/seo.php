@@ -3,9 +3,9 @@
  * SEO layer for the 2026 theme (docs/AUDIT-2026-10.md, C2).
  *
  * The production theme's SEO work (titles, sharing tags, Organization schema) never came across
- * to the 2026 redesign. This restores it, written for the redesign's own positioning: a
- * community researching and practising how value is created (the About page copy, task 4895),
- * not the older "done-for-you agentic AI team" wording.
+ * to the 2026 redesign. This restores it, written for the redesign's own positioning (the About
+ * page copy, task 4895), not the older "done-for-you agentic AI team" wording. The organisation
+ * description itself is defined once, in inc/site-chrome/organisation.json (audit CON-13).
  *
  * Meta descriptions and Open Graph / Twitter tags are only printed when no SEO plugin is
  * active, so a plugin like Yoast stays in charge when it is installed and nothing is
@@ -50,11 +50,29 @@ function prospergenics_2026_seo_plugin_active() {
     return (bool) apply_filters( 'prospergenics_2026_seo_plugin_active', $active );
 }
 
+/**
+ * Page $paged of a listing whose first page is $base: /articles/ -> /articles/page/2/ (or
+ * ?paged=2 without pretty permalinks). For the canonical of paged archives (audit ARC-22): each
+ * page is its own canonical, filters and sort orders are not.
+ */
+function prospergenics_2026_paged_url( $base, $paged ) {
+    $paged = (int) $paged;
+    if ( $paged < 2 ) {
+        return $base;
+    }
+    if ( ! get_option( 'permalink_structure' ) ) {
+        return add_query_arg( 'paged', $paged, $base );
+    }
+    global $wp_rewrite;
+    $page_base = ( $wp_rewrite && ! empty( $wp_rewrite->pagination_base ) ) ? $wp_rewrite->pagination_base : 'page';
+    return trailingslashit( $base ) . user_trailingslashit( $page_base . '/' . $paged, 'paged' );
+}
+
 /** The homepage's sharing text (the page itself hard-codes the same title). */
 function prospergenics_2026_front_page_meta() {
     return array(
         'title'       => 'ProsperGenics — Create value',
-        'description' => 'A community in Kenya and the Netherlands that creates value together: courses and certification, AI tools, services and the people behind them.',
+        'description' => prospergenics_2026_org_description( 'short' ), // inc/site-chrome/organisation.json
         'image'       => get_template_directory_uri() . '/assets/og-image.jpg',
     );
 }
@@ -75,13 +93,118 @@ function prospergenics_2026_summarize( $text, $max = 155 ) {
     return rtrim( $space ? mb_substr( $cut, 0, $space ) : $cut, ' ,;:.-' ) . '…';
 }
 
+/**
+ * Whether this request is the homepage itself (audit CON-7). is_front_page() alone is not enough:
+ * jengo-listings renders /members/, /tools/coachos/, /courses/html/ ... on top of the front-page
+ * query, so is_front_page() is true there too, and those pages got the homepage's sharing tags and
+ * Organization schema. The homepage is only the site root, and never a listings page.
+ */
+function prospergenics_2026_is_homepage_request() {
+    if ( ! is_front_page() ) {
+        return false;
+    }
+    if ( function_exists( 'prospergenics_2026_is_listings_page' ) && prospergenics_2026_is_listings_page() ) {
+        return false;
+    }
+    $home = '/' . trim( (string) parse_url( home_url( '/' ), PHP_URL_PATH ), '/' );
+    $path = function_exists( 'prospergenics_2026_request_path' ) ? prospergenics_2026_request_path() : '/';
+    return untrailingslashit( $home ) === untrailingslashit( '/' . ltrim( $path, '/' ) );
+}
+
+/**
+ * Sharing tags for a jengo-listings page. The plugin prints its own <title>, description and
+ * canonical but no Open Graph tags; until it prints og:title / og:description / og:image from its
+ * item (plugin work), this gives the page its own URL instead of the homepage's, and
+ * inc/listings-pages.php adds og:title, og:description and the twitter title and description
+ * from the page's own <title> and description (card #7233; on the finished page, since the plugin
+ * prints its title after these tags). Filter 'prospergenics_2026_listings_share_tags' to false once the plugin
+ * prints its own.
+ */
+function prospergenics_2026_listings_meta( $path ) {
+    return array(
+        'url'   => home_url( '/' . ltrim( (string) $path, '/' ) ),
+        'type'  => 'website',
+        'image' => get_template_directory_uri() . '/assets/og-image.jpg',
+    );
+}
+
+/**
+ * The theme's own section pages that have no page text to summarise (card #7224): /contact/ and
+ * /blog/ (templates; on test their WordPress page is empty or not there at all), /register/ (a
+ * theme route) and the /courses/ and /projects/ archives. Each gets the intro line it shows under
+ * its title as its description, and the full set of sharing tags.
+ *
+ * @return array<string,array{title:string,description:string}> keyed by section
+ */
+function prospergenics_2026_section_pages() {
+    return (array) apply_filters( 'prospergenics_2026_section_pages', array(
+        'contact'  => array( 'title' => 'Contact', 'description' => 'Questions about courses, our tools or working with the team? Send ProsperGenics a message, or reach us directly on WhatsApp.' ),
+        'register' => array( 'title' => 'Create your member account', 'description' => 'Create your ProsperGenics member account: one account for your profile, courses and articles. It takes a minute.' ),
+        'blog'     => array( 'title' => 'Blog', 'description' => 'Stories, lessons and updates from the ProsperGenics community.' ),
+        'courses'  => array( 'title' => 'Courses', 'description' => 'Courses from the ProsperGenics community: learn by doing, track your progress and earn a verifiable certificate.' ),
+        'projects' => array( 'title' => 'Projects', 'description' => 'Projects, products, services and employers of ProsperGenics members, with each member’s role, contribution and evidence.' ),
+    ) );
+}
+
+/** Which of those section pages this request is, or ''. */
+function prospergenics_2026_section_page() {
+    if ( is_post_type_archive( 'pg_course' ) ) {
+        return 'courses';
+    }
+    if ( is_post_type_archive( 'pg_project' ) ) {
+        return 'projects';
+    }
+    if ( function_exists( 'prospergenics_profiles_route' ) && 'register' === prospergenics_profiles_route() ) {
+        return 'register';
+    }
+    $path = trim( (string) parse_url( isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '', PHP_URL_PATH ), '/' );
+    // /contact/ is also served without a WordPress page (functions.php), as a former 404
+    if ( is_page( 'contact' ) || ( 'contact' === $path && ! is_singular() ) ) {
+        return 'contact';
+    }
+    if ( is_page( 'blog' ) || ( is_home() && ! is_front_page() ) ) {
+        return 'blog';
+    }
+    return '';
+}
+
+/** Sharing tags for a section page: its own text, or the page's excerpt when an editor wrote one. */
+function prospergenics_2026_section_meta( $key ) {
+    $pages = prospergenics_2026_section_pages();
+    if ( ! isset( $pages[ $key ] ) ) {
+        return array();
+    }
+    $post = is_singular() ? get_queried_object() : null;
+    $desc = ( $post && has_excerpt( $post ) ) ? prospergenics_2026_summarize( get_the_excerpt( $post ) ) : $pages[ $key ]['description'];
+    $archive = array( 'courses' => 'pg_course', 'projects' => 'pg_project' );
+    if ( isset( $archive[ $key ] ) ) {
+        $url = get_post_type_archive_link( $archive[ $key ] );
+    } else {
+        $url = $post ? get_permalink( $post ) : home_url( '/' . $key . '/' );
+    }
+    return array(
+        'title'       => $pages[ $key ]['title'] . ' — ProsperGenics',
+        'description' => $desc,
+        'image'       => get_template_directory_uri() . '/assets/og-image.jpg',
+        'url'         => $url ? $url : home_url( '/' . $key . '/' ),
+        'type'        => 'website',
+    );
+}
+
 /** Collect the meta tags for the current request, or an empty array when there are none. */
 function prospergenics_2026_current_meta() {
-    if ( is_front_page() ) {
+    if ( prospergenics_2026_is_homepage_request() ) {
         $meta = prospergenics_2026_front_page_meta();
         $meta['url']  = home_url( '/' );
         $meta['type'] = 'website';
         return $meta;
+    }
+    if ( function_exists( 'prospergenics_2026_is_listings_page' ) && prospergenics_2026_is_listings_page() ) {
+        return apply_filters( 'prospergenics_2026_listings_share_tags', true ) ? prospergenics_2026_listings_meta( prospergenics_2026_request_path() ) : array();
+    }
+    $section = prospergenics_2026_section_page();
+    if ( '' !== $section ) {
+        return prospergenics_2026_section_meta( $section );
     }
     // page-about.php carries its own hand-written description and sharing tags.
     if ( is_page( 'about' ) || ! is_singular() ) {
@@ -109,7 +232,21 @@ add_action( 'wp_head', function () {
     if ( ! $m ) {
         return;
     }
-    $tags = array(
+    echo "\n";
+    foreach ( prospergenics_2026_meta_tags( $m ) as $t ) {
+        printf( '<meta %s="%s" content="%s" />' . "\n", $t[0], esc_attr( $t[1] ), esc_attr( $t[2] ) );
+    }
+}, 2 );
+
+/**
+ * The meta tags for a set of values, as [attribute, name, content] rows; values that are not
+ * set (a listings page has no title or description of ours) are left out.
+ *
+ * @return array<int,array{0:string,1:string,2:string}>
+ */
+function prospergenics_2026_meta_tags( array $m ) {
+    $m    = array_merge( array( 'title' => '', 'description' => '', 'type' => 'website', 'url' => '', 'image' => '' ), $m );
+    $rows = array(
         array( 'name', 'description', $m['description'] ),
         array( 'property', 'og:type', $m['type'] ),
         array( 'property', 'og:site_name', 'ProsperGenics' ),
@@ -122,11 +259,20 @@ add_action( 'wp_head', function () {
         array( 'name', 'twitter:description', $m['description'] ),
         array( 'name', 'twitter:image', $m['image'] ),
     );
-    echo "\n";
-    foreach ( $tags as $t ) {
-        printf( '<meta %s="%s" content="%s" />' . "\n", $t[0], esc_attr( $t[1] ), esc_attr( $t[2] ) );
+    return array_values( array_filter( $rows, function ( $r ) { return '' !== (string) $r[2]; } ) );
+}
+
+/*
+ * jengo-listings pages print their own canonical. WordPress adds a second one (to the homepage)
+ * and a ?p= shortlink when the front page is a static page, because the plugin renders on top of
+ * the front-page query: drop core's on those pages.
+ */
+add_action( 'wp_head', function () {
+    if ( function_exists( 'prospergenics_2026_is_listings_page' ) && prospergenics_2026_is_listings_page() ) {
+        remove_action( 'wp_head', 'rel_canonical' );
+        remove_action( 'wp_head', 'wp_shortlink_wp_head', 10 );
     }
-}, 2 );
+}, 1 );
 
 /** Organization + WebSite structured data for the homepage. */
 function prospergenics_2026_front_page_schema() {
@@ -140,8 +286,15 @@ function prospergenics_2026_front_page_schema() {
                 'name'         => 'ProsperGenics',
                 'url'          => $home,
                 'logo'         => get_template_directory_uri() . '/assets/logo.png',
-                'description'  => 'ProsperGenics is a community in Kenya and the Netherlands researching and practising value creation. We build, learn and measure through real projects: courses and certification, AI tools and services for organisations.',
+                'description'  => prospergenics_2026_org_description( 'long' ),
                 'areaServed'   => array( 'Kenya', 'Netherlands' ),
+                // Task 6529: Martien is the founder; the others are the founding team, so only he is a schema.org founder.
+                'founder'      => array(
+                    '@type'    => 'Person',
+                    'name'     => 'Martien de Jong',
+                    'url'      => $home . 'people/martien/',
+                    'jobTitle' => 'Founder',
+                ),
                 'contactPoint' => array(
                     '@type'       => 'ContactPoint',
                     'contactType' => 'customer service',
@@ -166,7 +319,7 @@ function prospergenics_2026_front_page_schema() {
 }
 
 add_action( 'wp_head', function () {
-    if ( is_front_page() ) {
+    if ( prospergenics_2026_is_homepage_request() ) {
         echo "\n" . '<script type="application/ld+json" class="prospergenics-2026-schema">' . wp_json_encode( prospergenics_2026_front_page_schema(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
     }
 }, 24 );

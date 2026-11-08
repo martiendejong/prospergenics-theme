@@ -15,8 +15,32 @@ they contribute - including people who are not on LinkedIn at all. CV facts
 (work, education) are present but secondary. Expertises can carry endorsements
 (shown only when real endorsement data exists - never invent endorsers).
 
-tags: "expert" puts a person on /experts/, "member" on /community/ and in the
-homepage slider. A person can be both; an external expert is just "expert".
+tags: "expert" puts a person on /experts/, "member" on /community/. A person can
+be both; an external expert is just "expert".
+"slider": True puts a person on the homepage "Meet the alchemists" slider; the
+cards in ../index.html are generated from it (write_slider, audit CON-10), so the
+slider can't drift from PROFILES (tests/test-2026-people-sync.php). Who is on it
+is the owner's call: today Sjoerd (expert only) is on it and Farid (member) is not.
+Keep the number of slider people a multiple of 3 (the build stops otherwise).
+"members": every person is on the /members/ list unless the profile says
+"members": False ("members are a subset of people", Martien 7 Nov, card #6517). Today all
+13 are on it: Sjoerd and Lou as supporting members, Farid as a community member.
+"img" must be a .webp portrait in ../assets/ (the build stops otherwise, card #6523).
+
+Also generated from PROFILES:
+  ../wp/inc/people.json  name/role/photo per slug, for WordPress (an /in/ account
+                         linked to a person through user meta _pg_people_slug
+                         links to /people/<slug>/ and borrows the photo and role),
+                         plus quote, expertises and the /members/ flag: the theme
+                         builds the /members/ list cards from it (cards #6516, #6517)
+  members-collection.json  the same people as records for the jengo-listings
+                         "members" collection (deploy_collections.py), so the
+                         listings API can be brought back in line (card #6516)
+  .htaccess              the security headers WordPress sends, for every page under /people/
+                         (Apache serves these files itself, card #6449; ../static_headers.py),
+                         and /people/ itself: a real 301 to the /members/ list (card #7226);
+                         ../experts/.htaccess and ../community/.htaccess get the same headers
+  index.html             the same as a meta refresh, the fallback where .htaccess is ignored (CON-15)
 
 Asset URLs are relative so the pages work in the static preview;
 deploy-wp-theme-vimexx.py rewrites them to the theme directory on upload.
@@ -25,6 +49,7 @@ import json, os, sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import site_chrome  # noqa: E402  shared header, mobile menu and footer
+import static_headers  # noqa: E402  the security headers for the static folders' .htaccess (#6449)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SITE = "https://test.prospergenics.com"
@@ -54,7 +79,7 @@ FALLBACK = "This part of the story is still being written."
 PROFILES = [
     {
         "slug": "martien", "name": "Martien de Jong", "role": "Software Developer, Founder",
-        "tags": ["expert", "member"],
+        "tags": ["expert", "member"], "slider": True,
         "img": "martien.webp", "pos": "45% 25%",
         "quote": "I'm building Jengo, our AI agent platform. It runs most of what we ship.",
         "story": "Martien has been building software professionally since 2006: hospital systems, government platforms, rail apps, SEO automation. Somewhere along the way the question shifted from \"what can I build\" to \"how is value actually created\". ProsperGenics is his answer in progress: a community spanning the Netherlands and Kenya where people create value for themselves and each other, with software as the lever. Today he builds Jengo, the AI agent platform that runs most of what the community ships.",
@@ -79,8 +104,9 @@ PROFILES = [
         ],
     },
     {
-        "slug": "simitia", "name": "Simitia Mpoe", "role": "Software Developer, Entrepreneur",
-        "tags": ["expert", "member"],
+        "slug": "simitia", "name": "Simitia Mpoe", "role": "Founding team, Software Developer, Entrepreneur",
+        "aka": "Sandra",
+        "tags": ["expert", "member"], "slider": True,
         "img": "sandra_profile-300x300.webp", "pos": "center 25%",
         "quote": "I design and build web products, and I'm growing my own business with everything I learn.",
         "story": "Simitia came to the community to build, and that is exactly what she does: web products, design work, her own ventures. Every project adds a skill, and every skill flows back into her own business. She is one of the clearest examples of the ProsperGenics loop: learn by building, build to create value, reinvest the value in yourself.",
@@ -94,7 +120,7 @@ PROFILES = [
             {"name": "Entrepreneurship"},
         ],
         "work": [
-            ("Software developer", "ProsperGenics", "Design and front-end work on the community's websites and products."),
+            ("Founding team & software developer", "ProsperGenics", "Design and front-end work on the community's websites and products."),
             ("Entrepreneur", "", "Building her own business alongside her development work."),
         ],
         "education": [
@@ -102,8 +128,8 @@ PROFILES = [
         ],
     },
     {
-        "slug": "diko", "name": "Diko Mohamed", "role": "Software Developer, Entrepreneur",
-        "tags": ["expert", "member"],
+        "slug": "diko", "name": "Diko Mohamed", "role": "Founding team, Software Developer, Entrepreneur",
+        "tags": ["expert", "member"], "slider": True,
         "img": "diko_profile-300x300.webp", "pos": "center 30%",
         "quote": "I turn opportunities into products. Right now that means integrations and new partnerships.",
         "story": "Diko's talent is seeing the opportunity before anyone else does, and then actually building it. Inside the community he develops software; outside it he opens doors: integrations, partnerships, contacts that connect ProsperGenics products to the wider tech world.",
@@ -117,15 +143,15 @@ PROFILES = [
             {"name": "Business development"},
         ],
         "work": [
-            ("Software developer", "ProsperGenics", "Product development, integrations and partner contacts."),
+            ("Founding team & software developer", "ProsperGenics", "Product development, integrations and partner contacts."),
         ],
         "education": [
             ("Hands-on developer training", "ProsperGenics", "Learning by building, on real projects with real users."),
         ],
     },
     {
-        "slug": "sjoerd", "name": "Sjoerd Schepman", "role": "Curator Perridon Holdings",
-        "tags": ["expert"],
+        "slug": "sjoerd", "name": "Sjoerd Schepman", "role": "Curator Perridon Holdings, Supporting member",
+        "tags": ["expert"], "slider": True,
         "img": "sjoerd-wide.webp", "pos": "50% 15%",
         "quote": "I curate the Perridon collection, researching the provenance and the stories behind every piece.",
         "story": "Sjoerd curates the Perridon art collection: researching where each work comes from, who held it, and what its story is. With the ProsperGenics team he explores how software can serve that work, from provenance research tooling to making a collection's knowledge accessible.",
@@ -146,7 +172,7 @@ PROFILES = [
     },
     {
         "slug": "faith", "name": "Faith Nkumun", "role": "Entrepreneur, Community member",
-        "tags": ["member"],
+        "tags": ["member"], "slider": True,
         "img": "faith-nkumun-300x300.webp", "pos": "center 20%",
         "quote": "I had a small store in Oloolaimutia. Here I learned the business skills to take it further.",
         "story": "Faith ran a small store in Oloolaimutia, Kenya. She joined the community to learn the business side of her business: bookkeeping, planning, trade. What she learned, she now applies to take her store further, and what she proves, she passes on to others around her.",
@@ -167,7 +193,7 @@ PROFILES = [
     },
     {
         "slug": "maxwell", "name": "Maxwell", "role": "Student, Community member",
-        "tags": ["member"],
+        "tags": ["member"], "slider": True,
         "img": "maxwell-300x300.webp", "pos": "center 20%",
         "quote": "I'm still studying, and I apply what I learn on real projects with real customers.",
         "story": "Maxwell is still studying, and that is precisely his strength: everything he learns in class gets tested the same week on real community projects with real customers. School gives him the theory; the community gives him the practice.",
@@ -185,11 +211,12 @@ PROFILES = [
         ],
     },
     {
-        "slug": "lessy", "name": "Lesiamon Mpoe", "role": "Co-founder, Trainer, Software Developer",
-        "tags": ["expert", "member"],
+        "slug": "lessy", "name": "Lesiamon Mpoe", "role": "Founding team, Trainer, Software Developer",
+        "aka": "Lessy", "pronouns": "he/him",  # confirmed by Lesiamon (8 Nov); also branch fix/lessy-profile-pronouns
+        "tags": ["expert", "member"], "slider": True,
         "img": "lessy_profile-300x300.webp", "pos": "center 25%",
         "quote": "I develop software and train new developers. Good software starts with understanding people.",
-        "story": "Lesiamon co-founded ProsperGenics and carries two of its pillars: he builds software, and he builds the people who build software. New developers in the community learn the craft from him, task by task. His conviction: good software starts with understanding people.",
+        "story": "Lesiamon is part of the ProsperGenics founding team and carries two of its pillars: he builds software, and he builds the people who build software. New developers in the community learn the craft from him, task by task. His conviction: good software starts with understanding people.",
         "contributions": [
             ("Developer training", "Trains the community's new developers, from first task to production work."),
             ("Websites & web applications", "Builds and maintains software across the community's projects."),
@@ -200,15 +227,15 @@ PROFILES = [
             {"name": "WordPress & websites"},
         ],
         "work": [
-            ("Co-founder, trainer & software developer", "ProsperGenics", "Websites and web applications across the community's projects, and training for new developers."),
+            ("Founding team, trainer & software developer", "ProsperGenics", "Websites and web applications across the community's projects, and training for new developers."),
         ],
         "education": [
             ("Hands-on developer training", "ProsperGenics", "Learning by building, on real projects with real users."),
         ],
     },
     {
-        "slug": "frank", "name": "Frank", "role": "Software Developer",
-        "tags": ["expert", "member"],
+        "slug": "frank", "name": "Frank", "role": "Founding team, Trainer, Software Developer",
+        "tags": ["expert", "member"], "slider": True,
         "img": "frank_profile-300x300.webp", "pos": "center 25%",
         "quote": "I build and ship features for our web platforms, with real responsibility from day one.",
         "story": "Frank is a Kenyan software developer who got real responsibility from day one, and took it. He builds and ships features for the community's web platforms: from first commit to live deployment, including this website.",
@@ -220,7 +247,7 @@ PROFILES = [
             {"name": "Shipping & deployment"},
         ],
         "work": [
-            ("Software developer", "ProsperGenics", "Feature development on the community's web platforms."),
+            ("Founding team, trainer & software developer", "ProsperGenics", "Feature development on the community's web platforms, and training for new developers."),
         ],
         "education": [
             ("Hands-on developer training", "ProsperGenics", "Learning by building, on real projects with real users."),
@@ -228,7 +255,7 @@ PROFILES = [
     },
     {
         "slug": "sophy", "name": "Sophy Nashipae de Jong", "role": "Community member",
-        "tags": ["member"],
+        "tags": ["member"], "slider": True,
         "img": "sofy-300x300.webp", "pos": "center 20%",
         "quote": "I'm learning Dutch with our own coach app. Learning works better when it feels personal.",
         "story": "Sophy bridges two worlds. She manages Nashipae Cultural Oasis, a cultural centre that preserves and shares Maasai culture: a place for learning, celebration and community. And she is learning Dutch with the community's own coach app, usually as the first user of whatever the team builds next.",
@@ -249,8 +276,8 @@ PROFILES = [
         ],
     },
     {
-        "slug": "mayiani", "name": "Mayiani Nanana Mpoe", "role": "Community member",
-        "tags": ["member"],
+        "slug": "mayiani", "name": "Mayiani Nanana Mpoe", "role": "Active community member",
+        "tags": ["member"], "slider": True,
         "img": None, "initial": "M",
         "quote": "I'm learning digital skills step by step and putting them to work in daily life.",
         "story": "Mayiani is learning digital skills step by step and puts each one to work in daily life. No leap, just steady ground gained: the quiet version of value creation the community is built on.",
@@ -268,8 +295,8 @@ PROFILES = [
         ],
     },
     {
-        "slug": "lou", "name": "Lou Marten", "role": "Marketing, Community member",
-        "tags": ["expert", "member"],
+        "slug": "lou", "name": "Lou Marten", "role": "Marketing, Supporting member",
+        "tags": ["expert", "member"], "slider": True,
         "img": None, "initial": "L",
         "quote": "I work on our brand and marketing, finding the right words for what we build.",
         "story": "Lou works on the ProsperGenics brand: the strategy, the story, and the words that make what the community builds understandable to the outside world. Builders make the value; Lou makes it visible.",
@@ -288,7 +315,7 @@ PROFILES = [
     },
     {
         "slug": "natumi", "name": "Natumi", "role": "Livestock keeper, Community member",
-        "tags": ["member"],
+        "tags": ["member"], "slider": True,
         "img": None, "initial": "N",
         "quote": "People invested in me. I grew my herd and the results now pay the school fees.",
         "story": "Community members invested in Natumi. She used it to grow her herd, runs it as a working business, and the results now pay the school fees. No app, no code: her story is value creation in its most direct form, and proof of what the community exists to do.",
@@ -346,7 +373,7 @@ STYLE = """  :root {
   h1,h2,h3 { font-family:'Gabarito',sans-serif; }
   h1,h2,h3,p { text-shadow:0px 2px 0 rgba(70,70,70,.05),2px 2px 0 rgba(70,70,70,.05),0px -1px 0 rgba(70,70,70,.05),2px -1px 0 rgba(70,70,70,.05); }
   .wrap { max-width:1080px; margin:0 auto; padding:0 var(--gutter); }
-  :focus-visible { outline:3px solid var(--green-500); outline-offset:3px; border-radius:8px; }
+  :focus-visible { outline:3px solid var(--focus-ring, #1a7a46); outline-offset:3px; border-radius:8px; }
   .eyebrow { display:inline-flex; align-items:center; gap:10px; font-family:'Sora',sans-serif; font-weight:600; font-size:13px; letter-spacing:.08em; text-transform:uppercase; color:var(--green-700); padding:8px 14px 8px 10px; border-radius:999px; background:var(--green-100); border:1px solid rgba(34,166,90,.2); }
   .eyebrow .dot { width:7px; height:7px; border-radius:50%; background:var(--green-500); box-shadow:0 0 0 4px rgba(52,199,89,.22); }
   .chips { display:flex; flex-wrap:wrap; gap:10px; }
@@ -361,7 +388,7 @@ PROFILE_PAGE = """<!DOCTYPE html>
 <title>{name} · ProsperGenics</title>
 <meta name="description" content="{name}, {role}. Story, value contributions and expertise at ProsperGenics." />
 {head_meta}
-<link rel="icon" href="../../assets/logo.png" />
+<link rel="icon" href="../../assets/logo.webp" />
 <link rel="stylesheet" href="../../assets/fonts/fonts.css" />
 <script type="application/ld+json">
 {jsonld}
@@ -373,19 +400,17 @@ PROFILE_PAGE = """<!DOCTYPE html>
   .p-hero .wrap {{ position:relative; z-index:2; display:grid; grid-template-columns:300px minmax(0,1fr); gap:clamp(28px,5vw,64px); align-items:center; }}
   .p-portrait {{ position:relative; width:300px; height:330px; overflow:hidden; clip-path:polygon(26px 0,100% 0,calc(100% - 26px) 100%,0 100%); background:linear-gradient(165deg,var(--green-100),var(--paper-2) 70%); }}
   .p-portrait img {{ width:100%; height:100%; object-fit:cover; }}
-  .p-portrait.p-initial {{ display:grid; place-items:center; font-family:'Sora',sans-serif; font-weight:800; font-size:110px; color:#fff; background:linear-gradient(150deg,var(--green-600),var(--green-300)); }}
   h1 {{ font-weight:800; font-size:clamp(36px,5.4vw,64px); line-height:1; letter-spacing:-.03em; }}
   .p-role {{ margin-top:10px; font-family:'Sora',sans-serif; font-weight:600; font-size:clamp(15px,1.8vw,19px); color:var(--green-700); }}
   .p-quote {{ margin-top:22px; max-width:46ch; font-family:'Sora',sans-serif; font-weight:500; font-size:clamp(17px,2vw,22px); line-height:1.45; color:var(--green-900); border-left:3px solid var(--green-500); padding-left:16px; }}
   @media (max-width:760px) {{
     .p-hero .wrap {{ grid-template-columns:1fr; }}
     .p-portrait {{ width:232px; height:252px; clip-path:polygon(20px 0,100% 0,calc(100% - 20px) 100%,0 100%); }}
-    .p-portrait.p-initial {{ font-size:84px; }}
   }}
   .pv {{ padding:clamp(20px,3vw,36px) 0 0; }}
   .pv-block {{ margin-top:clamp(34px,4.5vw,56px); }}
   .pv-block h2 {{ font-weight:800; font-size:clamp(22px,2.8vw,32px); letter-spacing:-.02em; color:var(--ink); margin-bottom:18px; }}
-  .pv-block h2 .accent {{ color:var(--green-600); }}
+  .pv-block h2 .accent {{ color:var(--green-700); }}
   .prose p {{ font-size:clamp(16px,1.5vw,18.5px); line-height:1.68; color:var(--body); max-width:62ch; }}
   .cards {{ list-style:none; display:grid; gap:14px; }}
   .card {{ background:#fff; border:1px solid var(--line); border-radius:18px; padding:18px 22px; max-width:720px; box-shadow:0 14px 34px -26px rgba(11,32,22,.35); }}
@@ -405,7 +430,7 @@ PROFILE_PAGE = """<!DOCTYPE html>
 
   {site_header}
 
-  <main>
+  <main id="main">
     <section class="p-hero">
       <div class="wrap">
         <div class="p-portrait{initial_class}">{portrait}</div>
@@ -473,7 +498,7 @@ LIST_PAGE = """<!DOCTYPE html>
 <title>{title} · ProsperGenics</title>
 <meta name="description" content="{meta_desc}" />
 {head_meta}
-<link rel="icon" href="../assets/logo.png" />
+<link rel="icon" href="../assets/logo.webp" />
 <link rel="stylesheet" href="../assets/fonts/fonts.css" />
 <script type="application/ld+json">
 {jsonld}
@@ -483,15 +508,19 @@ LIST_PAGE = """<!DOCTYPE html>
   .l-hero {{ position:relative; overflow:hidden; padding:clamp(36px,6vw,72px) 0 clamp(10px,2vw,24px); }}
   .l-hero::before {{ content:""; position:absolute; width:620px; height:620px; right:-240px; top:-80px; border-radius:50%; background:radial-gradient(circle,var(--green-100),transparent 65%); opacity:.7; pointer-events:none; }}
   .l-hero .wrap {{ position:relative; z-index:2; }}
+  /* listing pages: wider than profile pages, so the cards fill the screen in three columns on desktop
+     (two on tablets, one on phones) instead of two wide ones with empty sides (Martien, 31 Oct) */
+  .l-hero .wrap, .l-list .wrap {{ max-width:1200px; }}
   h1 {{ font-weight:800; font-size:clamp(38px,6vw,76px); line-height:1; letter-spacing:-.03em; margin-top:22px; max-width:20ch; }}
-  h1 .accent {{ background:linear-gradient(100deg,var(--green-700) 0%,var(--green-500) 55%,var(--green-300) 100%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }}
+  h1 .accent {{ background:linear-gradient(100deg,var(--green-700) 0%,#1f9a55 100%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }}
   .lede {{ margin-top:22px; max-width:56ch; font-size:clamp(16.5px,1.8vw,19.5px); line-height:1.6; color:var(--body); }}
-  .grid {{ display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:clamp(18px,2.5vw,28px); padding:clamp(34px,5vw,56px) 0 0; }}
+  .l-all {{ margin-top:14px; font-size:15.5px; }}
+  .l-all a {{ color:var(--green-700); font-weight:600; text-decoration:underline; text-underline-offset:3px; }}
+  .grid {{ display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:clamp(18px,2.5vw,28px); padding:clamp(34px,5vw,56px) 0 0; }}
   .pcard {{ display:block; text-decoration:none; background:#fff; border:1px solid var(--line); border-radius:22px; overflow:hidden; box-shadow:0 18px 44px -30px rgba(11,32,22,.4); transition:transform .25s var(--ease), box-shadow .25s var(--ease); }}
   .pcard:hover {{ transform:translateY(-4px); box-shadow:0 26px 54px -30px rgba(11,32,22,.5); }}
   .pc-media {{ position:relative; height:240px; overflow:hidden; background:linear-gradient(165deg,var(--green-100),var(--paper-2) 70%); }}
   .pc-media img {{ width:100%; height:100%; object-fit:cover; }}
-  .pc-media.pc-initial {{ display:grid; place-items:center; font-family:'Sora',sans-serif; font-weight:800; font-size:84px; color:#fff; background:linear-gradient(150deg,var(--green-600),var(--green-300)); }}
   .pc-body {{ padding:18px 20px 22px; }}
   .pc-body h2 {{ font-weight:800; font-size:20px; letter-spacing:-.01em; color:var(--ink); }}
   .pc-role {{ font-size:13.5px; color:var(--green-700); font-weight:600; margin:4px 0 10px; font-family:'Sora',sans-serif; }}
@@ -505,15 +534,16 @@ LIST_PAGE = """<!DOCTYPE html>
 
   {site_header}
 
-  <main>
+  <main id="main">
     <section class="l-hero">
       <div class="wrap">
         <p class="eyebrow"><span class="dot"></span>{eyebrow}</p>
         <h1>{heading}</h1>
         <p class="lede">{lede}</p>
+        <p class="l-all">{all_link}</p>
       </div>
     </section>
-    <section>
+    <section class="l-list">
       <div class="wrap">
         <div class="grid">
 {cards}
@@ -571,13 +601,14 @@ def build_profiles():
             portrait = f"<img src=\"../../assets/{m['img']}\" alt=\"{m['name']}\" style=\"object-position: {m['pos']}\" />"
             initial_class = ""
         else:
-            portrait = m["initial"]
-            initial_class = " p-initial"
+            # no photo yet: the branded pattern, not a big initial (card #6538); never a made-up photo
+            portrait = site_chrome.pattern(m["slug"])
+            initial_class = " p-nophoto"
         eyebrow = "ProsperGenics expert" if "expert" in m["tags"] else "ProsperGenics community"
         url = f"{SITE}/people/{m['slug']}/"
         image = f"{SITE}/wp-content/themes/prospergenics-2026/assets/{m['img']}" if m.get("img") else f"{SITE}/wp-content/themes/prospergenics-2026/assets/og-image.jpg"
         html = PROFILE_PAGE.format(
-            site_header=site_chrome.header("../../"), site_footer=site_chrome.footer("../../"),
+            site_header=site_chrome.header("../../", current=site_chrome.current_label("/people/")), site_footer=site_chrome.footer("../../"),
             chrome_css=site_chrome.CSS, chrome_js=site_chrome.JS,
             head_meta=head_meta(url, f"{m['name']} · ProsperGenics", f"{m['name']}, {m['role']}. Story, value contributions and expertise at ProsperGenics.", image),
             style=STYLE,
@@ -599,7 +630,7 @@ def list_card(m):
     if m.get("img"):
         media = f"<div class=\"pc-media\"><img src=\"../assets/{m['img']}\" alt=\"{m['name']}\" style=\"object-position: {m['pos']}\" /></div>"
     else:
-        media = f"<div class=\"pc-media pc-initial\">{m['initial']}</div>"
+        media = f"<div class=\"pc-media pc-nophoto\">{site_chrome.pattern(m['slug'])}</div>"
     chips = "\n".join(f"              <span class=\"chip\">{e['name']}</span>" for e in m["expertises"][:3])
     return f"""          <a class="pcard" href="../people/{m['slug']}/">
             {media}
@@ -614,7 +645,7 @@ def list_card(m):
           </a>"""
 
 
-def build_list(folder, tag, title, eyebrow, heading, lede, meta_desc):
+def build_list(folder, tag, title, eyebrow, heading, lede, meta_desc, all_text):
     people = [m for m in PROFILES if tag in m["tags"]]
     jsonld = {
         "@context": "https://schema.org",
@@ -627,11 +658,12 @@ def build_list(folder, tag, title, eyebrow, heading, lede, meta_desc):
         ],
     }
     html = LIST_PAGE.format(
-        site_header=site_chrome.header("../"), site_footer=site_chrome.footer("../"),
+        site_header=site_chrome.header("../", current=site_chrome.current_label(f"/{folder}/")), site_footer=site_chrome.footer("../"),
         chrome_css=site_chrome.CSS, chrome_js=site_chrome.JS,
         head_meta=head_meta(f"{SITE}/{folder}/", f"{title} · ProsperGenics", meta_desc, f"{SITE}/wp-content/themes/prospergenics-2026/assets/og-image.jpg"),
         style=STYLE, title=title, meta_desc=meta_desc, eyebrow=eyebrow,
         heading=heading, lede=lede,
+        all_link=f'{all_text} <a href="..{PEOPLE_LIST}">All members &rarr;</a>',
         jsonld=json.dumps(jsonld, indent=2),
         cards="\n".join(list_card(m) for m in people),
     )
@@ -639,23 +671,249 @@ def build_list(folder, tag, title, eyebrow, heading, lede, meta_desc):
     os.makedirs(out_dir, exist_ok=True)
     with open(os.path.join(out_dir, "index.html"), "w", encoding="utf-8") as f:
         f.write(html)
+    # Apache serves this folder itself: the security headers WordPress would send (card #6449)
+    with open(os.path.join(out_dir, ".htaccess"), "w", encoding="utf-8", newline="\n") as f:
+        f.write(static_headers.htaccess(folder))
     return len(people)
 
 
+# ───────────── homepage slider, /people/ redirect, people.json (audit CON-10, CON-15, CON-11) ─────────────
+
+INDEX = os.path.normpath(os.path.join(HERE, "..", "index.html"))
+PEOPLE_JSON = os.path.normpath(os.path.join(HERE, "..", "wp", "inc", "people.json"))
+SLIDER_START, SLIDER_END = "<!-- people:slider -->", "<!-- /people:slider -->"
+# Where /people/ (no slug) sends visitors, and where /experts/ and /community/ link back to: the
+# /members/ list, whose cards the theme builds from people.json (inc/members-directory.php, cards
+# #6516, #6517), so every list and card comes from PROFILES.
+PEOPLE_LIST = "/members/"
+
+
+def _text(t):
+    return t.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def slider_people():
+    people = [m for m in PROFILES if m.get("slider")]
+    if len(people) % 3:
+        sys.exit(f"homepage slider: {len(people)} people, must be a multiple of 3 (the bob animation cycles per 3 cards)")
+    return people
+
+
+def _webp_size(name):
+    """(width, height) read from a WebP file's header, or None; plain Python so CI needs no image library."""
+    try:
+        with open(os.path.join(HERE, "..", "assets", name), "rb") as f:
+            head = f.read(30)
+    except OSError:
+        return None
+    if head[:4] != b"RIFF" or head[8:12] != b"WEBP":
+        return None
+    kind = head[12:16]
+    if kind == b"VP8 ":
+        return int.from_bytes(head[26:28], "little") & 0x3FFF, int.from_bytes(head[28:30], "little") & 0x3FFF
+    if kind == b"VP8L":
+        b = int.from_bytes(head[21:25], "little")
+        return (b & 0x3FFF) + 1, ((b >> 14) & 0x3FFF) + 1
+    if kind == b"VP8X":
+        return int.from_bytes(head[24:27], "little") + 1, int.from_bytes(head[27:30], "little") + 1
+    return None
+
+
+def slider_card(m, duplicate):
+    """One "Meet the alchemists" card; the duplicate set (for the seamless loop) is hidden from AT."""
+    tab = ' tabindex="-1"' if duplicate else ""
+    hidden = "" if duplicate else ' aria-hidden="true"'
+    if m.get("img"):
+        alt = "" if duplicate else _text(m["name"]).replace('"', "&quot;")
+        size = _webp_size(m["img"])
+        dims = f' width="{size[0]}" height="{size[1]}"' if size else ""
+        portrait = f'<span class="fc-portrait"><img loading="lazy" decoding="async"{dims} src="assets/{m["img"]}" alt="{alt}" style="object-position: {m["pos"]}" /></span>'
+    else:
+        # no photo yet: the branded pattern, not a big initial (card #6538)
+        portrait = f'<span class="fc-portrait fc-nophoto">{site_chrome.pattern(m["slug"])}</span>'
+    return (f'          <a class="flow-card" href="people/{m["slug"]}/"{tab}>\n'
+            f'            <span class="fc-ring"{hidden}></span>\n'
+            f'            {portrait}\n'
+            f'            <div class="fc-name">{_text(m["name"])}</div>\n'
+            f'            <div class="fc-role">{_text(m["role"])}</div>\n'
+            f'            <p class="fc-quote">"{_text(m["quote"])}"</p>\n'
+            f'          </a>')
+
+
+def slider_html():
+    people = slider_people()
+    sets = []
+    for dup in (False, True):
+        attr = ' aria-hidden="true"' if dup else ""
+        sets.append(f'        <div class="flow-set"{attr}>\n' + "\n".join(slider_card(m, dup) for m in people) + "\n        </div>")
+    return "\n".join(sets)
+
+
+def write_slider():
+    with open(INDEX, encoding="utf-8") as f:
+        html = f.read()
+    a, b = html.find(SLIDER_START), html.find(SLIDER_END)
+    if a < 0 or b < a:
+        sys.exit(f"{SLIDER_START} ... {SLIDER_END} not found in index.html")
+    html = html[:a + len(SLIDER_START)] + "\n" + slider_html() + "\n        " + html[b:]
+    with open(INDEX, "w", encoding="utf-8") as f:
+        f.write(html)
+    return len(slider_people())
+
+
+def on_members(m):
+    """Whether a person is on the /members/ list (card #6517): yes unless the profile says "members": False."""
+    return m.get("members", True) is not False
+
+
+def check_photos():
+    """Every portrait is a .webp file in ../assets/ (card #6523): the old .png/.jpg copies are gone
+    from the theme, so a name that is not .webp, or a file that is missing, would be a broken image."""
+    bad = []
+    for m in PROFILES:
+        img = m.get("img")
+        if not img:
+            if not m.get("initial"):
+                bad.append(f"{m['slug']}: no img and no initial")
+            continue
+        if not img.endswith(".webp"):
+            bad.append(f"{m['slug']}: {img} is not a .webp")
+        elif _webp_size(img) is None:
+            bad.append(f"{m['slug']}: assets/{img} is missing or not a WebP file")
+    if bad:
+        sys.exit("portraits: " + "; ".join(bad))
+
+
+MEMBERS_COLLECTION = os.path.join(HERE, "members-collection.json")
+
+
+def members_collection():
+    """The /members/ people as jengo-listings "members" records, in the shape the listings API
+    serves (GET /collections/members/slug/<slug>): slug = the /people/ slug, photo = the .webp."""
+    from html import escape
+    items = []
+    for m in PROFILES:
+        if not on_members(m):
+            continue
+        topics = [e["name"] for e in m["expertises"]]
+        items.append({
+            "slug": m["slug"],
+            "title": m["name"],
+            "company": "ProsperGenics",
+            "primary_skills": topics[0] if topics else "",
+            "description_seo": f"<p>{escape(m['story'], quote=False)}</p>",
+            "fields": {
+                "role": m["role"],
+                "quote": m["quote"],
+                "photo": m.get("img") or "",
+                "photo_pos": m.get("pos") or "center",
+                "initial": m.get("initial") or m["name"][:1],
+                "topics": topics,
+                "profile_url": f"/people/{m['slug']}/",
+            },
+        })
+    return items
+
+
+def write_members_collection():
+    data = {
+        "_comment": "Generated by design/new-hero-2026-10/people/build-profiles.py from PROFILES; do not edit. "
+                    "The jengo-listings 'members' collection: deploy it with jengo-listings deploy_collections.py "
+                    "(replace the whole collection, so records no longer in PROFILES are removed), then run "
+                    "python3 tests/smoke/check-listings-members.py (card #6516).",
+        "collection": "members",
+        "items": members_collection(),
+    }
+    with open(MEMBERS_COLLECTION, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+        f.write("\n")
+    return len(data["items"])
+
+
+def write_people_json():
+    data = {
+        "_comment": "Generated by design/new-hero-2026-10/people/build-profiles.py from PROFILES; do not edit. "
+                    "Read by inc/platform-profiles.php: a WordPress user with user meta _pg_people_slug links to /people/<slug>/ "
+                    "and borrows photo and role while their /in/ profile is empty (audit CON-11). "
+                    "inc/members-directory.php builds the /members/ list cards from it, in this order (cards #6516, #6517).",
+        "people": {m["slug"]: {
+            "name": m["name"], "role": m["role"], "img": m.get("img") or "", "pos": m.get("pos") or "center",
+            "initial": m.get("initial") or m["name"][:1], "quote": m["quote"],
+            "expertises": [e["name"] for e in m["expertises"]], "members": on_members(m),
+            **{k: m[k] for k in ("aka", "pronouns") if m.get(k)},  # the homepage chat's context (inc/coach-context.php)
+        } for m in PROFILES},
+    }
+    with open(PEOPLE_JSON, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+        f.write("\n")
+
+
+PEOPLE_INDEX = """<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8" />
+<meta name="robots" content="noindex" />
+<meta http-equiv="refresh" content="0; url={target}" />
+<link rel="canonical" href="{canonical}" />
+<title>ProsperGenics people</title>
+<script>location.replace({target_js});</script>
+</head>
+<body><p>The people of ProsperGenics are on <a href="{target}">{target}</a>.</p></body></html>
+"""
+
+
+# /people/ is a real folder on the server, so Apache answers it before WordPress ever sees the
+# request, and served index.html (a meta refresh, answered 200). This makes it a real 301 (card
+# #7226); index.html stays as the fallback for a server that ignores .htaccess. Only the bare path
+# (and /people/index.html) matches: the profiles under /people/<slug>/ are served as before.
+PEOPLE_HTACCESS = """# /people/ itself: a real 301 to the members list (card #7226). Generated by
+# design/new-hero-2026-10/people/build-profiles.py and uploaded by deploy-wp-theme-vimexx.py;
+# the profiles under /people/<slug>/ are not affected. index.html (a meta refresh) is the fallback.
+<IfModule mod_alias.c>
+RedirectMatch 301 ^/people(/|/index\\.html)?$ {target}
+</IfModule>
+"""
+
+
+def write_people_index():
+    """/people/ itself (the folder had no index, so the server answered 403): send it to the list,
+    with a 301 from .htaccess and a meta refresh in index.html as the fallback."""
+    html = PEOPLE_INDEX.format(target=PEOPLE_LIST, canonical=SITE + PEOPLE_LIST, target_js=json.dumps(PEOPLE_LIST))
+    with open(os.path.join(HERE, "index.html"), "w", encoding="utf-8") as f:
+        f.write(html)
+    # the security headers for every page under /people/ (card #6449), then the 301
+    with open(os.path.join(HERE, ".htaccess"), "w", encoding="utf-8", newline="\n") as f:
+        f.write(static_headers.htaccess("people", PEOPLE_HTACCESS.format(target=PEOPLE_LIST)))
+
+
+def dump():
+    """PROFILES as JSON, for tests/test-2026-people-sync.php."""
+    keys = ("slug", "name", "role", "quote", "img", "pos", "initial", "tags", "slider")
+    print(json.dumps([dict({k: m.get(k) for k in keys}, members=on_members(m), expertises=[e["name"] for e in m["expertises"]]) for m in PROFILES], ensure_ascii=False))
+
+
 def build():
+    check_photos()
     build_profiles()
     n_exp = build_list(
         "experts", "expert", "ProsperGenics experts", "Our experts",
         'Experts who <span class="accent">build value.</span>',
         "From AI agent platforms to provenance research: the experts in and around the ProsperGenics community, each with their own story and the value they contribute.",
-        "The experts in and around the ProsperGenics community: AI, software, design, marketing, art and more.")
+        "The experts in and around the ProsperGenics community: AI, software, design, marketing, art and more.",
+        "Our experts are some of our members.")
     n_com = build_list(
         "community", "member", "ProsperGenics community", "Community stories",
         'Stories of <span class="accent">value creation.</span>',
         "ProsperGenics is a community of people creating value: some write software, some run a store, some grow a herd. These are their stories and contributions.",
-        "Stories and value contributions of the ProsperGenics community members.")
-    print(f"built {len(PROFILES)} profiles, {n_exp} experts, {n_com} community members")
+        "Stories and value contributions of the ProsperGenics community members.",
+        "Founders, supporting members and experts are on the members list too.")
+    n_slider = write_slider()
+    write_people_json()
+    n_mem = write_members_collection()
+    write_people_index()
+    print(f"built {len(PROFILES)} profiles, {n_mem} on /members/, {n_exp} experts, {n_com} community members, {n_slider} slider cards")
 
 
 if __name__ == "__main__":
-    build()
+    if "--dump" in sys.argv:
+        dump()
+    else:
+        build()
