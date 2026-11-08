@@ -78,8 +78,9 @@ members/natumi               /people/natumi/
 members/farid                /people/farid/
 members/farid-harrak         /people/farid/
 
-# The old team page lists outdated names, roles and photos
-our-team                     /community/
+# The old team page (page 181) lists outdated names, roles and photos ("Finehas Mpoe", "Diko
+# Mohamend"): the members list is the one people list now (cards #6520, #6517)
+our-team                     /members/
 
 # Production-only profiles with no /people/ page: Sonia, Timothy, Toperian (card #6521).
 # DECISION PENDING (owners): give them a profile in build-profiles.py PROFILES (then point these
