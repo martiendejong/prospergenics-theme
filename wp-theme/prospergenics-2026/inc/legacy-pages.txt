@@ -26,6 +26,6 @@ trainings            /courses/    # page 190 "Trainings & Tutorials", empty
 knowledge-base       /articles/   # page 173 "Knowledge Base", empty
 kennisbank           /articles/   # page 188 "Kennisbank", only a shortcode of a plugin that is not installed
 
-# Old contact page with the community sign-up form (#6488 step 2). /join/ is the theme's join
-# route: the registration form while it is open, else the contact form ("Joining the community").
-join-our-community   /join/       # page 180 "Contact", 30 words (a form that needs a missing plugin)
+# Old contact page with the community sign-up form (#6488 step 2). /join/ itself 302s to
+# /contact/, so pointing here directly avoids a chain.
+join-our-community   /contact/    # page 180 "Contact", 30 words (a form that needs a missing plugin)

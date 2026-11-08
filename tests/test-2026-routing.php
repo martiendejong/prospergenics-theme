@@ -166,7 +166,7 @@ $legacy_cases = array(
 	'/trainings/'          => '/courses/',
 	'/knowledge-base/'     => '/articles/',
 	'/kennisbank/'         => '/articles/',
-	'/join-our-community/' => '/join/',
+	'/join-our-community/' => '/contact/',
 	'/our-team/'           => '/members/',
 	'/frank-2/'            => '/people/frank/',
 	'/lessy-2/'            => '/people/lessy/',
@@ -186,7 +186,7 @@ ok( false !== strpos( $module, 'prospergenics_2026_legacy_page_rules() );' ), 't
 // WordPress' canonical redirect / 404 guess landing on a redirected page.
 $sets = array( $person_rules, $legacy_rules );
 ok( 'https://prospergenics.com/' === prospergenics_2026_canonical_redirect_target( 'https://prospergenics.com/home-legacy/', 'https://prospergenics.com/home', $sets ), 'a guess that lands on a legacy page goes to its target in one hop' );
-ok( false === prospergenics_2026_canonical_redirect_target( 'https://prospergenics.com/join-our-community/', 'https://prospergenics.com/join/', $sets ), 'a guess that would come back to the asked URL (/join/) is dropped: no loop' );
+ok( false === prospergenics_2026_canonical_redirect_target( 'https://prospergenics.com/home-legacy/', 'https://prospergenics.com/', $sets ), 'a guess that would come back to the asked URL (/) is dropped: no loop' );
 ok( 'https://prospergenics.com/about/' === prospergenics_2026_canonical_redirect_target( 'https://prospergenics.com/about/', 'https://prospergenics.com/about', $sets ), 'an ordinary canonical redirect is left alone' );
 ok( false === prospergenics_2026_canonical_redirect_target( false, 'https://prospergenics.com/x/', $sets ), 'no redirect stays no redirect' );
 ok( false !== strpos( $module, "add_filter( 'redirect_canonical'," ), 'the guard is hooked into redirect_canonical' );
