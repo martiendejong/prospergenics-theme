@@ -1,0 +1,38 @@
+{
+  "tool": "jengo",
+  "title": "Task Outcomes: a month of Jengo's agent runs",
+  "source": "Real screenshots of Jengo",
+  "steps": [
+    {
+      "image": "step-1.webp",
+      "width": 1000, "height": 910,
+      "alt": "Jengo's Task Outcomes dashboard: 30-day totals (4,239 succeeded, 680 rescheduled, 86% handled), a bar chart of agent runs per day from 10 August to 9 September, and a row of date buttons.",
+      "caption": "Jengo's Task Outcomes page: in the last 30 days, 4,239 agent runs succeeded and 680 were rescheduled.",
+      "action": "look"
+    },
+    {
+      "image": "step-1.webp",
+      "width": 1000, "height": 910,
+      "alt": "Jengo's Task Outcomes dashboard: 30-day totals (4,239 succeeded, 680 rescheduled, 86% handled), a bar chart of agent runs per day from 10 August to 9 September, and a row of date buttons.",
+      "caption": "The 7d, 30d and 90d buttons choose the period shown; 30 days is selected.",
+      "cursor": { "x": 816, "y": 59 },
+      "action": "click"
+    },
+    {
+      "image": "step-1.webp",
+      "width": 1000, "height": 910,
+      "alt": "Jengo's Task Outcomes dashboard: 30-day totals (4,239 succeeded, 680 rescheduled, 86% handled), a bar chart of agent runs per day from 10 August to 9 September, and a row of date buttons.",
+      "caption": "One bar per day. On 30 August, 643 runs succeeded and 71 were rescheduled: 714 in total.",
+      "cursor": { "x": 660, "y": 560 },
+      "action": "click"
+    },
+    {
+      "image": "step-1.webp",
+      "width": 1000, "height": 910,
+      "alt": "Jengo's Task Outcomes dashboard: 30-day totals (4,239 succeeded, 680 rescheduled, 86% handled), a bar chart of agent runs per day from 10 August to 9 September, and a row of date buttons.",
+      "caption": "A bar or a date below the chart opens that day's breakdown by project; 30 August is selected here.",
+      "cursor": { "x": 499, "y": 860 },
+      "action": "click"
+    }
+  ]
+}
