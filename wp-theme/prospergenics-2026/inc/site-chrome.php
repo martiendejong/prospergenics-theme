@@ -506,7 +506,7 @@ function prospergenics_2026_listings_breadcrumb( $html ) {
 
     // (the plugin may put a comment such as <!-- HERO BAND --> in between)
     if ( preg_match( '#^((?:<!--(?:(?!-->).)*-->\s*)*<(header|div) class="(dir|course|learn)-hero)(">\s*<div class="\3-hero-inner">)(\s*)#s', $after, $h ) ) {
-        $nav  = '<nav class="pg-breadcrumb pg-crumbs pg-crumbs--on-hero" aria-label="Breadcrumb">' . $inner . '</nav>' . $h[5];
+        $nav  = '<nav class="pg-breadcrumb pg-crumbs pg-crumbs--on-hero" aria-label="Breadcrumb">' . ( 'learn' === $h[3] ? prospergenics_2026_listings_lesson_crumb( $inner ) : $inner ) . '</nav>' . $h[5];
         $rest = substr( $after, strlen( $h[0] ) );
         // The eyebrow right under it, when it only repeats the section ("Tools" in Home › Tools › …).
         $crumbs = preg_match_all( '#<a [^>]*>(.*?)</a>#s', $inner, $links ) ? $links[1] : array();
@@ -519,6 +519,15 @@ function prospergenics_2026_listings_breadcrumb( $html ) {
 
     $nav = '<nav class="pg-breadcrumb pg-crumbs' . ( 0 === strpos( $after, '<header class="pg-header">' ) ? ' pg-crumbs--light' : '' ) . '" aria-label="Breadcrumb">' . $inner . '</nav>' . "\n\n";
     return substr( $html, 0, $at ) . $nav . $after;
+}
+
+/**
+ * The last breadcrumb item on a course's lesson pages (/courses/<slug>/learn/, card #7236): the
+ * plugin calls it "Course", which is the page before; these are the lessons (pure).
+ */
+function prospergenics_2026_listings_lesson_crumb( $inner ) {
+    $out = preg_replace( '#(<span aria-current="page">)\s*Course\s*(</span>\s*)$#', '$1Lessons$2', (string) $inner, 1 );
+    return null === $out ? $inner : $out;
 }
 
 /**
