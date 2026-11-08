@@ -84,6 +84,10 @@ expect_page /articles/
 expect_page /people/lessy/
 expect_page /people/martien/
 expect_page /experts/
+# The members list is built from PROFILES (cards #6516, #6517): Farid's card links /people/, the
+# plugin's placeholder quote is gone
+expect_page /members/ '/people/farid/' '/people/lessy/'
+if grep -qF 'Every task I pick up teaches me something' "$BODY"; then fail "/members/ still shows the placeholder quote"; fi
 
 # Members only: logged out, /profile/ sends you to the login page
 expect_redirect /profile/ 302 'wp-login\.php'

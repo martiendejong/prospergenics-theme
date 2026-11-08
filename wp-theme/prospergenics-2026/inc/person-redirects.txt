@@ -7,6 +7,9 @@
 # run on init, before plugins render and before WordPress guesses a page for a 404 (CON-4).
 #
 # Same format as redirects.txt:  <old path>  <new path>
+# Every /people/ slug also has a members/<slug> rule, so /members/<slug>/ never shows the plugin's
+# old copy whichever slug is typed (card #6517); tests/test-2026-routing.php checks it.
+#
 # Every person URL production (prospergenics.com) has in its sitemaps (team_member-sitemap.xml,
 # page-sitemap.xml, author-sitemap.xml, fetched 8 Nov 2026) is listed in
 # tests/fixtures/production-person-urls.txt; tests/test-2026-routing.php checks that each one
@@ -14,6 +17,7 @@
 
 # Martien de Jong
 members/martien-de-jong      /people/martien/
+members/martien              /people/martien/
 team_member/martien-de-jong  /people/martien/
 people/martien-de-jong       /people/martien/
 martien                      /people/martien/
@@ -22,6 +26,7 @@ author/martien               /people/martien/
 
 # Simitia Mpoe (Sandra on the old site)
 members/simitia-mpoe         /people/simitia/
+members/simitia              /people/simitia/
 members/sandra               /people/simitia/
 team_member/sandra           /people/simitia/
 people/sandra                /people/simitia/
@@ -38,10 +43,12 @@ author/diko                  /people/diko/
 
 # Sjoerd Schepman
 members/sjoerd-schepman      /people/sjoerd/
+members/sjoerd               /people/sjoerd/
 team_member/sjoerd-schepman  /people/sjoerd/
 
 # Faith Nkumun
 members/faith-nkumun         /people/faith/
+members/faith                /people/faith/
 team_member/faith-nkumun     /people/faith/
 
 # Maxwell
@@ -63,13 +70,16 @@ author/frank                 /people/frank/
 
 # Sophy Nashipae de Jong
 members/sophy-nashipae-de-jong  /people/sophy/
+members/sophy                /people/sophy/
 members/sofy                 /people/sophy/
 
 # Mayiani Nanana Mpoe
 members/mayiani-nanana-mpoe  /people/mayiani/
+members/mayiani              /people/mayiani/
 
 # Lou Marten
 members/lou-marten           /people/lou/
+members/lou                  /people/lou/
 
 # Natumi
 members/natumi               /people/natumi/

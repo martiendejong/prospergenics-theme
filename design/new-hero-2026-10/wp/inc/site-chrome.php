@@ -406,6 +406,11 @@ function prospergenics_2026_listings_takeover( $html, $path, array $chrome ) {
         $out  = null === $new ? $out : $new;
     }
 
+    // Page content the theme owns: the /members/ cards come from PROFILES (inc/members-directory.php,
+    // cards #6516, #6517). Before the badges, so they go on those cards.
+    $new = apply_filters( 'prospergenics_2026_listings_page_html', $out, $key );
+    $out = is_string( $new ) && '' !== $new ? $new : $out;
+
     // Member badges on the /members/ directory: whoever answers the filter (the profiles track)
     // maps the cards' listing slugs to badge markup, which goes next to the name.
     $slugs = 0 === strpos( $key, '/members/' ) ? prospergenics_2026_listings_member_slugs( $out ) : array();
@@ -423,9 +428,12 @@ function prospergenics_2026_listings_takeover( $html, $path, array $chrome ) {
     return rtrim( $out ) . "\n\n" . $chrome['footer'] . "\n" . $chrome['script'] . "\n" . ( '' !== $lesson_js ? $lesson_js . "\n" : '' );
 }
 
-/** The card pattern of the jengo-listings /members/ directory: <a class="dir-card" href=".../members/<slug>/">. */
+/**
+ * The card pattern of the /members/ directory: <a class="dir-card" href=".../members/<listing slug>/">
+ * as the plugin makes it, or ".../people/<slug>/" as the theme rebuilds it from PROFILES.
+ */
 function prospergenics_2026_listings_member_card_re() {
-    return '#<a class="dir-card" href="' . preg_quote( untrailingslashit( home_url() ), '#' ) . '/members/([a-z0-9-]+)/">(.*?)</a>#s';
+    return '#<a class="dir-card" href="' . preg_quote( untrailingslashit( home_url() ), '#' ) . '/(?:members|people)/([a-z0-9-]+)/">(.*?)</a>#s';
 }
 
 /** The listing slugs of the member cards on a jengo-listings page, in page order (pure). */
