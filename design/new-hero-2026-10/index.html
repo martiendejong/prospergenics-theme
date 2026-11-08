@@ -702,7 +702,7 @@
     .flow-lens { width: 56vw; height: 256px; }
   }
 
-  /* ───────────────  PROJECT SHOWCASES · expanding strip  ─────────────── */
+  /* ───────────────  SERVICES · expanding strip  ─────────────── */
   .projects { max-width: 1500px; margin: 0 auto; padding: clamp(28px, 3.6vw, 52px) clamp(24px, 5vw, 72px) 110px; }
   .pstrip { display: flex; margin-top: 34px; height: 340px; }
   .pstrip + .pstrip { margin-top: 16px; }
@@ -722,8 +722,8 @@
     padding: 6px 11px; border-radius: 999px;
   }
   .pc-tag.live::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--green-500); margin-right: 7px; }
-  /* the strips scale as one block from the top edge, so they grow downward into the
-     section's bottom padding instead of over the heading above */
+  /* the strips grow in as one block from the top edge, up to their own width and never past it
+     (data-scroll-scale="1", from 0.84): a factor above 1 pushed the outer cards off the screen */
   .pstrips { transform-origin: 50% 0; }
   .pc-caption {
     position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; height: 52%;
@@ -740,6 +740,88 @@
     .pstrip { flex-direction: column; height: auto; }
     .pcard { flex: none; height: 190px; clip-path: polygon(18px 0, 100% 0, calc(100% - 18px) 100%, 0 100%); }
     .pcard + .pcard { margin-left: 0; margin-top: 14px; }
+  }
+
+  /* ───────────────  TOOLS · list + fixed preview panel  ─────────────── */
+  /* Same pattern as the hero showcase: a list of the seven tools (real links to /tools/<slug>/,
+     each with its name and one-liner) and one large slanted preview panel. Hover, keyboard focus
+     or a tap on a touch screen switches the preview; clicking opens the tool. The panel has a
+     fixed size, so switching never moves the page. Below 981px there is no preview: the list
+     becomes cards that carry everything themselves. Lesiamon 8 Nov: the old expanding trapezium
+     strip spilled off the screen and showed only one real tool. */
+  .tools { display: grid; grid-template-columns: minmax(300px, 37%) minmax(0, 1fr); gap: clamp(20px, 2.6vw, 40px); margin-top: 34px; transform-origin: 50% 0; }
+  .tools-list { list-style: none; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+  .tool-item {
+    display: grid; grid-template-columns: 40px minmax(0, 1fr) 18px; align-items: center; column-gap: 14px;
+    padding: 10px 14px 10px 10px; border-radius: 14px; text-decoration: none; color: var(--ink);
+    transition: background-color .2s var(--ease), color .2s var(--ease), box-shadow .2s var(--ease); /* not outline: the focus ring appears at once */
+  }
+  .tool-item:focus-visible { outline: 3px solid var(--focus-ring, #1a7a46); outline-offset: 3px; }
+  .tool-ico { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; background: var(--green-100); color: var(--green-700); transition: background-color .2s, color .2s; }
+  .tool-ico svg, .tp-art-ico svg { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .tool-ico svg { width: 21px; height: 21px; }
+  .tool-txt { min-width: 0; }
+  .tool-name { display: block; font-family: 'Sora', sans-serif; font-weight: 700; font-size: 16px; line-height: 1.25; letter-spacing: -.01em; }
+  .tool-line { display: block; margin-top: 2px; font-size: 13.5px; line-height: 1.4; color: var(--muted); }
+  .tool-arr { font-size: 17px; color: var(--green-700); }
+  /* as tall as the list next to it (never shorter than 500px); neither changes when the preview switches */
+  .tools-stage { position: relative; min-height: 500px; }
+  .tool-panel {
+    --focus-ring: #fff;
+    position: absolute; inset: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto;
+    background: var(--green-900); color: #fff; overflow: hidden;
+    clip-path: polygon(26px 0, 100% 0, calc(100% - 26px) 100%, 0 100%);
+  }
+  .tool-panel[hidden] { display: none; }
+  .tool-panel.is-entering { animation: tool-in .3s var(--ease); }
+  @keyframes tool-in { from { opacity: 0; } }
+  .tp-media { position: relative; min-height: 0; overflow: hidden; background: #0b1424; }
+  .tp-media img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 0; }
+  /* the screenshot fades into the panel colour where the text starts */
+  .tp-media::after { content: ""; position: absolute; inset: auto 0 0 0; height: 30%; background: linear-gradient(180deg, rgba(15,61,40,0), var(--green-900)); }
+  /* no screenshot yet: an honest branded panel (icon + the tool's own tagline), never a mock UI */
+  .tool-panel.tp-branded {
+    background:
+      linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px) 0 0 / 34px 34px,
+      linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px) 0 0 / 34px 34px,
+      radial-gradient(130% 120% at 88% 0%, #1f7a4a 0%, var(--green-900) 50%, var(--ink) 100%);
+  }
+  .tp-art { display: flex; align-items: center; gap: clamp(20px, 2.4vw, 34px); padding: 30px 56px 20px 60px; background: none; }
+  .tp-art::after { display: none; }
+  .tp-art-ico { flex: none; width: clamp(84px, 8vw, 112px); aspect-ratio: 1; border-radius: 28px; display: grid; place-items: center; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.2); color: var(--green-300); }
+  .tp-art-ico svg { width: 50%; height: 50%; stroke-width: 1.5; }
+  .tp-art-tag { font-family: 'Sora', sans-serif; font-weight: 700; font-size: clamp(20px, 2vw, 28px); line-height: 1.22; letter-spacing: -.02em; color: #fff; max-width: 22ch; }
+  .tp-body { display: flex; flex-direction: column; gap: 10px; padding: 18px 54px 26px 46px; }
+  .tp-body h3 { font-family: 'Sora', sans-serif; font-weight: 800; font-size: 26px; line-height: 1.1; letter-spacing: -.02em; color: #fff; }
+  .tp-body p { font-size: 15px; line-height: 1.55; color: rgba(255,255,255,.9); max-width: 64ch; }
+  /* Explore first: the button stays on the left, clear of the chat launcher at the bottom right */
+  .tp-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; margin-top: 4px; }
+  .tp-chips { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
+  .tp-chips li { padding: 5px 12px; border-radius: 999px; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.22); font-size: 12.5px; font-weight: 600; line-height: 1.3; color: var(--green-100); }
+  .tp-go { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 999px; background: #fff; color: var(--green-900); font-family: 'Sora', sans-serif; font-weight: 600; font-size: 14px; text-decoration: none; white-space: nowrap; transition: background-color .2s; }
+  .tp-go:hover { background: var(--green-100); }
+  .tp-go:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; }
+  .tp-go .arrow { transition: transform .2s var(--ease); }
+  .tp-go:hover .arrow { transform: translateX(4px); }
+  @media (min-width: 981px){
+    .tool-arr { opacity: 0; transform: translateX(-6px); transition: opacity .2s var(--ease), transform .2s var(--ease); }
+    .tool-item:hover { background: #fff; box-shadow: 0 0 0 1px var(--line); }
+    .tool-item.is-active { background: var(--green-700); color: #fff; box-shadow: 0 16px 30px -14px var(--green-700); } /* green-700: 5.3:1 with white */
+    .tool-item.is-active .tool-line, .tool-item.is-active .tool-arr { color: #fff; }
+    .tool-item.is-active .tool-ico { background: rgba(255,255,255,.16); color: #fff; }
+    .tool-item.is-active .tool-arr { opacity: 1; transform: none; }
+  }
+  /* tablets and phones: no preview, the list becomes cards (2 across, then 1) */
+  @media (max-width: 980px){
+    .tools { display: block; }
+    .tools-stage { display: none; }
+    .tools-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 12px; }
+    .tool-item { height: 100%; padding: 14px 16px 14px 14px; background: #fff; border: 1px solid var(--line); }
+    .tool-item:hover { border-color: var(--green-300); }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .tool-item, .tool-ico, .tool-arr, .tp-go, .tp-go .arrow { transition: none; }
+    .tool-panel.is-entering { animation: none; }
   }
 
   /* ───────────────  PARTNERS · slanted chips  ─────────────── */
@@ -1160,28 +1242,82 @@
     </div>
   </section>
 
-  <!-- TOOLS · the systems we built ourselves and use daily; most prestigious first.
-       Jengo links to its jengo-listings page; there is no citizenship page yet, so that card
-       opens the contact form on "Courses and certification" (audit NAV-7). -->
+  <!-- TOOLS · the seven systems we built ourselves and use daily, the same list as /tools/ (the
+       jengo-listings "tools" collection), each a link to its /tools/<slug>/ page. The preview shows a
+       real screenshot where we have one (Jengo, SEO God) and otherwise an honest branded panel:
+       icon, the tool's own tagline, description and skills, never a made-up UI. -->
   <section class="projects" id="projects">
     <div class="projects-head">
       <h2>Tools we use, <span class="accent">built ourselves</span></h2>
       <p>The systems behind our daily work. We use them, we build them, we offer them.</p>
     </div>
-    <div class="pstrips" data-scroll-scale="1.2">
-      <div class="pstrip">
-        <a class="pcard" href="/tools/jengo/" style="background-image:url('assets/jengo-task-outcomes.webp')">
-          <span class="pc-tag">Jengo</span>
-          <div class="pc-caption"><p>Give your AI an extra brain.</p></div>
-        </a>
-        <a class="pcard" href="/courses/" style="background-image:url('assets/sandra.webp'); background-position: 60% 20%">
-          <span class="pc-tag">AI trainings</span>
-          <div class="pc-caption"><p>AI training and certification.</p></div>
-        </a>
-        <a class="pcard" href="/contact/?subject=Courses%20and%20certification" style="background-image:url('assets/jengo-werkplek-duo.webp'); background-color: #101826">
-          <span class="pc-tag">Citizenship courses</span>
-          <div class="pc-caption"><p>Dutch citizenship and language courses.</p></div>
-        </a>
+    <div class="tools" data-scroll-scale="1" data-scroll-scale-from="0.94">
+      <ul class="tools-list">
+        <li><a class="tool-item is-active" href="/tools/jengo/" data-i="0"><span class="tool-ico"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M7 9l3 3-3 3M13 15h4"/></svg></span><span class="tool-txt"><span class="tool-name">Jengo</span><span class="tool-line">An AI developer: plans, codes, reviews, deploys.</span></span><span class="tool-arr" aria-hidden="true">&rarr;</span></a></li>
+        <li><a class="tool-item" href="/tools/coachos/" data-i="1"><span class="tool-ico"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M8.5 12h.01M12 12h.01M15.5 12h.01"/></svg></span><span class="tool-txt"><span class="tool-name">CoachOS</span><span class="tool-line">Your knowledge as AI chat, courses and videos.</span></span><span class="tool-arr" aria-hidden="true">&rarr;</span></a></li>
+        <li><a class="tool-item" href="/tools/jengowork/" data-i="2"><span class="tool-ico"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="4" width="5" height="13" rx="1.5"/><rect x="9.5" y="4" width="5" height="9" rx="1.5"/><rect x="16" y="4" width="5" height="16" rx="1.5"/></svg></span><span class="tool-txt"><span class="tool-name">JengoWork</span><span class="tool-line">Task boards for AI agents and people.</span></span><span class="tool-arr" aria-hidden="true">&rarr;</span></a></li>
+        <li><a class="tool-item" href="/tools/jengo-meet/" data-i="3"><span class="tool-ico"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8.5 21h7"/></svg></span><span class="tool-txt"><span class="tool-name">Jengo Meet</span><span class="tool-line">Records, transcribes and summarises meetings.</span></span><span class="tool-arr" aria-hidden="true">&rarr;</span></a></li>
+        <li><a class="tool-item" href="/tools/jengomail/" data-i="4"><span class="tool-ico"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3.5 7.5l8.5 6 8.5-6"/></svg></span><span class="tool-txt"><span class="tool-name">JengoMail</span><span class="tool-line">Shared inboxes with AI triage and drafting.</span></span><span class="tool-arr" aria-hidden="true">&rarr;</span></a></li>
+        <li><a class="tool-item" href="/tools/jengo-knowledge/" data-i="5"><span class="tool-ico"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="7" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M8.5 6.2l7 .6M7.2 8.3l3.6 7.4M16.8 9.3l-3.6 6.5"/></svg></span><span class="tool-txt"><span class="tool-name">Jengo Knowledge</span><span class="tool-line">Knowledge search with RAG and an ontology.</span></span><span class="tool-arr" aria-hidden="true">&rarr;</span></a></li>
+        <li><a class="tool-item" href="/tools/seo-god/" data-i="6"><span class="tool-ico"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.3 15.3L21 21M7.5 12.5l2-2 1.5 1.5 2.5-3"/></svg></span><span class="tool-txt"><span class="tool-name">SEO God</span><span class="tool-line">Automated SEO and AI-optimisation at scale.</span></span><span class="tool-arr" aria-hidden="true">&rarr;</span></a></li>
+      </ul>
+      <div class="tools-stage">
+        <div class="tool-panel" data-i="0">
+          <div class="tp-media"><img loading="lazy" decoding="async" src="assets/jengo-task-outcomes.webp" width="1000" height="910" alt="The Jengo dashboard: tasks its agents completed and rescheduled over the last 30 days, with cost per task" /></div>
+          <div class="tp-body">
+            <h3>Jengo</h3>
+            <p>Our autonomous AI development system. It picks up tasks from a board, researches, writes, reviews and deploys code, steered from a chat on your phone.</p>
+            <div class="tp-foot"><a class="tp-go" href="/tools/jengo/">Explore Jengo <span class="arrow" aria-hidden="true">&rarr;</span></a><ul class="tp-chips" aria-label="Jengo skills"><li>AI agent</li><li>Software development</li><li>Automation</li></ul></div>
+          </div>
+        </div>
+        <div class="tool-panel tp-branded" data-i="1" hidden>
+          <div class="tp-media tp-art"><span class="tp-art-ico"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M8.5 12h.01M12 12h.01M15.5 12h.01"/></svg></span><p class="tp-art-tag">AI coaching: chat, courses and avatar videos under your own brand.</p></div>
+          <div class="tp-body">
+            <h3>CoachOS</h3>
+            <p>Turns an organisation&#39;s knowledge into an assistant: an embeddable AI chat, courses and avatar videos. The chat on this site runs on it.</p>
+            <div class="tp-foot"><a class="tp-go" href="/tools/coachos/">Explore CoachOS <span class="arrow" aria-hidden="true">&rarr;</span></a><ul class="tp-chips" aria-label="CoachOS skills"><li>AI chat</li><li>Courses</li><li>Avatar videos</li></ul></div>
+          </div>
+        </div>
+        <div class="tool-panel tp-branded" data-i="2" hidden>
+          <div class="tp-media tp-art"><span class="tp-art-ico"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="4" width="5" height="13" rx="1.5"/><rect x="9.5" y="4" width="5" height="9" rx="1.5"/><rect x="16" y="4" width="5" height="16" rx="1.5"/></svg></span><p class="tp-art-tag">Task boards where humans and AI agents work side by side.</p></div>
+          <div class="tp-body">
+            <h3>JengoWork</h3>
+            <p>Task management with kanban boards, swimlanes, scoring and review gates, built so AI agents and people work side by side.</p>
+            <div class="tp-foot"><a class="tp-go" href="/tools/jengowork/">Explore JengoWork <span class="arrow" aria-hidden="true">&rarr;</span></a><ul class="tp-chips" aria-label="JengoWork skills"><li>Task management</li><li>Kanban</li><li>AI agents</li></ul></div>
+          </div>
+        </div>
+        <div class="tool-panel tp-branded" data-i="3" hidden>
+          <div class="tp-media tp-art"><span class="tp-art-ico"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8.5 21h7"/></svg></span><p class="tp-art-tag">Record, transcribe, summarise, follow up.</p></div>
+          <div class="tp-body">
+            <h3>Jengo Meet</h3>
+            <p>Records and transcribes meetings, with structured summaries, action points and search.</p>
+            <div class="tp-foot"><a class="tp-go" href="/tools/jengo-meet/">Explore Jengo Meet <span class="arrow" aria-hidden="true">&rarr;</span></a><ul class="tp-chips" aria-label="Jengo Meet skills"><li>Meetings</li><li>Transcription</li><li>Summaries</li></ul></div>
+          </div>
+        </div>
+        <div class="tool-panel tp-branded" data-i="4" hidden>
+          <div class="tp-media tp-art"><span class="tp-art-ico"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3.5 7.5l8.5 6 8.5-6"/></svg></span><p class="tp-art-tag">Web e-mail with shared inboxes, rules and AI assistance.</p></div>
+          <div class="tp-body">
+            <h3>JengoMail</h3>
+            <p>Web e-mail with personal and shared inboxes, rules and snippets, and AI help for triage and drafting.</p>
+            <div class="tp-foot"><a class="tp-go" href="/tools/jengomail/">Explore JengoMail <span class="arrow" aria-hidden="true">&rarr;</span></a><ul class="tp-chips" aria-label="JengoMail skills"><li>E-mail</li><li>Shared inbox</li><li>Automation</li></ul></div>
+          </div>
+        </div>
+        <div class="tool-panel tp-branded" data-i="5" hidden>
+          <div class="tp-media tp-art"><span class="tp-art-ico"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="7" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M8.5 6.2l7 .6M7.2 8.3l3.6 7.4M16.8 9.3l-3.6 6.5"/></svg></span><p class="tp-art-tag">A knowledge base your agents and your team can actually query.</p></div>
+          <div class="tp-body">
+            <h3>Jengo Knowledge</h3>
+            <p>A knowledge system with retrieval-augmented search, an agent chat with tools, and an ontology with provenance.</p>
+            <div class="tp-foot"><a class="tp-go" href="/tools/jengo-knowledge/">Explore Jengo Knowledge <span class="arrow" aria-hidden="true">&rarr;</span></a><ul class="tp-chips" aria-label="Jengo Knowledge skills"><li>Knowledge base</li><li>RAG</li><li>Ontology</li></ul></div>
+          </div>
+        </div>
+        <div class="tool-panel" data-i="6" hidden>
+          <div class="tp-media"><img loading="lazy" decoding="async" src="assets/seomagic.webp" width="1054" height="610" alt="The SEO God start page: WordPress SEO automation with automated analysis, smart content and real-time tracking" /></div>
+          <div class="tp-body">
+            <h3>SEO God</h3>
+            <p>Automates SEO and AI-optimisation: content, on-page optimisation and translations at scale.</p>
+            <div class="tp-foot"><a class="tp-go" href="/tools/seo-god/">Explore SEO God <span class="arrow" aria-hidden="true">&rarr;</span></a><ul class="tp-chips" aria-label="SEO God skills"><li>SEO</li><li>AI-optimisation</li><li>Content</li></ul></div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -1195,7 +1331,7 @@
       <h2>Our <span class="accent">services</span></h2>
       <p>What we do for organisations, powered by the systems above.</p>
     </div>
-    <div class="pstrips" data-scroll-scale="1.2">
+    <div class="pstrips" data-scroll-scale="1" data-scroll-scale-from="0.84">
       <div class="pstrip">
         <a class="pcard" href="/services/coachos/" style="background-image:url('assets/jengo-telefoon-chat.webp'); background-color: var(--paper-2)">
           <span class="pc-tag">CoachOS</span>
@@ -1226,7 +1362,7 @@
       <h2>Initiatives by <span class="accent">our members</span></h2>
       <p>Companies and organisations our members built and run.</p>
     </div>
-    <div class="plist" data-scroll-scale="1.2">
+    <div class="plist" data-scroll-scale="1" data-scroll-scale-from="0.84">
       <a class="partner" href="https://martiendejong.nl" target="_blank" rel="noopener">
         <span class="pr-in"><strong>Martien de Jong</strong><span class="pr-what">Software development</span><span class="pr-domain">martiendejong.nl</span></span>
       </a>
@@ -1358,6 +1494,40 @@
     const onReduce = ()=>{ if (scReduce.matches) stop(); };
     if (scReduce.addEventListener) scReduce.addEventListener('change', onReduce); else if (scReduce.addListener) scReduce.addListener(onReduce);
     show(0); sync();
+
+    // Tools showcase: hovering or focusing a tool shows its preview panel (no autoplay). A mouse
+    // click or Enter opens the tool's page straight away; on a touch screen the first tap on
+    // another tool previews it and the next tap (or "Explore") opens it. Below 981px the preview
+    // is not shown and every tap simply follows the link.
+    (function () {
+      const root = document.querySelector('.tools');
+      if (!root) return;
+      const items = Array.prototype.slice.call(root.querySelectorAll('.tool-item'));
+      const panels = Array.prototype.slice.call(root.querySelectorAll('.tool-panel'));
+      const wide = window.matchMedia('(min-width: 981px)');
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+      let current = 0, tapPreview = false;
+      function show(i) {
+        if (i === current || !panels[i]) return;
+        items[current].classList.remove('is-active');
+        panels[current].hidden = true;
+        current = i;
+        items[i].classList.add('is-active');
+        panels[i].hidden = false;
+        panels[i].classList.remove('is-entering');
+        if (!reduce.matches) { void panels[i].offsetWidth; panels[i].classList.add('is-entering'); }
+      }
+      items.forEach(function (it, i) {
+        it.addEventListener('mouseenter', function () { show(i); });
+        it.addEventListener('focus', function () { show(i); });
+        // decide on pointerdown, before focus/mouseenter make this tool the current one
+        it.addEventListener('pointerdown', function (e) { tapPreview = e.pointerType === 'touch' && i !== current && wide.matches; });
+        it.addEventListener('click', function (e) {
+          if (tapPreview && e.detail) { e.preventDefault(); show(i); }
+          tapPreview = false;
+        });
+      });
+    })();
 
     // Member stream pause/play (audit UX-10)
     (function () {

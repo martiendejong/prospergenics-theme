@@ -103,7 +103,8 @@
 /* jengo-listings courses on /courses/ (inc/courses/listings.php) */
 .pgc-card-summary{font-size:14.5px;line-height:1.55;color:#2a3d30;}
 .pgc-card-actions{margin-top:2px;}
-.pgc-card-actions .pgc-link-small{display:inline-flex;align-items:center;gap:6px;min-height:24px;}
+/* above the title link's stretched ::after (line 96), so "Start learning" opens /learn/, not the course page (#7129) */
+.pgc-card-actions .pgc-link-small{display:inline-flex;align-items:center;gap:6px;min-height:24px;position:relative;z-index:1;}
 
 /* ---------- course page */
 .pgc-hero-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:clamp(24px,4vw,56px);align-items:center;}
