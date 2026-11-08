@@ -81,12 +81,11 @@ $pgc_none = ! $pgc_active && ! have_posts() && ! $pgc_listings;
     <?php if ($pgc_active) : ?>
       <p class="pgc-empty">No courses match these filters yet. <a href="<?php echo esc_url(home_url('/courses/')); ?>">Show all courses</a>.</p>
     <?php else : ?>
-      <?php // a next step that isn't the value test, which itself sends people here (audit NAV-4) ?>
       <div class="pgc-empty">
-        <p>The first courses open soon. Tell us what you want to learn and we'll let you know when it starts, or meet the members who already teach and build together.</p>
+        <p>The first courses open soon. Take the value test to get a personal next step, or ask our coach.</p>
         <p class="pgc-actions">
-          <a class="pgc-btn" href="<?php echo esc_url(home_url('/contact/?subject=' . rawurlencode('Courses and certification'))); ?>">Tell us what you want to learn</a>
-          <a class="pgc-btn pgc-btn--ghost" href="<?php echo esc_url(home_url('/members/')); ?>">Meet our members</a>
+          <a class="pgc-btn" href="<?php echo esc_url(home_url('/#value-test')); ?>">Take the value test</a>
+          <a class="pgc-btn pgc-btn--ghost" href="<?php echo esc_url(prospergenics_2026_contact_url('Courses and certification')); ?>">Ask our coach</a>
         </p>
       </div>
     <?php endif; ?>

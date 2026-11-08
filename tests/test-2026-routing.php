@@ -173,13 +173,14 @@ $legacy_cases = array(
 	'/diko-2/'             => '/people/diko/',
 	'/martien-2/'          => '/people/martien/',
 	'/sandra-2/'           => '/people/simitia/',
+	'/blog/'               => '/articles/',  // #6537: empty WP page; articles are the platform's written content
 );
 foreach ( $legacy_cases as $from => $to ) {
 	$r = person_route( $from );
 	ok( $r && 'https://prospergenics.com' . $to === $r[0] && 301 === $r[1], "$from -> 301 $to (also while the page is published)" );
 	ok( null === person_route( $to ), "$to is not redirected again (one hop)" );
 }
-foreach ( array( '/', '/about/', '/courses/', '/articles/', '/members/', '/join/', '/register/', '/contact/', '/blog/', '/cookie-policy/', '/privacy-policy/', '/privacy-policy-2/', '/claude-code-cursor-coaching/', '/entrepreneurship-support/' ) as $live ) {
+foreach ( array( '/', '/about/', '/courses/', '/articles/', '/members/', '/join/', '/register/', '/contact/', '/cookie-policy/', '/privacy-policy/', '/privacy-policy-2/', '/claude-code-cursor-coaching/', '/entrepreneurship-support/' ) as $live ) {
 	ok( null === person_route( $live ), "live page $live is not redirected" );
 }
 ok( false !== strpos( $module, 'prospergenics_2026_legacy_page_rules() );' ), 'the init redirect reads legacy-pages.txt too' );

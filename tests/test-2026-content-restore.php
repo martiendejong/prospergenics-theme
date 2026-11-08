@@ -99,6 +99,7 @@ function have_posts() { return $GLOBALS['pgc']['posts'] > 0; }
 function the_post() { $GLOBALS['pgc']['posts']--; }
 function get_post() { return null; }
 function prospergenics_courses_card( $p, $u ) { return '<article class="pgc-card">theme course</article>'; }
+function prospergenics_2026_contact_url( $s = '' ) { return home_url( '/contact/?subject=' . rawurlencode( $s ) ); }
 function selected( $a, $b ) {}
 function esc_attr( $s ) { return esc_html( $s ); }
 function _n( $one, $many, $n, $d ) { return 1 === $n ? $one : $many; }
@@ -115,7 +116,7 @@ function pgc_render_archive( $theme, $filters, $posts, $listings ) {
 $one_listing = array( array( 'slug' => 'html', 'title' => 'HTML', 'provider' => 'ProsperGenics', 'summary' => 'Learn HTML.', 'skills' => array() ) );
 $none = pgc_render_archive( $theme, array(), 0, array() );
 ok( false === strpos( $none, 'class="pgc-filters"' ) && false === strpos( $none, 'class="pgc-count"' ) && false === strpos( $none, 'Show courses' ), 'no courses, nothing filtered: no Category / Level / Sort form and no "0 courses"' );
-ok( false !== strpos( $none, 'The first courses open soon.' ) && false !== strpos( $none, 'Tell us what you want to learn</a>' ) && false !== strpos( $none, 'Meet our members</a>' ), 'the next steps stay: the courses contact form and the members' );
+ok( false !== strpos( $none, 'The first courses open soon.' ) && false !== strpos( $none, 'Take the value test</a>' ) && false !== strpos( $none, 'Ask our coach</a>' ), 'the next steps: the value test and the coach contact form (#6537)' );
 $listed = pgc_render_archive( $theme, array(), 0, $one_listing );
 ok( false !== strpos( $listed, 'class="pgc-filters"' ) && false !== strpos( $listed, '1 course</p>' ) && false === strpos( $listed, 'The first courses open soon.' ), 'one listings course: the form and "1 course" are back' );
 $own = pgc_render_archive( $theme, array(), 2, array() );
