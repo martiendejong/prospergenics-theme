@@ -11,6 +11,7 @@
   <!-- /site-chrome:meta -->
 <!-- test/preview environment: keep out of search indexes (production About page lives on prospergenics.com) -->
 <meta property="og:type" content="website" />
+<meta property="og:url" content="<?php echo esc_url( home_url( '/about/' ) ); ?>" />
 <meta property="og:title" content="About ProsperGenics — exploring how value is created" />
 <meta property="og:image" content="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/hero-top.jpg" />
 <link rel="icon" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/logo.webp" />
@@ -394,6 +395,33 @@
   .pg-breadcrumb.pg-crumbs--on-hero a:hover { color: #fff; }
   .pg-breadcrumb.pg-crumbs--on-hero .sep { opacity: .6; }
   .pg-breadcrumb.pg-crumbs--on-hero [aria-current="page"] { color: #fff; }
+
+  /* no photo or logo: the branded pattern of the /courses/ cards (assets/platform/courses.css, audit
+     UX-8, card #6538) instead of a big single letter: the ProsperGenics sprout on the brand green,
+     with one of three textures (pg-pattern--1..3, picked by slug). Here for every page type: the
+     jengo-listings cards (inc/listings-pages.php, inc/members-directory.php), the homepage slider and
+     the static people/, experts/ and community/ pages (people/build-profiles.py). Decorative
+     (aria-hidden): the name is always next to it. Literal colours, as in the rest of this file. */
+  .pg-pattern { display: block; width: 100%; height: 100%; min-height: 120px; background-color: #0f3d28; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' fill='none' stroke='white' stroke-opacity='.6' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M32 52V24'/%3E%3Cpath d='M32 34c-9 0-15-6-15-14 9 0 15 6 15 14z'/%3E%3Cpath d='M32 28c0-8 6-14 14-14 0 8-6 14-14 14z'/%3E%3Cpath d='M32 52l-9 5M32 52l9 5M32 52v7'/%3E%3Ccircle cx='22' cy='58' r='1.6'/%3E%3Ccircle cx='42' cy='58' r='1.6'/%3E%3C/svg%3E"), var(--pg-texture), linear-gradient(140deg, #0f3d28, #1a7a46 70%, #1d8e4f); background-repeat: no-repeat, repeat, no-repeat; background-position: center, 0 0, 0 0; background-size: clamp(48px, 22%, 96px) auto, var(--pg-texture-size), cover; }
+  .pg-pattern--1 { --pg-texture: radial-gradient(rgba(255,255,255,.14) 1.5px, transparent 1.7px); --pg-texture-size: 18px 18px; }
+  .pg-pattern--2 { --pg-texture: repeating-linear-gradient(135deg, rgba(255,255,255,.08) 0 2px, transparent 2px 16px); --pg-texture-size: auto; }
+  .pg-pattern--3 { --pg-texture: repeating-radial-gradient(circle at 85% 15%, rgba(255,255,255,.09) 0 2px, transparent 2px 22px); --pg-texture-size: auto; }
+  /* filling its frame edge to edge: a jengo-listings card thumb (152px, the status pill on top), the
+     homepage slider portrait, the profile portrait and the experts/community card picture */
+  .dc-thumb > .pg-pattern, .fc-portrait > .pg-pattern, .p-portrait > .pg-pattern, .pc-media > .pg-pattern { position: absolute; inset: 0; min-height: 0; }
+  .dc-thumb > .dc-status { z-index: 1; }
+
+  /* jengo-listings search box (/members/, /tools/, /services/, /partners/, card #7234): the plugin
+     drops the input's outline and only tints the top and bottom border on focus (its clip-path cuts
+     the slanted sides away), so focus was invisible. The site's 3px ring instead: the box goes
+     square while it has focus, so the clip-path can't cut the ring; #1a7a46 is 5.07:1 on paper. */
+  .search-wrap .search-box:focus-within { clip-path: none; border-color: #1a7a46; outline: 3px solid var(--focus-ring, #1a7a46); outline-offset: 2px; }
+
+  /* the accent words of the jengo-listings list headings ("Members who create value", /tools/,
+     /services/, /partners/, card #7235): the plugin fades them to #34c759 and #86e0a6 (2.1:1 and
+     1.6:1 on paper); the homepage's accent gradient instead, #1a7a46 to #1f9a55 (5.07:1 and 3.4:1).
+     Only the image: the plugin's background-clip: text stays. */
+  header.pg-header h1 .accent { background-image: linear-gradient(100deg, #1a7a46 0%, #1f9a55 100%); }
 
   /* /site-chrome:css */
 </style>

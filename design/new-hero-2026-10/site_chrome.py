@@ -24,6 +24,7 @@ in WordPress (homepage, About, every inner page) the header comes from PHP and k
 import json
 import os
 import re
+import zlib
 
 import services_section
 
@@ -107,6 +108,13 @@ def _item_href(item, root):
 
 def _esc(text):
     return text.replace("&", "&amp;").replace('"', "&quot;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def pattern(slug):
+    """The branded pattern for a person without a photo (card #6538), instead of a big initial:
+    site-chrome.css .pg-pattern, one of three textures by slug, the same one WordPress picks for
+    the /members/ card (inc/members-directory.php: crc32 % 3 + 1). Decorative."""
+    return f'<span class="pg-pattern pg-pattern--{zlib.crc32(slug.encode("utf-8")) % 3 + 1}" aria-hidden="true"></span>'
 
 
 def current_label(path):

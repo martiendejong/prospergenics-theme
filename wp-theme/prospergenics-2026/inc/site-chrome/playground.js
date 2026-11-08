@@ -52,6 +52,18 @@
       'try{(0,eval)(' + js(code) + ')}catch(e){show([String(e)],"error")}})();' + END);
   }
 
+  // A few lessons (Python 34-36: files, io, json) use parts of Python that Skulpt doesn't have. That error
+  // ("NotImplementedError: io is not yet implemented in Skulpt", "NameError: name 'FileNotFoundError' is
+  // not defined", "ImportError: No module named json") becomes a short note; any other error shows as it is.
+  // It runs inside the output frame, where it is passed in as source text.
+  function skulptMissing(message) {
+    var m = /^NotImplementedError: ([\w.]+) is not yet implemented in Skulpt/.exec(message) ||
+      /^ImportError: No module named ['"]?([\w.]+)/.exec(message) ||
+      /^NameError: name '(\w+(?:Error|Exception|Warning))' is not defined/.exec(message);
+    return m ? m[1] : '';
+  }
+  var SKULPT_MISSING_NOTE = ['This example uses a Python feature the in-browser runner doesn\'t have (', '). Copy it and run it on your computer.'];
+
   function pythonDoc(code) {
     return page('', '<div id="out"><div class="line hint">Running...</div></div>' +
       '<script src="' + SKULPT[0] + '">' + END + '<script src="' + SKULPT[1] + '">' + END + '<script>' +
@@ -62,8 +74,9 @@
       'function read(x){if(Sk.builtinFiles===undefined||Sk.builtinFiles.files[x]===undefined)throw "File not found: \'"+x+"\'";return Sk.builtinFiles.files[x]}' +
       'Sk.configure({output:function(t){var parts=t.split("\\n");parts.forEach(function(p,i){if(i<parts.length-1||p!=="")line(p)})},' +
       'read:read,__future__:Sk.python3,inputfun:function(){return ""}});' +
+      'var missing=' + String(skulptMissing) + ',note=' + js(SKULPT_MISSING_NOTE) + ';' +
       'Sk.misceval.asyncToPromise(function(){return Sk.importMainWithBody("<stdin>",false,' + js(code) + ',true)})' +
-      '.catch(function(e){line(String(e),"error")})})();' + END);
+      '.catch(function(e){var t=String(e),f=missing(t);if(f){line(note[0]+f+note[1],"info")}else{line(t,"error")}})})();' + END);
   }
 
   function htmlDoc(code) {
@@ -164,5 +177,5 @@
     for (var i = 0; i < boxes.length; i++) { setup(boxes[i]); }
   }
 
-  window.__pgPlayground = { scan: scan, buildDoc: buildDoc, theme: true };
+  window.__pgPlayground = { scan: scan, buildDoc: buildDoc, skulptMissing: skulptMissing, theme: true };
 })();

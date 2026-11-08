@@ -83,6 +83,46 @@ ok( false !== strpos( $archive, 'prospergenics_courses_listings()' ) && false !=
 ok( false !== strpos( $archive, '$wp_query->found_posts + count($pgc_listings)' ), 'and counts them in "N courses"' );
 ok( false !== strpos( $archive, 'if (have_posts() || $pgc_listings)' ), 'the empty state shows only when there are no courses at all' );
 
+echo "Empty /courses/ (card #6537)\n";
+// The template rendered with stubs: no filter form and no "0 courses" when there are no courses at
+// all (theme or listings) and nothing is filtered; both stay as soon as there is a course or a filter.
+$GLOBALS['pgc'] = array();
+function get_header() {}
+function get_footer() {}
+function get_current_user_id() { return 0; }
+function get_query_var( $k ) { return 0; }
+function get_terms( $a ) { return array(); }
+function prospergenics_courses_current_filters() { return $GLOBALS['pgc']['filters']; }
+function prospergenics_courses_levels() { return array( 'beginner' => 'Beginner' ); }
+function prospergenics_courses_is_instructor() { return false; }
+function have_posts() { return $GLOBALS['pgc']['posts'] > 0; }
+function the_post() { $GLOBALS['pgc']['posts']--; }
+function get_post() { return null; }
+function prospergenics_courses_card( $p, $u ) { return '<article class="pgc-card">theme course</article>'; }
+function selected( $a, $b ) {}
+function esc_attr( $s ) { return esc_html( $s ); }
+function _n( $one, $many, $n, $d ) { return 1 === $n ? $one : $many; }
+function paginate_links( $a ) { return ''; }
+function pgc_render_archive( $theme, $filters, $posts, $listings ) {
+	global $wp_query;
+	$GLOBALS['pgc']        = array( 'filters' => $filters + array( 'category' => '', 'level' => '', 'sort' => 'newest' ), 'posts' => $posts );
+	$wp_query              = (object) array( 'found_posts' => $posts );
+	$GLOBALS['transients'] = array( 'pg_courses_listings' => $listings );
+	ob_start();
+	include $theme . '/archive-pg_course.php';
+	return ob_get_clean();
+}
+$one_listing = array( array( 'slug' => 'html', 'title' => 'HTML', 'provider' => 'ProsperGenics', 'summary' => 'Learn HTML.', 'skills' => array() ) );
+$none = pgc_render_archive( $theme, array(), 0, array() );
+ok( false === strpos( $none, 'class="pgc-filters"' ) && false === strpos( $none, 'class="pgc-count"' ) && false === strpos( $none, 'Show courses' ), 'no courses, nothing filtered: no Category / Level / Sort form and no "0 courses"' );
+ok( false !== strpos( $none, 'The first courses open soon.' ) && false !== strpos( $none, 'Tell us what you want to learn</a>' ) && false !== strpos( $none, 'Meet our members</a>' ), 'the next steps stay: the courses contact form and the members' );
+$listed = pgc_render_archive( $theme, array(), 0, $one_listing );
+ok( false !== strpos( $listed, 'class="pgc-filters"' ) && false !== strpos( $listed, '1 course</p>' ) && false === strpos( $listed, 'The first courses open soon.' ), 'one listings course: the form and "1 course" are back' );
+$own = pgc_render_archive( $theme, array(), 2, array() );
+ok( false !== strpos( $own, 'class="pgc-filters"' ) && false !== strpos( $own, '2 courses</p>' ), 'theme courses only: the form and the count show' );
+$filtered = pgc_render_archive( $theme, array( 'level' => 'beginner' ), 0, $one_listing );
+ok( false !== strpos( $filtered, 'class="pgc-filters"' ) && false !== strpos( $filtered, '0 courses match your filters' ) && false !== strpos( $filtered, 'No courses match these filters yet.' ), 'a filter that matches nothing keeps the form, so it can be changed' );
+
 echo "Blog\n";
 $blog = @file_get_contents( $theme . '/page-blog.php' );
 ok( false !== $blog, 'page-blog.php exists, so /blog/ lists the posts whatever the Reading setting is' );

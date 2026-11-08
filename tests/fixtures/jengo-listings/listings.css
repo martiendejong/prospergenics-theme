@@ -1,0 +1,511 @@
+/* Jengo Listings — exact ProsperGenics 2026 design system */
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
+
+/* ── Design tokens (exact match from prospergenics-2026 theme) ─── */
+.jengo-listings-page,
+.jengo-detail-page,
+.jengo-combo-page {
+  --ink:       #0b2016;
+  --g900:      #0f3d28;
+  --g700:      #1a7a46;
+  --g600:      #22a65a;
+  --g500:      #34c759;
+  --g300:      #86e0a6;
+  --g100:      #d9f5e3;
+  --paper:     #f4faf6;
+  --paper2:    #eaf5ee;
+  --line:      rgba(15,61,40,.12);
+  --muted:     #4a6555;
+  --shadow:    0 24px 60px -20px rgba(11,32,22,.35);
+  --ease:      cubic-bezier(.22,.61,.36,1);
+
+  font-family: 'Inter', system-ui, sans-serif;
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+}
+.jengo-listings-page *,
+.jengo-detail-page *,
+.jengo-combo-page * { box-sizing: border-box; }
+
+/* ── Shared section wrapper ──────────────────────────────────────── */
+.jl-wrap {
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 0 clamp(24px, 5vw, 72px);
+}
+
+/* ── Page header ─────────────────────────────────────────────────── */
+.jl-page-header {
+  padding: clamp(52px, 6vw, 96px) 0 clamp(32px, 4vw, 56px);
+}
+.jl-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Sora', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--g700);
+  padding: 8px 14px 8px 10px;
+  border-radius: 999px;
+  background: var(--g100);
+  border: 1px solid rgba(34,166,90,.2);
+  margin-bottom: 28px;
+}
+.jl-eyebrow .dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--g500);
+  box-shadow: 0 0 0 4px rgba(52,199,89,.22);
+}
+.jl-page-header h1 {
+  font-family: 'Sora', sans-serif;
+  font-weight: 800;
+  font-size: clamp(38px, 4.6vw, 66px);
+  line-height: 1.0;
+  letter-spacing: -.03em;
+  color: var(--ink);
+  margin: 0 0 22px;
+}
+.jl-page-header h1 .accent {
+  display: block;
+  background: linear-gradient(100deg, var(--g700) 0%, var(--g500) 55%, var(--g300) 100%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  padding-bottom: .06em;
+}
+.jl-page-header .sub {
+  font-family: 'Sora', sans-serif;
+  font-weight: 500;
+  font-size: clamp(17px, 2vw, 22px);
+  line-height: 1.35;
+  color: var(--g900);
+  margin: 0;
+}
+.jl-page-header .lede {
+  margin-top: 14px;
+  font-size: 16.5px;
+  line-height: 1.6;
+  color: var(--muted);
+  max-width: 52ch;
+}
+
+/* ── Breadcrumb ──────────────────────────────────────────────────── */
+.jengo-breadcrumb {
+  font-size: .82rem;
+  color: var(--muted);
+  margin-bottom: 2rem;
+}
+.jengo-breadcrumb a { color: var(--g700); text-decoration: none; }
+.jengo-breadcrumb a:hover { color: var(--g900); }
+
+/* ── Content section ─────────────────────────────────────────────── */
+.jl-content {
+  padding-bottom: clamp(48px, 8vw, 100px);
+}
+
+/* ── Listing layout: sidebar + results ──────────────────────────── */
+.jl-layout {
+  display: grid;
+  grid-template-columns: 252px 1fr;
+  gap: clamp(24px, 3vw, 48px);
+  align-items: start;
+}
+@media (max-width: 880px) { .jl-layout { grid-template-columns: 1fr; } }
+
+/* ── Filter sidebar ──────────────────────────────────────────────── */
+.jengo-filters {
+  background: #fff;
+  border: 1px solid var(--line);
+  padding: 24px 22px;
+  position: sticky;
+  top: 24px;
+  /* skew like homepage partner chips */
+  transform: skewX(-2deg);
+}
+.jengo-filters-inner { transform: skewX(2deg); }
+.jengo-filters h3 {
+  font-family: 'Sora', sans-serif;
+  font-weight: 800;
+  font-size: 18px;
+  color: var(--ink);
+  margin: 0 0 20px;
+  letter-spacing: -.01em;
+}
+.jengo-filter-group { margin-bottom: 16px; }
+.jengo-filter-group label {
+  display: block;
+  font-family: 'Sora', sans-serif;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.jengo-filter-group input,
+.jengo-filter-group select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  font-family: 'Inter', sans-serif;
+  font-size: 14.5px;
+  color: var(--ink);
+  border-radius: 0;
+  transition: border-color .2s;
+  appearance: none;
+  outline: none;
+}
+.jengo-filter-group input:focus,
+.jengo-filter-group select:focus { border-color: var(--g500); background: #fff; }
+.jengo-filter-submit {
+  width: 100%;
+  margin-top: 10px;
+  padding: 14px 20px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(100deg, var(--g700), var(--g600));
+  color: #fff;
+  font-family: 'Sora', sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  box-shadow: 0 14px 30px -12px var(--g600);
+  transition: transform .2s var(--ease), box-shadow .2s var(--ease);
+}
+.jengo-filter-submit:hover { transform: translateY(-2px); box-shadow: 0 20px 38px -12px var(--g600); }
+.jengo-filter-reset {
+  display: block;
+  text-align: center;
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--muted);
+  text-decoration: none;
+  font-family: 'Sora', sans-serif;
+  font-weight: 600;
+}
+.jengo-filter-reset:hover { color: var(--g700); }
+
+/* ── Results count ───────────────────────────────────────────────── */
+.jl-results-header {
+  margin-bottom: 22px;
+}
+.jl-results-count {
+  font-family: 'Sora', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ── Card grid ───────────────────────────────────────────────────── */
+.jengo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+/* ── Job card — parallelogram style matching homepage ────────────── */
+.jengo-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid var(--line);
+  padding: 22px 28px 20px 24px;
+  /* same skew as .partner on the homepage */
+  transform: skewX(-3deg);
+  transition: transform .2s var(--ease), box-shadow .2s var(--ease), border-color .2s;
+  gap: 0;
+}
+.jengo-card:hover {
+  transform: skewX(-3deg) translateY(-4px);
+  box-shadow: var(--shadow);
+  border-color: transparent;
+}
+/* inner counter-skew so content reads straight */
+.jl-card-inner {
+  transform: skewX(3deg);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 100%;
+}
+.jengo-card-header h2 {
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--ink);
+  margin: 0 0 4px;
+  line-height: 1.2;
+  letter-spacing: -.01em;
+}
+.jengo-card-header h2 a { color: inherit; text-decoration: none; }
+.jengo-card-header h2 a:hover { color: var(--g700); }
+.jengo-company {
+  font-family: 'Sora', sans-serif;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--g700);
+}
+.jengo-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.jengo-card-meta span {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  padding: 3px 10px;
+  font-size: 12.5px;
+}
+
+/* ── Skill tags — exact .pr-tag style ───────────────────────────── */
+.jengo-skills { display: flex; flex-wrap: wrap; gap: 6px; }
+.jengo-skill-tag {
+  background: var(--g100);
+  color: var(--g700);
+  border: 1px solid rgba(34,166,90,.25);
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+/* ── Apply button — exact .btn-primary style ─────────────────────── */
+.jengo-apply-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+  padding: 12px 22px;
+  border-radius: 999px;
+  background: linear-gradient(100deg, var(--g700), var(--g600));
+  color: #fff;
+  font-family: 'Sora', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 14px 30px -12px var(--g600);
+  transition: transform .2s var(--ease), box-shadow .2s var(--ease);
+  align-self: flex-start;
+}
+.jengo-apply-btn::after { content: ' →'; transition: transform .25s var(--ease); display: inline-block; }
+.jengo-apply-btn:hover { transform: translateY(-2px); box-shadow: 0 20px 38px -12px var(--g600); }
+.jengo-apply-btn:hover::after { transform: translateX(5px); }
+.jengo-apply-large { padding: 16px 30px; font-size: 16px; }
+
+/* ── Pagination ──────────────────────────────────────────────────── */
+.jengo-pagination {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 40px;
+  flex-wrap: wrap;
+}
+.jengo-page-btn {
+  padding: 10px 18px;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  color: var(--g900);
+  text-decoration: none;
+  font-family: 'Sora', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  background: #fff;
+  transition: all .2s var(--ease);
+}
+.jengo-page-btn.active,
+.jengo-page-btn:hover {
+  background: linear-gradient(100deg, var(--g700), var(--g600));
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 10px 24px -10px var(--g600);
+}
+
+/* ── No results ──────────────────────────────────────────────────── */
+.jengo-no-results {
+  padding: 48px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 17px;
+  font-family: 'Sora', sans-serif;
+}
+.jengo-no-results a { color: var(--g700); }
+
+/* ── Detail page ─────────────────────────────────────────────────── */
+.jl-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: clamp(32px, 4vw, 60px);
+  align-items: start;
+}
+@media (max-width: 900px) { .jl-detail-grid { grid-template-columns: 1fr; } }
+
+.jengo-detail-header { margin-bottom: 32px; }
+.jengo-detail-header h1 {
+  font-family: 'Sora', sans-serif;
+  font-weight: 800;
+  font-size: clamp(32px, 4vw, 52px);
+  line-height: 1.0;
+  letter-spacing: -.03em;
+  color: var(--ink);
+  margin: 0 0 18px;
+}
+.jengo-detail-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 20px;
+}
+.jengo-detail-meta span {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  padding: 5px 12px;
+  font-size: 13.5px;
+  color: var(--ink);
+}
+.jengo-detail-meta .jengo-company {
+  background: var(--g100);
+  border-color: rgba(34,166,90,.25);
+  color: var(--g700);
+}
+
+/* Detail sidebar card */
+.jl-detail-sidebar {
+  background: #fff;
+  border: 1px solid var(--line);
+  padding: 24px 26px;
+  transform: skewX(-2deg);
+  position: sticky;
+  top: 24px;
+}
+.jl-detail-sidebar-inner { transform: skewX(2deg); }
+.jl-detail-sidebar h3 {
+  font-family: 'Sora', sans-serif;
+  font-weight: 800;
+  font-size: 17px;
+  color: var(--ink);
+  margin: 0 0 16px;
+}
+.jl-meta-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: var(--muted);
+  align-items: flex-start;
+}
+.jl-meta-row .lbl {
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--g700);
+  flex: 0 0 80px;
+  padding-top: 1px;
+}
+
+.jengo-description {
+  font-size: 16.5px;
+  line-height: 1.7;
+  color: var(--ink);
+}
+.jengo-description h2,
+.jengo-description h3 {
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 28px 0 10px;
+  letter-spacing: -.02em;
+}
+.jengo-description p { margin: 0 0 16px; }
+.jengo-description ul { padding-left: 20px; margin: 0 0 16px; }
+.jengo-description li { margin-bottom: 6px; color: var(--muted); }
+
+.jengo-detail-footer {
+  margin-top: 40px;
+  padding-top: 28px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.jengo-back a {
+  color: var(--g700);
+  text-decoration: none;
+  font-family: 'Sora', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+}
+.jengo-back a:hover { color: var(--g900); }
+
+/* ── FAQ accordion ───────────────────────────────────────────────── */
+.jengo-faqs { margin-top: 40px; }
+.jengo-faqs > h2 {
+  font-family: 'Sora', sans-serif;
+  font-weight: 800;
+  font-size: clamp(24px, 2.6vw, 36px);
+  letter-spacing: -.025em;
+  color: var(--ink);
+  margin-bottom: 20px;
+}
+.jengo-faq-item {
+  background: #fff;
+  border: 1px solid var(--line);
+  margin-bottom: 8px;
+  transition: border-color .2s;
+}
+.jengo-faq-item[open] { border-color: var(--g500); }
+.jengo-faq-item summary {
+  padding: 16px 20px;
+  cursor: pointer;
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--ink);
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  letter-spacing: -.01em;
+}
+.jengo-faq-item summary::after { content: '+'; color: var(--g500); font-size: 20px; line-height: 1; flex-shrink: 0; }
+.jengo-faq-item[open] summary::after { content: '−'; }
+.jengo-faq-item p {
+  padding: 0 20px 18px;
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--muted);
+}
+
+/* ── Combo page intro ────────────────────────────────────────────── */
+.jengo-combo-intro {
+  background: #fff;
+  border-left: 4px solid var(--g500);
+  padding: 18px 22px;
+  margin-bottom: 28px;
+  font-size: 16.5px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+
+/* ── Back link ───────────────────────────────────────────────────── */
+.jengo-back {
+  margin-top: 40px;
+}
