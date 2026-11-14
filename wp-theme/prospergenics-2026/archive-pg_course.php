@@ -9,7 +9,11 @@ $pgc_user    = get_current_user_id();
 $pgc_active  = $pgc_filters['category'] || $pgc_filters['level'] || 'newest' !== $pgc_filters['sort'];
 global $wp_query;
 // the courses in the jengo-listings system (Martien's courses), shown on the unfiltered first page
-$pgc_listings = ( ! $pgc_active && (int) get_query_var('paged') < 2 && function_exists('prospergenics_courses_listings') ) ? prospergenics_courses_listings() : array();
+$pgc_listings_all = ( (int) get_query_var('paged') < 2 && function_exists('prospergenics_courses_listings') ) ? prospergenics_courses_listings() : array();
+$pgc_listings     = $pgc_active ? prospergenics_courses_listings_filter($pgc_listings_all, $pgc_filters) : $pgc_listings_all;
+// categories only the listings courses have (no WordPress term for them), added to the dropdown
+$pgc_term_slugs = is_array($pgc_terms) ? array_map(function ($t) { return $t->slug; }, $pgc_terms) : array();
+$pgc_extra_cats = array_diff_key(prospergenics_courses_listings_category_options($pgc_listings_all), array_flip($pgc_term_slugs));
 // no courses at all (theme or listings) and nothing filtered: no filters or "0 courses", only the next steps (card #6537)
 $pgc_none = ! $pgc_active && ! have_posts() && ! $pgc_listings;
 ?>
@@ -35,6 +39,9 @@ $pgc_none = ! $pgc_active && ! have_posts() && ! $pgc_listings;
         <?php if (is_array($pgc_terms)) : foreach ($pgc_terms as $t) : ?>
           <option value="<?= esc_attr($t->slug) ?>" <?php selected($pgc_filters['category'], $t->slug); ?>><?= esc_html($t->name) ?></option>
         <?php endforeach; endif; ?>
+        <?php foreach ($pgc_extra_cats as $slug => $label) : ?>
+          <option value="<?= esc_attr($slug) ?>" <?php selected($pgc_filters['category'], $slug); ?>><?= esc_html($label) ?></option>
+        <?php endforeach; ?>
       </select>
     </div>
     <div class="pgc-field">

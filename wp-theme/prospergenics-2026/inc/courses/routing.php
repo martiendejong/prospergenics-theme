@@ -151,7 +151,7 @@ add_action( 'pre_get_posts', function ( $q ) {
 	}
 	$f = prospergenics_courses_current_filters();
 	$q->set( 'posts_per_page', 12 );
-	if ( $f['category'] ) {
+	if ( $f['category'] && term_exists( $f['category'], 'pg_course_category' ) ) {
 		$q->set( 'tax_query', array( array( 'taxonomy' => 'pg_course_category', 'field' => 'slug', 'terms' => $f['category'], 'include_children' => true ) ) );
 	}
 	$meta = array();
@@ -159,8 +159,13 @@ add_action( 'pre_get_posts', function ( $q ) {
 		$meta['level'] = array( 'key' => '_pg_courses_level', 'value' => $f['level'] );
 	}
 	if ( 'popular' === $f['sort'] ) {
-		$meta['popular'] = array( 'key' => '_pg_courses_enrolment_count', 'type' => 'NUMERIC', 'compare' => 'EXISTS' );
-		$q->set( 'orderby', array( 'popular' => 'DESC', 'date' => 'DESC' ) );
+		// Include courses without enrolments too (they sort last); EXISTS alone would drop them.
+		$meta['popular'] = array(
+			'relation'       => 'OR',
+			'popular_clause' => array( 'key' => '_pg_courses_enrolment_count', 'type' => 'NUMERIC', 'compare' => 'EXISTS' ),
+			array( 'key' => '_pg_courses_enrolment_count', 'compare' => 'NOT EXISTS' ),
+		);
+		$q->set( 'orderby', array( 'popular_clause' => 'DESC', 'date' => 'DESC' ) );
 	} else {
 		$q->set( 'orderby', array( 'date' => 'DESC', 'ID' => 'DESC' ) );
 	}
@@ -173,9 +178,6 @@ add_action( 'pre_get_posts', function ( $q ) {
 function prospergenics_courses_current_filters() {
 	// phpcs:disable WordPress.Security.NonceVerification -- read-only GET filters
 	$cat = isset( $_GET['category'] ) ? sanitize_title( wp_unslash( $_GET['category'] ) ) : '';
-	if ( $cat && ! term_exists( $cat, 'pg_course_category' ) ) {
-		$cat = '';
-	}
 	return array(
 		'category' => $cat,
 		'level'    => isset( $_GET['level'] ) ? prospergenics_courses_sanitize_level( wp_unslash( $_GET['level'] ) ) : '',
