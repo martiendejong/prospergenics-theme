@@ -7,6 +7,7 @@
  * server-rendered nonces or per-user fragments, so the whole output is safe to
  * cache for visitors who are not logged in.
  *
+ * Only the site root is cached (prospergenics_2026_is_homepage_request(), key per path).
  * Bypassed for: logged-in users, non-GET requests, requests with a query string,
  * and visitors holding a comment/login cookie. Replies carry X-Cache: HIT or MISS.
  */
@@ -16,8 +17,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 const PG_HOME_CACHE_KEY = 'pg_home_cache';
 
+/**
+ * Normalized request path: the cache key depends on it, so one route can never be
+ * replayed for another.
+ */
+function pg_home_cache_path() {
+    $uri = isset( $_SERVER['REQUEST_URI'] ) ? (string) parse_url( (string) $_SERVER['REQUEST_URI'], PHP_URL_PATH ) : '/';
+    return '/' . trim( strtolower( $uri ), '/' );
+}
+
+function pg_home_cache_key() {
+    return PG_HOME_CACHE_KEY . '_' . md5( pg_home_cache_path() );
+}
+
 function pg_home_cache_eligible() {
-    if ( is_user_logged_in() || ! is_front_page() ) {
+    // is_front_page() is also true on routes rendered on top of the front-page query
+    // (/register/, /profile/settings/, /badges/ ...); only the real root request may be cached.
+    if ( is_user_logged_in() || ! function_exists( 'prospergenics_2026_is_homepage_request' ) || ! prospergenics_2026_is_homepage_request() ) {
         return false;
     }
     if ( ( $_SERVER['REQUEST_METHOD'] ?? 'GET' ) !== 'GET' || ! empty( $_GET ) ) {
@@ -35,7 +51,7 @@ add_action( 'template_redirect', function () {
     if ( ! pg_home_cache_eligible() ) {
         return;
     }
-    $html = get_transient( PG_HOME_CACHE_KEY );
+    $html = get_transient( pg_home_cache_key() );
     if ( is_string( $html ) && '' !== $html ) {
         header( 'X-Cache: HIT' );
         header( 'Content-Type: text/html; charset=' . get_option( 'blog_charset' ) );
@@ -51,14 +67,16 @@ add_action( 'template_redirect', function () {
             $html = ob_get_clean() . $html;
         }
         if ( '' !== $html && 200 === http_response_code() && false !== stripos( $html, '</html>' ) ) {
-            set_transient( PG_HOME_CACHE_KEY, $html, HOUR_IN_SECONDS );
+            set_transient( pg_home_cache_key(), $html, HOUR_IN_SECONDS );
         }
         echo $html; // phpcs:ignore WordPress.Security.EscapeOutput
     }, 0 );
 }, 0 );
 
 function pg_home_cache_flush() {
-    delete_transient( PG_HOME_CACHE_KEY );
+    // Only the site root is ever cached; its key is the one for path '/'.
+    delete_transient( PG_HOME_CACHE_KEY . '_' . md5( '/' ) );
+    delete_transient( PG_HOME_CACHE_KEY ); // key used before the path was part of it
 }
 add_action( 'save_post', 'pg_home_cache_flush' );
 add_action( 'updated_option', function ( $option ) {

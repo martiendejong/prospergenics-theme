@@ -50,7 +50,7 @@ class Session {
         continue;
       }
       let data = null; try { data = JSON.parse(text); } catch (e) { /* html */ }
-      return { status: res.status, location, text, data, chain, finalUrl: url };
+      return { status: res.status, location, text, data, chain, finalUrl: url, xcache: res.headers.get('x-cache') || '' };
     }
     throw new Error(`too many redirects for ${path}`);
   }
@@ -187,6 +187,17 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
 
   /* 8. /profile/settings/: members only, every form needs its nonce. */
   {
+    /* 7223: the anonymous homepage cache must only ever replay the site root. Prime it with / (twice,
+       so the second is a HIT where the cache is on), then the other front-page-query routes must not
+       come out of it. */
+    {
+      await visitor.get('/');
+      const home = await visitor.get('/');
+      for (const route of ['/register/', '/profile/settings/', '/badges/']) {
+        const r = await visitor.get(route);
+        check(`page cache: ${route} is not served from the homepage cache`, 'visitor', r.xcache !== 'HIT' && r.text !== home.text, `status ${r.status}, X-Cache "${r.xcache}"`);
+      }
+    }
     const r = await visitor.get('/profile/settings/');
     check('settings need a login', 'visitor', r.status === 302 && /wp-login\.php/.test(r.location || ''), `status ${r.status} -> ${r.location ? pathOf(r.location) : '(none)'}`);
     for (const [action, fields] of [['email', { email: 'taken-over@example.test', current_password: PW }], ['password', { current_password: PW, new_password: 'Hijack-pass-999', confirm_password: 'Hijack-pass-999' }], ['delete', { current_password: PW, confirm: '1' }]]) {
