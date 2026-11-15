@@ -5,11 +5,11 @@
  *
  * Checks:
  *   - the heading and intro text stay, and the section keeps id="projects",
- *   - the list holds the seven tools of /tools/ in order, each a real link to /tools/<slug>/ with its
+ *   - the list holds the eight tools of /tools/ in order, each a real link to /tools/<slug>/ with its
  *     name and a one-liner (so the preview is never the only place they appear),
  *   - one preview panel per tool: only the first is shown before any script runs; each has the
  *     name, a description, the three skills and an "Explore <Tool>" link to the same page,
- *   - real screenshots only for Jengo and SEO God (with alt text and a size); the other five get the
+ *   - real screenshots only for Jengo and SEO God (with alt text and a size); the other six get the
  *     branded panel (icon + tagline), never an <img>,
  *   - no expanding strip and no scroll-zoom past 1 here, none at all on the services cards (that pushed the
  *     outer cards off the screen); the focus ring is the shared token; reduced motion is respected,
@@ -45,6 +45,7 @@ $tools = array(
 	'jengomail'       => 'JengoMail',
 	'jengo-knowledge' => 'Jengo Knowledge',
 	'seo-god'         => 'SEO God',
+	'jengomail-reporter' => 'JengoMail Reporter',
 );
 $shots = array( 'jengo' => 'jengo-task-outcomes.webp', 'seo-god' => 'seomagic.webp' );
 
@@ -55,19 +56,19 @@ ok( false !== strpos( $sec, '<h2>Tools we use, <span class="accent">built oursel
 ok( false !== strpos( $sec, '<p>The systems behind our daily work. We use them, we build them, we offer them.</p>' ), 'the intro text stays' );
 ok( false === strpos( $sec, 'pcard' ) && false === strpos( $sec, 'pstrip' ), 'no expanding strip cards left in the tools section' );
 
-echo "The list: seven real links with name and one-liner\n";
+echo "The list: eight real links with name and one-liner\n";
 preg_match_all( '#<a class="tool-item( is-active)?" href="/tools/([a-z-]+)/" data-i="(\d)">.*?<span class="tool-name">([^<]+)</span><span class="tool-line">([^<]+)</span>#', $sec, $items, PREG_SET_ORDER );
-ok( 7 === count( $items ), '7 tool links (' . count( $items ) . ')' );
+ok( 8 === count( $items ), '8 tool links (' . count( $items ) . ')' );
 ok( array_keys( $tools ) === array_column( $items, 2 ), 'in the order of /tools/: ' . implode( ', ', array_column( $items, 2 ) ) );
 ok( array_values( $tools ) === array_column( $items, 4 ), 'each shows the tool\'s name' );
-ok( count( array_filter( array_column( $items, 5 ), function ( $l ) { return strlen( trim( $l ) ) > 20 && strlen( $l ) <= 50; } ) ) === 7, 'each has a one-liner of at most 50 characters' );
+ok( count( array_filter( array_column( $items, 5 ), function ( $l ) { return strlen( trim( $l ) ) > 20 && strlen( $l ) <= 50; } ) ) === 8, 'each has a one-liner of at most 50 characters' );
 ok( ' is-active' === $items[0][1] && 1 === substr_count( $sec, 'tool-item is-active' ), 'only the first is marked active in the markup' );
 ok( ! preg_match( '#<a class="tool-item[^>]*(aria-label|tabindex|role)=#', $sec ), 'the links take their name from their visible text, in the normal tab order' );
 
 echo "Preview panels\n";
 preg_match_all( '#<div class="tool-panel( tp-branded)?" data-i="(\d)"( hidden)?>(.*?)\n        </div>\n#s', $sec, $panels, PREG_SET_ORDER );
-ok( 7 === count( $panels ), '7 panels (' . count( $panels ) . ')' );
-ok( '' === $panels[0][3] && 6 === count( array_filter( array_column( $panels, 3 ) ) ), 'only the first panel is shown before the script runs' );
+ok( 8 === count( $panels ), '8 panels (' . count( $panels ) . ')' );
+ok( '' === $panels[0][3] && 7 === count( array_filter( array_column( $panels, 3 ) ) ), 'only the first panel is shown before the script runs' );
 $slugs = array_keys( $tools );
 foreach ( $panels as $i => $p ) {
 	$slug = $slugs[ $i ];
@@ -112,7 +113,7 @@ ok( (bool) preg_match( '#if \(tapPreview && e\.detail\) \{ e\.preventDefault\(\)
 
 echo "Generated front page\n";
 $fsec = section( $front, 'projects' );
-ok( '' !== $fsec && 7 === preg_match_all( '#<a class="tool-item[^"]*" href="/tools/[a-z-]+/"#', $fsec ) && 5 === substr_count( $fsec, 'tool-panel tp-branded' ), 'front-page.php carries the same section' );
+ok( '' !== $fsec && 8 === preg_match_all( '#<a class="tool-item[^"]*" href="/tools/[a-z-]+/"#', $fsec ) && 6 === substr_count( $fsec, 'tool-panel tp-branded' ), 'front-page.php carries the same section' );
 ok( false !== strpos( $fsec, "/assets/jengo-task-outcomes.webp" ) && false === strpos( $fsec, 'src="assets/' ), 'with theme asset URLs' );
 
 echo $failures ? "\n$failures FAILED\n" : "\nAll assertions passed.\n";

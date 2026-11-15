@@ -905,6 +905,9 @@
   .tp-go:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; }
   .tp-go .arrow { transition: transform .2s var(--ease); }
   .tp-go:hover .arrow { transform: translateX(4px); }
+  .tools-all { margin-top: 18px; }
+  .tools-all .tp-go { background: var(--green-900); color: #fff; }
+  .tools-all .tp-go:hover { background: var(--green-700, var(--green-900)); opacity: .9; }
   @media (min-width: 981px){
     .tool-arr { opacity: 0; transform: translateX(-6px); transition: opacity .2s var(--ease), transform .2s var(--ease); }
     .tool-item:hover { background: #fff; box-shadow: 0 0 0 1px var(--line); }
@@ -1352,6 +1355,7 @@
     <div class="projects-head">
       <h2>Tools we use, <span class="accent">built ourselves</span></h2>
       <p>The systems behind our daily work. We use them, we build them, we offer them.</p>
+      <p class="tools-all"><a class="tp-go" href="/tools/">All tools <span class="arrow" aria-hidden="true">&rarr;</span></a></p>
     </div>
     <div class="tools" data-scroll-scale="1" data-scroll-scale-from="0.94">
       <ul class="tools-list">
@@ -1362,6 +1366,7 @@
         <li><a class="tool-item" href="/tools/jengomail/" data-i="4"><span class="tool-ico"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3.5 7.5l8.5 6 8.5-6"/></svg></span><span class="tool-txt"><span class="tool-name">JengoMail</span><span class="tool-line">Shared inboxes with AI triage and drafting.</span></span><span class="tool-arr" aria-hidden="true">&rarr;</span></a></li>
         <li><a class="tool-item" href="/tools/jengo-knowledge/" data-i="5"><span class="tool-ico"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="7" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M8.5 6.2l7 .6M7.2 8.3l3.6 7.4M16.8 9.3l-3.6 6.5"/></svg></span><span class="tool-txt"><span class="tool-name">Jengo Knowledge</span><span class="tool-line">Knowledge search with RAG and an ontology.</span></span><span class="tool-arr" aria-hidden="true">&rarr;</span></a></li>
         <li><a class="tool-item" href="/tools/seo-god/" data-i="6"><span class="tool-ico"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.3 15.3L21 21M7.5 12.5l2-2 1.5 1.5 2.5-3"/></svg></span><span class="tool-txt"><span class="tool-name">SEO God</span><span class="tool-line">Automated SEO and AI-optimisation at scale.</span></span><span class="tool-arr" aria-hidden="true">&rarr;</span></a></li>
+        <li><a class="tool-item" href="/tools/jengomail-reporter/" data-i="7"><span class="tool-ico"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M8 12.5l2.7 2.7L16 9.5"/></svg></span><span class="tool-txt"><span class="tool-name">JengoMail Reporter</span><span class="tool-line">Flags important mail and drafts your reply.</span></span><span class="tool-arr" aria-hidden="true">&rarr;</span></a></li>
       </ul>
       <div class="tools-stage">
         <div class="tool-panel" data-i="0">
@@ -1418,6 +1423,14 @@
             <h3>SEO God</h3>
             <p>Automates SEO and AI-optimisation: content, on-page optimisation and translations at scale.</p>
             <div class="tp-foot"><a class="tp-go" href="/tools/seo-god/">Explore SEO God <span class="arrow" aria-hidden="true">&rarr;</span></a><ul class="tp-chips" aria-label="SEO God skills"><li>SEO</li><li>AI-optimisation</li><li>Content</li></ul></div>
+          </div>
+        </div>
+        <div class="tool-panel tp-branded" data-i="7" hidden>
+          <div class="tp-media tp-art"><span class="tp-art-ico"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M8 12.5l2.7 2.7L16 9.5"/></svg></span><p class="tp-art-tag">Important mail, found and answered.</p></div>
+          <div class="tp-body">
+            <h3>JengoMail Reporter</h3>
+            <p>A Windows tray app that watches JengoMail, spots the mail that needs action, and starts Jengo to prepare a draft reply with the offer or plan it needs.</p>
+            <div class="tp-foot"><a class="tp-go" href="/tools/jengomail-reporter/">Explore JengoMail Reporter <span class="arrow" aria-hidden="true">&rarr;</span></a><ul class="tp-chips" aria-label="JengoMail Reporter skills"><li>E-mail</li><li>Windows app</li><li>AI drafting</li></ul></div>
           </div>
         </div>
       </div>
