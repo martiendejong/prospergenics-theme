@@ -102,9 +102,7 @@ def vault_cred(project, cred_id, reason):
 
 def ensure_dir(ftp, path):
     parts = path.split("/")
-    # The server drops the control connection on MKD of the top-level hosting folders
-    # (EOFError), so only create what lies below domains/<site>/public_html.
-    for i in range(min(4, len(parts)) + 1, len(parts) + 1):
+    for i in range(1, len(parts) + 1):
         try:
             ftp.mkd("/".join(parts[:i]))
         except ftplib.error_perm:
