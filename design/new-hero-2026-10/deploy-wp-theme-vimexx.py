@@ -51,7 +51,7 @@ How a theme deploy stays safe (audit ARC-17):
 Testing against a local FTP server: PG_FTP_HOST, PG_FTP_PORT and PG_FTP_ROOT override the host,
 port and web root; PG_FTP_PLAIN=1 allows plain FTP, for localhost only.
 """
-import argparse, datetime, ftplib, hashlib, io, json, os, posixpath, re, subprocess, sys
+import argparse, datetime, ftplib, hashlib, io, json, os, posixpath, re, subprocess, sys, time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import deploy_guard  # noqa: E402
@@ -102,7 +102,9 @@ def vault_cred(project, cred_id, reason):
 
 def ensure_dir(ftp, path):
     parts = path.split("/")
-    for i in range(1, len(parts) + 1):
+    # The server drops the control connection on MKD of the top-level hosting folders
+    # (EOFError), so only create what lies below domains/<site>/public_html.
+    for i in range(min(4, len(parts)) + 1, len(parts) + 1):
         try:
             ftp.mkd("/".join(parts[:i]))
         except ftplib.error_perm:
@@ -232,6 +234,26 @@ class Uploader:
             self.made.add(remote_dir)
 
     def put(self, data, remote, atomic=True):
+        """put with automatic reconnect: web0168 now and then drops the control connection mid-run."""
+        for attempt in range(6):
+            try:
+                return self._put(data, remote, atomic)
+            except (EOFError, OSError, ftplib.error_temp) as e:
+                cred = getattr(self.ftp, "_cred", None)
+                if not cred or attempt == 5:
+                    raise
+                print(f"  connection dropped ({e!r}), reconnecting (attempt {attempt + 1})")
+                time.sleep(2)
+                try:
+                    self.ftp.close()
+                except Exception:
+                    pass
+                self.ftp.connect(FTP_HOST, FTP_PORT, timeout=60)
+                self.ftp.login(cred["username"], cred["password"])
+                self.ftp.prot_p()
+                self.made.clear()
+
+    def _put(self, data, remote, atomic=True):
         self.mkdirs(posixpath.dirname(remote))
         if not atomic or not self.rename_ok:
             self.ftp.storbinary(f"STOR {remote}", io.BytesIO(data), blocksize=262144)
@@ -505,6 +527,7 @@ def connect():
         ftp.connect(FTP_HOST, FTP_PORT, timeout=60)
         ftp.login(cred["username"], cred["password"])
         ftp.prot_p()
+        ftp._cred = cred
     return ftp
 
 
