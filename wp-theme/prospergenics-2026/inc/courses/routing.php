@@ -151,8 +151,8 @@ add_action( 'pre_get_posts', function ( $q ) {
 	}
 	$f = prospergenics_courses_current_filters();
 	$q->set( 'posts_per_page', 12 );
-	if ( $f['category'] && term_exists( $f['category'], 'pg_course_category' ) ) {
-		$q->set( 'tax_query', array( array( 'taxonomy' => 'pg_course_category', 'field' => 'slug', 'terms' => $f['category'], 'include_children' => true ) ) );
+	foreach ( prospergenics_courses_category_query_vars( $f['category'] ) as $var => $value ) {
+		$q->set( $var, $value );
 	}
 	$meta = array();
 	if ( $f['level'] ) {

@@ -11,6 +11,7 @@ function ok( $c, $m ) { global $failures; echo ( $c ? '  PASS  ' : '  FAIL  ' ) 
 $GLOBALS['filters'] = array();
 function add_filter( $tag, $fn ) { $GLOBALS['filters'][ $tag ][] = $fn; }
 function add_action( $tag, $fn ) {}
+function term_exists( $t, $tax ) { return 'programming' === $t ? array( 'term_id' => 1 ) : null; }
 function apply_filters( $tag, $v ) { return $v; }
 function sanitize_title( $s ) { return trim( preg_replace( '/[^a-z0-9]+/', '-', strtolower( $s ) ), '-' ); }
 function wp_strip_all_tags( $s ) { return strip_tags( $s ); }

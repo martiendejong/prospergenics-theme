@@ -111,6 +111,23 @@ function prospergenics_courses_listings_filter( array $items, array $filters ) {
 }
 
 /**
+ * Query vars for the WP course archive under a category filter. A category that exists as a WP term
+ * filters by it; one that exists only in the listings has no WP courses, so none may be shown (an
+ * unfiltered query would list every WP course under it).
+ *
+ * @return array<string,mixed>
+ */
+function prospergenics_courses_category_query_vars( $category ) {
+	if ( '' === (string) $category ) {
+		return array();
+	}
+	if ( term_exists( $category, 'pg_course_category' ) ) {
+		return array( 'tax_query' => array( array( 'taxonomy' => 'pg_course_category', 'field' => 'slug', 'terms' => $category, 'include_children' => true ) ) );
+	}
+	return array( 'post__in' => array( 0 ) );
+}
+
+/**
  * Unique non-empty category slug => label pairs from a parsed listings array.
  *
  * @param array[] $items As returned by prospergenics_courses_listings().
