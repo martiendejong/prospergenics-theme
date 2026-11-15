@@ -27,6 +27,8 @@ $GLOBALS['options']    = array();
 $GLOBALS['remote']     = null;
 $GLOBALS['remote_calls'] = 0;
 function apply_filters( $hook, $value ) { return $value; }
+function add_filter() {}
+function prospergenics_courses_sanitize_level( $l ) { return strtolower( (string) $l ); }
 function sanitize_title( $s ) { return trim( preg_replace( '/[^a-z0-9]+/', '-', strtolower( (string) $s ) ), '-' ); }
 function wp_strip_all_tags( $s ) { return trim( strip_tags( preg_replace( '@<(script|style)[^>]*?>.*?</\\1>@si', '', (string) $s ) ) ); }
 function esc_html( $s ) { return htmlspecialchars( (string) $s, ENT_QUOTES, 'UTF-8' ); }
