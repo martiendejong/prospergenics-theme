@@ -57,5 +57,10 @@ ok( array( 'Python' ) === $titles( 'python' ), '/find/ python finds the Python c
 ok( array( 'HTML' ) === $titles( 'html' ), '/find/ html finds the HTML course' );
 ok( array( 'AI Software Lifecycle' ) === $titles( 'ai software' ), '/find/ ai software finds the AI course' );
 
+$v = prospergenics_courses_category_query_vars( 'programming' );
+ok( isset( $v['tax_query'] ) && ! isset( $v['post__in'] ), 'a category with a WP term filters by the term' );
+ok( array( 'post__in' => array( 0 ) ) === prospergenics_courses_category_query_vars( 'web-development' ), 'a listings-only category lists no WP courses' );
+ok( array() === prospergenics_courses_category_query_vars( '' ), 'no category: no restriction' );
+
 echo $failures ? "\n$failures FAILED\n" : "\nAll 7230 tests passed\n";
 exit( $failures ? 1 : 0 );
