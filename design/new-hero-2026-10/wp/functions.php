@@ -10,6 +10,14 @@ add_action( 'after_setup_theme', function () {
 // The templates carry their own <title>; keep WP/plugins from printing a second one.
 remove_action( 'wp_head', '_wp_render_title_tag', 1 );
 
+add_action( 'wp_head', function () {
+    $uri = esc_url( get_template_directory_uri() );
+    echo '<link rel="icon" type="image/png" sizes="32x32" href="' . $uri . '/assets/favicon-32x32.png">' . "\n";
+    echo '<link rel="icon" type="image/png" sizes="16x16" href="' . $uri . '/assets/favicon-16x16.png">' . "\n";
+    echo '<link rel="apple-touch-icon" sizes="180x180" href="' . $uri . '/assets/apple-touch-icon.png">' . "\n";
+    echo '<link rel="shortcut icon" href="' . $uri . '/assets/favicon.ico">' . "\n";
+}, 1 );
+
 // First, so a fatal error in anything loaded after it is logged and emailed to staff (#6473).
 require get_template_directory() . '/inc/ops-alerts.php';
 require get_template_directory() . '/inc/security.php';
