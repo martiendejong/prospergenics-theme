@@ -323,3 +323,64 @@ add_action( 'wp_head', function () {
         echo "\n" . '<script type="application/ld+json" class="prospergenics-2026-schema">' . wp_json_encode( prospergenics_2026_front_page_schema(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
     }
 }, 24 );
+
+/**
+ * Noindex author archives, category archives, and duplicate/low-value WP pages.
+ * These URLs dilute crawl budget: author pages expose usernames with no unique content;
+ * category archives list posts already covered by the posts themselves; the slug pages
+ * below (/home/ /diko/ /frank/ /lessy/ /sandra/) are legacy stubs superseded by /people/*.
+ *
+ * Yoast SEO (active on this site) uses wpseo_robots for the robots meta tag; wp_robots is
+ * the fallback when Yoast is not active. Both filters are set so neither code path produces
+ * an indexable URL.
+ *
+ * JengoWork task 3371.
+ */
+function prospergenics_2026_noindex_page_slugs() {
+    return array( 'home', 'diko', 'frank', 'lessy', 'sandra' );
+}
+
+add_filter( 'wpseo_robots', function ( $robots ) {
+    if ( is_author() || is_category() ) {
+        return 'noindex, follow';
+    }
+    if ( is_page( prospergenics_2026_noindex_page_slugs() ) ) {
+        return 'noindex, follow';
+    }
+    return $robots;
+} );
+
+add_filter( 'wp_robots', function ( $robots ) {
+    if ( is_author() || is_category() ) {
+        $robots['noindex'] = true;
+        unset( $robots['max-image-preview'] );
+        return $robots;
+    }
+    if ( is_page( prospergenics_2026_noindex_page_slugs() ) ) {
+        $robots['noindex'] = true;
+        unset( $robots['max-image-preview'] );
+    }
+    return $robots;
+} );
+
+/**
+ * Remove author and category sitemap sections from the Yoast sitemap index so
+ * Googlebot does not request those sitemap files at all.
+ */
+add_filter( 'wpseo_sitemap_index', function ( $index ) {
+    $index = preg_replace( '/<sitemap>[^<]*<loc>[^<]*\/author-sitemap\.xml[^<]*<\/loc>.*?<\/sitemap>\s*/s', '', $index );
+    $index = preg_replace( '/<sitemap>[^<]*<loc>[^<]*\/category-sitemap\.xml[^<]*<\/loc>.*?<\/sitemap>\s*/s', '', $index );
+    return $index;
+}, 20 );
+
+/**
+ * Remove individual duplicate/stub pages from Yoast's page sitemap entries.
+ */
+add_filter( 'wpseo_sitemap_entry', function ( $url, $type, $object ) {
+    if ( 'post' === $type && $object instanceof WP_Post ) {
+        if ( in_array( $object->post_name, prospergenics_2026_noindex_page_slugs(), true ) ) {
+            return false;
+        }
+    }
+    return $url;
+}, 10, 3 );

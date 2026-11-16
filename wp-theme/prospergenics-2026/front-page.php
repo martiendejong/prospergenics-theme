@@ -1096,6 +1096,35 @@
     </div>
   </section>
 
+  <!-- PROGRAMS · 4 program pages linked here so search engines discover and crawl them
+       (task 3371: homepage had 0 program links). -->
+  <section class="projects" id="programs">
+    <div class="projects-head">
+      <h2>Our <span class="accent">programs</span></h2>
+      <p>Structured paths from where you are to where you want to be.</p>
+    </div>
+    <div class="pstrips" data-scroll-scale="1.2">
+      <div class="pstrip">
+        <a class="pcard" href="<?php echo esc_url( home_url( '/ai-and-technology-training/' ) ); ?>" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/sandra.webp'); background-position: 60% 20%">
+          <span class="pc-tag">AI &amp; Technology</span>
+          <div class="pc-caption"><p>AI and technology training for digital skills.</p></div>
+        </a>
+        <a class="pcard" href="<?php echo esc_url( home_url( '/community-development/' ) ); ?>" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/discover-alchemy.webp')">
+          <span class="pc-tag">Community Development</span>
+          <div class="pc-caption"><p>Building capacity and leadership in communities.</p></div>
+        </a>
+        <a class="pcard" href="<?php echo esc_url( home_url( '/entrepreneurship-support/' ) ); ?>" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/maximize.webp')">
+          <span class="pc-tag">Entrepreneurship</span>
+          <div class="pc-caption"><p>Start and grow your own business.</p></div>
+        </a>
+        <a class="pcard" href="<?php echo esc_url( home_url( '/claude-code-cursor-coaching/' ) ); ?>" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/jengo-task-outcomes.webp')">
+          <span class="pc-tag">Claude Code Coaching</span>
+          <div class="pc-caption"><p>AI-assisted development for teams and individuals.</p></div>
+        </a>
+      </div>
+    </div>
+  </section>
+
   <!-- VALUE TEST · five open questions, analysed by the CoachOS 'value-test' context on the
        prospergenics tenant (coaching.martiendejong.nl); everyone comes out valuable, each in
        their own way. Result ends with a CTA to the courses signup. -->
