@@ -94,6 +94,7 @@ PROFILES = [
             {"name": "Software architecture"},
             {"name": "SEO automation"},
         ],
+        "expert_categories": ["ai-agents", "software-dev"],
         "work": [
             ("Founder & lead developer", "ProsperGenics", "Builds Jengo, the AI agent platform, and leads development across the community's products."),
             ("Independent software developer", "Netherlands", "Two decades of web platforms and automation for Dutch organisations, including healthcare, government and rail."),
@@ -119,6 +120,7 @@ PROFILES = [
             {"name": "Front-end development"},
             {"name": "Entrepreneurship"},
         ],
+        "expert_categories": ["web-design", "business"],
         "work": [
             ("Founding team & software developer", "ProsperGenics", "Design and front-end work on the community's websites and products."),
             ("Entrepreneur", "", "Building her own business alongside her development work."),
@@ -142,6 +144,7 @@ PROFILES = [
             {"name": "Integrations"},
             {"name": "Business development"},
         ],
+        "expert_categories": ["software-dev", "business"],
         "work": [
             ("Founding team & software developer", "ProsperGenics", "Product development, integrations and partner contacts."),
         ],
@@ -164,6 +167,7 @@ PROFILES = [
             {"name": "Provenance research"},
             {"name": "Collection management"},
         ],
+        "expert_categories": ["art"],
         "work": [
             ("Curator", "Perridon Holdings", "Manages and researches the art collection."),
             ("Collaborator", "ProsperGenics", "Works with the team on provenance research tooling."),
@@ -226,6 +230,7 @@ PROFILES = [
             {"name": "Training & teaching"},
             {"name": "WordPress & websites"},
         ],
+        "expert_categories": ["software-dev", "training", "wordpress"],
         "work": [
             ("Founding team, trainer & software developer", "ProsperGenics", "Websites and web applications across the community's projects, and training for new developers."),
         ],
@@ -246,6 +251,7 @@ PROFILES = [
             {"name": "Web development"},
             {"name": "Shipping & deployment"},
         ],
+        "expert_categories": ["web-design", "software-dev"],
         "work": [
             ("Founding team, trainer & software developer", "ProsperGenics", "Feature development on the community's web platforms, and training for new developers."),
         ],
@@ -308,6 +314,7 @@ PROFILES = [
             {"name": "Marketing"},
             {"name": "Storytelling"},
         ],
+        "expert_categories": ["marketing"],
         "work": [
             ("Marketing & brand strategy", "ProsperGenics", "Brand strategy and marketing for the community's products."),
         ],
@@ -328,6 +335,70 @@ PROFILES = [
         ],
         "work": [
             ("Livestock keeper", "", "Grew her herd through community investment and runs it as a working business."),
+        ],
+        "education": [("", "", FALLBACK)],
+    },
+    {
+        "slug": "timothy", "name": "Timothy Rop", "role": "AI Trainer, Community member",
+        "tags": ["expert", "member"], "slider": False,
+        "img": None, "initial": "T",
+        "quote": "I help people understand AI and put it to work in their daily business.",
+        "story": "Timothy brings AI to people who think it is not for them. Through hands-on training sessions he shows that AI tools are accessible, practical and immediately useful - no technical background required.",
+        "contributions": [
+            ("AI training sessions", "Runs hands-on training workshops helping community members use AI tools in their work."),
+            ("Community onboarding", "Guides new members into the platform and connects them with the right resources."),
+        ],
+        "expertises": [
+            {"name": "AI tools for non-developers"},
+            {"name": "Training & teaching"},
+            {"name": "Community building"},
+        ],
+        "expert_categories": ["training", "ai-agents"],
+        "work": [
+            ("AI Trainer", "ProsperGenics", "Delivers AI literacy training for businesses and community members."),
+        ],
+        "education": [("", "", FALLBACK)],
+    },
+    {
+        "slug": "nico", "name": "Nico van der Berg", "role": "Data Scientist, Community member",
+        "tags": ["expert", "member"], "slider": False,
+        "img": None, "initial": "N",
+        "quote": "Data tells stories most people miss. I help you read them.",
+        "story": "Nico works at the intersection of data and decision-making. He builds analytics pipelines, trains models and translates the results into decisions businesses can actually act on.",
+        "contributions": [
+            ("Data analytics pipelines", "Builds data collection and analysis systems for community projects."),
+            ("Model training", "Applies machine learning to real business problems within the community."),
+        ],
+        "expertises": [
+            {"name": "Data science & analytics"},
+            {"name": "Machine learning"},
+            {"name": "Business intelligence"},
+        ],
+        "expert_categories": ["ai-agents", "software-dev"],
+        "work": [
+            ("Data Scientist", "ProsperGenics", "Data analytics and machine learning for community projects."),
+        ],
+        "education": [("", "", FALLBACK)],
+    },
+    {
+        "slug": "jengo", "name": "Jengo", "role": "AI Agent, ProsperGenics",
+        "tags": ["expert"], "slider": False,
+        "img": None, "initial": "J",
+        "members": False,
+        "quote": "I build, deploy and maintain the software that runs ProsperGenics. I work 24/7.",
+        "story": "Jengo is ProsperGenics own AI agent: an autonomous system that handles everything from writing code to deploying features, running tests and managing tasks. Built on the same AI principles the community teaches, Jengo is the proof of concept for what agentic AI can do when given real responsibilities.",
+        "contributions": [
+            ("Autonomous software development", "Writes, reviews and ships code across all community products without human intervention on routine tasks."),
+            ("Platform operations", "Keeps deployments, task management and monitoring running around the clock."),
+        ],
+        "expertises": [
+            {"name": "AI agents & LLM systems"},
+            {"name": "Autonomous software development"},
+            {"name": "Platform operations"},
+        ],
+        "expert_categories": ["ai-agents", "software-dev"],
+        "work": [
+            ("AI Agent", "ProsperGenics", "Autonomous development and operations agent for all ProsperGenics products."),
         ],
         "education": [("", "", FALLBACK)],
     },
@@ -841,6 +912,7 @@ def write_people_json():
             "initial": m.get("initial") or m["name"][:1], "quote": m["quote"],
             "expertises": [e["name"] for e in m["expertises"]], "members": on_members(m),
             **{k: m[k] for k in ("aka", "pronouns") if m.get(k)},  # the homepage chat's context (inc/coach-context.php)
+            **({"expert_categories": m["expert_categories"]} if m.get("expert_categories") else {}),
         } for m in PROFILES},
     }
     with open(PEOPLE_JSON, "w", encoding="utf-8") as f:

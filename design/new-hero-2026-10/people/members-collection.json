@@ -235,6 +235,46 @@
       }
     },
     {
+      "slug": "timothy",
+      "title": "Timothy Rop",
+      "company": "ProsperGenics",
+      "primary_skills": "AI tools for non-developers",
+      "description_seo": "<p>Timothy brings AI to people who think it is not for them. Through hands-on training sessions he shows that AI tools are accessible, practical and immediately useful - no technical background required.</p>",
+      "fields": {
+        "role": "AI Trainer, Community member",
+        "quote": "I help people understand AI and put it to work in their daily business.",
+        "photo": "",
+        "photo_pos": "center",
+        "initial": "T",
+        "topics": [
+          "AI tools for non-developers",
+          "Training & teaching",
+          "Community building"
+        ],
+        "profile_url": "/people/timothy/"
+      }
+    },
+    {
+      "slug": "nico",
+      "title": "Nico van der Berg",
+      "company": "ProsperGenics",
+      "primary_skills": "Data science & analytics",
+      "description_seo": "<p>Nico works at the intersection of data and decision-making. He builds analytics pipelines, trains models and translates the results into decisions businesses can actually act on.</p>",
+      "fields": {
+        "role": "Data Scientist, Community member",
+        "quote": "Data tells stories most people miss. I help you read them.",
+        "photo": "",
+        "photo_pos": "center",
+        "initial": "N",
+        "topics": [
+          "Data science & analytics",
+          "Machine learning",
+          "Business intelligence"
+        ],
+        "profile_url": "/people/nico/"
+      }
+    },
+    {
       "slug": "farid",
       "title": "Farid Harrak",
       "company": "ProsperGenics",
