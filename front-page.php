@@ -66,6 +66,34 @@ get_header( '2026' );
     </div>
   </section>
 
+  <!-- PROGRAMS · links to all 4 program pages + /about/; added for task 3371 (indexability). -->
+  <section class="projects" id="programs">
+    <div class="projects-head">
+      <h2>Our <span class="accent">programs</span></h2>
+      <p>Practical training, community building and entrepreneurship support. <a href="/about/">About ProsperGenics &rarr;</a></p>
+    </div>
+    <div class="pstrips" data-scroll-scale="1.2">
+      <div class="pstrip">
+        <a class="pcard" href="/ai-and-technology-training/" aria-label="AI &amp; Technology Training" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/discover-alchemy.png')">
+          <span class="pc-tag">AI &amp; Technology</span>
+          <div class="pc-caption"><p>AI tools and technology training for practical use.</p></div>
+        </a>
+        <a class="pcard" href="/community-development/" aria-label="Community Development" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/karibumara.jpg'); background-position: 50% 30%">
+          <span class="pc-tag">Community Development</span>
+          <div class="pc-caption"><p>Building strong, self-sustaining communities.</p></div>
+        </a>
+        <a class="pcard" href="/entrepreneurship-support/" aria-label="Entrepreneurship Support" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/value.png')">
+          <span class="pc-tag">Entrepreneurship</span>
+          <div class="pc-caption"><p>Start and grow your own business with real support.</p></div>
+        </a>
+        <a class="pcard" href="/claude-code-cursor-coaching/" aria-label="Claude Code &amp; Cursor Coaching" style="background-image:url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/jengo-werkplek-duo.png'); background-position: 60% 20%; background-color: #101826">
+          <span class="pc-tag">Claude Code Coaching</span>
+          <div class="pc-caption"><p>AI-assisted development with Claude and Cursor.</p></div>
+        </a>
+      </div>
+    </div>
+  </section>
+
   <?php get_template_part( 'template-parts/team-story-2026' ); ?>
 
   <!-- VALUE TEST · five open questions, analysed by the CoachOS 'value-test' context on the
