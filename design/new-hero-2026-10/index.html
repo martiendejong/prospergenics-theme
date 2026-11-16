@@ -4,8 +4,10 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>ProsperGenics — Create value</title>
-<link rel="icon" href="assets/logo.webp" />
-<link rel="apple-touch-icon" href="assets/logo.png" />
+<link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png" />
 <link rel="preload" as="image" href="assets/hero-top.webp" fetchpriority="high" />
 <link rel="preload" href="assets/fonts/gabarito-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="preload" href="assets/fonts/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
@@ -689,8 +691,8 @@
   .flow-set { display: flex; }
   /* portrait left, text right; the empty 1fr edge rows centre the text block vertically */
   .flow-card {
-    position: relative; flex: none; width: 480px; margin-right: 56px;
-    display: grid; grid-template-columns: 216px minmax(0, 1fr); grid-template-rows: 1fr auto auto auto 1fr;
+    position: relative; flex: none; width: 536px; margin-right: 56px;
+    display: grid; grid-template-columns: 264px minmax(0, 1fr); grid-template-rows: 1fr auto auto auto 1fr;
     column-gap: 20px;
   }
   /* cards link to the personal profile pages (/people/<slug>/) */
@@ -729,8 +731,8 @@
   @keyframes tri-spin { to { transform: rotate(360deg); } }
   /* portrait: straight rectangle with the same slanted cut as the showcase panels */
   .fc-portrait {
-    grid-column: 1; grid-row: 1 / -1; position: relative; display: block; width: 216px; height: 220px;
-    overflow: hidden; clip-path: polygon(19px 0, 100% 0, calc(100% - 19px) 100%, 0 100%);
+    grid-column: 1; grid-row: 1 / -1; position: relative; display: block; width: 264px; height: 220px;
+    overflow: hidden; clip-path: polygon(22px 0, 100% 0, calc(100% - 22px) 100%, 0 100%);
     background: linear-gradient(165deg, var(--green-100), var(--paper-2) 70%);
   }
   .fc-portrait img { width: 100%; height: 100%; object-fit: cover; }
@@ -756,8 +758,8 @@
   /* no backdrop-filter support -> don't leave the whole stream dull */
   @supports not ((backdrop-filter: saturate(1)) or (-webkit-backdrop-filter: saturate(1))) { .flow-track { filter: none; } }
   @media (max-width: 640px){
-    .flow-card { width: 384px; margin-right: 40px; grid-template-columns: 172px minmax(0, 1fr); column-gap: 16px; }
-    .fc-portrait { width: 172px; height: 184px; clip-path: polygon(16px 0, 100% 0, calc(100% - 16px) 100%, 0 100%); }
+    .flow-card { width: 436px; margin-right: 40px; grid-template-columns: 212px minmax(0, 1fr); column-gap: 16px; }
+    .fc-portrait { width: 212px; height: 184px; clip-path: polygon(18px 0, 100% 0, calc(100% - 18px) 100%, 0 100%); }
     .flow-tri { width: 38px; }
     .flow-tri span { width: 38px; height: 35px; }
     .flow-tri2 { width: 30px; }
@@ -1485,8 +1487,8 @@
        added once they are live (audit UX-8). -->
   <section class="projects" id="partners">
     <div class="projects-head">
-      <h2>Initiatives by <span class="accent">our members</span></h2>
-      <p>Companies and organisations our members built and run.</p>
+      <h2>Our <span class="accent">partners</span></h2>
+      <p>Companies and organisations we create value with.</p>
     </div>
     <div class="plist" data-scroll-scale="1" data-scroll-scale-from="0.84">
       <a class="partner" href="https://martiendejong.nl" target="_blank" rel="noopener">
