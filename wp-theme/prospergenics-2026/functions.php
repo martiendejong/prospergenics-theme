@@ -65,6 +65,8 @@ add_action( 'template_redirect', function () {
 require get_template_directory() . '/inc/redirects.php';
 // Sitemap entries for the static /people/, /experts/ and /community/ pages.
 require get_template_directory() . '/inc/sitemap.php';
+// IndexNow: virtual key file + automatic URL submission on publish/update (task 3371).
+require get_template_directory() . '/inc/indexnow.php';
 
 // Prospergenics Platform features (JengoWork board "Prospergenics Platform"), one loader per
 // track so the tracks can be built independently. See docs/PLATFORM-BUILD.md.
