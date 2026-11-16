@@ -97,11 +97,14 @@ our-team                     /members/
 # Only the bare path: the profiles under /people/<slug>/ are not touched.
 people                       /members/
 
-# Production-only profiles with no /people/ page: Sonia, Timothy, Toperian (card #6521).
+# Timothy and Nico now have /people/ pages (task #4891); redirect their legacy /members/ paths.
+members/timothy              /people/timothy/
+author/timothy               /people/timothy/
+members/nico                 /people/nico/
+
+# Production-only profiles with no /people/ page: Sonia, Toperian (card #6521).
 # DECISION PENDING (owners): give them a profile in build-profiles.py PROFILES (then point these
 # rules at /people/<slug>/) or keep them off the site. Until then they go to the members list,
 # the least surprising landing for someone looking for a person who has no page.
 members/sonia                /members/
-members/timothy              /members/
-author/timothy               /members/
 members/toperian             /members/
