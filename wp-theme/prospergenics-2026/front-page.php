@@ -690,8 +690,8 @@
   .flow-set { display: flex; }
   /* portrait left, text right; the empty 1fr edge rows centre the text block vertically */
   .flow-card {
-    position: relative; flex: none; width: 480px; margin-right: 56px;
-    display: grid; grid-template-columns: 216px minmax(0, 1fr); grid-template-rows: 1fr auto auto auto 1fr;
+    position: relative; flex: none; width: 580px; margin-right: 56px;
+    display: grid; grid-template-columns: 300px minmax(0, 1fr); grid-template-rows: 1fr auto auto auto 1fr;
     column-gap: 20px;
   }
   /* cards link to the personal profile pages (/people/<slug>/) */
@@ -730,8 +730,8 @@
   @keyframes tri-spin { to { transform: rotate(360deg); } }
   /* portrait: straight rectangle with the same slanted cut as the showcase panels */
   .fc-portrait {
-    grid-column: 1; grid-row: 1 / -1; position: relative; display: block; width: 216px; height: 220px;
-    overflow: hidden; clip-path: polygon(19px 0, 100% 0, calc(100% - 19px) 100%, 0 100%);
+    grid-column: 1; grid-row: 1 / -1; position: relative; display: block; width: 300px; height: 280px;
+    overflow: hidden; clip-path: polygon(22px 0, 100% 0, calc(100% - 22px) 100%, 0 100%);
     background: linear-gradient(165deg, var(--green-100), var(--paper-2) 70%);
   }
   .fc-portrait img { width: 100%; height: 100%; object-fit: cover; }
@@ -757,8 +757,8 @@
   /* no backdrop-filter support -> don't leave the whole stream dull */
   @supports not ((backdrop-filter: saturate(1)) or (-webkit-backdrop-filter: saturate(1))) { .flow-track { filter: none; } }
   @media (max-width: 640px){
-    .flow-card { width: 384px; margin-right: 40px; grid-template-columns: 172px minmax(0, 1fr); column-gap: 16px; }
-    .fc-portrait { width: 172px; height: 184px; clip-path: polygon(16px 0, 100% 0, calc(100% - 16px) 100%, 0 100%); }
+    .flow-card { width: 460px; margin-right: 40px; grid-template-columns: 220px minmax(0, 1fr); column-gap: 16px; }
+    .fc-portrait { width: 220px; height: 224px; clip-path: polygon(18px 0, 100% 0, calc(100% - 18px) 100%, 0 100%); }
     .flow-tri { width: 38px; }
     .flow-tri span { width: 38px; height: 35px; }
     .flow-tri2 { width: 30px; }
@@ -1464,8 +1464,8 @@
        added once they are live (audit UX-8). -->
   <section class="projects" id="partners">
     <div class="projects-head">
-      <h2>Initiatives by <span class="accent">our members</span></h2>
-      <p>Companies and organisations our members built and run.</p>
+      <h2>Companies we <span class="accent">work with</span></h2>
+      <p>Organisations our members built and run, plus partners we collaborate with.</p>
     </div>
     <div class="plist" data-scroll-scale="1" data-scroll-scale-from="0.84">
       <a class="partner" href="https://martiendejong.nl" target="_blank" rel="noopener">
@@ -1477,6 +1477,9 @@
       <a class="partner" href="https://artrevisionist.com" target="_blank" rel="noopener">
         <span class="pr-in"><strong>Art Revisionist</strong><span class="pr-what">Historical art attribution research</span><span class="pr-domain">artrevisionist.com</span></span>
       </a>
+      <span class="partner">
+        <span class="pr-in"><strong>Maa Ride</strong><span class="pr-what">Transportation &amp; logistics</span></span>
+      </span>
     </div>
   </section>
 
