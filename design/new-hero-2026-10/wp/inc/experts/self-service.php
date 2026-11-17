@@ -53,7 +53,7 @@ function prospergenics_expert_save( $user_id, array $post ) {
 	return $errors;
 }
 
-// Handle POST before the page renders (priority 9, before the profiles track at 10).
+// Handle POST before the page renders (priority 8, before the page renderer at 9).
 add_action( 'template_redirect', function () {
 	if ( 'expert' !== (string) get_query_var( 'pg_profile_page' ) ) {
 		return;
@@ -77,9 +77,9 @@ add_action( 'template_redirect', function () {
 	set_transient( 'pg_expert_form_errors_' . get_current_user_id(), $errors, 60 );
 	wp_safe_redirect( add_query_arg( 'error', '1', home_url( '/profile/expert/' ) ) );
 	exit;
-}, 9 );
+}, 8 );
 
-// Serve the self-service page (priority 8, before the profiles track at 10).
+// Serve the self-service page (priority 9, before the profiles track at 10).
 add_action( 'template_redirect', function () {
 	if ( 'expert' !== (string) get_query_var( 'pg_profile_page' ) ) {
 		return;
@@ -94,4 +94,4 @@ add_action( 'template_redirect', function () {
 	}
 	include get_template_directory() . '/pg-expert-self-service.php';
 	exit;
-}, 8 );
+}, 9 );

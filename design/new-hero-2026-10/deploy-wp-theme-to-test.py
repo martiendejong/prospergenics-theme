@@ -28,7 +28,7 @@ import deploy_guard  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 THEME = os.path.normpath(os.path.join(HERE, "..", "..", "wp-theme", "prospergenics-2026"))
-VAULT = r"C:\jengo\projects\_t5030-sys\tools\vault-api.py"
+VAULT = r"C:\jengo\projects\jengo-system-private\tools\vault-api.py"
 HOST, USER = "85.215.217.154", "Administrator"
 REMOTE = "C:/stores/prospergenics-wp/wp-content/themes/prospergenics-2026"
 
