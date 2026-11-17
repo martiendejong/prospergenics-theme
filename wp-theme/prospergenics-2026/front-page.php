@@ -5,6 +5,19 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>ProsperGenics — Create value</title>
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="ProsperGenics" />
+<meta property="og:title" content="ProsperGenics &#8212; Create value together" />
+<meta property="og:description" content="Join ProsperGenics to grow professionally, create lasting value, and build a thriving global community." />
+<meta property="og:url" content="<?php echo esc_url( home_url( '/' ) ); ?>" />
+<meta property="og:image" content="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/og-image.jpg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:locale" content="en_US" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="ProsperGenics &#8212; Create value together" />
+<meta name="twitter:description" content="Join ProsperGenics to grow professionally, create lasting value, and build a thriving global community." />
+<meta name="twitter:image" content="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/og-image.jpg" />
 <link rel="icon" type="image/png" sizes="32x32" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/favicon-32x32.png" />
 <link rel="icon" type="image/png" sizes="16x16" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/favicon-16x16.png" />
 <link rel="apple-touch-icon" sizes="180x180" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/apple-touch-icon.png" />

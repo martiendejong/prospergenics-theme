@@ -47,6 +47,11 @@ def convert(html, asset_prefix):
     html = html.replace(f"'{asset_prefix}assets/", f"'{TPL}/assets/")
     html = html.replace(f'"{asset_prefix}assets/', f'"{TPL}/assets/')
     html = html.replace(f"url('{asset_prefix}assets/", f"url('{TPL}/assets/")
+    # og:url: static design URL -> WordPress home_url() so the tag is correct on every environment
+    html = html.replace(
+        'property="og:url" content="https://test.prospergenics.com/"',
+        'property="og:url" content="' + HOME + '"',
+    )
     return html
 
 
