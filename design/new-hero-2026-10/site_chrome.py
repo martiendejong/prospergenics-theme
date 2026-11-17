@@ -223,7 +223,7 @@ def _update(rel, header_html, footer_html, js):
     html = _replace_block(html, "header", header_html)
     html = _replace_block(html, "footer", footer_html)
     html = _replace_block(html, "js", "  " + js)
-    with open(path, "w", encoding="utf-8") as f:
+    with open(path, "w", encoding="utf-8", newline="\n") as f:
         f.write(html)
     print(f"updated {rel}")
 
@@ -240,7 +240,7 @@ def update_about():
     with open(path, encoding="utf-8") as f:
         html = f.read()
     html = _replace_block(html, "meta", about_meta())
-    with open(path, "w", encoding="utf-8") as f:
+    with open(path, "w", encoding="utf-8", newline="\n") as f:
         f.write(html)
 
 
@@ -250,7 +250,7 @@ def update_index():
     path = os.path.join(HERE, "index.html")
     with open(path, encoding="utf-8") as f:
         html = services_section.update(f.read())
-    with open(path, "w", encoding="utf-8") as f:
+    with open(path, "w", encoding="utf-8", newline="\n") as f:
         f.write(html)
 
 
