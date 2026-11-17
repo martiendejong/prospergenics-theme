@@ -236,7 +236,7 @@ add_action( 'wp_head', function () {
     foreach ( prospergenics_2026_meta_tags( $m ) as $t ) {
         printf( '<meta %s="%s" content="%s" />' . "\n", $t[0], esc_attr( $t[1] ), esc_attr( $t[2] ) );
     }
-}, 2 );
+}, 1 );
 
 /**
  * The meta tags for a set of values, as [attribute, name, content] rows; values that are not
@@ -325,34 +325,20 @@ add_action( 'wp_head', function () {
 }, 24 );
 
 /**
- * SEO God dedup: on pages where this theme outputs its own og:/twitter: tags,
- * drop the same keys from SEO God's output so only one og:title / twitter:card
- * appears in the page head (task 5322). SEO God retains og:locale and og:site_name,
- * which only it emits. Without this, SEO God fires first at wp_head priority 2 and
- * outputs a short og:title/twitter:card="summary", then the theme outputs the
- * correct values at the same priority but later; parsers use the first occurrence.
+ * SEO God dedup: on pages where this theme outputs its own og:/twitter: tags at
+ * wp_head priority 1, suppress SEO God's opengraph and twitter-card output entirely
+ * (task 5322). SEO God fires at priority 2 — after us — and would emit duplicate
+ * short og:title + twitter:card="summary" tags on the homepage if left enabled.
+ * The pre_option_* filters fire inside SEO God's inject_meta_tags() when it reads
+ * its own options, so by the time wp_head priority 2 runs WordPress query context
+ * (is_front_page()) is already available and correct.
  */
-add_filter( 'seo_god_opengraph_data', function ( $data ) {
-    if ( ! prospergenics_2026_current_meta() ) {
-        return $data;
-    }
-    unset(
-        $data['og:type'], $data['og:title'], $data['og:description'],
-        $data['og:image'], $data['og:image:width'], $data['og:image:height'], $data['og:image:alt'],
-        $data['og:url']
-    );
-    return $data;
+add_filter( 'pre_option_seo_god_optimizer_enable_opengraph', function ( $v ) {
+    return prospergenics_2026_current_meta() ? false : $v;
 } );
 
-add_filter( 'seo_god_twitter_card_data', function ( $data ) {
-    if ( ! prospergenics_2026_current_meta() ) {
-        return $data;
-    }
-    unset(
-        $data['twitter:card'], $data['twitter:title'], $data['twitter:description'],
-        $data['twitter:image'], $data['twitter:image:alt'], $data['twitter:url']
-    );
-    return $data;
+add_filter( 'pre_option_seo_god_optimizer_enable_twitter_cards', function ( $v ) {
+    return prospergenics_2026_current_meta() ? false : $v;
 } );
 
 /**
