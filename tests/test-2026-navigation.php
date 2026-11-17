@@ -10,8 +10,8 @@
  *   - header.php/footer.php, front-page.php and page-about.php render the PHP chrome and carry no
  *     menu of their own; the static pages carry exactly the same menu and markup as the PHP one,
  *   - one CSS/JS for all of them: full-width sticky bar (no 1500px box), 40px logo, one row up to
- *     1180px wide (then the menu button), nowrap, admin bar offset; the homepage header is visible
- *     at load and hides only while scrolling down,
+ *     1180px wide (then the menu button), nowrap, admin bar offset; the homepage header starts hidden
+ *     (hero provides nav) and appears only when scrolling up below the hero,
  *   - the mobile menu button and panel are wired accessibly, on every page type,
  *   - Log in + Join for visitors; My profile, My courses, Settings, Log out for members; Manage for staff,
  *   - the full footer (with Vacancies and Articles) everywhere,
