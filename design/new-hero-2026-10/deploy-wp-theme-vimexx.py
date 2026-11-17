@@ -62,7 +62,7 @@ REPO   = os.path.normpath(os.path.join(HERE, "..", ".."))
 THEME  = os.path.join(REPO, "wp-theme", "prospergenics-2026")
 PEOPLE = os.path.join(HERE, "people")
 LISTS  = ("experts", "community")
-VAULT  = "E:/projects/jengo/jengo-system-private/tools/vault-api.py"
+VAULT  = r"C:\jengo\projects\_t5030-sys\tools\vault-api.py"
 
 VAULT_PROJECT = 6
 VAULT_CRED    = 266
@@ -92,8 +92,8 @@ class FTPS(ftplib.FTP_TLS):
 
 
 def vault_cred(project, cred_id, reason):
-    r = subprocess.run([sys.executable, VAULT, "credential", str(project), str(cred_id),
-                        "--reason", reason], capture_output=True, text=True)
+    r = subprocess.run([sys.executable, VAULT, "credential", str(project), str(cred_id)],
+                       capture_output=True, text=True)
     m = re.search(r"\{.*\}", r.stdout, re.S)
     if not m:
         sys.exit(f"vault gaf geen credential terug:\n{r.stdout}\n{r.stderr}")
