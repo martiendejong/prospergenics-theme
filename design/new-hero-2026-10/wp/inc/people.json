@@ -14,7 +14,11 @@
         "Software architecture",
         "SEO automation"
       ],
-      "members": true
+      "members": true,
+      "expert_categories": [
+        "ai-agents",
+        "software-dev"
+      ]
     },
     "simitia": {
       "name": "Simitia Mpoe",
@@ -29,7 +33,11 @@
         "Entrepreneurship"
       ],
       "members": true,
-      "aka": "Sandra"
+      "aka": "Sandra",
+      "expert_categories": [
+        "web-design",
+        "business"
+      ]
     },
     "diko": {
       "name": "Diko Mohamed",
@@ -43,7 +51,11 @@
         "Integrations",
         "Business development"
       ],
-      "members": true
+      "members": true,
+      "expert_categories": [
+        "software-dev",
+        "business"
+      ]
     },
     "sjoerd": {
       "name": "Sjoerd Schepman",
@@ -57,7 +69,10 @@
         "Provenance research",
         "Collection management"
       ],
-      "members": true
+      "members": true,
+      "expert_categories": [
+        "art"
+      ]
     },
     "faith": {
       "name": "Faith Nkumun",
@@ -98,7 +113,12 @@
       ],
       "members": true,
       "aka": "Lessy",
-      "pronouns": "he/him"
+      "pronouns": "he/him",
+      "expert_categories": [
+        "software-dev",
+        "training",
+        "wordpress"
+      ]
     },
     "frank": {
       "name": "Frank",
@@ -111,7 +131,11 @@
         "Web development",
         "Shipping & deployment"
       ],
-      "members": true
+      "members": true,
+      "expert_categories": [
+        "web-design",
+        "software-dev"
+      ]
     },
     "sophy": {
       "name": "Sophy Nashipae de Jong",
@@ -150,7 +174,10 @@
         "Marketing",
         "Storytelling"
       ],
-      "members": true
+      "members": true,
+      "expert_categories": [
+        "marketing"
+      ]
     },
     "natumi": {
       "name": "Natumi",
@@ -163,6 +190,60 @@
         "Livestock & trade"
       ],
       "members": true
+    },
+    "timothy": {
+      "name": "Timothy Rop",
+      "role": "AI Trainer, Community member",
+      "img": "",
+      "pos": "center",
+      "initial": "T",
+      "quote": "I help people understand AI and put it to work in their daily business.",
+      "expertises": [
+        "AI tools for non-developers",
+        "Training & teaching",
+        "Community building"
+      ],
+      "members": true,
+      "expert_categories": [
+        "training",
+        "ai-agents"
+      ]
+    },
+    "nico": {
+      "name": "Nico van der Berg",
+      "role": "Data Scientist, Community member",
+      "img": "",
+      "pos": "center",
+      "initial": "N",
+      "quote": "Data tells stories most people miss. I help you read them.",
+      "expertises": [
+        "Data science & analytics",
+        "Machine learning",
+        "Business intelligence"
+      ],
+      "members": true,
+      "expert_categories": [
+        "ai-agents",
+        "software-dev"
+      ]
+    },
+    "jengo": {
+      "name": "Jengo",
+      "role": "AI Agent, ProsperGenics",
+      "img": "",
+      "pos": "center",
+      "initial": "J",
+      "quote": "I build, deploy and maintain the software that runs ProsperGenics. I work 24/7.",
+      "expertises": [
+        "AI agents & LLM systems",
+        "Autonomous software development",
+        "Platform operations"
+      ],
+      "members": false,
+      "expert_categories": [
+        "ai-agents",
+        "software-dev"
+      ]
     },
     "farid": {
       "name": "Farid Harrak",

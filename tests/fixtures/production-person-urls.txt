@@ -11,7 +11,7 @@
 /members/sonia/              /members/
 /members/diko/               /people/diko/
 /members/sandra/             /people/simitia/
-/members/timothy/            /members/
+/members/timothy/            /people/timothy/
 /members/toperian/           /members/
 /members/martien-de-jong/    /people/martien/
 /members/sjoerd-schepman/    /people/sjoerd/
@@ -30,7 +30,7 @@
 /sandra/                     /people/simitia/
 
 # author-sitemap.xml
-/author/timothy/             /members/
+/author/timothy/             /people/timothy/
 /author/diko/                /people/diko/
 /author/frank/               /people/frank/
 /author/lessy/               /people/lessy/
