@@ -1,4 +1,4 @@
-﻿<?php /* Front page - generated from design/new-hero-2026-10/index.html by build-wp-theme.py; edit the source, not this file. */ ?>
+<?php /* Front page - generated from design/new-hero-2026-10/index.html by build-wp-theme.py; edit the source, not this file. */ ?>
 <!DOCTYPE html>
 <html <?php language_attributes(); ?>>
 <head>
