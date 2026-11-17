@@ -62,7 +62,7 @@ REPO   = os.path.normpath(os.path.join(HERE, "..", ".."))
 THEME  = os.path.join(REPO, "wp-theme", "prospergenics-2026")
 PEOPLE = os.path.join(HERE, "people")
 LISTS  = ("experts", "community")
-VAULT  = "E:/projects/jengo/jengo-system-private/tools/vault-api.py"
+VAULT  = "C:/jengo/projects/jengo-system-private/tools/vault-api.py"
 
 VAULT_PROJECT = 6
 VAULT_CRED    = 266
