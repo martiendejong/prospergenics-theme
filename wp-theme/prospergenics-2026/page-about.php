@@ -14,7 +14,10 @@
 <meta property="og:url" content="<?php echo esc_url( home_url( '/about/' ) ); ?>" />
 <meta property="og:title" content="About ProsperGenics — exploring how value is created" />
 <meta property="og:image" content="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/hero-top.jpg" />
-<link rel="icon" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/logo.webp" />
+<link rel="icon" type="image/png" sizes="32x32" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/favicon-16x16.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/apple-touch-icon.png" />
+<link rel="shortcut icon" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/favicon.ico" />
 <link rel="stylesheet" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/fonts/fonts.css" />
 <script>document.documentElement.className = 'js';</script>
 <style>

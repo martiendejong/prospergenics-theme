@@ -5,8 +5,10 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>ProsperGenics — Create value</title>
-<link rel="icon" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/logo.webp" />
-<link rel="apple-touch-icon" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/logo.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/favicon-16x16.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/apple-touch-icon.png" />
+<link rel="shortcut icon" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/favicon.ico" />
 <link rel="preload" as="image" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/hero-top.webp" fetchpriority="high" />
 <link rel="preload" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/fonts/gabarito-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="preload" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/fonts/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
