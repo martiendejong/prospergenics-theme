@@ -224,8 +224,23 @@ function prospergenics_2026_current_meta() {
     );
 }
 
+/*
+ * When Yoast SEO is active it outputs some OG/Twitter tags but not all (homepage
+ * description and image require admin configuration that may not be set). Remove
+ * Yoast's Open Graph and Twitter Card presenters so the theme is the single source
+ * of truth for sharing tags; Yoast's title, canonical, schema and sitemap stay.
+ */
+add_filter( 'wpseo_frontend_presenters', function ( $presenters ) {
+    return array_filter( $presenters, function ( $p ) {
+        $c = get_class( $p );
+        return strpos( $c, 'Presenters\\Open_Graph\\' ) === false
+            && strpos( $c, 'Presenters\\Twitter\\' ) === false;
+    } );
+} );
+
 add_action( 'wp_head', function () {
-    if ( prospergenics_2026_seo_plugin_active() ) {
+    // Other SEO plugins (not Yoast) manage their own Open Graph/Twitter output.
+    if ( defined( 'RANK_MATH_VERSION' ) || defined( 'AIOSEO_VERSION' ) || defined( 'SEOPRESS_VERSION' ) ) {
         return;
     }
     $m = prospergenics_2026_current_meta();
