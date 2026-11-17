@@ -77,6 +77,7 @@ function prospergenics_experts_all( $category = '' ) {
 			'categories' => $cats,
 			'bio'        => '',
 			'links'      => array(),
+			'trainings'  => isset( $p['trainings'] ) ? (array) $p['trainings'] : array(),
 			'url'        => home_url( '/experts/' . $slug . '/' ),
 		);
 	}
@@ -101,6 +102,7 @@ function prospergenics_experts_all( $category = '' ) {
 			'categories' => $cats,
 			'bio'        => (string) get_user_meta( $user->ID, '_pg_expert_bio', true ),
 			'links'      => (array) json_decode( (string) get_user_meta( $user->ID, '_pg_expert_links', true ), true ),
+			'trainings'  => array(),
 			'url'        => home_url( '/experts/' . $slug . '/' ),
 		);
 	}

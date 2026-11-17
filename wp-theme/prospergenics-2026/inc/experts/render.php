@@ -95,6 +95,19 @@ function prospergenics_expert_profile_html( array $expert ) {
 		$links_html .= '</ul></section>';
 	}
 
+	$trainings     = ! empty( $expert['trainings'] ) ? (array) $expert['trainings'] : array();
+	$trainings_html = '<section class="ep-trainings"><h2>Education &amp; training</h2><ul class="cards">';
+	if ( $trainings ) {
+		foreach ( $trainings as $t ) {
+			$t_title = esc_html( is_array( $t ) ? ( isset( $t['title'] ) ? $t['title'] : '' ) : (string) $t );
+			$t_desc  = is_array( $t ) && ! empty( $t['description'] ) ? '<p>' . esc_html( $t['description'] ) . '</p>' : '';
+			$trainings_html .= '<li class="card"><h3>' . $t_title . '</h3>' . $t_desc . '</li>';
+		}
+	} else {
+		$trainings_html .= '<li class="card"><p>This part of the story is still being written.</p></li>';
+	}
+	$trainings_html .= '</ul></section>';
+
 	return '<div class="ep-wrap">'
 		. '<div class="ep-portrait">' . $portrait . '</div>'
 		. '<div class="ep-body">'
@@ -103,6 +116,7 @@ function prospergenics_expert_profile_html( array $expert ) {
 		. ( $bio ? '<section class="ep-bio">' . $bio . '</section>' : '' )
 		. $skills_html
 		. $links_html
+		. $trainings_html
 		. '</div>'
 		. '</div>';
 }
