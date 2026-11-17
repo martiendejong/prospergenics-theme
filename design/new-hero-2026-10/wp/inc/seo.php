@@ -71,7 +71,7 @@ function prospergenics_2026_paged_url( $base, $paged ) {
 /** The homepage's sharing text (the page itself hard-codes the same title). */
 function prospergenics_2026_front_page_meta() {
     return array(
-        'title'       => 'ProsperGenics — Create value',
+        'title'       => 'ProsperGenics — Create value together',
         'description' => prospergenics_2026_org_description( 'short' ), // inc/site-chrome/organisation.json
         'image'       => get_template_directory_uri() . '/assets/og-image.jpg',
     );
@@ -236,7 +236,7 @@ add_action( 'wp_head', function () {
     foreach ( prospergenics_2026_meta_tags( $m ) as $t ) {
         printf( '<meta %s="%s" content="%s" />' . "\n", $t[0], esc_attr( $t[1] ), esc_attr( $t[2] ) );
     }
-}, 2 );
+}, 1 );
 
 /**
  * The meta tags for a set of values, as [attribute, name, content] rows; values that are not
@@ -323,3 +323,104 @@ add_action( 'wp_head', function () {
         echo "\n" . '<script type="application/ld+json" class="prospergenics-2026-schema">' . wp_json_encode( prospergenics_2026_front_page_schema(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>' . "\n";
     }
 }, 24 );
+
+/**
+ * SEO God dedup: on pages where this theme outputs its own og:/twitter: tags at
+ * wp_head priority 1, suppress SEO God's opengraph and twitter-card output entirely
+ * (task 5322). SEO God fires at priority 2 — after us — and would emit duplicate
+ * short og:title + twitter:card="summary" tags on the homepage if left enabled.
+ * The pre_option_* filters fire inside SEO God's inject_meta_tags() when it reads
+ * its own options, so by the time wp_head priority 2 runs WordPress query context
+ * (is_front_page()) is already available and correct.
+ */
+add_filter( 'pre_option_seo_god_optimizer_enable_opengraph', function ( $v ) {
+    return prospergenics_2026_current_meta() ? false : $v;
+} );
+
+add_filter( 'pre_option_seo_god_optimizer_enable_twitter_cards', function ( $v ) {
+    return prospergenics_2026_current_meta() ? false : $v;
+} );
+
+/**
+ * Yoast supplement for the front page (task 5322, prospergenics.com production).
+ * When Yoast is active the theme's own og: block (priority 2) is suppressed. Yoast
+ * outputs some front-page og: tags but omits og:image and og:description when nothing
+ * is configured in its admin, and its og:title comes from the page title template
+ * ("Home - Prospergenics", 20 chars -- below the 30-char minimum). Output our own
+ * tags at priority 0, before Yoast's priority-1 pass, so our values are first in the
+ * HTML; parsers use the first occurrence of each og: property.
+ */
+if ( defined( 'WPSEO_VERSION' ) ) {
+    add_action( 'wp_head', function () {
+        if ( ! prospergenics_2026_is_homepage_request() ) {
+            return;
+        }
+        $meta = prospergenics_2026_front_page_meta();
+        printf( '<meta property="og:title" content="%s" />' . "\n", esc_attr( $meta['title'] ) );
+        printf( '<meta name="twitter:title" content="%s" />' . "\n", esc_attr( $meta['title'] ) );
+        printf( '<meta property="og:description" content="%s" />' . "\n", esc_attr( $meta['description'] ) );
+        printf( '<meta property="og:image" content="%s" />' . "\n", esc_url( $meta['image'] ) );
+        printf( '<meta name="twitter:image" content="%s" />' . "\n", esc_url( $meta['image'] ) );
+    }, 0 );
+}
+
+/**
+ * Noindex author archives, category archives, and duplicate/low-value WP pages.
+ * These URLs dilute crawl budget: author pages expose usernames with no unique content;
+ * category archives list posts already covered by the posts themselves; the slug pages
+ * below (/home/ /diko/ /frank/ /lessy/ /sandra/) are legacy stubs superseded by /people/*.
+ *
+ * Yoast SEO (active on this site) uses wpseo_robots for the robots meta tag; wp_robots is
+ * the fallback when Yoast is not active. Both filters are set so neither code path produces
+ * an indexable URL.
+ *
+ * JengoWork task 3371.
+ */
+function prospergenics_2026_noindex_page_slugs() {
+    return array( 'home', 'diko', 'frank', 'lessy', 'sandra' );
+}
+
+add_filter( 'wpseo_robots', function ( $robots ) {
+    if ( is_author() || is_category() ) {
+        return 'noindex, follow';
+    }
+    if ( is_page( prospergenics_2026_noindex_page_slugs() ) ) {
+        return 'noindex, follow';
+    }
+    return $robots;
+} );
+
+add_filter( 'wp_robots', function ( $robots ) {
+    if ( is_author() || is_category() ) {
+        $robots['noindex'] = true;
+        unset( $robots['max-image-preview'] );
+        return $robots;
+    }
+    if ( is_page( prospergenics_2026_noindex_page_slugs() ) ) {
+        $robots['noindex'] = true;
+        unset( $robots['max-image-preview'] );
+    }
+    return $robots;
+} );
+
+/**
+ * Remove author and category sitemap sections from the Yoast sitemap index so
+ * Googlebot does not request those sitemap files at all.
+ */
+add_filter( 'wpseo_sitemap_index', function ( $index ) {
+    $index = preg_replace( '/<sitemap>[^<]*<loc>[^<]*\/author-sitemap\.xml[^<]*<\/loc>.*?<\/sitemap>\s*/s', '', $index );
+    $index = preg_replace( '/<sitemap>[^<]*<loc>[^<]*\/category-sitemap\.xml[^<]*<\/loc>.*?<\/sitemap>\s*/s', '', $index );
+    return $index;
+}, 20 );
+
+/**
+ * Remove individual duplicate/stub pages from Yoast's page sitemap entries.
+ */
+add_filter( 'wpseo_sitemap_entry', function ( $url, $type, $object ) {
+    if ( 'post' === $type && $object instanceof WP_Post ) {
+        if ( in_array( $object->post_name, prospergenics_2026_noindex_page_slugs(), true ) ) {
+            return false;
+        }
+    }
+    return $url;
+}, 10, 3 );

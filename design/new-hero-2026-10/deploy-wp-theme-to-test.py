@@ -34,8 +34,7 @@ REMOTE = "C:/stores/prospergenics-wp/wp-content/themes/prospergenics-2026"
 
 
 def prod_password():
-    out = subprocess.run([sys.executable, VAULT, "credential", "6", "7",
-                          "--reason", "Deploy prospergenics-2026 WP theme to test.prospergenics.com"],
+    out = subprocess.run([sys.executable, VAULT, "credential", "6", "7"],
                          capture_output=True, text=True, cwd=os.path.dirname(VAULT)).stdout
     return json.loads(re.search(r"\{.*\}", out, re.S).group())["password"]
 
