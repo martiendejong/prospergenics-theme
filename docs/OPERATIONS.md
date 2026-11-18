@@ -132,7 +132,9 @@ example `restore.prospergenics.com`) rather than over the test site, so a bad re
   (Settings → General). The log and the email hold the message without its stack trace, the file
   and line, and the page path without its query string; passwords, keys and tokens in the message
   are masked. WordPress' own recovery mode adds its own email, but only for errors in wp-admin or
-  on the login page.
+  on the login page. *Site errors* shows each error once, with how many times it happened and
+  when it was last seen; entries from the alert test below are labelled *test*. Administrators
+  can *Dismiss* one error once it is fixed, *Remove the test entries*, or *Clear all*.
 - **Not covered by the theme**: a fatal error before the theme loads (in a plugin or in
   `wp-config.php`), a database that is down, or a host that does not answer. The uptime check
   catches the last two from outside; the PHP error log at the host has the first.
