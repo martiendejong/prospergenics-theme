@@ -1,10 +1,14 @@
 <?php
 /**
- * Standalone test for the CoachOS chat panel on phones:
+ * Standalone test for the homepage chat launcher and the CoachOS chat panel on phones:
  *   - #8078: below 561px the panel (.co-embed-panel, built by embed.js) is a card 12px from both edges,
  *            rounded, with a shadow, above the compact launcher; with the on-screen keyboard open it sits
  *            above the keyboard (visualViewport values --co-kb / --co-vv-top) and fits the visible area;
  *            the close button is a 40px tap target. Desktop keeps its rule.
+ *   - #7759: a minimise badge on the orb tucks the whole launcher (orb, hint, WhatsApp) away into a
+ *            "Chat" tab at the screen edge and the tab brings it back; both are buttons outside the orb
+ *            (embed.js opens the chat on any click inside .launcher-orb), keyboard reachable, labelled,
+ *            remembered in sessionStorage behind try/catch, and still under reduced motion.
  *
  * Run with: php tests/test-2026-chat-launcher.php
  */
@@ -54,8 +58,27 @@ ok( false !== strpos( $home, "rootStyle.setProperty('--co-kb', (zoomed ? 0 : Mat
 ok( false !== strpos( $home, "rootStyle.setProperty('--co-vv-top'," ), '--co-vv-top is set too' );
 ok( false !== strpos( $home, '@media (min-width: 561px){' . "\n    .co-embed-panel { bottom: 236px !important; height: min(560px, calc(100vh - 268px)) !important; }" ), 'desktop: the panel rule is unchanged' );
 
+echo "Minimise the launcher (#7759)\n";
+$launcher = preg_match( '#<div class="launcher">(.*?)\n  </div>#s', $home, $lm ) ? $lm[1] : '';
+$orb      = preg_match( '#<button class="launcher-orb".*?</button>#s', $launcher, $om ) ? $om[0] : '';
+ok( '' !== $orb && false === strpos( $orb, 'launcher-min' ) && false === strpos( $orb, 'launcher-tab' ), 'the minimise and restore buttons are not inside the orb (a click there would open the chat)' );
+ok( false !== strpos( $launcher, '<button class="launcher-min" type="button" aria-expanded="true" aria-label="Minimise the chat button" title="Minimise the chat button">' ), 'minimise: a labelled button with aria-expanded="true"' );
+ok( false !== strpos( $launcher, '<button class="launcher-tab" type="button" aria-expanded="false" aria-label="Show the chat button" hidden>' ), 'restore: a labelled "Chat" tab with aria-expanded="false", hidden at first' );
+ok( false !== strpos( $launcher, '<span>Chat</span>' ), 'the tab shows the word "Chat", which is in its accessible name' );
+ok( false !== strpos( $home, '.launcher.is-minimised .launcher-orb, .launcher.is-minimised .launcher-bubble,' . "\n" . '  .launcher.is-minimised .wa-btn, .launcher.is-minimised .launcher-min { display: none; }' ), 'minimised: orb, hint bubble, WhatsApp and the badge are gone (not focusable)' );
+ok( false !== strpos( $home, '.launcher-tab[hidden] { display: none; }' ), 'the tab only shows while minimised' );
+ok( (bool) preg_match( '#\.launcher-tab \{\s*position: fixed; right: 0;#', $home ), 'the tab sits at the right screen edge' );
+ok( (bool) preg_match( '#\.launcher-min \{\s*position: absolute; z-index: 6;#', $home ) && ! preg_match( '#\.launcher-(min|tab)[^{]*\{[^}]*pointer-events: none#', $home ), 'the badge sits above the orb and WhatsApp (z-index 5) and is never pointer-events: none' );
+ok( (bool) preg_match( '#\.launcher\.is-compact \.launcher-min \{ left: 0; top: 0; width: (\d+)px; height: \1px; \}#', $home, $cm ) && (int) $cm[1] >= 24, 'compact (96px orb): the badge is still at least 24px' );
+ok( false !== strpos( $home, '.launcher-min, .launcher-tab { transition: none; } .launcher-tab { animation: none; }' ), 'reduced motion: no transitions or slide-in' );
+ok( false !== strpos( $home, "const KEY = 'pg-launcher-minimised';" ) && 2 === substr_count( $home, 'sessionStorage.' . 'getItem(KEY)' ) + substr_count( $home, 'sessionStorage.setItem(KEY' ), 'the state is kept in sessionStorage' );
+ok( (bool) preg_match( '#try \{ stored = sessionStorage\.getItem\(KEY\) === \'1\'; \} catch \(e\)#', $home ) && (bool) preg_match( '#try \{ if \(min\) sessionStorage\.setItem\(KEY, \'1\'\); else sessionStorage\.removeItem\(KEY\); \} catch \(e\)#', $home ), 'every storage read and write is wrapped in try/catch' );
+ok( false !== strpos( $home, 'if (focus) (min ? tab : orb).focus();' ), 'focus moves to the tab, and back to the orb' );
+ok( false !== strpos( $home, "launcher.classList.toggle('is-compact', compact);" ) && false !== strpos( $home, "if (cta && orb) cta.addEventListener('click', () => orb.click());" ), 'the compact/desktop switch and the "Not sure where to start?" opener are untouched' );
+ok( 1 === substr_count( $launcher, '<a class="wa-btn" href="https://wa.me/254741619743"' ), 'the WhatsApp link is still there' );
+
 echo "Built front page\n";
-foreach ( array( $compact, "rootStyle.setProperty('--co-kb'" ) as $needle ) {
+foreach ( array( '<button class="launcher-min"', '<button class="launcher-tab"', $compact, "const KEY = 'pg-launcher-minimised';", "rootStyle.setProperty('--co-kb'" ) as $needle ) {
 	ok( false !== strpos( $front, $needle ), 'front-page.php carries ' . substr( $needle, 0, 40 ) );
 }
 
