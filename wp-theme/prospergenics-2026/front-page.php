@@ -256,8 +256,10 @@
       order: 2; position: relative; left: auto; right: auto; top: 0; margin: 0; transform: none;
       width: 100vw; height: 232px; border-radius: 0; opacity: 1;
       background-position: center 16%;
-      -webkit-mask-image: linear-gradient(to bottom, #000 84%, transparent 100%);
-              mask-image: linear-gradient(to bottom, #000 84%, transparent 100%);
+      /* soft paper fade at the top too, like desktop (Martien, 18 Nov): 7.5% of the 232px photo is ~17px,
+         clear of the heads (~28px down at 360-430px) */
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.35) 2.5%, rgba(0, 0, 0, 0.75) 5%, #000 7.5%, #000 84%, transparent 100%);
+              mask-image: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.35) 2.5%, rgba(0, 0, 0, 0.75) 5%, #000 7.5%, #000 84%, transparent 100%);
     }
     .hero-bottom { padding: 20px; }
   }
