@@ -21,11 +21,13 @@ function prospergenics_courses_listings_api_url() {
 }
 
 /**
- * The listings service's JSON as a list of courses: slug, title, summary, skills, provider.
- * Items without a usable slug or title are dropped.
+ * The listings service's JSON as a list of courses: slug, title, summary, skills, provider, and
+ * from the item's 'fields' (what the plugin's course page shows, card #7760) the instructor, the
+ * number of lessons and the rest of the duration ("45 lessons · ~8h" gives 45 and "~8h"). Items
+ * without a usable slug or title are dropped.
  *
  * @param string|array $json
- * @return array<int,array{slug:string,title:string,summary:string,skills:string[],provider:string}>
+ * @return array<int,array{slug:string,title:string,summary:string,skills:string[],provider:string,instructor:string,lessons:int,duration:string}>
  */
 function prospergenics_courses_listings_parse( $json ) {
 	$data  = is_array( $json ) ? $json : json_decode( (string) $json, true );
@@ -43,15 +45,47 @@ function prospergenics_courses_listings_parse( $json ) {
 		$text    = trim( preg_replace( '/\s+/', ' ', wp_strip_all_tags( isset( $item['description_seo'] ) ? (string) $item['description_seo'] : '' ) ) );
 		$summary = strlen( $text ) > 180 ? rtrim( substr( $text, 0, strrpos( substr( $text, 0, 180 ), ' ' ) ?: 180 ), " ,.;:" ) . '…' : $text;
 		$skills  = array_values( array_filter( array_map( 'trim', explode( ',', isset( $item['primary_skills'] ) ? (string) $item['primary_skills'] : '' ) ) ) );
+		$course  = prospergenics_courses_listing_fields( isset( $item['fields'] ) ? $item['fields'] : array() );
 		$out[]   = array(
 			'slug'     => $slug,
 			'title'    => $title,
 			'summary'  => $summary,
 			'skills'   => array_slice( $skills, 0, 4 ),
 			'provider' => trim( wp_strip_all_tags( isset( $item['company'] ) ? (string) $item['company'] : '' ) ),
-		);
+		) + $course;
 	}
 	return $out;
+}
+
+/**
+ * Instructor, lesson count and duration from a listings course's 'fields' (pure). The plugin's
+ * lesson pages are its 'page_titles', so their number is the lesson count; a course without them
+ * (AI Software Lifecycle is one page) only has a count if its duration says "N lessons". The
+ * duration minus that count is kept as it is ("~8h", or "15 min setup + ongoing").
+ *
+ * @param array|string $fields The item's 'fields' (an object, or that object as JSON).
+ * @return array{instructor:string,lessons:int,duration:string}
+ */
+function prospergenics_courses_listing_fields( $fields ) {
+	$fields   = is_array( $fields ) ? $fields : json_decode( (string) $fields, true );
+	$fields   = is_array( $fields ) ? $fields : array();
+	$text     = function ( $key ) use ( $fields ) {
+		return isset( $fields[ $key ] ) && is_scalar( $fields[ $key ] ) ? trim( preg_replace( '/\s+/u', ' ', wp_strip_all_tags( (string) $fields[ $key ] ) ) ) : '';
+	};
+	$lessons  = isset( $fields['page_titles'] ) && is_array( $fields['page_titles'] ) ? count( $fields['page_titles'] ) : 0;
+	$duration = array();
+	foreach ( preg_split( '/\s*·\s*/u', $text( 'duration' ) ) as $part ) {
+		if ( preg_match( '/^(\d+)\s+lessons?$/i', $part, $m ) ) {
+			$lessons = $lessons ? $lessons : (int) $m[1];
+		} elseif ( '' !== $part ) {
+			$duration[] = $part;
+		}
+	}
+	return array(
+		'instructor' => $text( 'instructor' ),
+		'lessons'    => $lessons,
+		'duration'   => implode( ' · ', $duration ),
+	);
 }
 
 /**
@@ -89,18 +123,31 @@ function prospergenics_courses_listing_card( array $item ) {
 	$html .= '<div class="pgc-card-body">';
 	$html .= '<div class="pgc-chips"><span class="pgc-chip">Course</span></div>';
 	$html .= '<h2 class="pgc-card-title"><a href="' . esc_url( $url ) . '">' . esc_html( $item['title'] ) . '</a></h2>';
-	if ( '' !== $item['provider'] ) {
-		$html .= '<p class="pgc-card-by">By ' . esc_html( $item['provider'] ) . '</p>';
+	// the course's own instructor, as on its course page (Martien de Jong); else who offers it (card #7760)
+	$by = ! empty( $item['instructor'] ) ? $item['instructor'] : $item['provider'];
+	if ( '' !== $by ) {
+		$html .= '<p class="pgc-card-by">By ' . esc_html( $by ) . '</p>';
 	}
 	if ( '' !== $item['summary'] ) {
 		$html .= '<p class="pgc-card-summary">' . esc_html( $item['summary'] ) . '</p>';
 	}
 	if ( $item['skills'] ) {
-		$html .= '<ul class="pgc-card-meta">';
+		$html .= '<ul class="pgc-card-meta pgc-card-topics">';
 		foreach ( $item['skills'] as $skill ) {
 			$html .= '<li>' . esc_html( $skill ) . '</li>';
 		}
 		$html .= '</ul>';
+	}
+	// "45 lessons · ~8h" at the foot of the card, where the theme's cards have "4 lessons · Free"
+	$meta = array();
+	if ( ! empty( $item['lessons'] ) ) {
+		$meta[] = prospergenics_courses_lesson_count_label( (int) $item['lessons'] );
+	}
+	if ( ! empty( $item['duration'] ) ) {
+		$meta[] = $item['duration'];
+	}
+	if ( $meta ) {
+		$html .= '<ul class="pgc-card-meta"><li>' . implode( '</li><li>', array_map( 'esc_html', $meta ) ) . '</li></ul>';
 	}
 	$html .= '<p class="pgc-card-actions"><a class="pgc-link-small" href="' . esc_url( $url . 'learn/' ) . '">Start learning <span aria-hidden="true">→</span></a></p>';
 	$html .= '</div></article>';

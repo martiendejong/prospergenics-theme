@@ -42,12 +42,19 @@ function wp_remote_get( $url, $args ) { $GLOBALS['remote_calls']++; return $GLOB
 function wp_remote_retrieve_response_code( $r ) { return $r['code']; }
 function wp_remote_retrieve_body( $r ) { return $r['body']; }
 
+function _n( $one, $many, $n, $d ) { return 1 === $n ? $one : $many; }
+function prospergenics_courses_lesson_count_label( $n ) { return sprintf( _n( '%d lesson', '%d lessons', $n, 'prospergenics-2026' ), $n ); } // inc/courses/render.php
+
 require $theme . '/inc/courses/listings.php';
 
 $sample = json_encode( array( 'total' => 3, 'items' => array(
 	array( 'id' => 55, 'slug' => 'ai-software-lifecycle', 'title' => 'AI Software Lifecycle', 'company' => 'ProsperGenics',
-		'primary_skills' => 'Claude Code,Git,Worktrees,Task management,Deployment', 'description_seo' => '<p>Learn to set up a fully autonomous AI development system that handles the entire software lifecycle from your phone. In 10 practical steps you will install an AI coding agent and much more.</p>' ),
-	array( 'id' => 89, 'slug' => 'python', 'title' => 'Python', 'company' => 'ProsperGenics', 'primary_skills' => '', 'description_seo' => '<script>alert(1)</script><b>Learn</b> Python.' ),
+		'primary_skills' => 'Claude Code,Git,Worktrees,Task management,Deployment', 'description_seo' => '<p>Learn to set up a fully autonomous AI development system that handles the entire software lifecycle from your phone. In 10 practical steps you will install an AI coding agent and much more.</p>',
+		// the 'fields' as the listings service has them (19 Nov): an instructor, no lesson pages
+		'fields' => array( 'level' => 'Intermediate', 'duration' => '15 min setup + ongoing', 'instructor' => 'Martien de Jong', 'topics' => array( 'Claude Code' ) ) ),
+	array( 'id' => 89, 'slug' => 'python', 'title' => 'Python', 'company' => 'ProsperGenics', 'primary_skills' => '', 'description_seo' => '<script>alert(1)</script><b>Learn</b> Python.',
+		// no instructor, 50 lesson pages
+		'fields' => array( 'duration' => '50 lessons · ~8h', 'instructor' => '', 'page_titles' => array_fill( 0, 50, 'A lesson' ) ) ),
 	array( 'id' => 90, 'slug' => '', 'title' => 'No slug' ),
 ) ) );
 
@@ -64,6 +71,23 @@ $card = prospergenics_courses_listing_card( $items[0] );
 ok( false !== strpos( $card, 'href="https://test.example/courses/ai-software-lifecycle/"' ), 'the card links to the course page the listings plugin serves' );
 ok( false !== strpos( $card, 'href="https://test.example/courses/ai-software-lifecycle/learn/"' ), 'and to its lessons' );
 ok( false === strpos( prospergenics_courses_listing_card( array( 'slug' => 'x', 'title' => '<img src=x onerror=alert(1)>', 'summary' => '', 'skills' => array(), 'provider' => '' ) ), '<img' ), 'titles are escaped' );
+
+echo "Instructor and lesson count on the listings cards (card #7760)\n";
+ok( 'Martien de Jong' === $items[0]['instructor'] && 0 === $items[0]['lessons'] && '15 min setup + ongoing' === $items[0]['duration'], 'AI Software Lifecycle: its instructor; no lesson pages and no count in its duration, which is kept as it is' );
+ok( '' === $items[1]['instructor'] && 50 === $items[1]['lessons'] && '~8h' === $items[1]['duration'], 'Python: 50 lessons (its lesson pages) and "~8h" from "50 lessons · ~8h"' );
+ok( false !== strpos( $card, '<p class="pgc-card-by">By Martien de Jong</p>' ) && false === strpos( $card, 'By ProsperGenics' ), 'the card names the course\'s own instructor, not the provider' );
+ok( false !== strpos( $card, '<ul class="pgc-card-meta"><li>15 min setup + ongoing</li></ul>' ), 'and its duration at the foot of the card' );
+$py_card = prospergenics_courses_listing_card( $items[1] );
+ok( false !== strpos( $py_card, '<p class="pgc-card-by">By ProsperGenics</p>' ), 'no instructor in the listings: the provider, as before' );
+ok( false !== strpos( $py_card, '<ul class="pgc-card-meta"><li>50 lessons</li><li>~8h</li></ul>' ), '"50 lessons · ~8h", as the theme\'s cards show "N lessons · price"' );
+ok( false !== strpos( $card, '<ul class="pgc-card-meta pgc-card-topics"><li>Claude Code</li>' ), 'the topics stay, in their own list under the summary' );
+$f = prospergenics_courses_listing_fields( array( 'duration' => '1 lesson', 'instructor' => '<b>Ann</b>' ) );
+ok( array( 'instructor' => 'Ann', 'lessons' => 1, 'duration' => '' ) === $f, 'a duration that is only "1 lesson" gives the count; markup is stripped from the instructor' );
+ok( array( 'instructor' => '', 'lessons' => 12, 'duration' => '~5h' ) === prospergenics_courses_listing_fields( json_encode( array( 'duration' => '10 lessons · ~5h', 'page_titles' => range( 1, 12 ) ) ) ), 'fields as a JSON string are read too; the lesson pages win over the count in the duration' );
+ok( array( 'instructor' => '', 'lessons' => 0, 'duration' => '' ) === prospergenics_courses_listing_fields( null ), 'no fields: nothing' );
+$old_cache = prospergenics_courses_listing_card( array( 'slug' => 'html', 'title' => 'HTML', 'summary' => '', 'skills' => array(), 'provider' => 'ProsperGenics' ) );
+ok( false !== strpos( $old_cache, 'By ProsperGenics' ) && false === strpos( $old_cache, '<ul class="pgc-card-meta">' ), 'a course cached before this change (no instructor or lessons yet) still renders' );
+ok( (bool) preg_match( '#\.pgc-card-meta\.pgc-card-topics\{margin-top:0;#', (string) file_get_contents( $theme . '/assets/platform/courses.css' ) ), 'courses.css: the topics list is not pushed to the foot of the card; the lessons line is' );
 
 echo "Cache and outage\n";
 $GLOBALS['remote'] = array( 'code' => 200, 'body' => $sample );
@@ -101,7 +125,6 @@ function get_post() { return null; }
 function prospergenics_courses_card( $p, $u ) { return '<article class="pgc-card">theme course</article>'; }
 function selected( $a, $b ) {}
 function esc_attr( $s ) { return esc_html( $s ); }
-function _n( $one, $many, $n, $d ) { return 1 === $n ? $one : $many; }
 function paginate_links( $a ) { return ''; }
 function pgc_render_archive( $theme, $filters, $posts, $listings ) {
 	global $wp_query;
@@ -122,6 +145,9 @@ $own = pgc_render_archive( $theme, array(), 2, array() );
 ok( false !== strpos( $own, 'class="pgc-filters"' ) && false !== strpos( $own, '2 courses</p>' ), 'theme courses only: the form and the count show' );
 $filtered = pgc_render_archive( $theme, array( 'level' => 'beginner' ), 0, $one_listing );
 ok( false !== strpos( $filtered, 'class="pgc-filters"' ) && false !== strpos( $filtered, '0 courses match your filters' ) && false !== strpos( $filtered, 'No courses match these filters yet.' ), 'a filter that matches nothing keeps the form, so it can be changed' );
+$one_match = pgc_render_archive( $theme, array( 'category' => 'business' ), 1, array() );
+ok( false !== strpos( $one_match, '1 course matches your filters</p>' ) && false === strpos( $one_match, 'course match your' ), '"1 course matches your filters" (card #7760)' );
+ok( false !== strpos( pgc_render_archive( $theme, array( 'level' => 'beginner' ), 3, array() ), '3 courses match your filters</p>' ), '"3 courses match your filters"' );
 
 echo "Blog\n";
 $blog = @file_get_contents( $theme . '/page-blog.php' );
