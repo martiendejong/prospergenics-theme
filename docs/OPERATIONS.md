@@ -12,7 +12,25 @@ and the owner still have to provide. Card 6473, audit ARC-17 / ARC-18.
 | Role/permission matrix against a real WordPress | `ci.yml`, job `wordpress-roles` (`tests/e2e/`) | same |
 | Deploy to test (backup, upload, prune, smoke check) | `.github/workflows/deploy-test.yml` | every push to `design/new-hero-2026-10` |
 | Uptime check of test | `.github/workflows/uptime.yml` (`tests/smoke/uptime-check.sh`) | every 30 minutes |
-| Production deploy (`master`) | by hand (Martien) | manual |
+| Production deploy (gate, approval, database + uploads + theme backup, upload, smoke check) | `.github/workflows/deploy-production.yml` | by hand: *Run workflow*, then a reviewer approves |
+
+### How a deploy reaches each site (card #7232)
+
+| | test.prospergenics.com | prospergenics.com |
+|---|---|---|
+| Built from | `design/new-hero-2026-10` (`build-wp-theme.py` → `wp-theme/prospergenics-2026/`) | the same commit, once it passed on test |
+| Started by | every push to `design/new-hero-2026-10` (`deploy-test.yml`), or by hand | *Run workflow* on `deploy-production.yml` (until 19 Nov: by hand from Martien's machine) |
+| Checks first | the PHP and deploy tests; `deploy_guard.py` (newest branch, never older than the server) | `prod_gate.py`: confirmation, on the branch, **CI green on exactly that commit**, **already on test**, production not newer; then **a reviewer's approval** (Environment `production`) |
+| Upload | `deploy-wp-theme-vimexx.py`: FTPS to web0168.zxcs.nl, `domains/test.prospergenics.com/public_html` | the same script with `--target production` → `domains/prospergenics.com/public_html` |
+| Backup before | the live theme (artifact `theme-backup-<sha>`, 30 days) | **database** and **uploads** (encrypted artifacts `production-db-<sha>`, `production-uploads-<sha>`) and the live theme (`production-theme-backup-<sha>`), all 30 days |
+| After | smoke check, alert issue *Deploy to test failing* | smoke check compared with the one before the upload; alert issue *Deploy to production failing* |
+| Rollback | the theme artifact, `--theme-dir` (below) | the same with `--target production --confirm prospergenics.com`; database: import the dump |
+| Says what runs | `/version.json` | `/version.json` (`"run"` is the workflow run; `null` = deployed by hand) |
+
+What `/version.json` showed on 19 Nov: both sites run `f59324f` (deployed 17 Nov 03:55 and 03:57 UTC,
+`"run": null`, so by hand), and CI **failed** on that commit (the site-chrome and scroll-fade sync tests;
+the push-triggered *Deploy to test* run refused to upload it for the same reason). The production gate
+stops exactly that.
 
 ## Deploying safely (read this before you upload anything)
 
@@ -31,18 +49,86 @@ people pages and every fix since 24 Oct disappeared from the site (the database 
   `origin/design/new-hero-2026-10`, or when the server already runs a newer commit (`deploy_guard.py`;
   the Vimexx deploy reads the commit from its manifest, the IIS deploy from `.deployed-commit` in the
   theme folder). `--allow-older` is for a deliberate rollback only.
+- **Production** goes through `.github/workflows/deploy-production.yml` (next section). The deploy script
+  refuses a prospergenics.com web root unless it runs with `--target production --confirm prospergenics.com`,
+  which adds the production checks, so the test command cannot reach production by accident.
 - **One host at a time.** test.prospergenics.com is served by whichever origin Cloudflare points at.
   The GitHub deploy uploads to the Vimexx host; switching Cloudflare to another server (such as the
   IIS server) makes the site show that server's copy instead. Agree on the host before switching.
 
+## Deploying to production
+
+*Actions → Deploy to production → Run workflow*, from the branch `design/new-hero-2026-10`:
+
+| Input | |
+|---|---|
+| `confirm` | type `prospergenics.com` |
+| `commit` | the full SHA to deploy; empty = what test runs now (its `/version.json`) |
+| `dry_run` | on by default: takes the **real** backups and logs what the upload would do, uploads nothing. Untick to deploy |
+| `db_backup` | `automatic`; `taken-by-hand` only for the first deploy, while production's theme has no backup endpoint yet (below) |
+| `allow_older` | a deliberate rollback to a commit older than production's |
+
+1. **Gate** (`prod_gate.py`, no secrets): stops unless the confirmation is right, the commit is part of
+   `design/new-hero-2026-10`, `ci.yml` passed on exactly that commit, test runs it (or a push-triggered
+   *Deploy to test* run uploaded it and passed its smoke check), and production does not run newer work.
+   The run summary lists what the reviewer is about to approve.
+2. **Approval**: the `deploy` job runs in the GitHub Environment `production`; GitHub waits for a
+   required reviewer, and only then releases the production secrets.
+3. **Backups, before anything changes**: the database (below), `wp-content/uploads/`, both encrypted for
+   `BACKUP_GPG_PUBLIC_KEY` and kept as artifacts for 30 days.
+4. **Baseline smoke check** of production, then the upload (`deploy-wp-theme-vimexx.py --target production`,
+   which downloads the live theme first: artifact `production-theme-backup-<sha>`), then the smoke check
+   again. `tests/smoke/smoke-compare.sh` fails the run on any check that passed before the upload and fails
+   after it; checks production already failed (on 19 Nov: `/contact/` → 301 to `/#contact`, `/members/` 404,
+   no public `/in/` profile yet) are listed as known. A failure opens the issue *Deploy to production failing*.
+
+**Rollback.** Theme: download `production-theme-backup-<sha>`, then
+`python3 design/new-hero-2026-10/deploy-wp-theme-vimexx.py --target production --confirm prospergenics.com --no-build --theme-only --theme-dir <unzipped>/<time>/prospergenics-2026`
+(by hand, with the production FTPS login). Database: decrypt the dump (`gpg -d production-db-….sql.gz.gpg > db.sql.gz`)
+and import it (phpMyAdmin → *Import*, or `wp db import`). The uploads archive unpacks into `wp-content/`.
+
+**By hand** (Martien's machine, only if GitHub is unavailable): `deploy-wp-theme-vimexx.py --target production
+--confirm prospergenics.com` runs the same gate itself (through `gh` or `GH_TOKEN`), needs a clean
+working tree and always backs the theme up. Take the database export by hand first (Backups → How, step 4).
+
+**Setup, once** (repository admin): *Settings → Environments → New environment* `production` with
+**Required reviewers** and *Deployment branches* = `design/new-hero-2026-10`; environment secrets
+`PROD_FTP_USERNAME`, `PROD_FTP_PASSWORD` (the FTPS login that reaches `domains/prospergenics.com/`) and
+`PROD_BACKUP_KEY`; repository variable `BACKUP_GPG_PUBLIC_KEY`; optional variables `PROD_FTP_ROOT`,
+`PROD_FTP_HOST`, `PRODUCTION_SMOKE_MEMBER_PROFILE`. Details at the top of `deploy-production.yml`.
+
 ## Backups
+
+### Database backup on request (cards #7232, #6473)
+
+The deploy only reaches the host over FTPS, which cannot run `mysqldump`. The theme module
+`inc/ops-backup.php` closes that gap: a POST to `/wp-json/prospergenics/v1/ops/db-backup`, signed with
+`PROSPERGENICS_BACKUP_KEY`, makes WordPress write a gzipped SQL dump of the site's tables to
+`<site folder>/deploy/db-backups/`, **next to** `public_html` (never web-served), and answer with its name,
+size and SHA-256 only. `design/new-hero-2026-10/backup-site.py --db` then downloads it over FTPS, checks
+the hash and deletes it from the host; `--uploads` downloads `wp-content/uploads/` into one archive;
+`--encrypt-to <public key>` encrypts both (the workflows always do: this repository is public, so its
+artifacts are visible to anyone with a GitHub account).
+
+- Off until `wp-config.php` defines the key: `define( 'PROSPERGENICS_BACKUP_KEY', '<64 random hex characters>' );`
+  (`python3 -c "import secrets; print(secrets.token_hex(32))"`), and the same value is the `PROD_BACKUP_KEY`
+  secret. Without it the route does not exist.
+- The signature covers the site's host, the time (5 minutes), a nonce and dry-run or not; each request
+  works once; one dump per 2 minutes; the newest 3 dumps stay on the host.
+- Restore: `gpg -d` the artifact, then phpMyAdmin → *Import* (or `wp db import`). Tested on 19 Nov on a
+  local copy of the test site: every table dropped, the dump replayed, all 578 rows back, posts, users and
+  their meta identical.
+- Limits: the dump runs inside one web request, and Cloudflare cuts a request off after 100 seconds; that
+  is plenty for this site's database today, not for a very large one (then use the DirectAdmin backup).
+  The first production deploy has no endpoint yet (production runs an older theme): choose
+  `db_backup: taken-by-hand` after a DirectAdmin/phpMyAdmin export; every deploy after it is automatic.
 
 ### What to back up
 
 | Item | Where it lives | Covered by |
 |---|---|---|
-| Database (posts, courses, articles, users, profiles, contact messages, settings) | MySQL on the host | **host backup, not automated here** (see below) |
-| `wp-content/uploads/` (profile photos, featured media, course thumbnails) | host disk | **host backup, not automated here** |
+| Database (posts, courses, articles, users, profiles, contact messages, settings) | MySQL on the host | before every production deploy (artifact `production-db-<sha>`, encrypted, 30 days, once `PROSPERGENICS_BACKUP_KEY` is set); host backup for the daily copy (see below) |
+| `wp-content/uploads/` (profile photos, featured media, course thumbnails) | host disk | before every production deploy (artifact `production-uploads-<sha>`, encrypted, 30 days); host backup for the daily copy |
 | `wp-config.php` (DB login, salts, SMTP settings) | host disk | host backup; keep a copy in the vault |
 | Theme `prospergenics-2026` | git + host | git, plus a download of the live theme before every deploy (artifact `theme-backup-<sha>`, 30 days) |
 | Static pages `people/`, `experts/`, `community/`, `team/` | git + host | git (rebuilt and re-uploaded on every deploy) |
@@ -80,8 +166,7 @@ The target is **daily, 30 days kept, a copy off the host, a failure noticed, a r
    *Export* → SQL). With SSH or WP-CLI access on the host the same in one line:
    `wp db export ~/backups/db-$(date -u +%Y%m%dT%H%M%SZ).sql.gz` (or `mysqldump
    --single-transaction --default-character-set=utf8mb4 -u <user> -p <db> | gzip > …`, the login is in
-   `wp-config.php`). Once SSH/WP-CLI or a DirectAdmin API key exists, this export can be added to
-   `deploy-test.yml` before the upload, with the dump kept as an artifact like the theme backup.
+   `wp-config.php`). A production deploy does this itself through the backup endpoint (above).
 5. **Theme**: automatic. Every deploy downloads the live theme first
    (`deploy-wp-theme-vimexx.py`, artifact `theme-backup-<sha>` in the Actions run, 30 days). Restore:
    `python3 design/new-hero-2026-10/deploy-wp-theme-vimexx.py --no-build --theme-only --theme-dir <unzipped artifact>/<time>/prospergenics-2026`.
@@ -121,7 +206,8 @@ example `restore.prospergenics.com`) rather than over the test site, so a bad re
   and opens the alert issue (see "Where alerts go").
 - **After every deploy** (`deploy-test.yml`): `tests/smoke/smoke-check.sh` checks the static pages,
   the platform routes (`/courses/`, `/articles/`, `/profile/` → 302 to login, the
-  `prospergenics/v1/courses` JSON), the `/members/lessy/` → `/people/lessy/` redirect, the value test
+  `prospergenics/v1/courses` JSON), a public member profile (`/in/martien-de-jong/`,
+  `SMOKE_MEMBER_PROFILE`), the `/members/lessy/` → `/people/lessy/` redirect, the value test
   on the homepage and the shared site header on every page. A failed upload or smoke check opens
   the alert issue too.
 - **PHP fatal errors** (`inc/ops-alerts.php`): every fatal error after the theme has loaded, on
@@ -211,8 +297,9 @@ Card #6473 cannot be closed from the repository alone. In this order:
       repository or set `ALERT_ASSIGNEES`; run the alert test under "Where alerts go".
 - [ ] Do the first restore test and record it below.
 - [ ] WhatsApp/SMS alerts, if wanted: choose a provider (external monitor, or Twilio/CallMeBot from the workflow) and add its key as a secret.
-- [ ] Production: run the deploy through a GitHub Environment `production` with required reviewers
-      instead of by hand, and add a production uptime workflow with the production URL.
+- [ ] Production deploys (card #7232): create the Environment `production` with required reviewers and
+      its secrets, the `BACKUP_GPG_PUBLIC_KEY` variable, `PROSPERGENICS_BACKUP_KEY` in production's
+      `wp-config.php` ("Deploying to production → Setup"); then run the workflow once with `dry_run` on.
 - [ ] Check once with the test site that `--switch` works on Vimexx (folder rename over FTPS); if it
       does, it can become the default for production.
 

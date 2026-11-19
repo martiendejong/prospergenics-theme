@@ -20,6 +20,8 @@ add_action( 'wp_head', function () {
 
 // First, so a fatal error in anything loaded after it is logged and emailed to staff (#6473).
 require get_template_directory() . '/inc/ops-alerts.php';
+// A signed request writes a database dump outside the web root for the deploy to fetch (#7232, #6473).
+require get_template_directory() . '/inc/ops-backup.php';
 require get_template_directory() . '/inc/security.php';
 require get_template_directory() . '/inc/seo.php';
 // The one site header + footer (menu in inc/site-chrome/nav.json), also put on jengo-listings

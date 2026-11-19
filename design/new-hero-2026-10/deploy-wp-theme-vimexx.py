@@ -9,6 +9,8 @@ targeted the old IIS server and is superseded by this script).
     python deploy-wp-theme-vimexx.py --switch        # upload to a new folder, then switch by rename
     python deploy-wp-theme-vimexx.py --no-build --theme-only --theme-dir <backup>/prospergenics-2026
                                                      # restore a backup taken by an earlier run
+    python deploy-wp-theme-vimexx.py --target production --confirm prospergenics.com [--dry-run]
+                                                     # production (card #7232): see "Production" below
 
 Credentials: PG_FTP_USER / PG_FTP_PASSWORD from the environment when set (GitHub Actions),
 otherwise the Jengo vault (Martien's machine).
@@ -48,6 +50,21 @@ How a theme deploy stays safe (audit ARC-17):
      ever listed are only logged, unless --prune-unlisted. Nothing outside the theme folder is
      ever deleted.
 
+Production (card #7232, docs/OPERATIONS.md "Deploying to production"): --target production deploys to
+domains/prospergenics.com/public_html (PG_FTP_ROOT overrides it, but must stay a prospergenics.com root),
+and a production web root is refused without --target production, so production is never reached by
+accident with the test command. With --target production the script also:
+  - needs --confirm prospergenics.com;
+  - always backs the live theme up (--no-backup and --prune-unlisted are refused) and, by hand, needs a
+    clean working tree, so what goes up is exactly the commit that is recorded;
+  - checks the production gate (prod_gate.py: CI green on this exact commit, the commit already on test,
+    production not newer). In GitHub Actions the gate is a job of deploy-production.yml, before the
+    approval; the deploy step gets its result as PG_PRODUCTION_GATE=<sha> and refuses any other commit.
+    By hand the script runs the gate itself (the GitHub API through GH_TOKEN or `gh`);
+  - refuses to replace newer work on production (deploy_guard.require_not_older); --allow-older for a
+    deliberate rollback. Restoring a theme backup (--theme-dir) skips the CI/test gate, not the confirmation.
+The database and uploads backups before a production deploy are backup-site.py, a step of the workflow.
+
 Testing against a local FTP server: PG_FTP_HOST, PG_FTP_PORT and PG_FTP_ROOT override the host,
 port and web root; PG_FTP_PLAIN=1 allows plain FTP, for localhost only.
 """
@@ -68,14 +85,54 @@ VAULT_PROJECT = 6
 VAULT_CRED    = 266
 FTP_HOST      = os.environ.get("PG_FTP_HOST") or "web0168.zxcs.nl"
 FTP_PORT      = int(os.environ.get("PG_FTP_PORT") or 21)
-REMOTE_ROOT   = (os.environ.get("PG_FTP_ROOT") or "domains/test.prospergenics.com/public_html").strip("/")
+TEST_ROOT     = "domains/test.prospergenics.com/public_html"
+PRODUCTION_HOSTS = ("prospergenics.com", "www.prospergenics.com")
+PRODUCTION_ROOT  = "domains/prospergenics.com/public_html"
 THEME_SLUG    = "prospergenics-2026"
-REMOTE_THEMES = f"{REMOTE_ROOT}/wp-content/themes"
-REMOTE_THEME  = f"{REMOTE_THEMES}/{THEME_SLUG}"
-# Next to public_html, so neither the manifest nor the switch folders are served or seen by WordPress.
-DEPLOY_DIR    = f"{posixpath.dirname(REMOTE_ROOT)}/deploy" if "/" in REMOTE_ROOT else "deploy"
-MANIFEST      = f"{DEPLOY_DIR}/{THEME_SLUG}.manifest.json"
 THEME_ASSETS  = "/wp-content/themes/prospergenics-2026/assets/"
+
+
+def configure(root):
+    """Point every remote path at the web root `root` (FTP path, from the DA home)."""
+    global REMOTE_ROOT, REMOTE_THEMES, REMOTE_THEME, DEPLOY_DIR, MANIFEST, VERSION_FILE
+    REMOTE_ROOT   = root.strip("/")
+    REMOTE_THEMES = f"{REMOTE_ROOT}/wp-content/themes"
+    REMOTE_THEME  = f"{REMOTE_THEMES}/{THEME_SLUG}"
+    # Next to public_html, so neither the manifest nor the switch folders are served or seen by WordPress.
+    DEPLOY_DIR    = f"{posixpath.dirname(REMOTE_ROOT)}/deploy" if "/" in REMOTE_ROOT else "deploy"
+    MANIFEST      = f"{DEPLOY_DIR}/{THEME_SLUG}.manifest.json"
+    VERSION_FILE  = f"{REMOTE_ROOT}/version.json"
+
+
+configure(os.environ.get("PG_FTP_ROOT") or TEST_ROOT)
+
+
+def is_production_root(root):
+    """Whether an FTP web root belongs to prospergenics.com itself (domains/<host>/...)."""
+    parts = (root or "").strip("/").split("/")
+    return len(parts) >= 2 and parts[0] == "domains" and parts[1].lower() in PRODUCTION_HOSTS
+
+
+def target_problems(target, root, confirm="", no_backup=False, prune_unlisted=False, dirty=False, restoring=False):
+    """Why this combination must not run (pure; card #7232). Empty when it may."""
+    found = []
+    if target != "production":
+        if is_production_root(root):
+            found.append(f"{root} is production (prospergenics.com): deploy there with --target production "
+                         "--confirm prospergenics.com, which adds the production checks, or better through the "
+                         "\"Deploy to production\" workflow")
+        return found
+    if not is_production_root(root):
+        found.append(f"--target production, but the web root {root} is not prospergenics.com's")
+    if (confirm or "").strip().lower() != PRODUCTION_HOSTS[0]:
+        found.append("--target production needs --confirm prospergenics.com")
+    if no_backup:
+        found.append("--no-backup is refused for production: the live theme is always backed up first")
+    if prune_unlisted:
+        found.append("--prune-unlisted is refused for production: only files a previous deploy listed are deleted")
+    if dirty and not restoring:
+        found.append("the working tree has uncommitted changes: production gets exactly a committed, tested commit")
+    return found
 TMP_SUFFIX    = ".deploy-tmp"
 KEEP_PREVIOUS = 3
 SKIP_NAMES    = {"__pycache__", ".DS_Store", "Thumbs.db"}
@@ -166,6 +223,10 @@ def safe_rel(rel):
 
 
 def commit_sha():
+    # PG_DEPLOY_COMMIT: the production workflow deploys the gated commit, which can be older than the
+    # branch head that GITHUB_SHA names on a "Run workflow"
+    if os.environ.get("PG_DEPLOY_COMMIT"):
+        return os.environ["PG_DEPLOY_COMMIT"]
     if os.environ.get("GITHUB_SHA"):
         return os.environ["GITHUB_SHA"]
     r = subprocess.run(["git", "-C", REPO, "rev-parse", "HEAD"], capture_output=True, text=True)
@@ -476,9 +537,6 @@ def deploy_static(ftp, dry):
     return len(pages)
 
 
-VERSION_FILE = f"{REMOTE_ROOT}/version.json"
-
-
 def version_info(now=None):
     """What /version.json says about this deploy (card #7145). The board reads "commit" (also as
     "version") to see which merged work the test site runs, and moves cards to testing by itself."""
@@ -513,7 +571,7 @@ def connect():
         cred = {"username": os.environ["PG_FTP_USER"], "password": os.environ["PG_FTP_PASSWORD"]}
     else:
         cred = vault_cred(VAULT_PROJECT, VAULT_CRED,
-                          "deploy prospergenics-2026 thema + profielpagina's naar test.prospergenics.com")
+                          f"deploy prospergenics-2026 thema + profielpagina's naar {REMOTE_ROOT.split('/')[1] if '/' in REMOTE_ROOT else REMOTE_ROOT}")
     if os.environ.get("PG_FTP_PLAIN") == "1":
         if FTP_HOST not in ("127.0.0.1", "localhost", "::1"):
             sys.exit("PG_FTP_PLAIN is for a local test server only")
@@ -529,8 +587,29 @@ def connect():
     return ftp
 
 
+def production_gate(confirm, allow_older):
+    """The production gate for this checkout's commit: in GitHub Actions the result of the workflow's
+    gate job (PG_PRODUCTION_GATE=<sha>), by hand prod_gate.py run here. A list of problems."""
+    sha = commit_sha()
+    if os.environ.get("GITHUB_ACTIONS"):
+        gate = os.environ.get("PG_PRODUCTION_GATE", "")
+        head = subprocess.run(["git", "-C", REPO, "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
+        if gate and gate == sha == head:
+            return []
+        return [f"the production gate did not pass for this checkout ({head[:12] or '?'}, recorded as {sha[:12]}; "
+                f"PG_PRODUCTION_GATE={gate[:12] or 'unset'}): deploy to production through the \"Deploy to production\" workflow"]
+    import prod_gate  # by hand: the same checks as the workflow's gate job
+    token = os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN")
+    try:
+        data = prod_gate.gather(os.environ.get("PG_GITHUB_REPO", "martiendejong/prospergenics-theme"), sha, token)
+    except Exception as e:  # noqa: BLE001
+        return [f"could not check the production gate ({e}); log in with `gh auth login` or set GH_TOKEN"]
+    return prod_gate.problems(confirm, data["sha"], data["test_version"], data["ci_runs"], data["deploy_runs"],
+                              data["jobs_by_run"], data["on_branch"], data["older"], allow_older)
+
+
 def main():
-    ap = argparse.ArgumentParser(description="Deploy the prospergenics-2026 theme and static pages to test.prospergenics.com.")
+    ap = argparse.ArgumentParser(description="Deploy the prospergenics-2026 theme and static pages to test.prospergenics.com (or, with --target production, prospergenics.com).")
     ap.add_argument("--dry-run", action="store_true", help="connect and log the plan (uploads, backups, deletions); change nothing")
     ap.add_argument("--switch", action="store_true", help="upload to a new folder and switch by rename (see the docstring)")
     ap.add_argument("--no-build", action="store_true", help="skip build-profiles.py and build-wp-theme.py")
@@ -541,7 +620,22 @@ def main():
     ap.add_argument("--no-backup", action="store_true", help="skip the backup download")
     ap.add_argument("--allow-older", action="store_true", help="deploy even if this checkout is older than what the server runs (deliberate rollback; see deploy_guard.py)")
     ap.add_argument("--prune-unlisted", action="store_true", help="also delete theme files on the server that are not in the build and were never in a manifest")
+    ap.add_argument("--target", choices=("test", "production"), default="test", help="test (default) or production, with the production checks (card #7232)")
+    ap.add_argument("--confirm", default="", help="with --target production: type prospergenics.com")
     args = ap.parse_args()
+
+    restoring = os.path.abspath(args.theme_dir) != os.path.abspath(THEME)
+    if args.target == "production" and not os.environ.get("PG_FTP_ROOT"):
+        configure(PRODUCTION_ROOT)
+    dirty = bool(subprocess.run(["git", "-C", REPO, "status", "--porcelain"], capture_output=True, text=True).stdout.strip())
+    found = target_problems(args.target, REMOTE_ROOT, args.confirm, args.no_backup, args.prune_unlisted,
+                            dirty and not os.environ.get("GITHUB_ACTIONS"), restoring)
+    if args.target == "production" and not found and not restoring:
+        found = production_gate(args.confirm, args.allow_older)
+    if found:
+        for p in found:
+            print("STOP: " + p, file=sys.stderr)
+        sys.exit("Nothing was uploaded.")
 
     if not args.no_build:
         subprocess.run([sys.executable, os.path.join(PEOPLE, "build-profiles.py")], check=True)
@@ -558,7 +652,11 @@ def main():
     print(f"connected to {FTP_HOST}:{FTP_PORT}, theme folder {REMOTE_THEME}" + (" (dry run)" if args.dry_run else ""))
     # never replace a newer site with an older build (4 Nov 2026: the 24 Oct theme overwrote everything)
     previous = read_remote_json(ftp, MANIFEST) or {}
-    deploy_guard.require_current(REPO, previous.get("commit"), args.allow_older or args.theme_dir != THEME)
+    if args.target == "production":
+        # production gets the commit that passed on test, not necessarily the branch's newest one
+        deploy_guard.require_not_older(REPO, previous.get("commit"), args.allow_older or restoring)
+    else:
+        deploy_guard.require_current(REPO, previous.get("commit"), args.allow_older or args.theme_dir != THEME)
     deploy_theme(ftp, args, theme_dir, files, log_dir)
     count = len(files)
     if not args.theme_only:

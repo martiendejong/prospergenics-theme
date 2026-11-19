@@ -11,6 +11,12 @@
 # every check once more; only that second round decides. A real breakage fails both rounds; a
 # moment where the host served another page for every URL (31 Oct, right after three deploys in a
 # row) does not fail the deploy, but stays visible as a warning in the log.
+#
+#   SMOKE_MEMBER_PROFILE  a public member profile to check (default /in/martien-de-jong/, card #7232;
+#                         "none" skips it, for a site that has no public /in/ profile yet)
+#   SMOKE_RESULTS=<file>  also write the deciding round as "ok <check>" / "FAIL <check>" lines, one per
+#                         check, so a production deploy can compare the site after the upload with the
+#                         site before it (tests/smoke/smoke-compare.sh, deploy-production.yml)
 set -uo pipefail
 
 BASE="${1:-https://test.prospergenics.com}"
@@ -21,10 +27,13 @@ fails=0
 ROUND=1
 SHOWN=0
 WAIT="${SMOKE_RETRY_WAIT:-45}"
+MEMBER_PROFILE="${SMOKE_MEMBER_PROFILE:-/in/martien-de-jong/}"
+RESULTS=()   # "ok <check>" / "FAIL <check>" of the current round; <check> is the first word of the message
 
 # In the first round a failure is a warning plus what the host served; in the last round an error.
 fail() {
     fails=$((fails + 1))
+    RESULTS+=("FAIL ${1%% *}")
     if [ "$ROUND" = 1 ]; then
         echo "FAIL  $1"; echo "::warning::smoke check (first round): $1"
         if [ "$SHOWN" = 0 ]; then
@@ -36,7 +45,7 @@ fail() {
         echo "FAIL  $1"; echo "::error::smoke check: $1"
     fi
 }
-pass() { echo "ok    $1"; }
+pass() { echo "ok    $1"; RESULTS+=("ok ${1%% *}"); }
 
 # fetch PATH -> sets CODE, TYPE, LOCATION; body in $BODY (redirects are not followed)
 fetch() {
@@ -88,6 +97,9 @@ expect_page /experts/
 # plugin's placeholder quote is gone
 expect_page /members/ '/people/farid/' '/people/lessy/'
 if grep -qF 'Every task I pick up teaches me something' "$BODY"; then fail "/members/ still shows the placeholder quote"; fi
+# A public member profile, /in/<slug>/ (inc/profiles/routes.php, card #7232): the platform's own
+# profile pages, rendered by WordPress for a logged-out visitor
+if [ "$MEMBER_PROFILE" != "none" ]; then expect_page "$MEMBER_PROFILE" 'class="pgp-root'; fi
 
 # Members only: logged out, /profile/ sends you to the login page
 expect_redirect /profile/ 302 'wp-login\.php'
@@ -114,9 +126,10 @@ if [ "$fails" -gt 0 ]; then
     echo
     echo "$fails check(s) failed; checking again in ${WAIT}s (a host that briefly serves another page passes now)"
     sleep "$WAIT"
-    ROUND=2; fails=0
+    ROUND=2; fails=0; RESULTS=()
     run_checks
 fi
+if [ -n "${SMOKE_RESULTS:-}" ]; then printf '%s\n' "${RESULTS[@]}" > "$SMOKE_RESULTS"; fi
 
 echo
 [ "$fails" -eq 0 ] && echo "smoke check passed: $BASE" || echo "smoke check: $fails failed for $BASE"
