@@ -16,6 +16,17 @@
 .learn-wrap .learn-body table { display: block; max-width: 100%; overflow-x: auto; }
 .learn-wrap .learn-body :not(pre) > code { overflow-wrap: anywhere; }
 .learn-wrap .learn-body [hidden] { display: none !important; }
+/* #6469: while the page loads, only the first session is laid out. learn.js removes the <hr> session breaks when it
+   splits the lesson, so this stops applying then. Only with scripting on (without JavaScript the whole lesson shows);
+   if learn.js stopped early, the fallback script before these styles adds .pg-learn-all at DOMContentLoaded. */
+@media (scripting: enabled) { .learn-wrap .learn-body:not(.pg-learn-all) > hr ~ :not(.learn-foot) { display: none; } }
+/* On phones the table of contents sits above the lesson, and the plugin's script fills it with every heading of the
+   course (435 links in Python) before learn.js puts its own list there: the lesson jumped down out of view and back
+   (layout shift 0.7). While the breaks are there, the list keeps the room learn.js's list takes (the open session and
+   the "All N lessons" button below it, 52 + 52px) and shows nothing yet. */
+@media (scripting: enabled) and (max-width: 900px) {
+  .learn-wrap .learn-grid:has(> .learn-body:not(.pg-learn-all) > hr) #tocLinks { height: 104px; overflow: hidden; visibility: hidden; }
+}
 
 /* #7144: one session at a time (learn.js; without JavaScript none of this shows). */
 .learn-wrap .pg-learn-pick {
@@ -136,6 +147,18 @@
 .editor-container textarea:focus-visible { box-shadow: inset 0 0 0 2px var(--green-500, #34c759); }
 .editor-container iframe { flex: 1; width: 100%; min-height: 220px; border: 0; background: #fff; }
 .editor-container[data-pg-lang="javascript"] iframe, .editor-container[data-pg-lang="python"] iframe { background: #1a1a1a; }
+/* #6469: until a result renders (its session open and in view, or Run) the panel holds a placeholder of the
+   frame's size: empty, the Run hint, or for an example with content from other sites a tap-to-load button. */
+.editor-container .pg-stage { flex: 1; display: flex; min-height: 220px; padding: 14px; background: #fff; }
+.editor-container[data-pg-lang="javascript"] .pg-stage, .editor-container[data-pg-lang="python"] .pg-stage { background: #1a1a1a; padding: 12px; }
+.editor-container .pg-stage-hint { margin: 0; color: #8a8a8a; font: italic 13px/1.45 'Cascadia Code', 'Fira Code', ui-monospace, monospace; }
+.editor-container .pg-embed-gate {
+  flex: 1; display: flex; align-items: center; justify-content: center; padding: 18px; cursor: pointer;
+  border: 1px dashed rgba(15, 61, 40, .35); border-radius: 8px; background: #f1f8f3; color: #0f3d28;
+  font: 600 14.5px/1.45 'Inter', system-ui, sans-serif; text-align: center; overflow-wrap: anywhere;
+}
+.editor-container .pg-embed-gate:hover { background: #e3f2e8; }
+.editor-container .pg-embed-gate:focus-visible { outline: 3px solid var(--green-600, #1f8a50); outline-offset: 2px; }
 
 /* CodeHub lesson callouts and sections, unstyled in the plain learn template */
 .learn-body .analogy, .learn-body .info-box {

@@ -290,13 +290,25 @@ function prospergenics_2026_listings_is_lesson_page( $html ) {
  * Course lesson pages (/courses/<slug>/learn/, cards #7143 and #7144): put the lesson styles right
  * before the plugin's <div class="learn-wrap">, after the plugin's own styles (pure). The script
  * goes after the plugin's scripts, see prospergenics_2026_listings_takeover().
+ *
+ * While the page loads, learn.css lays out only the first session (card #6469): a course page holds all
+ * of them (the HTML course 500 KB of HTML), and laying it all out cost a phone seconds before the first
+ * session showed. learn.js removes the <hr> session breaks that rule keys on when it splits the lesson.
+ * The rule only applies with scripting on; the one-line script before the styles shows the whole lesson
+ * at DOMContentLoaded (after learn.js) if a break is still there, i.e. learn.js stopped early.
  */
 function prospergenics_2026_listings_add_lesson_css( $html, $css ) {
     if ( '' === trim( (string) $css ) || ! prospergenics_2026_listings_is_lesson_page( $html ) ) {
         return $html;
     }
     $at = strpos( $html, '<div class="learn-wrap">' );
-    return substr_replace( $html, '<style id="prospergenics-learn-css">' . "\n" . $css . "</style>\n", $at, 0 );
+    return substr_replace( $html, prospergenics_2026_learn_unhide_fallback() . '<style id="prospergenics-learn-css">' . "\n" . $css . "</style>\n", $at, 0 );
+}
+
+/** The fallback that shows the whole lesson if learn.js did not split it, see prospergenics_2026_listings_add_lesson_css(). */
+function prospergenics_2026_learn_unhide_fallback() {
+    return '<script id="prospergenics-learn-fallback">document.addEventListener("DOMContentLoaded",function(){'
+        . 'var b=document.getElementById("learnBody");if(b&&b.querySelector(":scope>hr"))b.classList.add("pg-learn-all")});</script>' . "\n";
 }
 
 /* ───────────────────── jengo-listings takeover (NAV-1/2/3/5) ─────────────────────
@@ -429,6 +441,8 @@ function prospergenics_2026_listings_takeover( $html, $path, array $chrome ) {
         $out       = prospergenics_2026_listings_add_lesson_css( $out, $chrome['learn_css'] );
         // examples that hold a <textarea> of their own back in their editor (#7146, inc/lesson-editors.php)
         $out       = function_exists( 'prospergenics_2026_lesson_mend_editors' ) ? prospergenics_2026_lesson_mend_editors( $out ) : $out;
+        // and the playground code stranded as text in every lesson, not sent at all (#6469, about half the page)
+        $out       = function_exists( 'prospergenics_2026_lesson_drop_stranded' ) ? prospergenics_2026_lesson_drop_stranded( $out ) : $out;
         $lesson_js = isset( $chrome['learn_script'] ) ? (string) $chrome['learn_script'] : '';
     }
 

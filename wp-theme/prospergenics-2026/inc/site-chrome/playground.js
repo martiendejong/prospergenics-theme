@@ -11,6 +11,18 @@
  * No data-lang means html (the HTML and CSS courses). The code runs in a sandboxed iframe
  * (sandbox="allow-scripts", no allow-same-origin): it cannot read the page, its cookies or storage.
  * JavaScript mirrors console.* into the output; Python runs on Skulpt from jsDelivr, as before.
+ *
+ * Slow and costly connections (card #6469): a course page holds every lesson, so nothing renders on load.
+ *   - An HTML/CSS result renders when its lesson is open and the box comes near the screen
+ *     (IntersectionObserver), or when the learner presses Run / Ctrl+Enter. A JavaScript or Python
+ *     result only on Run. Until then the Result panel is a placeholder of the same size, no iframe.
+ *   - Rendered by itself, an example gets a Content-Security-Policy that blocks every request (images,
+ *     fonts, frames, media, scripts from elsewhere), so it can never load anything on its own.
+ *   - An example that loads content from other sites (YouTube, maps, Wikipedia, picsum, fonts, an mp3)
+ *     shows "This example loads content from <host> – tap to load" instead; the tap, or Run, renders
+ *     it in full.
+ *   - When its lesson closes (learn.js calls refresh()), a box's iframe is removed: a video in it
+ *     stops, and the next visit starts from the placeholder again (the learner's code stays).
  * Plain ES5: the file is inlined into the page without a build step. */
 (function () {
   'use strict';
@@ -20,8 +32,11 @@
   var SKULPT_BASE = 'https://cdn.jsdelivr.net/npm/skulpt' + '@' + '1.2.0/dist/';
   var SKULPT = [SKULPT_BASE + 'skulpt.min.js', SKULPT_BASE + 'skulpt-stdlib.js'];
   var AUTO_RUN_DELAY = 400;
+  var NEAR = '200px 0px'; // render a result a little before it scrolls into view
   var LANGS = { html: 1, css: 1, javascript: 1, python: 1 };
   var END = '</' + 'script>';
+  // For a result that renders by itself: inline styles and scripts only, no request of any kind.
+  var LOCKED = "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline' 'unsafe-eval'; img-src data: blob:; media-src data: blob:; font-src data:";
 
   // Source text for a script that runs inside the generated document. JSON.stringify output is safe in
   // a script block except for a closing script tag, an HTML comment opener and the two line separators,
@@ -79,19 +94,58 @@
       '.catch(function(e){var t=String(e),f=missing(t);if(f){line(note[0]+f+note[1],"info")}else{line(t,"error")}})})();' + END);
   }
 
-  function htmlDoc(code) {
-    if (/<!doctype|<html[\s>]/i.test(code)) { return code; }
-    return '<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{font-family:Arial,sans-serif;padding:16px}</style></head><body>' + code + '</body></html>';
+  // locked: the policy that blocks every request goes first, before anything in the example can load
+  // (after a leading <!DOCTYPE>, so a full page keeps its standards mode).
+  function htmlDoc(code, locked) {
+    var csp = locked ? '<meta http-equiv="Content-Security-Policy" content="' + LOCKED + '">' : '';
+    if (/<!doctype|<html[\s>]/i.test(code)) {
+      var d = /<!doctype[^>]*>/i.exec(code);
+      if (d && /^\s*(?:<!--[\s\S]*?-->\s*)*$/.test(code.slice(0, d.index))) {
+        return code.slice(0, d.index + d[0].length) + csp + code.slice(d.index + d[0].length);
+      }
+      return csp + code;
+    }
+    return '<!DOCTYPE html><html><head><meta charset="utf-8">' + csp + '<style>body{font-family:Arial,sans-serif;padding:16px}</style></head><body>' + code + '</body></html>';
   }
 
-  function emptyDoc() {
-    return page('', '<div class="line hint">Press Run (or Ctrl+Enter) to see the output.</div>');
-  }
-
-  function buildDoc(lang, code) {
+  function buildDoc(lang, code, locked) {
     if (lang === 'javascript') { return javascriptDoc(code); }
     if (lang === 'python') { return pythonDoc(code); }
-    return htmlDoc(code);
+    return htmlDoc(code, locked);
+  }
+
+  // The other sites an HTML/CSS example loads from when it renders: absolute (and //host) URLs in the
+  // attributes that fetch (src, srcset, poster, data, background, <link>/<base> href, a refresh <meta>),
+  // in CSS url() and @import, and http(s) URLs in its scripts. Links and forms only go out when clicked.
+  function externalHosts(code) {
+    var hosts = [], m, a;
+    function add(url, bare) {
+      var h = (bare ? /^\s*(?:https?:)?\/\/([^\/\s'"?#:>)\\]+)/i : /^\s*https?:\/\/([^\/\s'"?#:>)\\]+)/i).exec(url);
+      if (h && hosts.indexOf(h[1].toLowerCase()) < 0) { hosts.push(h[1].toLowerCase()); }
+    }
+    var tag = /<([a-z][\w-]*)((?:[^>"']|"[^"]*"|'[^']*')*)>/gi;
+    while ((m = tag.exec(code))) {
+      var name = m[1].toLowerCase(), attr = /([\w:-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))/g;
+      while ((a = attr.exec(m[2]))) {
+        var k = a[1].toLowerCase(), v = a[2] !== undefined ? a[2] : a[3] !== undefined ? a[3] : a[4];
+        if (/^(src|poster|data|background|xlink:href)$/.test(k) || (k === 'href' && /^(link|base|image|use|feimage)$/.test(name))) { add(v, true); }
+        else if (k === 'srcset' || k === 'imagesrcset') { v.split(',').forEach(function (s) { add(s, true); }); }
+        else if (k === 'content' && name === 'meta' && /^\s*\d*\s*[;,]\s*url\s*=/i.test(v)) { add(v.replace(/^[^=]*=\s*['"]?/, ''), true); }
+      }
+    }
+    var css = /url\(\s*['"]?([^'")\s]+)|@import\s+['"]([^'"]+)/gi;
+    while ((m = css.exec(code))) { add(m[1] || m[2], true); }
+    var script = /<script\b[^>]*>([\s\S]*?)<\/script/gi, url;
+    while ((m = script.exec(code))) {
+      url = /https?:\/\/[^\s'"`)]+/gi;
+      while ((a = url.exec(m[1]))) { add(a[0], false); }
+    }
+    return hosts;
+  }
+
+  function sites(hosts) {
+    if (hosts.length < 3) { return hosts.join(' and '); }
+    return hosts.slice(0, 2).join(', ') + ' and ' + (hosts.length - 2) + ' more';
   }
 
   function langOf(box) {
@@ -112,6 +166,19 @@
     return el;
   }
 
+  // Shown: laid out on the page, i.e. not inside a closed lesson or a hidden agent/OS section.
+  function shown(el) { return el.getClientRects().length > 0; }
+
+  var boxes = [];
+  var observer = 'IntersectionObserver' in window ? new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      var c = e.target.__pg;
+      if (!c) { return; }
+      if (e.isIntersecting) { c.near(); }
+      else if (!shown(e.target)) { c.close(); } // its lesson closed (scrolling away keeps the result)
+    });
+  }, { rootMargin: NEAR }) : null;
+
   function setup(box) {
     if (box.getAttribute('data-pg-ready')) { return; }
     var lang = langOf(box);
@@ -129,12 +196,8 @@
       p.appendChild(h);
       return p;
     });
-    var frame = preview.querySelector('iframe');
-    if (!frame) { frame = document.createElement('iframe'); preview.appendChild(frame); }
-    frame.setAttribute('sandbox', 'allow-scripts');
-    frame.setAttribute('title', label);
-    frame.setAttribute('loading', 'lazy');
-    frame.setAttribute('referrerpolicy', 'no-referrer');
+    var stale = preview.querySelector('iframe');
+    if (stale) { stale.parentNode.removeChild(stale); }
     textarea.setAttribute('spellcheck', 'false');
     textarea.setAttribute('aria-label', 'Code editor');
 
@@ -147,35 +210,91 @@
     var initial = textarea.value;
     var live = lang === 'html' || lang === 'css';
     var timer = null;
+    var frame = null;   // only while a result is on screen
+    var asked = false;  // the learner pressed Run or tapped to load: the example renders in full
+    var stage = element('div', 'pg-stage');
+    preview.appendChild(stage);
 
-    function render() {
-      if (timer) { clearTimeout(timer); timer = null; }
-      frame.srcdoc = buildDoc(lang, textarea.value);
+    // The Result panel without a frame: empty until it renders, the Run hint, or the tap-to-load button.
+    function placeholder(content) {
+      if (frame) { frame.parentNode.removeChild(frame); frame = null; }
+      while (stage.firstChild) { stage.removeChild(stage.firstChild); }
+      if (content) { stage.appendChild(content); }
+      if (!stage.parentNode) { preview.appendChild(stage); }
+    }
+    function idle() {
+      placeholder(live ? null : element('p', 'pg-stage-hint', 'Press Run (or Ctrl+Enter) to see the output.'));
+    }
+    function gate(hosts) {
+      var b = element('button', 'pg-embed-gate', 'This example loads content from ' + sites(hosts) + ' \u2013 tap to load');
+      b.type = 'button';
+      b.addEventListener('click', function () { render(true); if (frame) { frame.focus(); } });
+      placeholder(b);
     }
 
-    run.addEventListener('click', render);
+    // full: the learner asked (Run, Ctrl+Enter, tap to load); otherwise it renders by itself, locked.
+    function render(full) {
+      if (timer) { clearTimeout(timer); timer = null; }
+      if (full) { asked = true; }
+      var code = textarea.value;
+      if (live && !asked) {
+        var hosts = externalHosts(code);
+        if (hosts.length) { gate(hosts); return; }
+      }
+      if (!frame) {
+        frame = document.createElement('iframe');
+        frame.setAttribute('sandbox', 'allow-scripts');
+        frame.setAttribute('title', label);
+        frame.setAttribute('loading', 'lazy');
+        frame.setAttribute('referrerpolicy', 'no-referrer');
+      }
+      if (stage.parentNode) { stage.parentNode.removeChild(stage); }
+      if (frame.parentNode !== preview) { preview.appendChild(frame); }
+      frame.srcdoc = buildDoc(lang, code, live && !asked);
+    }
+
+    box.__pg = {
+      // near the screen in an open lesson: an HTML/CSS result renders by itself, once
+      near: function () { if (live && !frame && !stage.firstChild) { render(false); } },
+      // its lesson closed: drop the frame (and the learner's earlier "load it")
+      close: function () {
+        if (timer) { clearTimeout(timer); timer = null; }
+        if (frame || asked) { asked = false; idle(); }
+      }
+    };
+
+    run.addEventListener('click', function () { render(true); });
     reset.addEventListener('click', function () {
       textarea.value = initial;
-      if (live) { render(); } else { frame.srcdoc = emptyDoc(); }
+      if (live) { render(false); } else { idle(); }
     });
     textarea.addEventListener('keydown', function (e) {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); render(); }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); render(true); }
     });
     if (live) {
       textarea.addEventListener('input', function () {
         if (timer) { clearTimeout(timer); }
-        timer = setTimeout(render, AUTO_RUN_DELAY);
+        timer = setTimeout(function () { if (shown(box)) { render(false); } }, AUTO_RUN_DELAY);
       });
-      render();
-    } else {
-      frame.srcdoc = emptyDoc();
     }
+    idle();
+    boxes.push(box);
+    if (observer) { observer.observe(box); }
+  }
+
+  // After a lesson opens or closes (learn.js): drop the results that are no longer shown. Without
+  // IntersectionObserver, render the ones that are.
+  function refresh(root) {
+    var mine = boxes.filter(function (b) { return !root || root.contains(b); });
+    var on = mine.map(shown); // all reads first (one layout), then the changes
+    mine.forEach(function (b, i) { if (!on[i]) { b.__pg.close(); } else if (!observer) { b.__pg.near(); } });
   }
 
   function scan(root) {
-    var boxes = (root || document).querySelectorAll('.editor-container');
-    for (var i = 0; i < boxes.length; i++) { setup(boxes[i]); }
+    var found = (root || document).querySelectorAll('.editor-container');
+    for (var i = 0; i < found.length; i++) { setup(found[i]); }
+    if (!observer) { setTimeout(function () { refresh(root); }, 0); } // after learn.js has closed the other lessons
   }
 
-  window.__pgPlayground = { scan: scan, buildDoc: buildDoc, skulptMissing: skulptMissing, theme: true };
+  window.__pgPlayground = { scan: scan, refresh: refresh, buildDoc: buildDoc, externalHosts: externalHosts, skulptMissing: skulptMissing, theme: true };
 })();

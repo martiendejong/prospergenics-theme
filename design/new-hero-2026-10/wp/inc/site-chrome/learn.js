@@ -105,7 +105,8 @@
     setTm(tm);
   }
 
-  // The "Try it yourself" editors (playground.js, printed just before this script).
+  // The "Try it yourself" editors (playground.js, printed just before this script). Nothing renders yet:
+  // a result waits until its session is open and it comes into view (card #6469).
   if (window.__pgPlayground) window.__pgPlayground.scan(body);
 
   // ── sessions: the plugin separates them with <hr> ──
@@ -192,6 +193,8 @@
     toc.parentNode.insertBefore(more, toc.nextSibling);
   }
   function refresh() {
+    // a lesson, agent or OS section just closed: its Try-it results go (card #6469); the open ones render as they come into view
+    if (window.__pgPlayground && window.__pgPlayground.refresh) window.__pgPlayground.refresh(body);
     while (toc.firstChild) toc.removeChild(toc.firstChild);
     if (total < 2) { // one session: just its headings, without the hidden agents' and computers' ones
       [].slice.call(body.querySelectorAll('h2')).filter(shown).forEach(function (h) { var a = el('a', '', h.textContent.trim()); a.href = '#' + h.id; toc.appendChild(a); });
