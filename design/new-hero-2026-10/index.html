@@ -21,7 +21,10 @@
 <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png" />
 <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png" />
 <link rel="shortcut icon" href="assets/favicon.ico" />
-<link rel="preload" as="image" href="assets/hero-top.webp" fetchpriority="high" />
+<!-- the LCP image (card #7223): phones up to 480px get a centre crop of the hero photo, 1200x580 (118 KB instead of
+     220 KB, the same framing); each preload only for the width its CSS uses, so no phone fetches both -->
+<link rel="preload" as="image" href="assets/hero-top-mobile.webp" fetchpriority="high" media="(max-width: 480px)" />
+<link rel="preload" as="image" href="assets/hero-top.webp" fetchpriority="high" media="(min-width: 480.02px)" />
 <link rel="preload" href="assets/fonts/gabarito-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="preload" href="assets/fonts/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="stylesheet" href="assets/fonts/fonts.css" />
@@ -262,6 +265,8 @@
     }
     .hero-bottom { padding: 20px; }
   }
+  /* phones: the centre crop of the photo (same framing, as cover crops the sides anyway; #7223) */
+  @media (max-width: 480px){ .hero-top-photo { background-image: url('assets/hero-top-mobile.webp'); } }
 
   /* ---- LEFT: the message ---- */
   .copy { position: relative; z-index: 5; max-width: 620px; }
@@ -1637,7 +1642,7 @@
     <button class="launcher-orb" type="button" aria-haspopup="dialog" aria-label="Open ProsperGenics chat">
       <span class="l-ring"></span><span class="l-ring l-ring2"></span>
       <span class="l-blob"></span>
-      <span class="l-photo"><img loading="lazy" decoding="async" width="480" height="640" src="assets/contact-bg.webp" alt="Lessy &amp; Diko — chat with ProsperGenics" /></span>
+      <span class="l-photo"><img loading="lazy" decoding="async" fetchpriority="low" width="480" height="640" src="assets/contact-bg.webp" alt="Lessy &amp; Diko — chat with ProsperGenics" /></span>
       <span class="l-pulse"></span>
     </button>
     <a class="wa-btn" href="https://wa.me/254741619743" target="_blank" rel="noopener" aria-label="Chat with ProsperGenics on WhatsApp" title="Chat with ProsperGenics on WhatsApp">

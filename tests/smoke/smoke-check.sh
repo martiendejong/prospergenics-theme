@@ -74,6 +74,11 @@ expect_page() { # PATH [TEXT...]: 200, no PHP error, the shared header and each 
     pass "$path 200, shared header${*:+, contains $*}"
 }
 
+expect_asset() { # PATH CONTENT-TYPE-PREFIX: a theme file answers 200 with its type
+    fetch "$1"
+    if [ "$CODE" = "200" ] && [[ "$TYPE" == "$2"* ]]; then pass "$1 200 $TYPE"; else fail "$1 returned $CODE ${TYPE:-?}, want 200 $2"; fi
+}
+
 expect_redirect() { # PATH CODE LOCATION-REGEX
     fetch "$1"
     if [ "$CODE" = "$2" ] && [[ "$LOCATION" =~ $3 ]]; then
@@ -100,6 +105,12 @@ if grep -qF 'Every task I pick up teaches me something' "$BODY"; then fail "/mem
 # A public member profile, /in/<slug>/ (inc/profiles/routes.php, card #7232): the platform's own
 # profile pages, rendered by WordPress for a logged-out visitor
 if [ "$MEMBER_PROFILE" != "none" ]; then expect_page "$MEMBER_PROFILE" 'class="pgp-root'; fi
+
+# Theme files load: the homepage's LCP images and a font (a broken assets/.htaccess would answer 500 for all, #7223)
+THEME_ASSETS=/wp-content/themes/prospergenics-2026/assets
+expect_asset "$THEME_ASSETS/hero-top.webp" image/webp
+expect_asset "$THEME_ASSETS/hero-top-mobile.webp" image/webp
+expect_asset "$THEME_ASSETS/fonts/inter-latin-400-normal.woff2" ""   # the host sent no type for .woff2 before assets/.htaccess
 
 # Members only: logged out, /profile/ sends you to the login page
 expect_redirect /profile/ 302 'wp-login\.php'

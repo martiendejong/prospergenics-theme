@@ -288,6 +288,31 @@ GitHub is busy; and GitHub disables schedules in a public repository after 60 da
    the contact form keeps every message in wp-admin → Contact messages either way.
 6. Write one line in the alert issue about the cause and the fix before it closes.
 
+## Homepage speed (card #7223)
+
+Mobile LCP (Lighthouse, Moto G, slow 4G) is the hero photo, `.hero-top-photo`, on test, production and a
+local copy alike. Measured 19 Nov from a cloud machine (its proxy adds some latency): production 2.5–4.6 s,
+median 3.4 s; test 2.5–3.2 s, median 3.0 s. The target is 2.5 s.
+
+- **The theme** (since 19 Nov): phones up to 480px load `hero-top-mobile.webp`, a centre crop with the
+  same framing (118 KB instead of 220 KB), each hero image is preloaded only for the widths that use it,
+  the chat launcher's photo is `fetchpriority="low"` so it does not compete, the homepage's `@font-face`
+  rules are inline (no render-blocking `fonts.css`), and `assets/.htaccess` gives theme files browser
+  caching. On the same local copy: LCP 4.4 s → 3.6 s, FCP 2.0 s → 1.9 s.
+- **The rest is the server's time to the first byte.** The homepage HTML takes 1.7–2.1 s to start
+  arriving from production and 0.9–1.3 s from test, a static file 0.26 s: every anonymous visit runs
+  WordPress in full, and production is slower than test (plugins, PHP settings). A page cache that answers
+  before WordPress loads takes most of that away, which the theme cannot do: a caching plugin at the host
+  (LiteSpeed Cache if Vimexx runs LiteSpeed, else WP Super Cache in its mod_rewrite mode), or a Cloudflare
+  Cache Rule for HTML that bypasses logged-in visitors (cookies `wordpress_logged_in_*`, `wp-postpass_*`,
+  `comment_author_*`) and `/wp-admin/`, `/wp-login.php`, `/wp-json/`, `/profile/`, `/manage/`, `/register/`,
+  `/join/`, `?vt=`. The homepage prints no nonce or per-visitor data for a logged-out visitor, so its HTML
+  can be cached as it is. Purge the cache after each deploy. (Caching inside the theme at `template_redirect`, as in the
+  unmerged PR #85, still loads WordPress and every plugin first: locally that left two thirds of the PHP
+  time in place.)
+- Replacing an image under the same file name: visitors may keep the old one for a day, Cloudflare for 2
+  hours; give a changed image a new name, or purge Cloudflare.
+
 ## What the host must provide
 
 - Daily backups of database **and** files, kept 30 days, copied off the host, with a self-service restore.
