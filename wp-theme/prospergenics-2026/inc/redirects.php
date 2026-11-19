@@ -176,6 +176,36 @@ function prospergenics_2026_legacy_page_rules() {
 }
 
 /**
+ * The approved page for a person URL that no rule names exactly (card #7756), or null:
+ *   - /team_member/<slug>/: the old site's profile post type, which this site doesn't have, so
+ *     WordPress read /team_member/lessy/ as the media attachment "lessy" (Lessy.jpeg); it goes to
+ *     /people/<slug>/ when that profile exists, as on production;
+ *   - a person URL with a feed or embed ending (/martien/feed/, /people/lessy/feed/,
+ *     /team_member/lessy/feed/rss2/), which WordPress also landed on the photo: the person's page.
+ *     The URL without the ending is a person URL when a person rule names it, it is a
+ *     /team_member/<slug>/ as above, or it is a published /people/<slug>/ profile.
+ *
+ * @param array  $person_rules The rules from person-redirects.txt.
+ * @param string $people_dir   Folder with the static profiles (<slug>/index.html).
+ * @return string|null
+ */
+function prospergenics_2026_person_url_target( $request_path, array $person_rules, $people_dir ) {
+    $path = prospergenics_2026_normalize_path( $request_path );
+    $base = preg_replace( '#/(?:feed(?:/(?:feed|rdf|rss|rss2|atom))?|rdf|rss|rss2|atom|embed|trackback)$#', '', $path );
+    if ( 0 === strpos( $base, 'team_member/' ) ) {
+        return prospergenics_2026_profile_redirect( $base, $people_dir );
+    }
+    if ( $base === $path || '' === $base ) {
+        return null; // no ending: an exact person rule would have matched already
+    }
+    $target = prospergenics_2026_match_redirect( $base, $person_rules );
+    if ( null === $target && preg_match( '#^people/([a-z0-9-]+)$#', $base, $m ) && file_exists( rtrim( $people_dir, '/' ) . '/' . $m[1] . '/index.html' ) ) {
+        $target = '/people/' . $m[1] . '/';
+    }
+    return $target;
+}
+
+/**
  * Person URLs that other parts of the site still answer with outdated copies of a profile (the
  * jengo-listings /members/<slug>/ pages, imported -2 pages, media attachments), and legacy pages
  * imported from the old site: send them to the approved page, on init, before a plugin or the
@@ -190,6 +220,9 @@ function prospergenics_2026_person_redirects() {
     $target = prospergenics_2026_match_redirect( $request_path, prospergenics_2026_person_redirect_rules() );
     if ( null === $target ) {
         $target = prospergenics_2026_match_redirect( $request_path, prospergenics_2026_legacy_page_rules() );
+    }
+    if ( null === $target ) {
+        $target = prospergenics_2026_person_url_target( $request_path, prospergenics_2026_person_redirect_rules(), ABSPATH . 'people' );
     }
     if ( null !== $target ) {
         wp_safe_redirect( home_url( $target ), 301 );
@@ -226,3 +259,44 @@ function prospergenics_2026_canonical_redirect_target( $redirect_url, $requested
 add_filter( 'redirect_canonical', function ( $redirect_url, $requested_url ) {
     return prospergenics_2026_canonical_redirect_target( $redirect_url, $requested_url, array( prospergenics_2026_person_redirect_rules(), prospergenics_2026_legacy_page_rules() ) );
 }, 20, 2 );
+
+/**
+ * Whether a path is a person URL (pure): under /people/, /team_member/, /members/ or /author/, or
+ * starting with a one-part person rule's old path (/martien/..., /lessy-2/...).
+ *
+ * @param array $person_rules The rules from person-redirects.txt.
+ */
+function prospergenics_2026_is_person_path( $path, array $person_rules ) {
+    $first = strtok( prospergenics_2026_normalize_path( $path ), '/' );
+    return false !== $first && ( in_array( $first, array( 'people', 'team_member', 'members', 'author' ), true ) || isset( $person_rules[ $first ] ) );
+}
+
+/**
+ * Whether WordPress' canonical redirect would send a person URL to a file in the uploads folder
+ * (pure, card #7756): its 404 guess (/martien/feed/ was guessed to the attachment "martien") or
+ * the redirect of an attachment page to its file now that attachment pages are off
+ * (/team_member/lessy/ was read as the attachment "lessy"), both ending on Lessy.jpeg. The rules
+ * above send the known person URLs to their page first; this catches the rest.
+ *
+ * @param string $uploads_path Path of the uploads folder's URL, e.g. '/wp-content/uploads'.
+ */
+function prospergenics_2026_person_upload_redirect( $redirect_url, $requested_url, array $person_rules, $uploads_path ) {
+    $to      = (string) parse_url( (string) $redirect_url, PHP_URL_PATH );
+    $uploads = rtrim( (string) $uploads_path, '/' ) . '/';
+    return '/' !== $uploads && 0 === strpos( $to, $uploads )
+        && prospergenics_2026_is_person_path( (string) parse_url( (string) $requested_url, PHP_URL_PATH ), $person_rules );
+}
+
+// Before the hop-saving filter above (priority 20). Such a request gets the 404 page instead: the
+// attachment it was read as is the person's photo, not a page of theirs.
+add_filter( 'redirect_canonical', function ( $redirect_url, $requested_url ) {
+    $uploads = wp_get_upload_dir();
+    if ( ! $redirect_url || ! prospergenics_2026_person_upload_redirect( $redirect_url, $requested_url, prospergenics_2026_person_redirect_rules(), (string) parse_url( $uploads['baseurl'], PHP_URL_PATH ) ) ) {
+        return $redirect_url;
+    }
+    global $wp_query;
+    $wp_query->set_404();
+    status_header( 404 );
+    nocache_headers();
+    return false;
+}, 10, 2 );
