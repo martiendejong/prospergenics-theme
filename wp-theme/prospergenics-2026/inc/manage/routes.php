@@ -151,6 +151,10 @@ function prospergenics_manage_notice_html() {
         'msg_handled'    => array( 'ok', 'The message is marked as handled.' ),
         'msg_reopen'     => array( 'ok', 'The message is open again.' ),
         'published'      => array( 'ok', 'The article is published.' ),
+        'errors_dismiss' => array( 'ok', 'The error is removed from the site error log.' ),
+        'errors_tests'   => array( 'ok', 'The test entries are removed from the site error log.' ),
+        'errors_clear'   => array( 'ok', 'The site error log is cleared. New errors are still recorded.' ),
+        'errors_none'    => array( 'ok', 'Nothing to remove: the site error log had already changed.' ),
         'failed'         => array( 'error', 'That did not work. It may already have changed; please try again.' ),
     );
     if ( ! isset( $msgs[ $done ] ) ) {

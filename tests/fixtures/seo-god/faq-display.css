@@ -1,0 +1,251 @@
+/* SEO God - FAQ Display Styles */
+.seo-god-faq-section {
+    padding-top: 1.5em;
+    border-top: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+}
+
+.seo-god-faq-title {
+    font-size: 1.5em;
+    margin-bottom: 1em;
+    font-weight: 700;
+}
+
+.seo-god-faq-category {
+    font-size: 1.1em;
+    margin: 1.5em 0 0.75em;
+    font-weight: 600;
+    color: inherit;
+}
+
+.seo-god-faq-item {
+    margin-bottom: 0.5em;
+    border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.seo-god-faq-item[open] {
+    border-color: #6366f1;
+}
+
+.seo-god-faq-question {
+    padding: 1em 1.25em;
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: transparent;
+    transition: background 0.15s ease;
+}
+
+.seo-god-faq-question:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.seo-god-faq-question::-webkit-details-marker {
+    display: none;
+}
+
+.seo-god-faq-question::after {
+    content: '+';
+    font-size: 1.25em;
+    font-weight: 400;
+    color: currentColor;
+    opacity: 0.5;
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+    margin-left: 1em;
+}
+
+.seo-god-faq-item[open] .seo-god-faq-question::after {
+    content: '−';
+    color: #6366f1;
+}
+
+.seo-god-faq-answer {
+    padding: 1em 1.25em;
+    line-height: 1.7;
+    color: inherit;
+}
+
+.seo-god-faq-answer p:last-child {
+    margin-bottom: 0;
+}
+
+/* Admin/Editing Controls */
+.seo-god-faq-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5em;
+}
+
+.seo-god-faq-admin-controls {
+    display: flex;
+    align-items: center;
+    gap: 1em;
+}
+
+.seo-god-faq-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    cursor: pointer;
+}
+
+.seo-god-faq-toggle input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.seo-god-add-faq-btn {
+    padding: 0.5em 1em;
+    background: #6366f1;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s ease;
+}
+
+.seo-god-add-faq-btn:hover:not(:disabled) {
+    background: #4f46e5;
+}
+
+.seo-god-add-faq-btn:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+}
+
+.seo-god-faq-controls {
+    position: absolute;
+    top: 0.5em;
+    right: 0.5em;
+    display: flex;
+    gap: 0.25em;
+    z-index: 10;
+}
+
+.seo-god-faq-item {
+    position: relative;
+}
+
+.seo-god-faq-drag-handle {
+    cursor: move;
+    color: #9ca3af;
+    font-size: 1.2em;
+    padding: 0.25em 0.5em;
+    user-select: none;
+}
+
+.seo-god-faq-drag-handle:hover {
+    color: #6366f1;
+}
+
+.seo-god-faq-edit-btn,
+.seo-god-faq-delete-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.2em;
+    padding: 0.25em 0.5em;
+    cursor: pointer;
+    color: #6b7280;
+    transition: color 0.2s ease;
+}
+
+.seo-god-faq-edit-btn:hover {
+    color: #6366f1;
+}
+
+.seo-god-faq-delete-btn:hover {
+    color: #ef4444;
+}
+
+.seo-god-faq-edit-wrapper {
+    padding: 0.5em 0;
+}
+
+.seo-god-faq-question-input,
+.seo-god-faq-category-input,
+.seo-god-faq-answer-input {
+    width: 100%;
+    padding: 0.5em;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 1em;
+    margin-bottom: 0.5em;
+}
+
+.seo-god-faq-answer-input {
+    resize: vertical;
+    min-height: 100px;
+    font-family: inherit;
+}
+
+.seo-god-faq-edit-buttons {
+    display: flex;
+    gap: 0.5em;
+    margin-top: 0.5em;
+}
+
+.seo-god-faq-save-btn,
+.seo-god-faq-cancel-btn {
+    padding: 0.5em 1em;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s ease;
+}
+
+.seo-god-faq-save-btn {
+    background: #10b981;
+    color: white;
+}
+
+.seo-god-faq-save-btn:hover {
+    background: #059669;
+}
+
+.seo-god-faq-cancel-btn {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.seo-god-faq-cancel-btn:hover {
+    background: #d1d5db;
+}
+
+.seo-god-faq-item.editing .seo-god-faq-question::after {
+    display: none;
+}
+
+.seo-god-faq-empty {
+    color: #9ca3af;
+    font-style: italic;
+    text-align: center;
+    padding: 2em;
+}
+
+.seo-god-faq-list.faq-disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.ui-sortable-helper {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1),
+                0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.seo-god-faq-placeholder {
+    height: 60px;
+    background: #f3f4f6;
+    border: 2px dashed #9ca3af;
+    border-radius: 8px;
+    margin-bottom: 0.5em;
+}

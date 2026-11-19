@@ -150,3 +150,42 @@ function prospergenics_2026_lesson_mend_editors( $html ) {
 	}
 	return $html;
 }
+
+/**
+ * The [5818] playground's own code, left as text at the end of every lesson of the HTML, CSS,
+ * JavaScript and Python courses (its <style> and <script> tags are stripped), out of the page before it
+ * is sent (card #6469). On the HTML course that is 520 KB of the page's 1 MB, 45 copies: every learner
+ * downloaded it and every phone laid it out, only for learn.js to remove it again. The rule is
+ * learn.js's: from the text that opens with its header comment to the text that ends with its last
+ * line, right in the lesson (not inside an editor, a code block or any other element), with nothing of
+ * the lesson in between (no heading, session break or section) and the elements made from the HTML in
+ * its strings closed again. Anything else is left as it was, for learn.js (pure).
+ */
+function prospergenics_2026_lesson_drop_stranded( $html ) {
+	$html = (string) $html;
+	$body = strpos( $html, 'id="learnBody"' );
+	$open = false !== $body ? strrpos( substr( $html, 0, $body ), '<' ) : false;
+	if ( false === $open || ! preg_match_all( '#/\* Lesson playground.*?else\s*\{\s*scan\(document\);\s*\}\s*\}\)\(\);#s', $html, $runs, PREG_OFFSET_CAPTURE, $open ) ) {
+		return $html;
+	}
+	$out   = substr( $html, 0, $open );
+	$pos   = $open;
+	$stack = array(); // open elements from the lesson's own <article> on
+	foreach ( $runs[0] as $run ) {
+		list( $text, $at ) = $run;
+		if ( $at < $pos ) {
+			continue;
+		}
+		list( , $stack )      = prospergenics_2026_lesson_walk( prospergenics_2026_lesson_tags( substr( $html, $pos, $at - $pos ) ), $stack );
+		$tags                 = prospergenics_2026_lesson_tags( $text );
+		list( $stray, $left ) = prospergenics_2026_lesson_walk( $tags );
+		$lesson               = array_intersect( array_column( $tags, 'name' ), array( 'hr', 'h1', 'h2', 'section', 'article', 'script', 'style' ) );
+		$out                 .= substr( $html, $pos, $at - $pos );
+		if ( array( 'article' ) !== $stack || $stray || $left || $lesson ) {
+			$out .= $text; // not the shape we know: learn.js decides
+			list( , $stack ) = prospergenics_2026_lesson_walk( $tags, $stack );
+		}
+		$pos = $at + strlen( $text );
+	}
+	return $out . substr( $html, $pos );
+}
