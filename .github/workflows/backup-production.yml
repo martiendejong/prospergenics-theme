@@ -1,0 +1,131 @@
+name: Daily backup of prospergenics.com
+
+# Card #6473: a daily copy of production's database and uploads OFF the host, kept 30 days, with an
+# alert when it fails. The same machinery as the backups before a production deploy (card #7232):
+# design/new-hero-2026-10/backup-site.py asks the site for a database dump (a signed request to the
+# theme's inc/ops-backup.php, which writes it outside the web root), fetches it and
+# wp-content/uploads/ over FTPS, and encrypts both for BACKUP_GPG_PUBLIC_KEY (this repository is
+# public: its artifacts must never be plain). Artifacts production-daily-db-<date> and
+# production-daily-uploads-<date>, 30 days. A failure opens the issue "Daily backup failing" (label
+# "alert"); the next good run closes it.
+#
+# Setup (once, by a repository admin), apart from what deploy-production.yml needs:
+#   Settings -> Environments -> New environment "production-backup": NO required reviewers (it runs every
+#   night), Deployment branches: "Selected branches" -> develop (the default branch, where schedules run)
+#   and design/new-hero-2026-10. Environment secrets PROD_FTP_USERNAME, PROD_FTP_PASSWORD and
+#   PROD_BACKUP_KEY, the same values as in "production". (Separate, so the approval on "production" keeps
+#   guarding the deploy; the scheduled job only reads.)
+#   Variable BACKUP_UPLOADS: "daily" (default), "weekly" (Sundays only) or "off".
+# Until the secrets exist the run ends with a notice and changes nothing. Scheduled workflows only run
+# from the default branch, so this file has to be merged to develop before the schedule starts; "Run
+# workflow" works from any branch.
+on:
+  schedule:
+    - cron: '17 2 * * *'   # 02:17 UTC, a quiet hour in Kenya and the Netherlands
+  workflow_dispatch:
+    inputs:
+      uploads:
+        description: Also back up wp-content/uploads/ in this run
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: backup-production
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: production-backup
+    env:
+      SITE: https://prospergenics.com
+      PG_FTP_HOST: ${{ vars.PROD_FTP_HOST || 'web0168.zxcs.nl' }}
+      PG_FTP_ROOT: ${{ vars.PROD_FTP_ROOT || 'domains/prospergenics.com/public_html' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            design/new-hero-2026-10
+            tests/smoke
+
+      - name: Check the backup settings
+        id: settings
+        env:
+          PG_FTP_USER: ${{ secrets.PROD_FTP_USERNAME }}
+          PG_FTP_PASSWORD: ${{ secrets.PROD_FTP_PASSWORD }}
+          PG_BACKUP_KEY: ${{ secrets.PROD_BACKUP_KEY }}
+          GPG_KEY: ${{ vars.BACKUP_GPG_PUBLIC_KEY }}
+          UPLOADS_VAR: ${{ vars.BACKUP_UPLOADS }}
+          UPLOADS_INPUT: ${{ github.event_name == 'workflow_dispatch' && format('{0}', inputs.uploads) || '' }}
+        run: |
+          if [ -z "$PG_FTP_USER" ] || [ -z "$PG_FTP_PASSWORD" ] || [ "${#PG_BACKUP_KEY}" -lt 32 ] || [ -z "$GPG_KEY" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No backup: the environment production-backup needs PROD_FTP_USERNAME, PROD_FTP_PASSWORD and PROD_BACKUP_KEY, and the repository variable BACKUP_GPG_PUBLIC_KEY. See the comment at the top of backup-production.yml."
+            exit 0
+          fi
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+          printf '%s\n' "$GPG_KEY" > "$RUNNER_TEMP/backup-key.asc"
+          case "${UPLOADS_INPUT:-${UPLOADS_VAR:-daily}}" in
+            true|daily) uploads=true ;;
+            weekly) [ "$(date -u +%u)" = 7 ] && uploads=true || uploads=false ;;
+            *) uploads=false ;;
+          esac
+          echo "uploads=$uploads" >> "$GITHUB_OUTPUT"
+          echo "date=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+
+      - name: Back up the database
+        id: db
+        if: steps.settings.outputs.ready == 'true'
+        shell: bash   # pipefail: a failed backup is not hidden by tee
+        env:
+          PG_FTP_USER: ${{ secrets.PROD_FTP_USERNAME }}
+          PG_FTP_PASSWORD: ${{ secrets.PROD_FTP_PASSWORD }}
+          PG_BACKUP_KEY: ${{ secrets.PROD_BACKUP_KEY }}
+        run: python3 design/new-hero-2026-10/backup-site.py --site "$SITE" --db --out "$RUNNER_TEMP/backup/db" --encrypt-to "$RUNNER_TEMP/backup-key.asc" | tee "$RUNNER_TEMP/backup.txt"
+
+      - name: Back up the uploads
+        id: uploads
+        if: steps.settings.outputs.ready == 'true' && steps.settings.outputs.uploads == 'true'
+        shell: bash
+        env:
+          PG_FTP_USER: ${{ secrets.PROD_FTP_USERNAME }}
+          PG_FTP_PASSWORD: ${{ secrets.PROD_FTP_PASSWORD }}
+        run: python3 design/new-hero-2026-10/backup-site.py --site "$SITE" --uploads --out "$RUNNER_TEMP/backup/uploads" --encrypt-to "$RUNNER_TEMP/backup-key.asc" | tee -a "$RUNNER_TEMP/backup.txt"
+
+      - name: Keep the database backup
+        if: steps.db.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-daily-db-${{ steps.settings.outputs.date }}
+          path: ${{ runner.temp }}/backup/db
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Keep the uploads backup
+        if: steps.uploads.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-daily-uploads-${{ steps.settings.outputs.date }}
+          path: ${{ runner.temp }}/backup/uploads
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Open or update the alert issue
+        if: failure() && steps.settings.outputs.ready == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          ALERT_ASSIGNEES: ${{ vars.ALERT_ASSIGNEES }}
+        run: bash tests/smoke/alert-issue.sh open "Daily backup failing" "$RUNNER_TEMP/backup.txt"
+
+      - name: Close the alert issue
+        if: success() && steps.settings.outputs.ready == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: bash tests/smoke/alert-issue.sh close "Daily backup failing"

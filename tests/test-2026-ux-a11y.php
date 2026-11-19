@@ -124,6 +124,12 @@ ok( $halo_ok && ( (float) $hm[2] / (float) $hm[1] ) > ( (float) $hm[3] / 100 ), 
 // The photo's white top fade stays short, so it never covers the people's heads (Martien, 31 Oct).
 $fade_ok = (bool) preg_match( '~\.hero-top-photo \{[^}]*?mask-image: linear-gradient\(to bottom, transparent 0%,[^#]*#000 ([\d.]+)%~s', $home, $fm );
 ok( $fade_ok && (float) $fm[1] <= 10, 'the hero photo is fully visible from 10% down (top fade ' . ( $fade_ok ? $fm[1] : '?' ) . '%)' );
+// Phones (<= 980px) get the same soft top fade (Martien, card #8079), short enough to stay clear of the
+// heads (~28px down in the 232px photo at 360-430px), and keep the bottom fade into the headline.
+$mob_ok = (bool) preg_match( '~@media \(max-width: 980px\)\{.*?\.hero-top-photo \{[^}]*?height: (\d+)px;[^}]*?-webkit-mask-image: linear-gradient\(to bottom, transparent 0%,[^#]*#000 ([\d.]+)%, #000 84%, transparent 100%\);\s*mask-image: linear-gradient\(to bottom, transparent 0%,[^#]*#000 \2%, #000 84%, transparent 100%\);~s', $home, $mm );
+ok( $mob_ok, 'phones: the hero photo fades into the paper at the top as well as the bottom (both mask properties)' );
+ok( $mob_ok && (float) $mm[2] > 0 && (int) $mm[1] * (float) $mm[2] / 100 < 20, 'phones: the top fade ends ' . ( $mob_ok ? round( (int) $mm[1] * (float) $mm[2] / 100, 1 ) : '?' ) . 'px down, above the heads' );
+ok( false !== strpos( $home, 'mask-image: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.35) 3%, rgba(0, 0, 0, 0.75) 6%, #000 9%, #000 80%, rgba(0, 0, 0, 0.8) 85%, rgba(0, 0, 0, 0.4) 90%, rgba(0, 0, 0, 0.1) 95%, transparent 100%);' ), 'desktop: the hero photo mask is unchanged' );
 
 // The photo starts flush at the top of the hero (Martien, 4 Nov): the CSS says top: 0, and the
 // desktop parallax must not put the old 34 px back (card #7228).

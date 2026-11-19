@@ -44,6 +44,7 @@ jobs:
         run: |
           for t in tests/*.php; do php "$t" > /dev/null || { echo "::error file=$t::test failed, not deploying"; exit 1; }; done
           python3 tests/test-deploy-script.py > /dev/null || { echo "::error::deploy script tests failed, not deploying"; exit 1; }
+          python3 tests/test-deploy-production.py > /dev/null || { echo "::error::production deploy tests failed, not deploying"; exit 1; }
 
       - name: Check deploy credentials
         id: creds

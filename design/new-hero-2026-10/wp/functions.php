@@ -20,6 +20,8 @@ add_action( 'wp_head', function () {
 
 // First, so a fatal error in anything loaded after it is logged and emailed to staff (#6473).
 require get_template_directory() . '/inc/ops-alerts.php';
+// A signed request writes a database dump outside the web root for the deploy to fetch (#7232, #6473).
+require get_template_directory() . '/inc/ops-backup.php';
 require get_template_directory() . '/inc/security.php';
 require get_template_directory() . '/inc/seo.php';
 // The one site header + footer (menu in inc/site-chrome/nav.json), also put on jengo-listings
@@ -30,6 +32,7 @@ require get_template_directory() . '/inc/avatars.php';     // one avatar (photo 
 require get_template_directory() . '/inc/coach-context.php'; // the homepage chat knows the team and who is logged in
 require get_template_directory() . '/inc/tool-demos.php';    // #7218 "See it work" on /tools/<slug>/ from assets/tool-demos/<slug>/
 require get_template_directory() . '/inc/lesson-editors.php'; // #7146 lesson examples with a <textarea> of their own, whole in their editor
+require get_template_directory() . '/inc/seo-god-faq.php';    // #8077 the SEO God plugin's FAQ block in the theme's look (CSS only)
 
 // Contact form: every enquiry is stored before any email is attempted, with spam flagged
 // (never discarded) and the delivery result recorded. Ported from PR #20 for production.

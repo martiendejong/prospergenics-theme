@@ -1,0 +1,236 @@
+name: Deploy to production
+
+# The one way prospergenics.com gets a new theme (card #7232; docs/OPERATIONS.md, "Deploying to
+# production"). Started by hand only: Actions -> Deploy to production -> Run workflow.
+#
+#   1. gate (no secrets): you typed "prospergenics.com"; the commit is on design/new-hero-2026-10, CI
+#      passed on exactly that commit, it is already on test.prospergenics.com, and production does not
+#      run newer work (design/new-hero-2026-10/prod_gate.py). Leave "commit" empty to deploy what test
+#      runs now.
+#   2. deploy, in the GitHub Environment "production": GitHub pauses here until one of the required
+#      reviewers approves (Settings -> Environments -> production -> Required reviewers). Only then are
+#      the production secrets released, and in this order it:
+#        - backs up the database (a signed request makes the site write a dump outside its web root,
+#          which is fetched over FTPS: backup-site.py and the theme's inc/ops-backup.php) and the uploads
+#          (wp-content/uploads/ over FTPS), encrypts both for BACKUP_GPG_PUBLIC_KEY and keeps them as the
+#          artifacts production-db-<sha> and production-uploads-<sha> (30 days; this repository is
+#          public, so its artifacts are never plain);
+#        - smoke-checks production (the baseline), backs up the live theme (artifact
+#          production-theme-backup-<sha>), uploads the theme, the static pages and /version.json;
+#        - smoke-checks production again: a check that passed before and fails now fails the run and
+#          opens the alert issue "Deploy to production failing".
+#      dry_run (the default) takes the real backups and logs the upload plan, but uploads nothing.
+#
+# Setup (once, by a repository admin; nothing here works before it):
+#   Settings -> Environments -> New environment "production": Required reviewers (at least one person),
+#   Deployment branches: "Selected branches" -> design/new-hero-2026-10. Environment secrets:
+#     PROD_FTP_USERNAME, PROD_FTP_PASSWORD  the FTPS login that reaches domains/prospergenics.com/
+#     PROD_BACKUP_KEY                        the same value as PROSPERGENICS_BACKUP_KEY in production's
+#                                            wp-config.php (32+ random characters)
+#   Settings -> Secrets and variables -> Actions -> Variables:
+#     BACKUP_GPG_PUBLIC_KEY  the ASCII-armoured public key the backups are encrypted for (the private key
+#                            stays with Martien; never in GitHub)
+#     PROD_FTP_ROOT (optional, default domains/prospergenics.com/public_html), PROD_FTP_HOST (optional,
+#     default web0168.zxcs.nl), PRODUCTION_SMOKE_MEMBER_PROFILE (optional /in/<slug>/ of a public profile)
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: Type prospergenics.com to confirm that this goes to the live site
+        type: string
+        required: true
+      commit:
+        description: Commit to deploy (full SHA). Empty = the commit test.prospergenics.com runs now
+        type: string
+        default: ''
+      dry_run:
+        description: Rehearsal - take the real backups and log the upload plan, upload nothing
+        type: boolean
+        default: true
+      db_backup:
+        description: Database backup. "taken-by-hand" only while production has no backup endpoint yet (first deploy), after a DirectAdmin/phpMyAdmin export
+        type: choice
+        options: [automatic, taken-by-hand]
+        default: automatic
+      allow_older:
+        description: Deliberate rollback - allow a commit older than what production runs
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  actions: read    # the gate reads the CI and Deploy to test runs of the commit
+  issues: write    # the alert issue when the deploy breaks a page
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      sha: ${{ steps.gate.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Production gate (CI green, on test already, production not newer)
+        id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CONFIRM: ${{ inputs.confirm }}
+          SHA: ${{ inputs.commit }}
+          ALLOW_OLDER: ${{ inputs.allow_older && '--allow-older' || '' }}
+        run: python3 design/new-hero-2026-10/prod_gate.py --confirm "$CONFIRM" --sha "$SHA" $ALLOW_OLDER
+
+      - name: What the reviewer approves
+        env:
+          SHA: ${{ steps.gate.outputs.sha }}
+          DRY: ${{ inputs.dry_run }}
+          DB: ${{ inputs.db_backup }}
+          OLDER: ${{ inputs.allow_older }}
+        run: |
+          {
+            echo "## Waiting for approval"
+            echo ""
+            echo "- commit \`$SHA\` to **prospergenics.com**, started by @${GITHUB_ACTOR}"
+            echo "- dry run: **$DRY** (true = backups and the upload plan only)"
+            echo "- database backup: **$DB**"
+            echo "- rollback to older work allowed: **$OLDER**"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  deploy:
+    needs: gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    # the approval: GitHub waits here for a required reviewer before any secret is released
+    environment:
+      name: production
+      url: https://prospergenics.com
+    env:
+      SITE: https://prospergenics.com
+      SHA: ${{ needs.gate.outputs.sha }}
+      PG_FTP_HOST: ${{ vars.PROD_FTP_HOST || 'web0168.zxcs.nl' }}
+      PG_FTP_ROOT: ${{ vars.PROD_FTP_ROOT || 'domains/prospergenics.com/public_html' }}
+      SMOKE_MEMBER_PROFILE: ${{ vars.PRODUCTION_SMOKE_MEMBER_PROFILE || 'none' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.gate.outputs.sha }}
+          fetch-depth: 0
+
+      - name: Run tests before deploying
+        run: |
+          for t in tests/*.php; do php "$t" > /dev/null || { echo "::error file=$t::test failed, not deploying"; exit 1; }; done
+          python3 tests/test-deploy-script.py > /dev/null || { echo "::error::deploy script tests failed, not deploying"; exit 1; }
+          python3 tests/test-deploy-production.py > /dev/null || { echo "::error::production deploy tests failed, not deploying"; exit 1; }
+
+      - name: Check the production settings
+        env:
+          PG_FTP_USER: ${{ secrets.PROD_FTP_USERNAME }}
+          PG_FTP_PASSWORD: ${{ secrets.PROD_FTP_PASSWORD }}
+          PG_BACKUP_KEY: ${{ secrets.PROD_BACKUP_KEY }}
+          GPG_KEY: ${{ vars.BACKUP_GPG_PUBLIC_KEY }}
+          DB_BACKUP: ${{ inputs.db_backup }}
+        run: |
+          missing=""
+          [ -n "$PG_FTP_USER" ] && [ -n "$PG_FTP_PASSWORD" ] || missing="$missing PROD_FTP_USERNAME/PROD_FTP_PASSWORD (environment secrets)"
+          [ "$DB_BACKUP" = "taken-by-hand" ] || [ "${#PG_BACKUP_KEY}" -ge 32 ] || missing="$missing PROD_BACKUP_KEY (environment secret, 32+ characters)"
+          [ -n "$GPG_KEY" ] || missing="$missing BACKUP_GPG_PUBLIC_KEY (repository variable)"
+          if [ -n "$missing" ]; then
+            echo "::error::Not deploying: missing$missing. See the comment at the top of deploy-production.yml."
+            exit 1
+          fi
+          printf '%s\n' "$GPG_KEY" > "$RUNNER_TEMP/backup-key.asc"
+          mkdir -p "$RUNNER_TEMP/production-backup"
+
+      # 1. backups, before anything on production changes
+      - name: Back up the database
+        if: inputs.db_backup == 'automatic'
+        env:
+          PG_FTP_USER: ${{ secrets.PROD_FTP_USERNAME }}
+          PG_FTP_PASSWORD: ${{ secrets.PROD_FTP_PASSWORD }}
+          PG_BACKUP_KEY: ${{ secrets.PROD_BACKUP_KEY }}
+        run: python3 design/new-hero-2026-10/backup-site.py --site "$SITE" --db --out "$RUNNER_TEMP/production-backup/db" --encrypt-to "$RUNNER_TEMP/backup-key.asc"
+
+      - name: Note the database backup taken by hand
+        if: inputs.db_backup == 'taken-by-hand'
+        run: |
+          echo "::warning::No automatic database backup: ${GITHUB_ACTOR} chose taken-by-hand (a DirectAdmin/phpMyAdmin export just before this run)."
+          echo "- database: **taken by hand** (${GITHUB_ACTOR}), not by this run" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Back up the uploads
+        env:
+          PG_FTP_USER: ${{ secrets.PROD_FTP_USERNAME }}
+          PG_FTP_PASSWORD: ${{ secrets.PROD_FTP_PASSWORD }}
+        run: python3 design/new-hero-2026-10/backup-site.py --site "$SITE" --uploads --out "$RUNNER_TEMP/production-backup/uploads" --encrypt-to "$RUNNER_TEMP/backup-key.asc"
+
+      - name: Keep the database backup
+        if: inputs.db_backup == 'automatic'
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-db-${{ needs.gate.outputs.sha }}
+          path: ${{ runner.temp }}/production-backup/db
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Keep the uploads backup
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-uploads-${{ needs.gate.outputs.sha }}
+          path: ${{ runner.temp }}/production-backup/uploads
+          retention-days: 30
+          if-no-files-found: error
+
+      # 2. what works on production now, so the check after the upload only fails on what the deploy broke
+      - name: Smoke-check production before the upload (baseline)
+        shell: bash
+        run: SMOKE_RESULTS="$RUNNER_TEMP/smoke-before.txt" bash tests/smoke/smoke-check.sh "$SITE" | tee "$RUNNER_TEMP/smoke-before.log" || true
+
+      # 3. the upload: the deploy script backs the live theme up first (and refuses any commit but the gate's)
+      - name: Build and upload
+        id: upload
+        env:
+          PG_FTP_USER: ${{ secrets.PROD_FTP_USERNAME }}
+          PG_FTP_PASSWORD: ${{ secrets.PROD_FTP_PASSWORD }}
+          PG_DEPLOY_BACKUP_DIR: ${{ runner.temp }}/theme-backup
+          PG_PRODUCTION_GATE: ${{ needs.gate.outputs.sha }}
+          PG_DEPLOY_COMMIT: ${{ needs.gate.outputs.sha }}   # GITHUB_SHA is the branch head, not the gated commit
+          DRY_RUN: ${{ inputs.dry_run && '--dry-run' || '' }}
+          ALLOW_OLDER: ${{ inputs.allow_older && '--allow-older' || '' }}
+        run: python3 design/new-hero-2026-10/deploy-wp-theme-vimexx.py --target production --confirm prospergenics.com $DRY_RUN $ALLOW_OLDER
+
+      - name: Keep the backup of the previous theme
+        if: always() && steps.upload.outcome != 'skipped'
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-theme-backup-${{ needs.gate.outputs.sha }}
+          path: ${{ runner.temp }}/theme-backup
+          retention-days: 30
+          if-no-files-found: ignore
+
+      - name: Smoke-check production after the upload
+        id: smoke
+        if: ${{ !inputs.dry_run }}
+        shell: bash
+        run: |
+          SMOKE_RESULTS="$RUNNER_TEMP/smoke-after.txt" bash tests/smoke/smoke-check.sh "$SITE" | tee "$RUNNER_TEMP/smoke.txt" || true
+          bash tests/smoke/smoke-compare.sh "$RUNNER_TEMP/smoke-before.txt" "$RUNNER_TEMP/smoke-after.txt" | tee -a "$RUNNER_TEMP/smoke.txt"
+
+      - name: Open or update the alert issue
+        if: failure() && (steps.upload.outcome == 'failure' || steps.smoke.outcome == 'failure')
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          ALERT_ASSIGNEES: ${{ vars.ALERT_ASSIGNEES }}
+        run: bash tests/smoke/alert-issue.sh open "Deploy to production failing" "$RUNNER_TEMP/smoke.txt"
+
+      - name: Close the alert issue
+        if: success() && steps.smoke.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: bash tests/smoke/alert-issue.sh close "Deploy to production failing"

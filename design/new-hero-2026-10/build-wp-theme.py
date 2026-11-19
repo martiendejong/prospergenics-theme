@@ -80,6 +80,22 @@ def contact_php(encoded):
     return f"href=\"<?php echo esc_url( prospergenics_2026_contact_url( '{subject}' ) ); ?>\""
 
 
+def inline_fonts(html):
+    """The homepage's fonts.css <link> -> the same @font-face rules inline (card #7223): one render-blocking
+    request less before the first paint and before the browser knows the font URLs. assets/fonts/fonts.css
+    stays the one source (the other templates still link it)."""
+    link = f'<link rel="stylesheet" href="{TPL}/assets/fonts/fonts.css" />'
+    if html.count(link) != 1:
+        raise SystemExit("index.html: the fonts.css <link> was not found once")
+    with open(os.path.join(HERE, "assets", "fonts", "fonts.css"), encoding="utf-8") as f:
+        css = re.sub(r"/\*.*?\*/\s*", "", f.read(), flags=re.S).strip()
+    urls = css.count("url(")
+    css, n = re.subn(r"url\('([a-z0-9-]+\.woff2)'\)", lambda m: f"url('{TPL}/assets/fonts/{m.group(1)}')", css)
+    if not n or n != urls:
+        raise SystemExit("fonts.css: unexpected url() in an @font-face rule")
+    return html.replace(link, '<style id="pg-fonts">/* assets/fonts/fonts.css, inlined by build-wp-theme.py (#7223) */\n' + css + "\n</style>", 1)
+
+
 def build():
     if os.path.isdir(OUT):
         shutil.rmtree(OUT)
@@ -96,6 +112,7 @@ def build():
     home = home.replace('href="community/"', f'href="{HOME}community/"')
     # contact buttons (/contact/?subject=...) -> the theme's helper, prospergenics_2026_contact_url()
     home = re.sub(r'href="/contact/\?subject=([^"&]+)"', lambda m: contact_php(m.group(1)), home)
+    home = inline_fonts(home)
     with open(os.path.join(OUT, "front-page.php"), "w", encoding="utf-8", newline="\n") as f:
         f.write("<?php /* Front page - generated from design/new-hero-2026-10/index.html by build-wp-theme.py; edit the source, not this file. */ ?>\n" + home)
 
