@@ -1,0 +1,834 @@
+<!-- Saved 5 Nov 2026 from test.prospergenics.com/courses/ai-software-lifecycle/learn/: the jengo-listings
+     lesson page: the plugin's lesson styles, then its page from the hero to the end of its
+     table-of-contents script (the theme's header and footer and the CoachOS assistant left out). -->
+<style>
+:root{
+  --ink:#0b2016;--green-900:#0f3d28;--green-700:#1a7a46;--green-600:#22a65a;
+  --green-500:#34c759;--green-300:#86e0a6;--green-100:#d9f5e3;
+  --paper:#f4faf6;--paper-2:#eaf5ee;--line:rgba(15,61,40,.12);
+  --muted:#4a6555;--shadow:0 24px 60px -20px rgba(11,32,22,.35);
+  --ease:cubic-bezier(.22,.61,.36,1);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Inter',system-ui,sans-serif;color:var(--ink);background:var(--paper);-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+
+/* NAV */
+.pg-nav{
+  position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;
+  padding:18px clamp(24px,5vw,72px);
+  background:rgba(244,250,246,.92);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);
+}
+.pg-nav .brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.pg-nav .brand img{height:38px;width:auto;display:block;}
+.brand-text{font-family:'Sora',sans-serif;font-weight:800;font-size:20px;color:var(--green-900);letter-spacing:-.02em;}
+.nav-links{display:flex;align-items:center;gap:28px;}
+.nav-links a{font-size:14.5px;font-weight:500;color:var(--green-900);text-decoration:none;opacity:.8;transition:opacity .2s;}
+.nav-links a:hover,.nav-links a.current{opacity:1;}
+.nav-cta{font-family:'Sora',sans-serif;font-weight:600;font-size:13.5px;padding:9px 17px;border-radius:999px;border:1.5px solid var(--green-700);color:var(--green-900);background:transparent;text-decoration:none;transition:all .2s;}
+.nav-cta:hover{background:var(--green-700);color:#fff;}
+@media(max-width:800px){.nav-links{display:none;}}
+
+/* BREADCRUMB */
+.pg-breadcrumb{
+  max-width:1180px;margin:0 auto;padding:16px clamp(24px,5vw,72px) 0;
+  font-size:13px;color:var(--muted);display:flex;align-items:center;gap:7px;flex-wrap:wrap;
+}
+.pg-breadcrumb a{color:var(--muted);text-decoration:none;}
+.pg-breadcrumb a:hover{color:var(--green-700);}
+.pg-breadcrumb .sep{opacity:.45;}
+
+/* HEADER BAND */
+.learn-hero{
+  background:linear-gradient(140deg,var(--green-900) 0%,var(--green-700) 70%,#1d8e4f 100%);
+  padding:clamp(36px,4.5vw,56px) clamp(24px,5vw,72px);
+  position:relative;overflow:hidden;
+}
+.learn-hero::before{
+  content:"";position:absolute;top:-120px;right:-80px;
+  width:420px;height:420px;border-radius:50%;
+  background:radial-gradient(circle,rgba(52,199,89,.18),transparent 65%);
+  pointer-events:none;
+}
+.learn-hero-inner{max-width:1180px;margin:0 auto;position:relative;z-index:1;}
+.lh-eyebrow{
+  display:inline-flex;align-items:center;gap:9px;margin-bottom:12px;
+  font-family:'Sora',sans-serif;font-weight:700;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  color:rgba(255,255,255,.8);
+}
+.lh-eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--green-300);}
+.learn-hero h1{
+  font-family:'Sora',sans-serif;font-weight:800;
+  font-size:clamp(28px,3.6vw,46px);line-height:1.05;letter-spacing:-.03em;color:#fff;
+}
+.learn-hero .lh-subtitle{margin-top:10px;font-size:clamp(15px,1.4vw,17px);line-height:1.6;color:rgba(255,255,255,.82);max-width:62ch;}
+.lh-meta{display:flex;flex-wrap:wrap;gap:9px;margin-top:16px;}
+.lh-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:'Sora',sans-serif;font-weight:600;font-size:12px;
+  background:rgba(255,255,255,.12);color:#fff;padding:6px 13px;border-radius:999px;
+  border:1px solid rgba(255,255,255,.2);
+}
+
+/* PROGRESS BAR */
+.learn-progress{position:fixed;top:0;left:0;height:3px;width:0;background:var(--green-500);z-index:60;transition:width .1s linear;}
+
+/* LAYOUT */
+.learn-wrap{max-width:1180px;margin:0 auto;padding:clamp(36px,4.5vw,64px) clamp(24px,5vw,72px) clamp(64px,8vw,112px);}
+.learn-grid{display:grid;grid-template-columns:270px 1fr;gap:clamp(32px,4.5vw,64px);align-items:start;}
+
+/* TOC SIDEBAR */
+.learn-toc{position:sticky;top:84px;max-height:calc(100vh - 110px);overflow-y:auto;padding-right:6px;}
+.learn-toc h2{
+  font-family:'Sora',sans-serif;font-weight:800;font-size:13px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:14px;
+}
+.learn-toc a{
+  display:block;font-size:13.5px;line-height:1.45;color:var(--muted);text-decoration:none;
+  padding:7px 12px;border-left:2px solid var(--line);transition:all .15s;
+}
+.learn-toc a:hover{color:var(--green-700);}
+.learn-toc a.active{color:var(--green-900);font-weight:600;border-left-color:var(--green-600);background:var(--green-100);}
+.toc-back{display:block;margin-top:20px;font-size:13px;color:var(--muted);text-decoration:none;padding:7px 12px;}
+.toc-back:hover{color:var(--green-700);}
+
+/* COURSE BODY */
+.learn-body h2{
+  font-family:'Sora',sans-serif;font-weight:800;
+  font-size:clamp(22px,2.3vw,29px);line-height:1.15;letter-spacing:-.025em;
+  color:var(--ink);margin:44px 0 14px;scroll-margin-top:90px;
+}
+.learn-body h2:first-child{margin-top:0;}
+.learn-body h3{
+  font-family:'Sora',sans-serif;font-weight:700;font-size:18px;
+  letter-spacing:-.015em;color:var(--ink);margin:26px 0 10px;scroll-margin-top:90px;
+}
+.learn-body p{font-size:16.5px;line-height:1.72;color:#2a3d30;margin-bottom:16px;}
+.learn-body ul,.learn-body ol{padding-left:22px;margin-bottom:16px;}
+.learn-body li{font-size:16px;line-height:1.7;color:#2a3d30;margin-bottom:6px;}
+.learn-body strong{font-weight:600;color:var(--ink);}
+.learn-body code{
+  font-family:ui-monospace,'Cascadia Code','Fira Mono',monospace;
+  font-size:13.5px;background:var(--green-100);color:var(--green-900);
+  padding:2px 6px;border-radius:4px;
+}
+.learn-body pre{
+  background:var(--ink);color:#c9e6d2;
+  padding:20px 22px;border-radius:12px;overflow-x:auto;
+  font-family:ui-monospace,monospace;font-size:13.5px;line-height:1.6;
+  margin:18px 0;
+}
+.learn-body pre code{background:transparent;color:inherit;padding:0;}
+.learn-body hr{border:none;border-top:1px solid var(--line);margin:40px 0;}
+.learn-body a:not(.dl-btn):not(.lf-btn){color:var(--green-700);}
+.learn-body .dl-btn{
+  display:inline-flex;align-items:center;gap:8px;text-decoration:none;
+  font-family:'Sora',sans-serif;font-weight:600;font-size:14.5px;
+  padding:12px 22px;border-radius:999px;
+  background:var(--green-700);color:#fff;
+  transition:transform .2s var(--ease),background .15s;
+  margin:4px 0;
+}
+.learn-body .dl-btn:hover{background:var(--green-900);transform:translateY(-1px);}
+
+/* FOOT CTA */
+.learn-foot{
+  margin-top:56px;padding:30px 34px;background:#fff;border:1px solid var(--line);
+  clip-path:polygon(14px 0,100% 0,calc(100% - 14px) 100%,0 100%);
+  display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;
+}
+.learn-foot .lf-txt{font-family:'Sora',sans-serif;font-weight:700;font-size:17px;color:var(--ink);}
+.learn-foot .lf-txt small{display:block;font-family:'Inter',sans-serif;font-weight:400;font-size:13.5px;color:var(--muted);margin-top:3px;}
+.lf-btn{
+  display:inline-flex;align-items:center;gap:8px;text-decoration:none;
+  font-family:'Sora',sans-serif;font-weight:600;font-size:14.5px;
+  padding:13px 24px;border-radius:999px;
+  background:linear-gradient(100deg,var(--green-700),var(--green-600));
+  color:#fff;box-shadow:0 12px 28px -10px var(--green-600);
+  transition:transform .2s var(--ease);
+}
+.lf-btn:hover{transform:translateY(-2px);}
+
+@media(max-width:900px){
+  .learn-grid{grid-template-columns:1fr;}
+  .learn-toc{position:static;max-height:none;margin-bottom:8px;}
+}
+@media(max-width:640px){
+  .learn-wrap{padding-left:20px;padding-right:20px;}
+}
+</style>
+
+<div class="learn-hero">
+  <div class="learn-hero-inner">
+    <div class="lh-eyebrow"><span class="dot"></span>Course content</div>
+    <h1>AI Software Lifecycle</h1>
+    <p class="lh-subtitle">Build and run an autonomous AI development system entirely from your phone</p>    <div class="lh-meta">
+      <span class="lh-badge">📚 Intermediate</span>      <span class="lh-badge">⏱ 15 min setup + ongoing</span>      <span class="lh-badge">👤 Martien de Jong</span>    </div>
+  </div>
+</div>
+
+<div class="learn-wrap">
+  <div class="learn-grid">
+    <aside class="learn-toc" id="learnToc">
+      <h2>In this course</h2>
+      <nav id="tocLinks"></nav>
+      <a class="toc-back" href="https://test.prospergenics.com/courses/ai-software-lifecycle/">← Course overview</a>
+    </aside>
+
+    <article class="learn-body" id="learnBody">
+      <h2>Introduction</h2>
+<p>An AI coding agent is a program that runs on your computer and can do everything you allow it to — read and edit files, run commands in the terminal, install packages, create branches, write tests, deploy software. You describe what you want in plain language and it works autonomously until the job is done. It is not a chatbot you copy answers from. It acts.</p>
+<p>There are many coding agents available. This course covers some of the most widely used ones: Claude Code, Codex, OpenCode, Cursor and Windsurf. Select your agent above — the install steps differ per agent, but from Session 2 onwards everything is the same. If you use a different agent not listed here, the install steps in this session will look different, but the rest of the course still applies.</p>
+
+<div class="tool-section" data-tool="claude">
+<h2>Installing Node.js</h2>
+<p>Claude Code requires Node.js to run. Go to <strong>nodejs.org/en/download</strong> and choose the LTS version.</p>
+<div class="os-section" data-os="windows">
+<div class="course-screenshot">
+<img src="https://test.prospergenics.com/wp-content/uploads/courses/nodejs-lts-selector.jpg" alt="nodejs.org download page — LTS selector">
+<span class="caption">nodejs.org/en/download — select the LTS version</span>
+</div>
+<p>Click the green <strong>Windows Installer (.msi)</strong> button to download, then run it and click <strong>Next</strong> on every screen.</p>
+<div class="course-screenshot">
+<img src="https://test.prospergenics.com/wp-content/uploads/courses/nodejs-installer-btn.jpg" alt="Windows Installer button on nodejs.org">
+<span class="caption">Click "Windows Installer (.msi)" to download the installer</span>
+</div>
+<p>When the installer finishes, open a terminal: press <code>Win + X</code> → choose <em>Terminal</em> or <em>PowerShell</em>. Then verify:</p>
+<pre><code>node --version</code></pre>
+</div>
+<div class="os-section" data-os="mac">
+<p>Click <strong>macOS Installer (.pkg)</strong> to download, run it and follow the steps. Then open a terminal (press <code>Cmd + Space</code>, type <em>Terminal</em>, press Enter) and verify:</p>
+<pre><code>node --version</code></pre>
+</div>
+<div class="os-section" data-os="linux">
+<p>Open a terminal (<code>Ctrl + Alt + T</code>) and run:</p>
+<pre><code>curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+sudo apt-get install -y nodejs
+node --version</code></pre>
+<p>For Fedora / RHEL: <code>sudo dnf install nodejs</code></p>
+</div>
+<p>You should see something like <code>v20.11.0</code>. If you get an error, close the terminal and open it again.</p>
+
+<h2>Installing Claude Code</h2>
+<h3>1 · Get access</h3>
+<p>The easiest way is a <strong>Claude Max or Pro subscription</strong> at <strong>claude.ai</strong> — this covers Claude Code usage without a separate API key.</p>
+<p>Alternatively, create an API key at <strong>console.anthropic.com</strong> → <strong>API Keys</strong> → <strong>Create Key</strong>.</p>
+<h3>2 · Install</h3>
+<pre><code>npm install -g @anthropic-ai/claude-code</code></pre>
+<h3>3 · Run it</h3>
+<p>Navigate to your project folder in the terminal, then:</p>
+<pre><code>claude</code></pre>
+<p>First run: it opens a browser to log in with your Claude account. If you use an API key instead, paste it when prompted.</p>
+<h3>Verify it works</h3>
+<p>Try: <em>"What files are in this folder?"</em></p>
+</div>
+
+<div class="tool-section" data-tool="codex">
+<h2>Installing Node.js</h2>
+<p>Codex requires Node.js to run. Go to <strong>nodejs.org/en/download</strong> and choose the LTS version.</p>
+<div class="os-section" data-os="windows">
+<div class="course-screenshot">
+<img src="https://test.prospergenics.com/wp-content/uploads/courses/nodejs-lts-selector.jpg" alt="nodejs.org download page — LTS selector">
+<span class="caption">nodejs.org/en/download — select the LTS version</span>
+</div>
+<p>Click the green <strong>Windows Installer (.msi)</strong> button to download, then run it and click <strong>Next</strong> on every screen.</p>
+<div class="course-screenshot">
+<img src="https://test.prospergenics.com/wp-content/uploads/courses/nodejs-installer-btn.jpg" alt="Windows Installer button on nodejs.org">
+<span class="caption">Click "Windows Installer (.msi)" to download the installer</span>
+</div>
+<p>When the installer finishes, open a terminal: press <code>Win + X</code> → choose <em>Terminal</em> or <em>PowerShell</em>. Then verify:</p>
+<pre><code>node --version</code></pre>
+</div>
+<div class="os-section" data-os="mac">
+<p>Click <strong>macOS Installer (.pkg)</strong> to download, run it and follow the steps. Then open a terminal and verify:</p>
+<pre><code>node --version</code></pre>
+</div>
+<div class="os-section" data-os="linux">
+<p>Open a terminal and run:</p>
+<pre><code>curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+sudo apt-get install -y nodejs
+node --version</code></pre>
+</div>
+
+<h2>Installing Codex</h2>
+<h3>1 · Get your API key</h3>
+<p>Go to <strong>platform.openai.com/api-keys</strong> → <strong>Create new secret key</strong>. Copy it.</p>
+<h3>2 · Install</h3>
+<pre><code>npm install -g @openai/codex</code></pre>
+<h3>3 · Set your API key</h3>
+<div class="os-section" data-os="windows">
+<pre><code>[System.Environment]::SetEnvironmentVariable('OPENAI_API_KEY','sk-your-key-here','User')</code></pre>
+<p>Close and reopen your terminal after running this.</p>
+</div>
+<div class="os-section" data-os="mac">
+<pre><code>echo 'export OPENAI_API_KEY="sk-your-key-here"' &gt;&gt; ~/.zshrc &amp;&amp; source ~/.zshrc</code></pre>
+</div>
+<div class="os-section" data-os="linux">
+<pre><code>echo 'export OPENAI_API_KEY="sk-your-key-here"' &gt;&gt; ~/.bashrc &amp;&amp; source ~/.bashrc</code></pre>
+</div>
+<h3>4 · Run it</h3>
+<pre><code>codex</code></pre>
+<h3>Verify it works</h3>
+<p>Try: <em>"What files are in this folder?"</em></p>
+</div>
+
+<div class="tool-section" data-tool="opencode">
+<h2>Installing Node.js</h2>
+<p>OpenCode requires Node.js to run. Go to <strong>nodejs.org/en/download</strong> and choose the LTS version.</p>
+<div class="os-section" data-os="windows">
+<div class="course-screenshot">
+<img src="https://test.prospergenics.com/wp-content/uploads/courses/nodejs-lts-selector.jpg" alt="nodejs.org download page — LTS selector">
+<span class="caption">nodejs.org/en/download — select the LTS version</span>
+</div>
+<p>Click the green <strong>Windows Installer (.msi)</strong> button to download, then run it and click <strong>Next</strong> on every screen.</p>
+<div class="course-screenshot">
+<img src="https://test.prospergenics.com/wp-content/uploads/courses/nodejs-installer-btn.jpg" alt="Windows Installer button on nodejs.org">
+<span class="caption">Click "Windows Installer (.msi)" to download the installer</span>
+</div>
+<p>When the installer finishes, open a terminal: press <code>Win + X</code> → choose <em>Terminal</em> or <em>PowerShell</em>. Then verify:</p>
+<pre><code>node --version</code></pre>
+</div>
+<div class="os-section" data-os="mac">
+<p>Click <strong>macOS Installer (.pkg)</strong> to download, run it and follow the steps. Then open a terminal and verify:</p>
+<pre><code>node --version</code></pre>
+</div>
+<div class="os-section" data-os="linux">
+<p>Open a terminal and run:</p>
+<pre><code>curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+sudo apt-get install -y nodejs
+node --version</code></pre>
+</div>
+
+<h2>Installing OpenCode</h2>
+<h3>1 · Install</h3>
+<div class="os-section" data-os="mac linux">
+<pre><code>curl -fsSL https://opencode.ai/install | bash</code></pre>
+</div>
+<div class="os-section" data-os="windows">
+<pre><code>npm install -g opencode-ai</code></pre>
+</div>
+<h3>2 · Run it</h3>
+<pre><code>opencode</code></pre>
+<p>First run: choose your AI provider (Anthropic, OpenAI, Gemini, or local) and enter the API key for that provider.</p>
+<h3>Verify it works</h3>
+<p>Try: <em>"What files are in this folder?"</em></p>
+</div>
+
+<div class="tool-section" data-tool="cursor">
+<h2>Installing Cursor</h2>
+<h3>1 · Download and install</h3>
+<div class="os-section" data-os="windows">
+<p>Go to <strong>cursor.com</strong> → click <strong>Download for Windows</strong> → run the installer.</p>
+</div>
+<div class="os-section" data-os="mac">
+<p>Go to <strong>cursor.com</strong> → click <strong>Download for Mac</strong> → open the .dmg and drag Cursor to Applications.</p>
+</div>
+<div class="os-section" data-os="linux">
+<p>Go to <strong>cursor.com</strong> → download the .AppImage → open a terminal and run:</p>
+<pre><code>chmod +x cursor-*.AppImage &amp;&amp; ./cursor-*.AppImage</code></pre>
+</div>
+<h3>2 · Get access</h3>
+<p>On first launch, sign up at cursor.com. The free tier includes limited AI usage. A <strong>Pro subscription</strong> gives unlimited access including Claude and GPT-4o models.</p>
+<p>Alternatively go to <strong>Cursor Settings → Models</strong> and add your own API key from Anthropic or OpenAI.</p>
+<h3>3 · Open your project</h3>
+<p><strong>File → Open Folder</strong> → choose your project directory.</p>
+<h3>4 · Start the Agent</h3>
+<p>Press <code>Ctrl+Shift+I</code> (Windows / Linux) or <code>Cmd+Shift+I</code> (Mac) to open Composer. Switch the mode to <strong>Agent</strong> in the top-right of the Composer panel.</p>
+<h3>Verify it works</h3>
+<p>Try: <em>"What files are in this folder?"</em></p>
+</div>
+
+<div class="tool-section" data-tool="windsurf">
+<h2>Installing Windsurf</h2>
+<h3>1 · Download and install</h3>
+<div class="os-section" data-os="windows">
+<p>Go to <strong>codeium.com/windsurf</strong> → click <strong>Download for Windows</strong> → run the installer.</p>
+</div>
+<div class="os-section" data-os="mac">
+<p>Go to <strong>codeium.com/windsurf</strong> → click <strong>Download for Mac</strong> → open the .dmg and drag Windsurf to Applications.</p>
+</div>
+<div class="os-section" data-os="linux">
+<p>Go to <strong>codeium.com/windsurf</strong> → download the .tar.gz → open a terminal, extract and run:</p>
+<pre><code>tar -xzf windsurf-*.tar.gz &amp;&amp; ./windsurf</code></pre>
+</div>
+<h3>2 · Get access</h3>
+<p>Sign up at <strong>codeium.com</strong> — Windsurf has a generous free tier. Sign in on first launch.</p>
+<h3>3 · Open your project</h3>
+<p><strong>File → Open Folder</strong> → choose your project directory.</p>
+<h3>4 · Start Cascade</h3>
+<p>Open Cascade from the sidebar or press <code>Ctrl+L</code> (Windows / Linux) or <code>Cmd+L</code> (Mac). Set the mode to <strong>Write</strong> for full agent capabilities.</p>
+<h3>Verify it works</h3>
+<p>Try: <em>"What files are in this folder?"</em></p>
+</div>
+
+<hr>
+<h2>Introduction</h2>
+<p>Your agent needs a home — a dedicated folder it treats as its own. This session creates that folder, gives the agent a written set of rules to follow, and ends with the agent creating its own startup script. From then on a double-click is all it takes to open a fresh session in your workspace.</p>
+
+<h2>Quick Start</h2>
+<p>If you want to skip the manual steps, download the Jengo starter workspace — it includes a ready-made bootstrap file, rules, and startup scripts for all supported agents.</p>
+<a class="dl-btn" href="https://github.com/scp-jengo/jengo-business-public-system/archive/refs/heads/master.zip" download>Download Jengo workspace starter (zip)</a>
+<p>Extract the zip into your project folder, then continue from the <a href="#bootstrap-prompt">Bootstrap prompt</a> step below.</p>
+
+<h2>Create Workspace Directory</h2>
+<div class="tool-section" data-tool="cursor">
+<p>Open Cursor → <strong>File → Open Folder</strong> → create a new folder and open it.</p>
+</div>
+<div class="tool-section" data-tool="windsurf">
+<p>Open Windsurf → <strong>File → Open Folder</strong> → create a new folder and open it.</p>
+</div>
+<div class="tool-section" data-tool="claude">
+<div class="os-section" data-os="windows">
+<pre><code>mkdir my-project
+cd my-project</code></pre>
+</div>
+<div class="os-section" data-os="mac linux">
+<pre><code>mkdir my-project &amp;&amp; cd my-project</code></pre>
+</div>
+</div>
+<div class="tool-section" data-tool="codex">
+<div class="os-section" data-os="windows">
+<pre><code>mkdir my-project
+cd my-project</code></pre>
+</div>
+<div class="os-section" data-os="mac linux">
+<pre><code>mkdir my-project &amp;&amp; cd my-project</code></pre>
+</div>
+</div>
+<div class="tool-section" data-tool="opencode">
+<div class="os-section" data-os="windows">
+<pre><code>mkdir my-project
+cd my-project</code></pre>
+</div>
+<div class="os-section" data-os="mac linux">
+<pre><code>mkdir my-project &amp;&amp; cd my-project</code></pre>
+</div>
+</div>
+
+<h2>Create Bootstrap File</h2>
+<p>The bootstrap file tells the agent who it is, what this project is, and what it is allowed to do — automatically, every session. Create it in the project root:</p>
+
+<div class="tool-section" data-tool="claude">
+<p>Filename: <strong>CLAUDE.md</strong></p>
+<pre><code># My Project
+
+## What this is
+[Describe your project in 1-2 sentences]
+
+## Rules
+- Never commit directly to main
+- Always create a pull request
+- Ask before deleting any file
+
+## What you can do without asking
+- Read, edit and create files
+- Run tests and builds
+- Install packages
+- Create branches and commits
+
+## Commands
+- Test:           npm test
+- Build:          npm run build
+- Deploy staging: ./deploy.sh staging</code></pre>
+
+<h3>Enable auto-approve</h3>
+<p>Run Claude Code with the skip-permissions flag so it works without stopping to ask:</p>
+<pre><code>claude --dangerously-skip-permissions</code></pre>
+<p>To make this permanent, add to <strong>~/.claude/settings.json</strong>:</p>
+<pre><code>{
+  "permissions": {
+    "allow": ["Bash(*)", "Edit(*)", "Write(*)", "Read(*)"]
+  }
+}</code></pre>
+
+<h3>Bootstrap prompt</h3>
+<p>Start the agent and paste this as your very first message. It reads the bootstrap file, confirms the rules, and creates a startup script so future sessions start with a double-click:</p>
+<pre><code>Read CLAUDE.md. Summarise the project in one sentence and confirm the 3 most important rules you will follow. Then create a startup script in this folder:
+- Windows: start.bat — navigates to this directory and runs: claude --dangerously-skip-permissions
+- Mac / Linux: start.sh — same, then run: chmod +x start.sh</code></pre>
+<p>The agent will create a script that looks like this:</p>
+<div class="os-section" data-os="windows">
+<pre><code>@echo off
+cd /d "%~dp0"
+claude --dangerously-skip-permissions</code></pre>
+</div>
+<div class="os-section" data-os="mac linux">
+<pre><code>#!/bin/bash
+cd "$(dirname "$0")"
+claude --dangerously-skip-permissions</code></pre>
+</div>
+</div>
+
+<div class="tool-section" data-tool="codex">
+<p>Filename: <strong>AGENTS.md</strong></p>
+<pre><code># My Project
+
+## What this is
+[Describe your project in 1-2 sentences]
+
+## Rules
+- Never commit directly to main
+- Always create a pull request
+- Ask before deleting any file
+
+## What you can do without asking
+- Read, edit and create files
+- Run tests and builds
+- Install packages
+- Create branches and commits
+
+## Commands
+- Test:           npm test
+- Build:          npm run build
+- Deploy staging: ./deploy.sh staging</code></pre>
+
+<h3>Enable auto-approve</h3>
+<pre><code>codex --approval-mode full-auto</code></pre>
+
+<h3>Bootstrap prompt</h3>
+<pre><code>Read AGENTS.md. Summarise the project in one sentence and confirm the 3 most important rules you will follow. Then create a startup script in this folder:
+- Windows: start.bat — navigates to this directory and runs: codex --approval-mode full-auto
+- Mac / Linux: start.sh — same, then run: chmod +x start.sh</code></pre>
+<div class="os-section" data-os="windows">
+<pre><code>@echo off
+cd /d "%~dp0"
+codex --approval-mode full-auto</code></pre>
+</div>
+<div class="os-section" data-os="mac linux">
+<pre><code>#!/bin/bash
+cd "$(dirname "$0")"
+codex --approval-mode full-auto</code></pre>
+</div>
+</div>
+
+<div class="tool-section" data-tool="opencode">
+<p>Filename: <strong>AGENTS.md</strong></p>
+<pre><code># My Project
+
+## What this is
+[Describe your project in 1-2 sentences]
+
+## Rules
+- Never commit directly to main
+- Always create a pull request
+- Ask before deleting any file
+
+## What you can do without asking
+- Read, edit and create files
+- Run tests and builds
+- Install packages
+- Create branches and commits
+
+## Commands
+- Test:           npm test
+- Build:          npm run build
+- Deploy staging: ./deploy.sh staging</code></pre>
+
+<h3>Enable auto-approve</h3>
+<pre><code>opencode --yes</code></pre>
+
+<h3>Bootstrap prompt</h3>
+<pre><code>Read AGENTS.md. Summarise the project in one sentence and confirm the 3 most important rules you will follow. Then create a startup script in this folder:
+- Windows: start.bat — navigates to this directory and runs: opencode --yes
+- Mac / Linux: start.sh — same, then run: chmod +x start.sh</code></pre>
+<div class="os-section" data-os="windows">
+<pre><code>@echo off
+cd /d "%~dp0"
+opencode --yes</code></pre>
+</div>
+<div class="os-section" data-os="mac linux">
+<pre><code>#!/bin/bash
+cd "$(dirname "$0")"
+opencode --yes</code></pre>
+</div>
+</div>
+
+<div class="tool-section" data-tool="cursor">
+<p>Filename: <strong>.cursorrules</strong></p>
+<pre><code># My Project
+
+## What this is
+[Describe your project in 1-2 sentences]
+
+## Rules
+- Never commit directly to main
+- Always create a pull request
+- Ask before deleting any file
+
+## What you can do without asking
+- Read, edit and create files
+- Run tests and builds
+- Install packages
+- Create branches and commits
+
+## Commands
+- Test:           npm test
+- Build:          npm run build
+- Deploy staging: ./deploy.sh staging</code></pre>
+
+<h3>Enable auto-approve</h3>
+<p><strong>Cursor Settings</strong> (<code>Ctrl+Shift+J</code> / <code>Cmd+Shift+J</code>) → <strong>Features</strong> → <strong>Agent</strong> → enable <strong>Yolo mode</strong>.</p>
+
+<h3>Bootstrap prompt</h3>
+<pre><code>Read .cursorrules. Summarise the project in one sentence and confirm the 3 most important rules you will follow. Then create a startup script in this folder:
+- Windows: start.bat — opens this folder in Cursor: cursor .
+- Mac / Linux: start.sh — same, then run: chmod +x start.sh</code></pre>
+<div class="os-section" data-os="windows">
+<pre><code>@echo off
+cd /d "%~dp0"
+cursor .</code></pre>
+</div>
+<div class="os-section" data-os="mac linux">
+<pre><code>#!/bin/bash
+cd "$(dirname "$0")"
+cursor .</code></pre>
+</div>
+</div>
+
+<div class="tool-section" data-tool="windsurf">
+<p>Filename: <strong>.windsurfrules</strong></p>
+<pre><code># My Project
+
+## What this is
+[Describe your project in 1-2 sentences]
+
+## Rules
+- Never commit directly to main
+- Always create a pull request
+- Ask before deleting any file
+
+## What you can do without asking
+- Read, edit and create files
+- Run tests and builds
+- Install packages
+- Create branches and commits
+
+## Commands
+- Test:           npm test
+- Build:          npm run build
+- Deploy staging: ./deploy.sh staging</code></pre>
+
+<h3>Enable auto-approve</h3>
+<p><strong>Windsurf Settings</strong> → <strong>Cascade</strong> → enable <strong>Auto-run commands</strong>.</p>
+
+<h3>Bootstrap prompt</h3>
+<pre><code>Read .windsurfrules. Summarise the project in one sentence and confirm the 3 most important rules you will follow. Then create a startup script in this folder:
+- Windows: start.bat — opens this folder in Windsurf: windsurf .
+- Mac / Linux: start.sh — same, then run: chmod +x start.sh</code></pre>
+<div class="os-section" data-os="windows">
+<pre><code>@echo off
+cd /d "%~dp0"
+windsurf .</code></pre>
+</div>
+<div class="os-section" data-os="mac linux">
+<pre><code>#!/bin/bash
+cd "$(dirname "$0")"
+windsurf .</code></pre>
+</div>
+</div>
+
+<hr>
+<h2>Introduction</h2>
+<p>Git records every change your agent makes as a named snapshot. If something breaks you can see exactly what changed and roll it back. GitHub stores your project in the cloud — a backup, and the place where multiple agents or team members can collaborate without overwriting each other. This session installs Git, initializes your project, creates a GitHub repository, and connects the two.</p>
+
+<h2>Installing Git</h2>
+<div class="os-section" data-os="windows">
+<p>Go to <strong>git-scm.com</strong> — click <strong>Download for Windows</strong> — run the installer — leave all settings on default. Then open a new terminal.</p>
+</div>
+<div class="os-section" data-os="mac">
+<p>Open a terminal and run:</p>
+<pre><code>git --version</code></pre>
+<p>If Git is not installed, macOS will prompt you to install the Command Line Tools — click <strong>Install</strong>.</p>
+</div>
+<div class="os-section" data-os="linux">
+<pre><code>sudo apt install git</code></pre>
+<p>For Fedora / RHEL: <code>sudo dnf install git</code></p>
+</div>
+<p>Verify:</p>
+<pre><code>git --version</code></pre>
+<p>Initialize your project:</p>
+<pre><code>git init
+git add .
+git commit -m "Initial commit"</code></pre>
+
+<h2>Connecting to GitHub</h2>
+<p>Go to <strong>github.com</strong> — sign up or log in — click the <strong>+</strong> in the top right — <strong>New repository</strong>.</p>
+<ul>
+<li>Give it a name (e.g. <code>my-project</code>) and set it to <strong>Private</strong></li>
+<li>Leave everything else on default — do <strong>not</strong> add a README or .gitignore (you already have files locally)</li>
+<li>Click <strong>Create repository</strong></li>
+</ul>
+<p>Copy your repository URL (e.g. <code>https://github.com/your-username/my-project.git</code>), then in your terminal:</p>
+<pre><code>git remote add origin https://github.com/your-username/my-project.git
+git branch -M main
+git push -u origin main</code></pre>
+<p>After every agent session, commit and push the changes:</p>
+<pre><code>git add .
+git commit -m "What the agent did"
+git push</code></pre>
+
+<hr>
+<h2>Introduction</h2>
+<p>A task manager gives your agent a shared understanding of what needs to be done, what is in progress, and what is waiting for your review. Without one, you have to describe the context every session. With one, the agent can read the backlog itself, pick up where it left off, move tasks to done, and flag blockers — without you having to repeat yourself.</p>
+<p>It also gives you visibility. You see every task the agent created or updated, which means you stay in control without being in the loop for every small step.</p>
+
+<h2>Connect Your Task Manager</h2>
+
+.tm-sel{display:flex;gap:8px;margin:18px 0 24px;flex-wrap:wrap;}
+.tm-btn{font-family:'Sora',sans-serif;font-size:13px;font-weight:600;padding:8px 18px;border-radius:999px;border:1.5px solid var(--line);background:#fff;color:var(--muted);cursor:pointer;transition:all .15s;}
+.tm-btn.active{background:var(--green-700);color:#fff;border-color:var(--green-700);}
+.tm-section{display:none;}
+.tm-section.tm-active{display:block;}
+
+<div class="tm-sel">
+  <button class="tm-btn active" data-tm="clickup">ClickUp</button>
+  <button class="tm-btn" data-tm="jira">Jira</button>
+</div>
+
+<div class="tm-section tm-active" data-tm="clickup">
+<p>ClickUp offers a built-in MCP server. Go to <strong>app.clickup.com</strong> → <strong>Settings → Integrations → Claude MCP</strong> to generate your connection details.</p>
+<p>Add the MCP server to your agent's settings file. For Claude Code, open <code>~/.claude/settings.json</code>:</p>
+<pre><code>{
+  "mcpServers": {
+    "clickup": {
+      "type": "http",
+      "url": "https://mcp.clickup.com",
+      "headers": { "Authorization": "Bearer your-api-token-here" }
+    }
+  }
+}</code></pre>
+<p>Get your API token at <strong>app.clickup.com → Settings → Apps → API Token</strong>.</p>
+<p>Test it — start your agent and ask:</p>
+<pre><code>What tasks are currently in my backlog?</code></pre>
+<p>The agent should list your open tasks. Now add this to your bootstrap file so the agent uses ClickUp every session:</p>
+<pre><code>## Task manager (ClickUp)
+- Always check the task board at the start of a session
+- Update task status when you start and finish work
+- If you create a subtask, link it to the parent task</code></pre>
+</div>
+
+<div class="tm-section" data-tm="jira">
+<p>Jira supports MCP via Atlassian's Remote MCP Server (available in Jira Software cloud). Go to <strong>your-site.atlassian.net → Settings → Apps → Atlassian MCP</strong> to enable it and get your connection URL.</p>
+<p>Add the MCP server to your agent's settings file. For Claude Code, open <code>~/.claude/settings.json</code>:</p>
+<pre><code>{
+  "mcpServers": {
+    "jira": {
+      "type": "http",
+      "url": "https://mcp.atlassian.com/v1/mcp",
+      "headers": { "Authorization": "Bearer your-api-token-here" }
+    }
+  }
+}</code></pre>
+<p>Get your API token at <strong>id.atlassian.com → Security → API tokens → Create API token</strong>.</p>
+<p>Test it — start your agent and ask:</p>
+<pre><code>What issues are currently assigned to me?</code></pre>
+<p>The agent should list your open Jira issues. Now add this to your bootstrap file so the agent uses Jira every session:</p>
+<pre><code>## Task manager (Jira)
+- Always check Jira at the start of a session
+- Update issue status when you start and finish work
+- Add a comment to the issue when you make significant progress</code></pre>
+</div>
+
+
+(function(){
+  var btns = document.querySelectorAll('.tm-btn');
+  var sects = document.querySelectorAll('.tm-section');
+  var active = localStorage.getItem('jl-tm') || 'clickup';
+  function setTm(key) {
+    active = key;
+    try { localStorage.setItem('jl-tm', key); } catch(e){}
+    sects.forEach(function(s){ s.classList.toggle('tm-active', s.getAttribute('data-tm') === key); });
+    btns.forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-tm') === key); });
+  }
+  btns.forEach(function(b){ b.addEventListener('click', function(){ setTm(b.getAttribute('data-tm')); }); });
+  setTm(active);
+})();
+
+
+<hr>
+<h2>Parallel Agents with Git Worktrees</h2>
+<p>Two agents working in the same folder will overwrite each other. Git worktrees give each agent its own directory — same repository, no conflicts.</p>
+<pre><code>git worktree add ../my-project-feature feature/my-feature</code></pre>
+<p>One agent per directory. When the feature is done:</p>
+<pre><code>git worktree remove ../my-project-feature</code></pre>
+
+<hr>
+<h2>Automating Deployment</h2>
+<p>Create a deploy script and give the agent permission to run it.</p>
+<pre><code>#!/bin/bash
+set -e
+ssh user@your-server "cd /var/www/mysite &amp;&amp; git pull &amp;&amp; npm run build"
+echo "Deployed."</code></pre>
+<p>Add to your bootstrap file:</p>
+<pre><code>## Deployment
+- After finishing a task: ./deploy.sh staging
+- Production: never without my approval</code></pre>
+
+<hr>
+<h2>AI Code Review</h2>
+<p>Before every pull request, have the agent check its own work:</p>
+<pre><code>Review the changes you just made. Look for bugs and anything that does not match our standards. Fix what you find. Then create a pull request.</code></pre>
+<p>Or add it to your bootstrap file so it runs automatically:</p>
+<pre><code>## Before every pull request
+1. Run npm test -- fix any failures
+2. Run npm run lint -- fix warnings
+3. Then create the PR</code></pre>
+
+<hr>
+<h2>Control from Your Phone</h2>
+<p>Install Claude (or ChatGPT) on your phone. Connect it to the same task board via MCP. From your phone:</p>
+<ul>
+<li><em>"Add a task: the contact form sends to the wrong address"</em></li>
+<li><em>"What is being worked on right now?"</em></li>
+<li><em>"Staging looks good — deploy to production"</em></li>
+</ul>
+<p>Your phone is the command interface for your entire development system.</p>
+
+<hr>
+<h2>The Full Lifecycle</h2>
+<ol>
+<li>You spot a bug on your phone — tell the AI</li>
+<li>Agent creates a task, finds the issue, writes the fix, deploys to staging</li>
+<li>You check staging: "Looks good"</li>
+<li>Agent deploys to production</li>
+</ol>
+<p>No code editor. No terminal. Just conversations.</p>
+      <div class="learn-foot">
+        <div class="lf-txt">Questions while you work through the steps?
+          <small>The Course Coach (bottom right) knows this course inside out.</small>
+        </div>
+        <a class="lf-btn" href="https://test.prospergenics.com/courses/">Browse more courses →</a>
+      </div>
+    </article>
+  </div>
+</div>
+
+<script>
+(function(){
+  // Build the table of contents from the h2 headings in the course body
+  var body = document.getElementById('learnBody');
+  var toc  = document.getElementById('tocLinks');
+  var heads = body.querySelectorAll('h2');
+  heads.forEach(function(h, i){
+    if (!h.id) h.id = 'section-' + (i + 1);
+    var a = document.createElement('a');
+    a.href = '#' + h.id;
+    a.textContent = h.textContent;
+    toc.appendChild(a);
+  });
+
+  // Highlight the section currently in view
+  var links = toc.querySelectorAll('a');
+  function onScroll(){
+    var y = window.scrollY + 120, active = 0;
+    heads.forEach(function(h, i){ if (h.offsetTop <= y) active = i; });
+    links.forEach(function(l, i){ l.classList.toggle('active', i === active); });
+    var doc = document.documentElement;
+    var pct = (doc.scrollTop) / (doc.scrollHeight - doc.clientHeight) * 100;
+    document.getElementById('learnProgress').style.width = pct + '%';
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+})();
+</script>

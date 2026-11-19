@@ -1,0 +1,70 @@
+/*
+ * Prospergenics community: lesson discussions (card #6464, inc/courses/discussion.php) and the
+ * "Report" control on articles, profiles and discussion posts (card #6472,
+ * inc/profiles/moderation.php). Loaded on lessons, single articles and /in/ profiles.
+ * Builds on the tokens in wp/header.php (--green-*, --ink, --muted, --line, --paper).
+ */
+
+/* ---------- discussion under a lesson */
+.pgc-discussion{margin-top:48px;padding-top:32px;border-top:1px solid var(--line);}
+.pgc-discussion>.pgc-notice{margin:0 0 18px;}
+.pgc-d-ask{margin:0 0 24px;}
+.pgc-d-ask>summary{list-style:none;width:max-content;}
+.pgc-d-ask>summary::-webkit-details-marker{display:none;}
+.pgc-d-ask[open]>summary{display:none;}
+.pgc-d-form{display:grid;gap:4px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px 18px 16px;}
+.pgc-d-form .pgc-field{margin-bottom:10px;}
+.pgc-d-form .pgc-btn{justify-self:start;}
+.pgc-d-hint{font-size:13.5px;color:var(--muted);line-height:1.5;margin:0;}
+.pgc-d-empty,.pgc-d-count{font-size:15px;color:var(--muted);margin:0 0 14px;}
+.pgc-d-list,.pgc-d-replies{list-style:none;margin:0;padding:0;}
+.pgc-d-thread{background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px 18px 14px;margin-bottom:16px;}
+.pgc-d-replies{margin:14px 0 0 clamp(8px,3vw,28px);padding-left:clamp(10px,2vw,18px);border-left:2px solid var(--green-100);display:grid;gap:12px;}
+.pgc-d-post{min-width:0;}
+.pgc-d-post.is-accepted{background:var(--green-100);border-radius:12px;padding:12px 14px;}
+.pgc-d-post.is-held{opacity:.85;}
+.pgc-d-head{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin-bottom:6px;}
+.pgc-d-avatar{width:36px;height:36px;border-radius:50%;object-fit:cover;flex:none;}
+.pgc-d-avatar.pg-avatar-ph{display:inline-flex;align-items:center;justify-content:center;background:#d9f5e3;color:#0f3d28;font-family:'Gabarito',sans-serif;font-weight:800;font-size:14px;}
+.pgc-d-name{font-weight:700;color:var(--green-900);}
+.pgc-d-badge{font-size:12.5px;font-weight:700;color:var(--green-900);background:var(--green-100);border:1px solid rgba(26,122,70,.35);border-radius:999px;padding:2px 9px;}
+.pgc-d-time{font-size:13.5px;color:var(--muted);}
+.pgc-d-body{font-size:16px;line-height:1.65;color:var(--ink);overflow-wrap:anywhere;}
+.pgc-d-body p{margin:0 0 10px;}
+.pgc-d-body p:last-child{margin-bottom:0;}
+.pgc-d-body a{color:var(--green-700);}
+.pgc-d-body blockquote{border-left:3px solid var(--line);margin:0 0 10px;padding-left:12px;color:var(--muted);}
+.pgc-d-accepted{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;color:var(--green-900);margin:0 0 6px;}
+.pgc-d-held{font-size:13.5px;font-weight:600;color:#4a3700;background:#fff4d6;border:1px solid #e8c766;border-radius:10px;padding:6px 10px;margin:0 0 8px;}
+.pgc-d-actions{display:flex;flex-wrap:wrap;align-items:flex-start;gap:8px;margin-top:10px;}
+.pgc-d-reply{margin-top:12px;}
+.pgc-d-reply-toggle{display:inline-flex;align-items:center;min-height:44px;font-weight:600;font-size:15px;color:var(--green-700);cursor:pointer;text-decoration:underline;text-underline-offset:3px;}
+.pgc-d-reply[open]>.pgc-d-reply-toggle{margin-bottom:8px;}
+.pgc-d-reply-toggle:focus-visible,.pgc-d-ask>summary:focus-visible,.pg-report>summary:focus-visible{outline:3px solid var(--focus-ring,#1a7a46);outline-offset:2px;}
+
+/* ---------- report control */
+.pg-report{position:relative;display:inline-block;font-size:14px;max-width:100%;}
+.pg-report>summary{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:6px 12px;border-radius:999px;border:1px solid rgba(15,61,40,.3);background:#fff;color:#3d5446;font-weight:600;cursor:pointer;list-style:none;}
+.pg-report>summary::-webkit-details-marker{display:none;}
+.pg-report>summary:hover{border-color:var(--green-700);color:var(--green-900);}
+.pg-report[open]>summary{border-color:var(--green-700);}
+.pg-report-form{margin-top:8px;width:min(340px,calc(100vw - 32px));background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:0 18px 40px -24px rgba(11,32,22,.45);text-align:left;}
+.pg-report-form fieldset{border:0;margin:0 0 10px;padding:0;}
+.pg-report-form legend{font-weight:700;color:var(--green-900);margin-bottom:6px;}
+.pg-report-form label{display:flex;gap:8px;align-items:flex-start;line-height:1.4;padding:4px 0;}
+.pg-report-form input[type=radio]{margin-top:3px;accent-color:var(--green-700);}
+.pg-report-details{display:grid;gap:4px;margin-bottom:10px;}
+.pg-report-details label{display:block;font-weight:600;padding:0;}
+.pg-report-details textarea{font:inherit;font-size:16px;width:100%;padding:8px 10px;border-radius:10px;border:1.5px solid rgba(15,61,40,.3);background:var(--paper);color:var(--ink);resize:vertical;}
+.pg-report-form input:focus-visible,.pg-report-details textarea:focus{outline:3px solid var(--focus-ring,#1a7a46);outline-offset:1px;}
+.pg-report-form button{min-height:40px;padding:8px 16px;border-radius:999px;border:1.5px solid var(--green-700);background:var(--green-700);color:#fff;font-weight:600;font-size:14px;cursor:pointer;}
+.pg-report-form button:hover{background:var(--green-900);border-color:var(--green-900);}
+.pg-report-note{font-size:13px;color:var(--muted);margin:8px 0 0;}
+.pg-report-done{display:inline-flex;align-items:center;min-height:40px;font-size:14px;color:#3d5446;margin:0;}
+.pg-report-error{font-size:13.5px;color:#7a1d16;background:#fbe4e2;border-radius:8px;padding:6px 10px;margin:0 0 10px;}
+/* on the dark profile hero */
+.pgp-hero .pg-report>summary{background:transparent;border-color:rgba(255,255,255,.7);color:#fff;}
+.pgp-hero .pg-report>summary:hover{background:rgba(255,255,255,.12);}
+.pgp-hero .pg-report-done{color:#fff;}
+.pga-actions .pg-report{align-self:center;}
+.pga-hidden-note{margin:0 0 24px;border-radius:12px;padding:12px 16px;font-size:15px;line-height:1.5;background:#fff4d6;color:#4a3700;border:1px solid #e8c766;}

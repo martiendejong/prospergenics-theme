@@ -1,0 +1,60 @@
+name: Uptime test.prospergenics.com
+
+# Every 30 minutes: /, /courses/, /articles/ and /wp-login.php must answer 200 or 302 without a
+# PHP fatal error (tests/smoke/uptime-check.sh). A failure opens (or comments on) the GitHub issue
+# "Uptime check failing" with the label "alert", which notifies every repository watcher and the
+# logins in the repository variable ALERT_ASSIGNEES; the next passing run closes it
+# (tests/smoke/alert-issue.sh, no extra secrets). GitHub also emails the failed run itself.
+# See docs/OPERATIONS.md, "Where alerts go".
+#
+# GitHub only runs scheduled workflows from the repository's DEFAULT branch, so this file has to
+# be merged there before the schedule starts. "Run workflow" (workflow_dispatch) works from any
+# branch for a manual check; give it a base_url that fails (for example
+# https://test.prospergenics.com/no-such-site) to test the alert, then run it again normally.
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: Site to check (change it to a failing URL to test the alert)
+        type: string
+        default: https://test.prospergenics.com
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: uptime
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: tests/smoke
+
+      - name: Check the key pages
+        shell: bash
+        env:
+          BASE_URL: ${{ inputs.base_url || 'https://test.prospergenics.com' }}
+        run: bash tests/smoke/uptime-check.sh "$BASE_URL" | tee "$RUNNER_TEMP/uptime.txt"
+
+      - name: Open or update the alert issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          ALERT_ASSIGNEES: ${{ vars.ALERT_ASSIGNEES }}
+        run: bash tests/smoke/alert-issue.sh open "Uptime check failing" "$RUNNER_TEMP/uptime.txt"
+
+      - name: Close the alert issue
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: bash tests/smoke/alert-issue.sh close "Uptime check failing"

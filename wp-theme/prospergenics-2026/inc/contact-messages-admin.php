@@ -138,7 +138,7 @@ function prospergenics_render_contact_message_meta_box( $post ) {
  */
 function prospergenics_contact_mail_failure_notice() {
     $screen = get_current_screen();
-    if ( ! $screen || ! current_user_can( 'edit_posts' ) ) {
+    if ( ! $screen || ! current_user_can( 'edit_pg_contact_msgs' ) ) {
         return;
     }
 

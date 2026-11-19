@@ -1,0 +1,61 @@
+  /* ── service cards (card #7219): wp/inc/services/services.css, the one copy ──
+     The homepage "Our services" section (site_chrome.py copies it into index.html) and the
+     jengo-listings /services/ pages (inc/services.php prints it) use the same cards, from
+     inc/services/services.json. Literal colours, every rule under .svc-*, so the plugin's own
+     stylesheet can't change it. Contrast on white: #0b2016 17:1, #4a6555 6.4:1, #1a7a46 5.4:1;
+     the example label is white on #0b2016 at .88 over any image (>= 9:1). */
+  .svc-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(16px, 1.8vw, 24px); }
+  .projects-head + .svc-grid { margin-top: clamp(24px, 3vw, 40px); }
+  @media (max-width: 1100px) { .svc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 640px) { .svc-grid { grid-template-columns: minmax(0, 1fr); } }
+  .svc-card {
+    position: relative; display: flex; flex-direction: column; min-width: 0; overflow: hidden;
+    background: #fff; border: 1px solid #d6e8dc; border-radius: 16px; box-shadow: 0 1px 2px rgba(11,32,22,.05);
+    transition: transform .25s cubic-bezier(.22,.61,.36,1), box-shadow .25s cubic-bezier(.22,.61,.36,1);
+  }
+  .svc-card:hover { transform: translateY(-3px); box-shadow: 0 18px 40px -24px rgba(11,32,22,.45); }
+  /* the brand's slanted bottom cut; a real example carries a visible label, CoachOS a branded panel */
+  .svc-media {
+    position: relative; margin: 0; aspect-ratio: 16 / 9; overflow: hidden;
+    background: linear-gradient(140deg, #0f3d28, #1a7a46 60%, #1d8e4f);
+    clip-path: polygon(0 0, 100% 0, 100% 88%, 0 100%);
+  }
+  .svc-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+  .svc-ex {
+    position: absolute; left: 12px; bottom: 18px; max-width: calc(100% - 24px);
+    padding: 4px 10px; border-radius: 999px; background: rgba(11,32,22,.88); color: #fff;
+    font: 600 12.5px/1.35 'Inter', system-ui, sans-serif; text-shadow: none;
+  }
+  .svc-media--brand { display: grid; place-items: center; color: #fff; }
+  .svc-media--brand svg { width: 56px; height: 56px; }
+  .svc-body { display: flex; flex-direction: column; gap: 12px; flex: 1; padding: 20px 22px 22px; }
+  .svc-name { margin: 0; font-family: 'Sora', sans-serif; font-weight: 800; font-size: 21px; line-height: 1.2; letter-spacing: -.01em; color: #0b2016; }
+  .svc-promise { margin: 0; font-size: 15.5px; line-height: 1.55; color: #4a6555; }
+  .svc-points { list-style: none; display: grid; gap: 7px; margin: 0; padding: 0; font-size: 14.5px; line-height: 1.45; color: #0b2016; }
+  .svc-points li { display: flex; gap: 9px; align-items: baseline; }
+  .svc-points li::before { content: ""; flex: none; width: 7px; height: 7px; border-radius: 50%; background: #22a65a; transform: translateY(-1px); }
+  .svc-more { margin-top: auto; padding-top: 4px; font-family: 'Inter', system-ui, sans-serif; font-weight: 700; font-size: 15px; color: #1a7a46; text-decoration: none; }
+  /* (Inter, not Sora: Sora has no → glyph.) The whole card is the link's target; the link stays the
+     one tab stop, and its focus ring sits in the card body, clear of the clipped image (#7225). */
+  .svc-more::after { content: ""; position: absolute; inset: 0; z-index: 1; border-radius: 16px; }
+  .svc-card:hover .svc-more { text-decoration: underline; text-underline-offset: 3px; }
+  .svc-more:focus-visible { outline: 3px solid var(--focus-ring, #1a7a46); outline-offset: 3px; border-radius: 4px; }
+  .svc-card:has(.svc-more:focus-visible) { outline: 3px solid var(--focus-ring, #1a7a46); outline-offset: 3px; }
+  .svc-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin-top: clamp(24px, 3vw, 36px); }
+  .svc-cta-btn {
+    display: inline-flex; align-items: center; gap: 8px; padding: 13px 24px; border-radius: 999px;
+    background: #1a7a46; color: #fff; font-family: 'Inter', system-ui, sans-serif; font-weight: 700; font-size: 16px; line-height: 1.2;
+    text-decoration: none; white-space: nowrap; transition: background-color .2s;
+  }
+  .svc-cta-btn:hover { background: #0f3d28; }
+  .svc-cta-btn:focus-visible { outline: 3px solid var(--focus-ring, #1a7a46); outline-offset: 3px; }
+  .svc-cta-note { margin: 0; max-width: 62ch; font-size: 15.5px; line-height: 1.55; color: #4a6555; }
+  /* /services/<slug>/: "What you get" and the example, in the plugin's main column */
+  .svc-get { margin-top: clamp(28px, 4vw, 44px); }
+  .svc-get h2 { margin: 0 0 16px; font-family: 'Sora', sans-serif; font-weight: 800; font-size: clamp(22px, 2.4vw, 30px); letter-spacing: -.02em; color: #0b2016; }
+  .svc-get .svc-points { font-size: 16px; gap: 10px; }
+  .svc-get .svc-media { margin-top: 24px; border-radius: 16px; max-width: 640px; }
+  @media (prefers-reduced-motion: reduce) {
+    .svc-card, .svc-cta-btn { transition: none; }
+    .svc-card:hover { transform: none; }
+  }

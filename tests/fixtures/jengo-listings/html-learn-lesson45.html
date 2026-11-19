@@ -1,0 +1,713 @@
+<!-- Saved 8 Nov 2026 from test.prospergenics.com/courses/html/learn/ (card #7146): the jengo-listings
+     lesson page from its learn-wrap to the end of its table-of-contents script, with only lesson 45
+     of the 45 in it (the plugin's styles, the theme's header and footer and the CoachOS assistant
+     left out). Its example holds a text box of its own, whose end tag ends the editor early.
+     Email addresses are as Cloudflare rewrote them. -->
+<div class="learn-wrap">
+  <div class="learn-grid">
+    <aside class="learn-toc" id="learnToc">
+      <h2>In this course</h2>
+      <nav id="tocLinks"></nav>
+      <a class="toc-back" href="https://test.prospergenics.com/courses/html/">← Course overview</a>
+    </aside>
+
+    <article class="learn-body" id="learnBody">
+<div class="lesson-header">
+<h1>Build a Complete Website</h1>
+</div>
+<!-- SIMPLE EXPLANATION -->
+<section class="explain-simple">
+<h2>The Final Challenge</h2>
+<p>You have learned everything you need to build a real website with HTML. Now it is time to put it ALL together.</p>
+<p>In this final lesson, you will build a complete, multi-section website from scratch. It will use every major concept you have learned across all 10 modules. </p>
+<div class="analogy">
+ Think of this like a final exam, but better - because you are building something real. A chef does not just learn to chop, boil, and fry separately - at the end, they cook a complete meal using ALL their skills together. That is what you are doing now. You are the chef, and this website is your meal. </div>
+</section>
+<!-- WHAT YOU'LL BUILD -->
+<section class="explain-deep">
+<h2>What You Will Build</h2>
+<p>You will build a website for <strong>"Safari Adventures Kenya"</strong> - a tour company based in Nairobi. The website will have all of these sections on a single page:</p>
+<ol>
+<li><strong>Header &amp; Navigation</strong> - Company logo, name, and anchor links to each section</li>
+<li><strong>Hero Section</strong> - A big welcome area with a heading, tagline, and call-to-action</li>
+<li><strong>About Section</strong> - Company description with a figure and image</li>
+<li><strong>Tours Section</strong> - Tour packages displayed as article cards in a grid</li>
+<li><strong>Testimonials</strong> - Customer reviews using blockquote</li>
+<li><strong>Pricing Table</strong> - A table with tour prices, dates, and details</li>
+<li><strong>FAQ Section</strong> - Common questions using details/summary</li>
+<li><strong>Booking Form</strong> - A complete form with all input types, labels, validation, fieldsets</li>
+<li><strong>Footer</strong> - Contact info with address element, social links, copyright</li>
+</ol>
+<div class="info-box">
+<p><strong>Skills checklist:</strong> This project uses: semantic HTML (header, nav, main, article, section, aside, footer, figure, details, address), headings, paragraphs, text formatting, links, images, lists, tables, forms with validation, labels, classes, IDs with anchor links, responsive meta tag, and CSS styling. Basically everything!</p>
+</div>
+</section>
+<!-- THE PROJECT -->
+<section class="try-it">
+<h2>Build It</h2>
+<p>Here is the complete website. Study it carefully, then modify it to make it your own. </p>
+<div class="editor-container">
+<div class="editor-panel">
+<div class="panel-header">
+<span>HTML Code</span>
+<div class="editor-buttons">
+<button class="btn-run">Run</button>
+<button class="btn-reset">Reset</button>
+</div>
+</div>
+<textarea>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+  &lt;title&gt;Safari Adventures Kenya&lt;/title&gt;
+  &lt;style&gt;
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; color: #333; line-height: 1.6; }
+
+    /* Header &amp; Nav */
+    header { background: #1b5e20; color: white; padding: 15px 20px; }
+    header h1 { font-size: 1.5em; }
+    header p { font-size: 0.85em; opacity: 0.8; }
+    nav { background: #2e7d32; padding: 10px 20px; position: sticky; top: 0; }
+    nav a { color: #c8e6c9; text-decoration: none; margin-right: 12px; font-size: 0.9em; }
+    nav a:hover { color: white; }
+
+    /* Hero */
+    .hero {
+      background: linear-gradient(135deg, #1b5e20 0%, #4caf50 100%);
+      color: white; text-align: center; padding: 50px 20px;
+    }
+    .hero h2 { font-size: 2em; margin-bottom: 10px; }
+    .hero p { font-size: 1.1em; max-width: 600px; margin: 0 auto 20px; }
+    .btn-cta {
+      display: inline-block; background: #ff9800; color: white;
+      padding: 12px 30px; text-decoration: none; border-radius: 25px;
+      font-weight: bold; font-size: 1.1em;
+    }
+
+    /* Sections */
+    section { padding: 30px 20px; }
+    section h2 { color: #1b5e20; margin-bottom: 15px; border-bottom: 2px solid #4caf50; padding-bottom: 5px; }
+
+    /* About */
+    .about-content { display: flex; gap: 20px; flex-wrap: wrap; }
+    .about-content &gt; div { flex: 1; min-width: 250px; }
+    figure { margin: 0; }
+    figcaption { font-style: italic; color: #666; font-size: 0.85em; margin-top: 5px; }
+
+    /* Tours Grid */
+    .tours-grid { display: flex; gap: 15px; flex-wrap: wrap; }
+    .tour-card {
+      flex: 1; min-width: 200px; border: 1px solid #ddd;
+      border-radius: 10px; overflow: hidden;
+    }
+    .tour-card img { width: 100%; height: 120px; object-fit: cover; }
+    .tour-card .card-body { padding: 12px; }
+    .tour-card h3 { color: #1b5e20; font-size: 1em; }
+    .tour-card .price { color: #ff9800; font-weight: bold; font-size: 1.2em; }
+
+    /* Testimonials */
+    blockquote {
+      border-left: 4px solid #4caf50; margin: 15px 0;
+      padding: 10px 15px; background: #f1f8e9; border-radius: 0 8px 8px 0;
+    }
+    blockquote footer { font-style: italic; color: #666; margin-top: 5px; }
+
+    /* Pricing Table */
+    table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+    th { background: #1b5e20; color: white; padding: 10px; text-align: left; }
+    td { padding: 10px; border-bottom: 1px solid #ddd; }
+    tr:nth-child(even) { background: #f5f5f5; }
+
+    /* FAQ */
+    details { margin: 8px 0; padding: 10px; background: #f9f9f9; border-radius: 8px; border: 1px solid #e0e0e0; }
+    summary { cursor: pointer; font-weight: bold; color: #1b5e20; }
+
+    /* Form */
+    .booking-form { max-width: 500px; }
+    fieldset { border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 15px; }
+    legend { font-weight: bold; color: #1b5e20; padding: 0 5px; }
+    label { display: block; margin: 8px 0 3px; font-size: 0.9em; }
+    input, select, textarea {
+      width: 100%; padding: 8px; border: 1px solid #ccc;
+      border-radius: 5px; font-size: 0.9em;
+    }
+    input:focus, select:focus, textarea:focus { border-color: #4caf50; outline: none; }
+    .form-row { display: flex; gap: 10px; }
+    .form-row &gt; div { flex: 1; }
+    .btn-submit {
+      background: #1b5e20; color: white; border: none;
+      padding: 12px 30px; border-radius: 5px; cursor: pointer;
+      font-size: 1em; margin-top: 10px;
+    }
+
+    /* Footer */
+    .site-footer {
+      background: #1b5e20; color: #c8e6c9; padding: 25px 20px;
+      text-align: center; font-size: 0.85em;
+    }
+    .site-footer a { color: #ff9800; }
+    .site-footer address { font-style: normal; margin: 10px 0; }
+    .footer-links { margin: 10px 0; }
+    .footer-links a { margin: 0 8px; }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;!-- ===== HEADER &amp; NAV ===== --&gt;
+&lt;header&gt;
+  &lt;h1&gt;🌍 Safari Adventures Kenya&lt;/h1&gt;
+  &lt;p&gt;Your gateway to the wild - Lango lako la porini&lt;/p&gt;
+&lt;/header&gt;
+
+&lt;nav id="top"&gt;
+  &lt;a href="#about"&gt;About - Kuhusu&lt;/a&gt;
+  &lt;a href="#tours"&gt;Tours - Safari&lt;/a&gt;
+  &lt;a href="#reviews"&gt;Reviews - Maoni&lt;/a&gt;
+  &lt;a href="#pricing"&gt;Pricing - Bei&lt;/a&gt;
+  &lt;a href="#faq"&gt;FAQ - Maswali&lt;/a&gt;
+  &lt;a href="#booking"&gt;Book Now - Weka Nafasi&lt;/a&gt;
+&lt;/nav&gt;
+
+&lt;!-- ===== HERO ===== --&gt;
+&lt;section class="hero"&gt;
+  &lt;h2&gt;Discover Kenya's Wild Beauty&lt;/h2&gt;
+  &lt;p&gt;Gundua uzuri wa porini wa Kenya. Experience the Big Five, stunning landscapes, and rich culture with our expert-guided safari tours.&lt;/p&gt;
+  &lt;a href="#booking" class="btn-cta"&gt;Book Your Safari - Weka Safari Yako&lt;/a&gt;
+&lt;/section&gt;
+
+&lt;!-- ===== ABOUT ===== --&gt;
+&lt;section id="about"&gt;
+  &lt;h2&gt;About Us - Kuhusu Sisi&lt;/h2&gt;
+  &lt;div class="about-content"&gt;
+    &lt;div&gt;
+      &lt;p&gt;Safari Adventures Kenya has been leading &lt;strong&gt;unforgettable wildlife experiences&lt;/strong&gt; since 2010. Based in Nairobi, we offer guided tours to Kenya's most spectacular national parks and reserves.&lt;/p&gt;
+      &lt;p&gt;Tumekuwa tukiongoza &lt;strong&gt;uzoefu wa wanyamapori usiosahaulika&lt;/strong&gt; tangu 2010. Tuko Nairobi, tunatoa safari za kuongozwa kwenye mbuga za wanyama za Kenya.&lt;/p&gt;
+      &lt;ul&gt;
+        &lt;li&gt;&lt;strong&gt;500+&lt;/strong&gt; tours completed - safari zilizokamilishwa&lt;/li&gt;
+        &lt;li&gt;&lt;strong&gt;10,000+&lt;/strong&gt; happy travellers - wasafiri wenye furaha&lt;/li&gt;
+        &lt;li&gt;&lt;strong&gt;15&lt;/strong&gt; expert guides - waongozaji wabobezi&lt;/li&gt;
+        &lt;li&gt;&lt;strong&gt;4.9/5&lt;/strong&gt; average rating - kiwango cha wastani&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/div&gt;
+    &lt;div&gt;
+      &lt;figure&gt;
+        &lt;img src="https://picsum.photos/400/250?random=1" alt="Lions resting in the Masai Mara savanna" width="400"&gt;
+        &lt;figcaption&gt;Lions in the Masai Mara. Simba katika Masai Mara.&lt;/figcaption&gt;
+      &lt;/figure&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+
+&lt;!-- ===== TOURS ===== --&gt;
+&lt;section id="tours"&gt;
+  &lt;h2&gt;Our Tours - Safari Zetu&lt;/h2&gt;
+  &lt;div class="tours-grid"&gt;
+    &lt;article class="tour-card"&gt;
+      &lt;img src="https://picsum.photos/300/200?random=2" alt="Wildebeest migration in Masai Mara"&gt;
+      &lt;div class="card-body"&gt;
+        &lt;h3&gt;Masai Mara Classic&lt;/h3&gt;
+        &lt;p&gt;3 days of wildlife magic. Big Five guaranteed. Siku 3 za uchawi wa wanyamapori.&lt;/p&gt;
+        &lt;p class="price"&gt;KSh 45,000&lt;/p&gt;
+        &lt;p&gt;&lt;small&gt;Per person - Kwa mtu&lt;/small&gt;&lt;/p&gt;
+      &lt;/div&gt;
+    &lt;/article&gt;
+    &lt;article class="tour-card"&gt;
+      &lt;img src="https://picsum.photos/300/200?random=3" alt="Flamingos at Lake Nakuru"&gt;
+      &lt;div class="card-body"&gt;
+        &lt;h3&gt;Lake Nakuru Day Trip&lt;/h3&gt;
+        &lt;p&gt;Flamingos, rhinos, and breathtaking views. Heroe, faru, na mandhari ya kupendeza.&lt;/p&gt;
+        &lt;p class="price"&gt;KSh 12,000&lt;/p&gt;
+        &lt;p&gt;&lt;small&gt;Per person - Kwa mtu&lt;/small&gt;&lt;/p&gt;
+      &lt;/div&gt;
+    &lt;/article&gt;
+    &lt;article class="tour-card"&gt;
+      &lt;img src="https://picsum.photos/300/200?random=4" alt="Elephant at Amboseli with Mt Kilimanjaro"&gt;
+      &lt;div class="card-body"&gt;
+        &lt;h3&gt;Amboseli &amp; Kilimanjaro&lt;/h3&gt;
+        &lt;p&gt;Elephants with Africa's tallest mountain. Tembo na mlima mrefu zaidi Afrika.&lt;/p&gt;
+        &lt;p class="price"&gt;KSh 38,000&lt;/p&gt;
+        &lt;p&gt;&lt;small&gt;Per person - Kwa mtu&lt;/small&gt;&lt;/p&gt;
+      &lt;/div&gt;
+    &lt;/article&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+
+&lt;!-- ===== TESTIMONIALS ===== --&gt;
+&lt;section id="reviews"&gt;
+  &lt;h2&gt;What Our Guests Say - Wageni Wetu Wanasema&lt;/h2&gt;
+
+  &lt;blockquote&gt;
+    &lt;p&gt;"The Masai Mara tour was the &lt;mark&gt;best experience of my life&lt;/mark&gt;. Our guide James knew every animal by name! Safari ya Masai Mara ilikuwa uzoefu bora zaidi maishani mwangu."&lt;/p&gt;
+    &lt;footer&gt;- &lt;cite&gt;Amina Hassan&lt;/cite&gt;, Mombasa&lt;/footer&gt;
+  &lt;/blockquote&gt;
+
+  &lt;blockquote&gt;
+    &lt;p&gt;"We saw all the Big Five in just two days. &lt;mark&gt;Absolutely incredible&lt;/mark&gt;. The camp food was amazing too. Tuliona wanyama wakubwa watano kwa siku mbili tu."&lt;/p&gt;
+    &lt;footer&gt;- &lt;cite&gt;David Ochieng&lt;/cite&gt;, Kisumu&lt;/footer&gt;
+  &lt;/blockquote&gt;
+
+  &lt;blockquote&gt;
+    &lt;p&gt;"Professional, friendly, and they really care about conservation. I will definitely come back. Wataalamu, rafiki, na wanajali uhifadhi. Nitarudi tena."&lt;/p&gt;
+    &lt;footer&gt;- &lt;cite&gt;Sarah Mueller&lt;/cite&gt;, Berlin, Germany&lt;/footer&gt;
+  &lt;/blockquote&gt;
+&lt;/section&gt;
+
+&lt;!-- ===== PRICING TABLE ===== --&gt;
+&lt;section id="pricing"&gt;
+  &lt;h2&gt;Tour Prices - Bei za Safari&lt;/h2&gt;
+  &lt;table&gt;
+    &lt;thead&gt;
+      &lt;tr&gt;
+        &lt;th&gt;Tour - Safari&lt;/th&gt;
+        &lt;th&gt;Duration - Muda&lt;/th&gt;
+        &lt;th&gt;Price (KSh) - Bei&lt;/th&gt;
+        &lt;th&gt;Includes - Inajumuisha&lt;/th&gt;
+      &lt;/tr&gt;
+    &lt;/thead&gt;
+    &lt;tbody&gt;
+      &lt;tr&gt;
+        &lt;td&gt;Masai Mara Classic&lt;/td&gt;
+        &lt;td&gt;3 days / 2 nights&lt;/td&gt;
+        &lt;td&gt;&lt;strong&gt;45,000&lt;/strong&gt;&lt;/td&gt;
+        &lt;td&gt;Transport, accommodation, meals, guide&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+        &lt;td&gt;Lake Nakuru Day Trip&lt;/td&gt;
+        &lt;td&gt;1 day&lt;/td&gt;
+        &lt;td&gt;&lt;strong&gt;12,000&lt;/strong&gt;&lt;/td&gt;
+        &lt;td&gt;Transport, lunch, park fees, guide&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+        &lt;td&gt;Amboseli &amp; Kilimanjaro&lt;/td&gt;
+        &lt;td&gt;2 days / 1 night&lt;/td&gt;
+        &lt;td&gt;&lt;strong&gt;38,000&lt;/strong&gt;&lt;/td&gt;
+        &lt;td&gt;Transport, accommodation, meals, guide&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+        &lt;td&gt;Tsavo East Explorer&lt;/td&gt;
+        &lt;td&gt;3 days / 2 nights&lt;/td&gt;
+        &lt;td&gt;&lt;strong&gt;42,000&lt;/strong&gt;&lt;/td&gt;
+        &lt;td&gt;Transport, luxury camp, meals, guide&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+        &lt;td&gt;Diani Beach &amp; Safari Combo&lt;/td&gt;
+        &lt;td&gt;5 days / 4 nights&lt;/td&gt;
+        &lt;td&gt;&lt;strong&gt;85,000&lt;/strong&gt;&lt;/td&gt;
+        &lt;td&gt;Flights, resort, safari, meals, guide&lt;/td&gt;
+      &lt;/tr&gt;
+    &lt;/tbody&gt;
+    &lt;tfoot&gt;
+      &lt;tr&gt;
+        &lt;td colspan="4"&gt;&lt;em&gt;All prices per person. Children under 12: 50% discount. Bei zote kwa mtu. Watoto chini ya miaka 12: punguzo la 50%.&lt;/em&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+    &lt;/tfoot&gt;
+  &lt;/table&gt;
+&lt;/section&gt;
+
+&lt;!-- ===== FAQ ===== --&gt;
+&lt;section id="faq"&gt;
+  &lt;h2&gt;FAQ - Maswali Yanayoulizwa Mara kwa Mara&lt;/h2&gt;
+
+  &lt;details open&gt;
+    &lt;summary&gt;What is the best time to visit? - Wakati gani mzuri wa kutembelea?&lt;/summary&gt;
+    &lt;p&gt;The best time for safari is during the dry season: &lt;time datetime="2026-07"&gt;July&lt;/time&gt; to &lt;time datetime="2026-10"&gt;October&lt;/time&gt; for the Great Migration, and &lt;time datetime="2026-01"&gt;January&lt;/time&gt; to &lt;time datetime="2026-03"&gt;March&lt;/time&gt; for general wildlife viewing. Wakati bora wa safari ni msimu wa kiangazi.&lt;/p&gt;
+  &lt;/details&gt;
+
+  &lt;details&gt;
+    &lt;summary&gt;Is it safe? - Je, ni salama?&lt;/summary&gt;
+    &lt;p&gt;Yes! Our guides are trained professionals with years of experience. All vehicles are equipped with first aid kits and radio communication. Ndiyo! Waongozaji wetu ni wataalamu waliofunzwa.&lt;/p&gt;
+  &lt;/details&gt;
+
+  &lt;details&gt;
+    &lt;summary&gt;What should I pack? - Nipake nini?&lt;/summary&gt;
+    &lt;p&gt;Light, neutral-colored clothing, sunscreen, hat, binoculars, camera, and comfortable walking shoes. We provide a full packing list after booking. Nguo nyepesi za rangi ya kawaida, miwani ya jua, kofia, darubini, kamera, na viatu vya kutembea.&lt;/p&gt;
+  &lt;/details&gt;
+
+  &lt;details&gt;
+    &lt;summary&gt;Do you offer group discounts? - Je, mnatoa punguzo la kikundi?&lt;/summary&gt;
+    &lt;p&gt;Yes! Groups of 6+ get 15% off, groups of 10+ get 25% off. Contact us for custom group packages. Ndiyo! Vikundi vya 6+ vinapata punguzo la 15%, vikundi vya 10+ vinapata 25%.&lt;/p&gt;
+  &lt;/details&gt;
+&lt;/section&gt;
+
+&lt;!-- ===== BOOKING FORM ===== --&gt;
+&lt;section id="booking"&gt;
+  &lt;h2&gt;Book Your Safari - Weka Safari Yako&lt;/h2&gt;
+
+  &lt;form class="booking-form" action="#" method="post"&gt;
+    &lt;fieldset&gt;
+      &lt;legend&gt;Personal Information - Taarifa Binafsi&lt;/legend&gt;
+
+      &lt;div class="form-row"&gt;
+        &lt;div&gt;
+          &lt;label for="first-name"&gt;First Name - Jina la Kwanza *&lt;/label&gt;
+          &lt;input type="text" id="first-name" name="firstName" required minlength="2" placeholder="e.g. Amina"&gt;
+        &lt;/div&gt;
+        &lt;div&gt;
+          &lt;label for="last-name"&gt;Last Name - Jina la Mwisho *&lt;/label&gt;
+          &lt;input type="text" id="last-name" name="lastName" required minlength="2" placeholder="e.g. Hassan"&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;label for="email"&gt;Email *&lt;/label&gt;
+      &lt;input type="email" id="email" name="email" required placeholder="amina@example.com"&gt;
+
+      &lt;label for="phone"&gt;Phone - Simu *&lt;/label&gt;
+      &lt;input type="tel" id="phone" name="phone" required pattern="[+0-9\s\-]+" placeholder="+254 712 345 678" title="Enter a valid phone number"&gt;
+
+      &lt;label for="country"&gt;Country - Nchi&lt;/label&gt;
+      &lt;select id="country" name="country"&gt;
+        &lt;option value=""&gt;-- Select / Chagua --&lt;/option&gt;
+        &lt;optgroup label="East Africa - Afrika Mashariki"&gt;
+          &lt;option value="KE" selected&gt;Kenya&lt;/option&gt;
+          &lt;option value="TZ"&gt;Tanzania&lt;/option&gt;
+          &lt;option value="UG"&gt;Uganda&lt;/option&gt;
+          &lt;option value="RW"&gt;Rwanda&lt;/option&gt;
+        &lt;/optgroup&gt;
+        &lt;optgroup label="Other - Nyingine"&gt;
+          &lt;option value="US"&gt;United States&lt;/option&gt;
+          &lt;option value="GB"&gt;United Kingdom&lt;/option&gt;
+          &lt;option value="DE"&gt;Germany&lt;/option&gt;
+          &lt;option value="other"&gt;Other - Nyingine&lt;/option&gt;
+        &lt;/optgroup&gt;
+      &lt;/select&gt;
+    &lt;/fieldset&gt;
+
+    &lt;fieldset&gt;
+      &lt;legend&gt;Safari Details - Maelezo ya Safari&lt;/legend&gt;
+
+      &lt;label for="tour"&gt;Select Tour - Chagua Safari *&lt;/label&gt;
+      &lt;select id="tour" name="tour" required&gt;
+        &lt;option value=""&gt;-- Select / Chagua --&lt;/option&gt;
+        &lt;option value="mara"&gt;Masai Mara Classic (KSh 45,000)&lt;/option&gt;
+        &lt;option value="nakuru"&gt;Lake Nakuru Day Trip (KSh 12,000)&lt;/option&gt;
+        &lt;option value="amboseli"&gt;Amboseli &amp; Kilimanjaro (KSh 38,000)&lt;/option&gt;
+        &lt;option value="tsavo"&gt;Tsavo East Explorer (KSh 42,000)&lt;/option&gt;
+        &lt;option value="diani"&gt;Diani Beach &amp; Safari Combo (KSh 85,000)&lt;/option&gt;
+      &lt;/select&gt;
+
+      &lt;div class="form-row"&gt;
+        &lt;div&gt;
+          &lt;label for="date"&gt;Preferred Date - Tarehe *&lt;/label&gt;
+          &lt;input type="date" id="date" name="date" required min="2026-03-01"&gt;
+        &lt;/div&gt;
+        &lt;div&gt;
+          &lt;label for="guests"&gt;Number of Guests - Wageni *&lt;/label&gt;
+          &lt;input type="number" id="guests" name="guests" required min="1" max="20" value="2"&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+
+      &lt;label&gt;Accommodation Preference - Aina ya Malazi:&lt;/label&gt;
+      &lt;div&gt;
+        &lt;input type="radio" id="budget" name="accommodation" value="budget"&gt;
+        &lt;label for="budget" style="display:inline;"&gt;Budget - Bei nafuu&lt;/label&gt;
+      &lt;/div&gt;
+      &lt;div&gt;
+        &lt;input type="radio" id="standard" name="accommodation" value="standard" checked&gt;
+        &lt;label for="standard" style="display:inline;"&gt;Standard - Kawaida&lt;/label&gt;
+      &lt;/div&gt;
+      &lt;div&gt;
+        &lt;input type="radio" id="luxury" name="accommodation" value="luxury"&gt;
+        &lt;label for="luxury" style="display:inline;"&gt;Luxury - Anasa&lt;/label&gt;
+      &lt;/div&gt;
+    &lt;/fieldset&gt;
+
+    &lt;fieldset&gt;
+      &lt;legend&gt;Additional Options - Chaguo za Ziada&lt;/legend&gt;
+
+      &lt;div&gt;
+        &lt;input type="checkbox" id="transfer" name="extras" value="transfer"&gt;
+        &lt;label for="transfer" style="display:inline;"&gt;Airport transfer - Usafiri wa uwanja wa ndege (+KSh 3,000)&lt;/label&gt;
+      &lt;/div&gt;
+      &lt;div&gt;
+        &lt;input type="checkbox" id="photography" name="extras" value="photography"&gt;
+        &lt;label for="photography" style="display:inline;"&gt;Photography guide - Mwongozaji wa picha (+KSh 5,000)&lt;/label&gt;
+      &lt;/div&gt;
+      &lt;div&gt;
+        &lt;input type="checkbox" id="balloon" name="extras" value="balloon"&gt;
+        &lt;label for="balloon" style="display:inline;"&gt;Hot air balloon ride - Safari ya puto la hewa (+KSh 25,000)&lt;/label&gt;
+      &lt;/div&gt;
+
+      &lt;label for="requests"&gt;Special Requests - Maombi Maalum:&lt;/label&gt;
+      &lt;textarea id="requests" name="requests" rows="3" placeholder="Dietary needs, accessibility requirements, celebrations... / Mahitaji ya chakula, ufikivu, sherehe..."&gt;</textarea>
+<div>
+
+<label for="terms" style="display:inline">I agree to the <a href="#">terms and conditions</a> *</label>
+</div>
+<button class="btn-submit" type="submit">Submit Booking</button>
+</div></div></section>
+<!-- ===== FOOTER ===== -->
+<footer class="site-footer">
+<p><strong>Safari Adventures Kenya</strong></p>
+<address>
+    Kenyatta Avenue, Nairobi, Kenya<br />
+    Phone: <a href="tel:+254201234567">+254 20 123 4567</a><br />
+    WhatsApp: <a href="tel:+254712345678">+254 712 345 678</a><br />
+    Email: <a href="/cdn-cgi/l/email-protection#fe97909891be8d9f989f8c979f9a889b908a8b8c9b8dd09d91d0959b"><span class="__cf_email__" data-cfemail="224b4c444d6251434443504b434654474c56575047510c414d0c4947">[email&#160;protected]</span></a>
+</address>
+<div class="footer-links">
+<a href="#">Facebook</a>
+<a href="#">Instagram</a>
+<a href="#">Twitter</a>
+<a href="#">TripAdvisor</a>
+</div>
+<p>© <time datetime="2026">2026</time> Safari Adventures Kenya. All rights reserved.</p>
+<p><a href="#top">Back to top</a></p>
+</footer>
+
+/* Lesson playground + migrated-lesson callouts [5818]. Standalone: every colour has a fallback, the learn template's variables are used when present. */
+.learn-body .editor-container, .editor-container {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; margin: 20px 0; align-items: stretch;
+}
+@media (max-width: 760px) { .editor-container { grid-template-columns: minmax(0, 1fr); } }
+.editor-container .editor-panel, .editor-container .preview-panel {
+  display: flex; flex-direction: column; min-width: 0; overflow: hidden;
+  border: 1px solid var(--line, rgba(15, 61, 40, .18)); border-radius: 10px; background: #fff;
+}
+.editor-container .panel-header {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 12px;
+  background: var(--green-900, #0f3d28); color: #fff;
+  font: 600 12px/1.2 'Sora', system-ui, sans-serif; letter-spacing: .05em; text-transform: uppercase;
+}
+.editor-container .editor-buttons { display: flex; gap: 6px; }
+.editor-container .editor-buttons button {
+  font: 600 12px/1 'Sora', system-ui, sans-serif; padding: 6px 12px; border-radius: 6px; cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, .35); background: rgba(255, 255, 255, .12); color: #fff;
+}
+.editor-container .editor-buttons .btn-run { background: var(--green-500, #34c759); border-color: var(--green-500, #34c759); color: #0b2016; }
+.editor-container .editor-buttons button:hover { filter: brightness(1.12); }
+.editor-container .editor-buttons button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.editor-container textarea {
+  flex: 1; width: 100%; min-height: 220px; resize: vertical; border: 0; outline: 0; margin: 0; padding: 12px 14px;
+  background: #1a1a1a; color: #e6e6e6; tab-size: 2; white-space: pre; overflow: auto;
+  font: 13.5px/1.55 ui-monospace, 'Cascadia Code', 'Fira Code', monospace;
+}
+.editor-container textarea:focus-visible { box-shadow: inset 0 0 0 2px var(--green-500, #34c759); }
+.editor-container iframe { flex: 1; width: 100%; min-height: 220px; border: 0; background: #fff; }
+.editor-container[data-pg-lang="javascript"] iframe, .editor-container[data-pg-lang="python"] iframe { background: #1a1a1a; }
+
+/* CodeHub lesson callouts and sections, unstyled in the plain learn template */
+.learn-body .analogy, .learn-body .info-box {
+  margin: 16px 0; padding: 14px 18px; border-radius: 10px; border-left: 4px solid var(--green-600, #22a65a);
+  background: var(--green-100, #d9f5e3); color: var(--green-900, #0f3d28); font-size: 15.5px; line-height: 1.65;
+}
+.learn-body .info-box { border-left-color: #2f7fd3; background: #e8f1fb; color: #123a63; }
+.learn-body .lesson-header h1 { font-family: 'Sora', system-ui, sans-serif; font-size: clamp(26px, 3vw, 36px); margin: 0 0 8px; }
+.learn-body .try-it, .learn-body .challenge { margin-top: 28px; }
+.learn-body .challenge { padding: 6px 18px 12px; border: 1px dashed var(--green-600, #22a65a); border-radius: 12px; }
+
+
+/* Lesson playground [5818]
+ *
+ * Makes the "Try it yourself" blocks of migrated CodeHub lessons work on the learn pages.
+ * A block is the markup CodeHub lessons already carry:
+ *
+ *   <div class="editor-container" data-lang="html|css|javascript|python">
+ *     <div class="editor-panel">
+ *       <div class="panel-header"><span>Label</span>
+ *         <div class="editor-buttons"><button class="btn-run">Run</button><button class="btn-reset">Reset</button></div></div>
+ *       <textarea>starter code (HTML-escaped)</textarea>
+ *     </div>
+ *     <div class="preview-panel"><div class="panel-header"><span>Result</span></div></div>
+ *   </div>
+ *
+ * No data-lang means html (the HTML and CSS course blocks). The code runs in a sandboxed iframe
+ * (sandbox="allow-scripts", no allow-same-origin): it cannot read the page, its cookies or storage.
+ * JavaScript mirrors console.* into the output; Python runs on Skulpt (loaded from jsDelivr, as CodeHub does).
+ * Plain ES5 on purpose: the file is inlined into WordPress pages without a build step.
+ */
+(function () {
+  'use strict';
+  if (window.__pgPlayground) { window.__pgPlayground.scan(document); return; }
+
+  var SKULPT = [
+    'https://cdn.jsdelivr.net/npm/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="9ceff7e9f0ece8dcadb2aeb2ac">[email&#160;protected]</a>/dist/skulpt.min.js',
+    'https://cdn.jsdelivr.net/npm/<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="89fae2fce5f9fdc9b8a7bba7b9">[email&#160;protected]</a>/dist/skulpt-stdlib.js'
+  ];
+  var AUTO_RUN_DELAY = 400;
+  var LANGS = { html: 1, css: 1, javascript: 1, python: 1 };
+
+  // Source text for a script that runs inside the generated document. JSON.stringify output is safe in a
+  // script block except for a closing script tag, an HTML comment opener and the two line separators, so escape
+  // every "&lt;&quot; and U+2028/2029.
+  function js(value) {
+    return JSON.stringify(value).replace(/&lt;/g, &#039;\\u003c&#039;).replace(/\u2028/g, &#039;\\u2028&#039;).replace(/\u2029/g, &#039;\\u2029&#039;);
+  }
+
+  var OUTPUT_STYLE =
+    &#039;body{font:13px/1.45 &quot;Cascadia Code&quot;,&quot;Fira Code&quot;,ui-monospace,monospace;padding:12px;margin:0;background:#1a1a1a;color:#d4d4d4}&#039; +
+    &#039;.line{padding:1px 0;white-space:pre-wrap;word-break:break-word}.warn{color:#e5c07b}.error{color:#e06c75}.info{color:#61afef}.hint{color:#8a8a8a;font-style:italic}&#039;;
+
+  function javascriptDoc(code) {
+    return &#039;' + OUTPUT_STYLE + '<div id="out"></div>' +
+      '(function(){var out=document.getElementById("out");' +
+      'function show(args,cls){var d=document.createElement("div");d.className="line"+(cls?" "+cls:"");' +
+      'd.textContent=Array.prototype.map.call(args,function(a){if(a===null)return "null";if(a===undefined)return "undefined";' +
+      'if(typeof a==="object"){try{return JSON.stringify(a,null,2)}catch(e){return String(a)}}return String(a)}).join(" ");out.appendChild(d)}' +
+      'console.log=function(){show(arguments,"")};console.info=function(){show(arguments,"info")};' +
+      'console.warn=function(){show(arguments,"warn")};console.error=function(){show(arguments,"error")};' +
+      'window.alert=function(m){show(["alert: "+m],"info")};' +
+      'window.addEventListener("error",function(e){show([e.message],"error")});' +
+      'window.addEventListener("unhandledrejection",function(e){show(["Unhandled rejection: "+(e.reason&amp;&amp;e.reason.message||e.reason)],"error")});' +
+      'try{(0,eval)(' + js(code) + ')}catch(e){show([String(e)],"error")}})();' +
+      '';
+  }
+
+  function pythonDoc(code) {
+    return '' + OUTPUT_STYLE + '<div id="out"><div class="line hint">Running...</div></div>' +
+      '' +
+      '(function(){var out=document.getElementById("out");' +
+      'function line(t,cls){var d=document.createElement("div");d.className="line"+(cls?" "+cls:"");d.textContent=t;out.appendChild(d)}' +
+      'if(typeof Sk==="undefined"){out.innerHTML="";line("Could not load the Python runtime. Check your connection and press Run again.","error");return}' +
+      'out.innerHTML="";' +
+      'function read(x){if(Sk.builtinFiles===undefined||Sk.builtinFiles.files[x]===undefined)throw "File not found: \'"+x+"\'";return Sk.builtinFiles.files[x]}' +
+      'Sk.configure({output:function(t){var parts=t.split("\\n");parts.forEach(function(p,i){if(i&lt;parts.length-1||p!==&quot;&quot;)line(p)})},&#039; +
+      &#039;read:read,__future__:Sk.python3,inputfun:function(){return &quot;&quot;}});&#039; +
+      &#039;Sk.misceval.asyncToPromise(function(){return Sk.importMainWithBody(&quot;",false,' + js(code) + ',true)})' +
+      '.catch(function(e){line(String(e),"error")})})();' +
+      '';
+  }
+
+  function htmlDoc(code) {
+    if (/&lt;!doctype|]/i.test(code)) { return code; }
+    return 'body{font-family:Arial,sans-serif;padding:16px}' + code + '';
+  }
+
+  function buildDoc(lang, code) {
+    if (lang === 'javascript') { return javascriptDoc(code); }
+    if (lang === 'python') { return pythonDoc(code); }
+    return htmlDoc(code);
+  }
+
+  function langOf(box) {
+    var l = (box.getAttribute('data-lang') || 'html').toLowerCase();
+    return Object.prototype.hasOwnProperty.call(LANGS, l) ? l : 'html';
+  }
+
+  function ensure(parent, selector, make) {
+    var el = parent.querySelector(selector);
+    if (!el) { el = make(); parent.appendChild(el); }
+    return el;
+  }
+
+  function element(tag, className, text) {
+    var e = document.createElement(tag);
+    if (className) { e.className = className; }
+    if (text) { e.textContent = text; }
+    return e;
+  }
+
+  function setup(box) {
+    if (box.getAttribute('data-pg-ready')) { return; }
+    var lang = langOf(box);
+    var editor = box.querySelector('.editor-panel');
+    var textarea = box.querySelector('textarea');
+    if (!editor || !textarea) { return; }
+    box.setAttribute('data-pg-ready', '1');
+    box.setAttribute('data-pg-lang', lang);
+
+    var preview = ensure(box, '.preview-panel', function () {
+      var p = element('div', 'preview-panel');
+      var h = element('div', 'panel-header');
+      h.appendChild(element('span', '', lang === 'html' || lang === 'css' ? 'Result' : 'Output'));
+      p.appendChild(h);
+      return p;
+    });
+    var frame = preview.querySelector('iframe');
+    if (!frame) {
+      frame = document.createElement('iframe');
+      preview.appendChild(frame);
+    }
+    frame.setAttribute('sandbox', 'allow-scripts');
+    frame.setAttribute('title', lang === 'html' || lang === 'css' ? 'Result' : 'Output');
+    frame.setAttribute('loading', 'lazy');
+    frame.setAttribute('referrerpolicy', 'no-referrer');
+    textarea.setAttribute('spellcheck', 'false');
+    textarea.setAttribute('aria-label', 'Code editor');
+
+    var buttons = ensure(editor.querySelector('.panel-header') || editor, '.editor-buttons', function () { return element('div', 'editor-buttons'); });
+    var run = buttons.querySelector('.btn-run') || buttons.appendChild(element('button', 'btn-run', 'Run'));
+    var reset = buttons.querySelector('.btn-reset') || buttons.appendChild(element('button', 'btn-reset', 'Reset'));
+    run.type = 'button';
+    reset.type = 'button';
+
+    var initial = textarea.value;
+    var live = lang === 'html' || lang === 'css';
+    var timer = null;
+
+    function render() {
+      if (timer) { clearTimeout(timer); timer = null; }
+      frame.srcdoc = buildDoc(lang, textarea.value);
+    }
+
+    run.addEventListener('click', render);
+    reset.addEventListener('click', function () {
+      textarea.value = initial;
+      if (live) { render(); } else { frame.srcdoc = emptyDoc(); }
+    });
+    textarea.addEventListener('keydown', function (e) {
+      if ((e.ctrlKey || e.metaKey) &amp;&amp; e.key === 'Enter') { e.preventDefault(); render(); }
+    });
+    if (live) {
+      textarea.addEventListener('input', function () {
+        if (timer) { clearTimeout(timer); }
+        timer = setTimeout(render, AUTO_RUN_DELAY);
+      });
+      render();
+    } else {
+      frame.srcdoc = emptyDoc();
+    }
+  }
+
+  function emptyDoc() {
+    return '' + OUTPUT_STYLE + '<div class="line hint">Press Run (or Ctrl+Enter) to see the output.</div>';
+  }
+
+  function scan(root) {
+    var boxes = (root || document).querySelectorAll('.editor-container');
+    for (var i = 0; i &lt; boxes.length; i++) { setup(boxes[i]); }
+  }
+
+  window.__pgPlayground = { scan: scan, buildDoc: buildDoc };
+  if (document.readyState === &#039;loading&#039;) { document.addEventListener(&#039;DOMContentLoaded&#039;, function () { scan(document); }); }
+  else { scan(document); }
+})();
+      <div class="learn-foot">
+        <div class="lf-txt">Questions while you work through the steps?
+          <small>The Course Coach (bottom right) knows this course inside out.</small>
+        </div>
+        <a class="lf-btn" href="https://test.prospergenics.com/courses/">Browse more courses →</a>
+      </div>
+    </article>
+  </div>
+</div>
+
+<script>
+(function(){
+  // Build the table of contents from the h2 headings in the course body
+  var body = document.getElementById('learnBody');
+  var toc  = document.getElementById('tocLinks');
+  var heads = body.querySelectorAll('h2');
+  heads.forEach(function(h, i){
+    if (!h.id) h.id = 'section-' + (i + 1);
+    var a = document.createElement('a');
+    a.href = '#' + h.id;
+    a.textContent = h.textContent;
+    toc.appendChild(a);
+  });
+
+  // Highlight the section currently in view
+  var links = toc.querySelectorAll('a');
+  function onScroll(){
+    var y = window.scrollY + 120, active = 0;
+    heads.forEach(function(h, i){ if (h.offsetTop <= y) active = i; });
+    links.forEach(function(l, i){ l.classList.toggle('active', i === active); });
+    var doc = document.documentElement;
+    var pct = (doc.scrollTop) / (doc.scrollHeight - doc.clientHeight) * 100;
+    document.getElementById('learnProgress').style.width = pct + '%';
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+})();
+</script>

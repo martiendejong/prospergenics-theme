@@ -1,0 +1,118 @@
+/* "See it work" and "Try it live" on the tool pages (/tools/<slug>/, card #7218).
+   Printed by the theme's takeover (inc/site-chrome.php, inc/tool-demos.php) right before the section, only
+   on a tool page that has a demo folder or a live tool. Looks like the plugin's "At a glance" box; the
+   plugin's colours (--green-700, --line, ...) with fallbacks. Without JavaScript the screenshots stand one
+   under another with their captions; tool-demo.js adds .pg-demo--js for the click-through. */
+
+.pg-demo, .pg-try-live {
+  margin-top: clamp(32px, 4vw, 48px);
+  background: #fff; border: 1px solid var(--line, rgba(15,61,40,.12)); border-radius: 14px;
+  padding: clamp(18px, 2.4vw, 26px);
+  min-width: 0; max-width: 100%;
+}
+.pg-demo-h {
+  font-family: 'Sora', sans-serif; font-weight: 800; font-size: clamp(22px, 2.4vw, 30px);
+  letter-spacing: -.02em; line-height: 1.15; color: var(--ink, #0b2016); margin: 0 0 8px;
+}
+.pg-demo-label {
+  display: inline-flex; align-items: center; gap: 9px; margin: 0;
+  font-family: 'Sora', sans-serif; font-weight: 700; font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--green-700, #1a7a46);
+}
+.pg-demo-label .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green-500, #34c759); flex: none; }
+.pg-demo-title { margin: 10px 0 0; font-family: 'Sora', sans-serif; font-weight: 700; font-size: 16px; line-height: 1.4; color: var(--green-900, #0f3d28); }
+.pg-demo-source { margin: 4px 0 0; font-size: 13.5px; line-height: 1.5; color: var(--muted, #4a6555); }
+.pg-demo-panel { margin-top: 18px; min-width: 0; }
+.pg-demo-ph { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 15px; color: var(--green-900, #0f3d28); margin: 0 0 10px; }
+
+/* Without JavaScript: every screenshot with its caption. */
+.pg-demo-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 22px; }
+.pg-demo-step figure { margin: 0; }
+.pg-demo-step img, .pg-demo-video video {
+  display: block; width: 100%; height: auto; max-width: 100%;
+  border-radius: 10px; border: 1px solid var(--line, rgba(15,61,40,.12)); background: var(--paper-2, #eaf5ee);
+}
+.pg-demo-step figcaption { margin-top: 8px; font-size: 15px; line-height: 1.55; color: var(--ink, #0b2016); }
+.pg-demo-n, .pg-demo-count {
+  display: block; margin-bottom: 2px;
+  font-family: 'Sora', sans-serif; font-weight: 700; font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--muted, #4a6555);
+}
+
+/* The click-through: one frame of the screenshots' own ratio, so nothing jumps between steps. */
+.pg-demo--js .pg-demo-frame {
+  position: relative; width: 100%; aspect-ratio: var(--pg-demo-ratio, 16 / 10);
+  border-radius: 10px; overflow: hidden;
+  border: 1px solid var(--line, rgba(15,61,40,.12)); background: var(--paper-2, #eaf5ee);
+}
+.pg-demo--js .pg-demo-frame:focus-visible { outline: 3px solid var(--focus-ring, #1a7a46); outline-offset: 3px; }
+.pg-demo--js .pg-demo-steps { position: absolute; inset: 0; display: block; }
+.pg-demo--js .pg-demo-step { position: absolute; inset: 0; opacity: 0; visibility: hidden; transition: opacity .35s ease, visibility 0s linear .35s; }
+.pg-demo--js .pg-demo-step.is-current { opacity: 1; visibility: visible; transition: opacity .35s ease; }
+.pg-demo--js .pg-demo-step figure { width: 100%; height: 100%; }
+.pg-demo--js .pg-demo-step img { width: 100%; height: 100%; object-fit: contain; border: 0; border-radius: 0; }
+.pg-demo--js .pg-demo-step figcaption { display: none; }
+
+/* The guide cursor: its tip sits on the point; it glides from the previous point. */
+.pg-demo-guide {
+  position: absolute; left: 50%; top: 50%; width: 0; height: 0; z-index: 2; pointer-events: none;
+  transition: left .9s cubic-bezier(.22,.61,.36,1), top .9s cubic-bezier(.22,.61,.36,1), opacity .25s ease;
+}
+.pg-demo-guide.is-hidden { opacity: 0; }
+.pg-demo-guide.no-glide { transition: none; }
+.pg-demo-pointer { position: absolute; left: 0; top: 0; width: clamp(18px, 2.6vw, 28px); height: auto; filter: drop-shadow(0 2px 3px rgba(0,0,0,.45)); }
+.pg-demo-pointer svg { display: block; width: 100%; height: auto; }
+.pg-demo-ripple {
+  position: absolute; left: 0; top: 0; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%;
+  border: 3px solid var(--green-500, #34c759); background: rgba(52,199,89,.22); opacity: 0; transform: scale(.2);
+}
+.pg-demo-guide.is-click .pg-demo-ripple { animation: pg-demo-ripple .7s ease-out 1 forwards; }
+@keyframes pg-demo-ripple { 0% { opacity: .95; transform: scale(.2); } 100% { opacity: 0; transform: scale(1.35); } }
+.pg-demo-caret {
+  position: absolute; left: -1px; top: -.7em; width: 2px; height: 1.4em; font-size: clamp(12px, 1.6vw, 18px);
+  background: var(--green-500, #34c759); box-shadow: 0 0 0 1px rgba(0,0,0,.35); opacity: 0;
+}
+.pg-demo-guide.is-type .pg-demo-caret { opacity: 1; animation: pg-demo-blink 1s steps(1, end) infinite; }
+.pg-demo-guide.is-type .pg-demo-pointer { left: 10px; top: 10px; }
+@keyframes pg-demo-blink { 50% { opacity: 0; } }
+
+/* Controls, then the step count and caption, under the frame (the buttons never move between steps). */
+.pg-demo-bar { margin-top: 12px; }
+.pg-demo-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; }
+.pg-demo-caption { margin: 12px 0 0; font-size: 15px; line-height: 1.55; color: var(--ink, #0b2016); }
+.pg-demo-btn, .pg-demo-tabs [role="tab"], .pg-try-btn {
+  font-family: 'Sora', sans-serif; font-weight: 600; font-size: 14px; line-height: 1.2;
+  min-height: 40px; padding: 10px 18px; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--line, rgba(15,61,40,.12)); background: #fff; color: var(--green-900, #0f3d28);
+}
+.pg-demo-btn:hover { border-color: var(--green-700, #1a7a46); }
+.pg-demo-btn--primary, .pg-try-btn { background: var(--green-700, #1a7a46); border-color: var(--green-700, #1a7a46); color: #fff; }
+.pg-demo-btn--primary:hover, .pg-try-btn:hover { background: var(--green-900, #0f3d28); border-color: var(--green-900, #0f3d28); }
+.pg-demo-btn[aria-disabled="true"] { opacity: .45; cursor: default; }
+.pg-demo-btn:focus-visible, .pg-demo-dot:focus-visible, .pg-demo-tabs [role="tab"]:focus-visible, .pg-try-btn:focus-visible {
+  outline: 3px solid var(--focus-ring, #1a7a46); outline-offset: 3px;
+}
+.pg-demo-dots { display: flex; flex-wrap: wrap; gap: 2px; }
+.pg-demo-dot { width: 28px; height: 28px; padding: 0; border: 0; background: none; cursor: pointer; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; }
+.pg-demo-dot::before { content: ""; width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--green-700, #1a7a46); background: #fff; }
+.pg-demo-dot[aria-current="step"]::before { background: var(--green-700, #1a7a46); }
+.pg-demo-play { margin-left: auto; }
+
+/* "Step through" / "Watch" when a demo has both (tabs; without JavaScript the two blocks stack). */
+.pg-demo-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.pg-demo-tabs[hidden], .pg-demo-panel[hidden] { display: none; }
+.pg-demo-tabs [role="tab"][aria-selected="true"] { background: var(--green-900, #0f3d28); border-color: var(--green-900, #0f3d28); color: #fff; }
+.pg-demo--tabs .pg-demo-ph { display: none; }
+.pg-demo--tabs .pg-demo-panel { margin-top: 14px; }
+
+/* "Try it live" (CoachOS runs this site's chat). */
+.pg-try-live { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; }
+.pg-demo + .pg-try-live { margin-top: 18px; }
+.pg-try-text { margin: 0; flex: 1 1 260px; font-size: 15.5px; line-height: 1.55; color: var(--ink, #0b2016); }
+.pg-try-btn { display: inline-flex; align-items: center; text-decoration: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pg-demo-guide, .pg-demo--js .pg-demo-step, .pg-demo--js .pg-demo-step.is-current { transition: none; }
+  .pg-demo-guide.is-click .pg-demo-ripple { animation: none; opacity: 0; }
+  .pg-demo-guide.is-type .pg-demo-caret { animation: none; }
+}

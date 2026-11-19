@@ -151,4 +151,78 @@ function prospergenics_2026_legacy_url_redirects() {
         exit;
     }
 }
-add_action( 'template_redirect', 'prospergenics_2026_legacy_url_redirects' );
+// Priority 1: before core's redirect_canonical() (priority 10), whose "guess a page for this 404"
+// sent /team_member/lessy/ to the old /lessy-2/ page instead of /people/lessy/ (audit CON-4).
+add_action( 'template_redirect', 'prospergenics_2026_legacy_url_redirects', 1 );
+
+/** The always-on person rules from person-redirects.txt, read once per request. */
+function prospergenics_2026_person_redirect_rules() {
+    static $rules = null;
+    if ( null === $rules ) {
+        $file  = apply_filters( 'prospergenics_2026_person_redirects_file', __DIR__ . '/person-redirects.txt' );
+        $rules = is_readable( $file ) ? prospergenics_2026_parse_redirects( file_get_contents( $file ) ) : array();
+    }
+    return $rules;
+}
+
+/** The always-on rules for legacy pages still published in the database (legacy-pages.txt, #6488/#6520). */
+function prospergenics_2026_legacy_page_rules() {
+    static $rules = null;
+    if ( null === $rules ) {
+        $file  = apply_filters( 'prospergenics_2026_legacy_pages_file', __DIR__ . '/legacy-pages.txt' );
+        $rules = is_readable( $file ) ? prospergenics_2026_parse_redirects( file_get_contents( $file ) ) : array();
+    }
+    return $rules;
+}
+
+/**
+ * Person URLs that other parts of the site still answer with outdated copies of a profile (the
+ * jengo-listings /members/<slug>/ pages, imported -2 pages, media attachments), and legacy pages
+ * imported from the old site: send them to the approved page, on init, before a plugin or the
+ * still-published legacy page renders them.
+ */
+function prospergenics_2026_person_redirects() {
+    $method = isset( $_SERVER['REQUEST_METHOD'] ) ? strtoupper( (string) $_SERVER['REQUEST_METHOD'] ) : 'GET';
+    if ( is_admin() || ! in_array( $method, array( 'GET', 'HEAD' ), true ) ) {
+        return;
+    }
+    $request_path = isset( $_SERVER['REQUEST_URI'] ) ? (string) parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH ) : '';
+    $target = prospergenics_2026_match_redirect( $request_path, prospergenics_2026_person_redirect_rules() );
+    if ( null === $target ) {
+        $target = prospergenics_2026_match_redirect( $request_path, prospergenics_2026_legacy_page_rules() );
+    }
+    if ( null !== $target ) {
+        wp_safe_redirect( home_url( $target ), 301 );
+        exit;
+    }
+}
+add_action( 'init', 'prospergenics_2026_person_redirects', 0 );
+
+/**
+ * WordPress' own canonical redirect (redirect_canonical(), which also guesses a page for a 404)
+ * can land on a URL the rules above redirect again: /home/ was guessed to /home-legacy/, and /join/
+ * to /join-our-community/, which goes back to /join/ (a loop until /join/ has its own route). Go
+ * to the rule's target in one hop instead, and never back to the URL that was asked for (pure).
+ *
+ * @return string|false the URL to redirect to, or false for no redirect
+ */
+function prospergenics_2026_canonical_redirect_target( $redirect_url, $requested_url, array $rule_sets ) {
+    if ( ! $redirect_url ) {
+        return $redirect_url;
+    }
+    $target = null;
+    foreach ( $rule_sets as $rules ) {
+        $target = prospergenics_2026_match_redirect( (string) parse_url( (string) $redirect_url, PHP_URL_PATH ), $rules );
+        if ( null !== $target ) {
+            break;
+        }
+    }
+    if ( null === $target ) {
+        return $redirect_url;
+    }
+    $asked = prospergenics_2026_normalize_path( (string) parse_url( (string) $requested_url, PHP_URL_PATH ) );
+    return prospergenics_2026_normalize_path( $target ) === $asked ? false : home_url( $target );
+}
+add_filter( 'redirect_canonical', function ( $redirect_url, $requested_url ) {
+    return prospergenics_2026_canonical_redirect_target( $redirect_url, $requested_url, array( prospergenics_2026_person_redirect_rules(), prospergenics_2026_legacy_page_rules() ) );
+}, 20, 2 );

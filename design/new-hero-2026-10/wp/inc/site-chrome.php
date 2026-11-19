@@ -1,0 +1,600 @@
+<?php
+/**
+ * The site's one header and footer (audit NAV-1, NAV-2, NAV-3, NAV-8, ARC-3).
+ *
+ * The menu is defined once, in inc/site-chrome/nav.json; its look and behaviour once, in
+ * inc/site-chrome/site-chrome.css and site-chrome.js. This module renders them for WordPress:
+ *   - header.php / footer.php (every inner page) and front-page.php / page-about.php, which
+ *     build-wp-theme.py points at prospergenics_2026_site_header() and _site_footer(),
+ *   - pages rendered by the jengo-listings plugin (/members/, /tools/, /services/, /partners/,
+ *     /vacancies/ and their detail pages), whose own nav is swapped for this header on the way
+ *     out (see the takeover at the bottom), since the plugin itself can't be changed here.
+ * site_chrome.py renders the same files for the static pages (people/, experts/, community/).
+ *
+ * Visitors get "Log in" and "Join"; logged-in members an account menu with My profile,
+ * My courses, My articles, (for instructors) Instructor dashboard, (for editors and administrators) Manage,
+ * Settings and Log out. Below 1181px all of it moves into the menu panel, so the bar is one row.
+ */
+
+defined( 'ABSPATH' ) || exit;
+
+/** nav.json, decoded once. */
+function prospergenics_2026_site_nav() {
+    static $nav = null;
+    if ( null === $nav ) {
+        $nav = json_decode( (string) file_get_contents( __DIR__ . '/site-chrome/nav.json' ), true );
+        if ( ! is_array( $nav ) ) {
+            $nav = array();
+        }
+        $nav += array( 'main' => array(), 'cta' => array( 'label' => 'Take the test', 'path' => '/#value-test' ), 'join_subject' => 'Joining the community', 'footer' => array(), 'legal' => array() );
+    }
+    return $nav;
+}
+
+/**
+ * The organisation description, defined once in inc/site-chrome/organisation.json (audit CON-13):
+ * 'short' for meta descriptions, sharing tags and the footer, 'long' for the Organization JSON-LD.
+ * site_chrome.py reads the same file for the static pages and the About page.
+ */
+function prospergenics_2026_org_description( $length = 'short' ) {
+    static $org = null;
+    if ( null === $org ) {
+        $org = json_decode( (string) file_get_contents( __DIR__ . '/site-chrome/organisation.json' ), true );
+        if ( ! is_array( $org ) ) {
+            $org = array();
+        }
+    }
+    $key = 'long' === $length ? 'long' : 'short';
+    return isset( $org[ $key ] ) ? (string) $org[ $key ] : '';
+}
+
+/** Absolute URL for a nav.json item ({label, path} or {label, url}). */
+function prospergenics_2026_nav_url( array $item ) {
+    return isset( $item['url'] ) ? $item['url'] : home_url( $item['path'] );
+}
+
+/**
+ * The main menu: Courses, Members, Tools, Services, Partners, About.
+ *
+ * @return array<int,array{label:string,path:string,url:string}>
+ */
+function prospergenics_2026_main_nav_items() {
+    $items = array();
+    foreach ( prospergenics_2026_site_nav()['main'] as $item ) {
+        $items[] = array( 'label' => $item['label'], 'path' => $item['path'], 'url' => prospergenics_2026_nav_url( $item ) );
+    }
+    return $items;
+}
+
+/**
+ * Label of the main-menu section a path belongs to ('/services/coachos/' -> 'Services',
+ * '/people/lessy/' -> 'Members' through the item's "also" prefixes in nav.json), or ''.
+ * site_chrome.py current_label() mirrors this for the static pages (audit NAV-15).
+ */
+function prospergenics_2026_current_nav_label( $path ) {
+    $path = trailingslashit( '/' . ltrim( (string) $path, '/' ) );
+    foreach ( prospergenics_2026_site_nav()['main'] as $item ) {
+        $prefixes = array_merge( array( $item['path'] ), isset( $item['also'] ) ? (array) $item['also'] : array() );
+        foreach ( $prefixes as $prefix ) {
+            if ( '/' !== $prefix && 0 === strpos( $path, $prefix ) ) {
+                return $item['label'];
+            }
+        }
+    }
+    return '';
+}
+
+/** The subjects the contact form offers (page-contact.php); ?subject= may preselect one of them. */
+function prospergenics_2026_contact_subjects() {
+    return array( 'Courses and certification', 'Services for my organisation', 'Tools', 'Partnership', 'Joining the community', 'Something else' );
+}
+
+/** /contact/ with a subject preselected. */
+function prospergenics_2026_contact_url( $subject ) {
+    return add_query_arg( 'subject', rawurlencode( $subject ), home_url( '/contact/' ) );
+}
+
+/**
+ * Where a blog post's back link goes (audit NAV-9): the posts listing set under Settings ->
+ * Reading -> "Posts page" (/blog/), else the articles listing, else the homepage.
+ *
+ * @return array{url:string,label:string}
+ */
+function prospergenics_2026_posts_listing() {
+    $page = (int) get_option( 'page_for_posts' );
+    if ( $page && 'page' === get_option( 'show_on_front' ) && 'publish' === get_post_status( $page ) ) {
+        return array( 'url' => get_permalink( $page ), 'label' => 'Back to ' . wp_strip_all_tags( get_the_title( $page ) ) );
+    }
+    $articles = post_type_exists( 'pg_article' ) ? get_post_type_archive_link( 'pg_article' ) : '';
+    if ( $articles ) {
+        return array( 'url' => $articles, 'label' => 'All articles' );
+    }
+    return array( 'url' => home_url( '/' ), 'label' => 'Back to ProsperGenics' );
+}
+
+/** The current request path, e.g. '/members/lessy/'. */
+function prospergenics_2026_request_path() {
+    return isset( $_SERVER['REQUEST_URI'] ) ? (string) parse_url( wp_unslash( $_SERVER['REQUEST_URI'] ), PHP_URL_PATH ) : '/';
+}
+
+/**
+ * Account links for the header: Log in + Join for visitors; My profile, My courses, My articles,
+ * Instructor dashboard (instructors only), Manage (staff only, card #6457), Settings and Log out for
+ * members (audit NAV-16: My articles also offers members who cannot write yet the "Apply to write" form).
+ * Join opens /register/ while registration is on (Settings, General, "Anyone can register"), else the contact form on "Joining the community".
+ *
+ * @return array<int,array{label:string,url:string,key:string}>
+ */
+function prospergenics_2026_account_links() {
+    if ( ! is_user_logged_in() ) {
+        return array(
+            array( 'key' => 'login', 'label' => 'Log in', 'url' => wp_login_url( home_url( add_query_arg( array() ) ) ) ),
+            array( 'key' => 'join', 'label' => 'Join', 'url' => function_exists( 'prospergenics_register_is_open' ) && prospergenics_register_is_open() ? home_url( '/register/' ) : prospergenics_2026_contact_url( prospergenics_2026_site_nav()['join_subject'] ) ),
+        );
+    }
+    $links = array();
+    if ( function_exists( 'prospergenics_profiles_url' ) ) {
+        $links[] = array( 'key' => 'profile', 'label' => 'My profile', 'url' => prospergenics_profiles_url( get_current_user_id() ) );
+    }
+    $links[] = array( 'key' => 'courses', 'label' => 'My courses', 'url' => home_url( '/courses/my/' ) );
+    $links[] = array( 'key' => 'articles', 'label' => 'My articles', 'url' => home_url( '/articles/mine/' ) );
+    if ( function_exists( 'prospergenics_courses_is_instructor' ) && prospergenics_courses_is_instructor() ) {
+        $links[] = array( 'key' => 'teach', 'label' => 'Instructor dashboard', 'url' => home_url( '/instructor/dashboard/' ) );
+    }
+    if ( function_exists( 'prospergenics_manage_can_access' ) && prospergenics_manage_can_access() ) {
+        // the staff area (card #6457): editors and administrators only (inc/platform-manage.php)
+        $links[] = array( 'key' => 'manage', 'label' => 'Manage', 'url' => home_url( '/manage/' ) );
+    }
+    if ( function_exists( 'prospergenics_profiles_url' ) ) {
+        // email, password, privacy, download or delete my data (audit ARC-5, ARC-12)
+        $links[] = array( 'key' => 'settings', 'label' => 'Settings', 'url' => home_url( '/profile/settings/' ) );
+    }
+    $links[] = array( 'key' => 'logout', 'label' => 'Log out', 'url' => wp_logout_url( home_url( '/' ) ) );
+    return $links;
+}
+
+/**
+ * The site header with its mobile menu.
+ *
+ * @param array $args 'current' => menu label to mark (default: from the request path),
+ *                    'autohide' => true on the homepage (fixed; hidden until the visitor has scrolled
+ *                    past the hero and scrolls back up).
+ * @return string HTML
+ */
+function prospergenics_2026_site_header( $args = array() ) {
+    $args    = array_merge( array( 'current' => null, 'autohide' => false ), (array) $args );
+    $current = null === $args['current'] ? prospergenics_2026_current_nav_label( prospergenics_2026_request_path() ) : (string) $args['current'];
+    $nav     = prospergenics_2026_site_nav();
+    $cta     = prospergenics_2026_nav_url( $nav['cta'] );
+    $classes = 'site-header';
+    if ( $args['autohide'] ) {
+        // starts hidden: the homepage hero already shows the menu links (Martien, 26 Oct)
+        $classes .= ' site-header--autohide is-hidden';
+    }
+    if ( function_exists( 'is_admin_bar_showing' ) && is_admin_bar_showing() ) {
+        $classes .= ' site-header--adminbar';
+    }
+
+    $links = function ( $indent ) use ( $current ) {
+        $out = '';
+        foreach ( prospergenics_2026_main_nav_items() as $item ) {
+            $cur  = $item['label'] === $current ? ' aria-current="page"' : '';
+            $out .= $indent . '<a href="' . esc_url( $item['url'] ) . '"' . $cur . '>' . esc_html( $item['label'] ) . "</a>\n";
+        }
+        return $out;
+    };
+    $account = prospergenics_2026_account_links();
+
+    // the skip link comes first, so it is the first thing in <body> and the first Tab stop (UX-16)
+    $h  = '<a class="skip-link" href="#main">Skip to content</a>' . "\n";
+    $h .= '<header class="' . esc_attr( $classes ) . '">' . "\n";
+    $h .= '  <a class="brand" href="' . esc_url( home_url( '/' ) ) . '" aria-label="ProsperGenics home">' . "\n";
+    $h .= '    <img src="' . esc_url( get_template_directory_uri() . '/assets/logo.webp' ) . '" alt="" width="42" height="40" />' . "\n";
+    $h .= '    <span class="brand-text">ProsperGenics</span>' . "\n";
+    $h .= "  </a>\n";
+    $h .= '  <nav class="nav-links" aria-label="Main">' . "\n" . $links( '    ' ) . "  </nav>\n";
+    $h .= '  <div class="nav-account">' . "\n";
+    if ( is_user_logged_in() ) {
+        $uid   = get_current_user_id();
+        $photo = function_exists( 'prospergenics_profiles_photo_url' ) ? prospergenics_profiles_photo_url( $uid, 'thumbnail' ) : '';
+        $user  = wp_get_current_user();
+        $name  = $user && $user->display_name ? $user->display_name : 'Account';
+        $face  = $photo
+            ? '<img src="' . esc_url( $photo ) . '" alt="" width="32" height="32" />'
+            : '<span class="nav-account-initial" aria-hidden="true">' . esc_html( function_exists( 'mb_substr' ) ? mb_strtoupper( mb_substr( $name, 0, 1 ) ) : strtoupper( substr( $name, 0, 1 ) ) ) . '</span>';
+        $h .= '    <button class="nav-account-toggle" type="button" aria-expanded="false" aria-controls="account-menu" title="' . esc_attr( $name ) . '">' . $face . '<span>My account</span></button>' . "\n";
+        $h .= '    <div class="nav-account-menu" id="account-menu" hidden>' . "\n";
+        foreach ( $account as $link ) {
+            $h .= '      <a href="' . esc_url( $link['url'] ) . '">' . esc_html( $link['label'] ) . "</a>\n";
+        }
+        $h .= "    </div>\n";
+    } else {
+        foreach ( $account as $link ) {
+            $class = 'join' === $link['key'] ? 'nav-account-link nav-account-join' : 'nav-account-link';
+            $h    .= '    <a class="' . $class . '" href="' . esc_url( $link['url'] ) . '">' . esc_html( $link['label'] ) . "</a>\n";
+        }
+    }
+    $h .= "  </div>\n";
+    $h .= '  <a class="nav-cta" href="' . esc_url( $cta ) . '">' . esc_html( $nav['cta']['label'] ) . "</a>\n";
+    $h .= '  <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="mobile-menu" aria-label="Open menu">' . "\n";
+    $h .= '    <span class="nav-toggle-bars" aria-hidden="true"></span>' . "\n";
+    $h .= "  </button>\n";
+    $h .= '  <div class="nav-panel" id="mobile-menu" hidden>' . "\n";
+    $h .= '    <nav aria-label="Mobile">' . "\n" . $links( '      ' );
+    $h .= '      <div class="nav-panel-account">' . "\n";
+    foreach ( $account as $link ) {
+        $h .= '        <a href="' . esc_url( $link['url'] ) . '">' . esc_html( $link['label'] ) . "</a>\n";
+    }
+    $h .= "      </div>\n";
+    $h .= '      <a class="nav-panel-cta" href="' . esc_url( $cta ) . '">' . esc_html( $nav['cta']['label'] ) . "</a>\n";
+    $h .= "    </nav>\n  </div>\n</header>";
+    return $h;
+}
+
+/** The site footer: brand, Explore / Community / Get in touch columns and the legal links. */
+function prospergenics_2026_site_footer() {
+    $nav = prospergenics_2026_site_nav();
+    $f   = '<footer class="site-footer">' . "\n" . '  <div class="site-footer-inner">' . "\n";
+    $f  .= '    <div class="f-brand">' . "\n";
+    $f  .= '      <img src="' . esc_url( get_template_directory_uri() . '/assets/logo.webp' ) . '" alt="ProsperGenics" width="46" height="44" />' . "\n";
+    $f  .= '      <p>' . esc_html( prospergenics_2026_org_description( 'short' ) ) . "</p>\n";
+    $f  .= "    </div>\n";
+    foreach ( $nav['footer'] as $column ) {
+        $f .= "    <div>\n      <h2>" . esc_html( $column['title'] ) . "</h2>\n      <ul>\n";
+        foreach ( $column['links'] as $item ) {
+            $external = isset( $item['url'] ) ? ' target="_blank" rel="noopener"' : '';
+            $f       .= '        <li><a href="' . esc_url( prospergenics_2026_nav_url( $item ) ) . '"' . $external . '>' . esc_html( $item['label'] ) . "</a></li>\n";
+        }
+        $f .= "      </ul>\n    </div>\n";
+    }
+    $f .= "  </div>\n" . '  <div class="site-footer-base">' . "\n    <span>© ProsperGenics</span>\n" . '    <nav aria-label="Legal">' . "\n";
+    foreach ( $nav['legal'] as $item ) {
+        $f .= '      <a href="' . esc_url( prospergenics_2026_nav_url( $item ) ) . '">' . esc_html( $item['label'] ) . "</a>\n";
+    }
+    $f .= "    </nav>\n  </div>\n</footer>";
+    return $f;
+}
+
+/** The shared header/footer CSS, for a <style> element. */
+function prospergenics_2026_site_chrome_css() {
+    return (string) file_get_contents( __DIR__ . '/site-chrome/site-chrome.css' );
+}
+
+/** The shared header script, wrapped in a <script> element. */
+function prospergenics_2026_site_chrome_script() {
+    return "<script>\n" . file_get_contents( __DIR__ . '/site-chrome/site-chrome.js' ) . "</script>\n";
+}
+
+/** Styles for the plugin's course lesson pages (cards #7143, #7144). */
+function prospergenics_2026_learn_css() {
+    return (string) file_get_contents( __DIR__ . '/site-chrome/learn.css' );
+}
+
+/** The course lesson scripts (the Try-it playground, #7146; one session at a time, agent and OS picker, #7144), in one <script> element. */
+function prospergenics_2026_learn_script() {
+    return '<script id="prospergenics-learn-js">' . "\n"
+        . file_get_contents( __DIR__ . '/site-chrome/playground.js' ) . "\n"
+        . file_get_contents( __DIR__ . '/site-chrome/learn.js' ) . "</script>\n";
+}
+
+/** Whether a buffered jengo-listings page is a course lesson page: its lesson layout exactly once (pure). */
+function prospergenics_2026_listings_is_lesson_page( $html ) {
+    $html = (string) $html;
+    return 1 === substr_count( $html, '<div class="learn-wrap">' )
+        && 1 === substr_count( $html, '<div class="learn-grid">' )
+        && 1 === substr_count( $html, 'id="learnBody"' )
+        && 1 === substr_count( $html, 'id="tocLinks"' );
+}
+
+/**
+ * Course lesson pages (/courses/<slug>/learn/, cards #7143 and #7144): put the lesson styles right
+ * before the plugin's <div class="learn-wrap">, after the plugin's own styles (pure). The script
+ * goes after the plugin's scripts, see prospergenics_2026_listings_takeover().
+ */
+function prospergenics_2026_listings_add_lesson_css( $html, $css ) {
+    if ( '' === trim( (string) $css ) || ! prospergenics_2026_listings_is_lesson_page( $html ) ) {
+        return $html;
+    }
+    $at = strpos( $html, '<div class="learn-wrap">' );
+    return substr_replace( $html, '<style id="prospergenics-learn-css">' . "\n" . $css . "</style>\n", $at, 0 );
+}
+
+/* ───────────────────── jengo-listings takeover (NAV-1/2/3/5) ─────────────────────
+ *
+ * The plugin prints its own page: its own <nav class="pg-nav"> (a different menu, links centred,
+ * no mobile menu) and no footer. It does call wp_head() and wp_footer(), so on its pages the theme
+ * buffers everything from the end of wp_head to the start of wp_footer and then:
+ *   - swaps that nav for the site header (+ its CSS before </head>),
+ *   - points the detail pages' main button ("Discuss your project →", ...), which links to the
+ *     homepage, at the contact form with the matching subject,
+ *   - adds the site footer and the menu script before the plugin's own scripts.
+ * Anything unexpected (no plugin nav found, another buffer left open) leaves the page untouched.
+ */
+
+/** Whether this request is a page rendered by jengo-listings (its style or script is queued). */
+function prospergenics_2026_is_listings_page() {
+    $on = wp_style_is( 'jengo-listings', 'enqueued' ) || wp_style_is( 'jengo-listings', 'done' ) || wp_script_is( 'jengo-listings', 'enqueued' );
+    return (bool) apply_filters( 'prospergenics_2026_listings_takeover', $on );
+}
+
+/** Contact subject for a plugin button: by its text, else by the section the page is in. */
+function prospergenics_2026_listings_cta_subject( $label, $path ) {
+    $by_label = array(
+        'discuss your project' => 'Services for my organisation',
+        'ask about this tool'  => 'Tools',
+        'become a partner'     => 'Partnership',
+    );
+    $key = strtolower( trim( (string) preg_replace( '/[\s→]+/u', ' ', wp_strip_all_tags( html_entity_decode( $label, ENT_QUOTES, 'UTF-8' ) ) ) ) );
+    if ( isset( $by_label[ $key ] ) ) {
+        return $by_label[ $key ];
+    }
+    $by_section = array( 'services' => 'Services for my organisation', 'tools' => 'Tools', 'partners' => 'Partnership', 'vacancies' => 'Joining the community' );
+    $section    = strtok( trim( (string) $path, '/' ), '/' );
+    return isset( $by_section[ $section ] ) ? $by_section[ $section ] : 'Something else';
+}
+
+/**
+ * Cross-links between listings detail pages that describe the same thing from two sides (audit
+ * CON-12): CoachOS is both a tool and a service. Added as one more "At a glance" fact, in the
+ * plugin's own markup, so it needs no styles of its own.
+ *
+ * @return array<string,array{label:string,path:string}> request path => link
+ */
+function prospergenics_2026_listings_see_also() {
+    return (array) apply_filters( 'prospergenics_2026_listings_see_also', array(
+        '/tools/coachos/'    => array( 'label' => 'CoachOS as a service for your organisation', 'path' => '/services/coachos/' ),
+        '/services/coachos/' => array( 'label' => 'CoachOS, the platform behind it', 'path' => '/tools/coachos/' ),
+    ) );
+}
+
+/**
+ * Rewrite one buffered jengo-listings page (pure: no output, no globals).
+ *
+ * @param string $html   Everything printed between the end of wp_head and the start of wp_footer.
+ * @param string $path   Request path, e.g. '/services/coachos/'.
+ * @param array  $chrome 'header', 'footer', 'css', 'script' markup; optional 'learn_css', 'learn_script'
+ *                       (lesson pages) and 'tool_demo', 'tool_demo_css', 'tool_demo_script', 'tool_try_live'
+ *                       (tool pages, see prospergenics_2026_tool_demo_chrome()).
+ * @return string The page with the theme's header and footer, or $html unchanged.
+ */
+function prospergenics_2026_listings_takeover( $html, $path, array $chrome ) {
+    $nav_re = '#<nav class="pg-nav"[^>]*>.*?</nav>#s';
+    if ( ! preg_match( $nav_re, $html ) ) {
+        return $html;
+    }
+    $header = $chrome['header'];
+    $out    = preg_replace_callback( $nav_re, function () use ( $header ) { return $header; }, $html, 1 );
+    if ( null === $out ) {
+        return $html;
+    }
+
+    $css = '<style id="prospergenics-site-chrome-css">' . "\n" . $chrome['css'] . "</style>\n";
+    $at  = stripos( $out, '</head>' );
+    $out = false !== $at ? substr_replace( $out, $css, $at, 0 ) : str_replace( $header, $css . $header, $out );
+
+    // The header's skip link targets #main: give the plugin's first <main> that id.
+    if ( false === strpos( $out, 'id="main"' ) ) {
+        $out = preg_replace( '#<main(?![^>]*\bid=)(?=[\s>])#', '<main id="main"', $out, 1 );
+    }
+
+    // The plugin's breadcrumb strip: a labelled nav, inside the green banner where there is one.
+    $out = prospergenics_2026_listings_breadcrumb( $out );
+
+    // Detail pages: the main button links to the homepage; send it to the contact form instead.
+    $home = preg_quote( untrailingslashit( home_url() ), '#' );
+    $out  = preg_replace_callback(
+        '#<a class="facts-cta" href="' . $home . '/?"([^>]*)>(.*?)</a>#s',
+        function ( $m ) use ( $path ) {
+            $url = prospergenics_2026_contact_url( prospergenics_2026_listings_cta_subject( $m[2], $path ) );
+            return '<a class="facts-cta" href="' . esc_url( $url ) . '"' . $m[1] . '>' . $m[2] . '</a>';
+        },
+        $out
+    );
+
+    // "See also" on pages with a counterpart: before the main button in the facts box, only when
+    // that box is there exactly once; otherwise the page stays as the plugin made it.
+    $see = prospergenics_2026_listings_see_also();
+    $key = trailingslashit( '/' . ltrim( (string) $path, '/' ) );
+    if ( isset( $see[ $key ] ) && 1 === substr_count( $out, '<aside class="dir-facts">' ) ) {
+        $fact = '<div class="fact"><span class="fl">See also</span><a href="' . esc_url( home_url( $see[ $key ]['path'] ) ) . '">' . esc_html( $see[ $key ]['label'] ) . '</a></div>';
+        $new  = preg_replace_callback( '#(<aside class="dir-facts">.*?)(<a class="facts-cta"|</aside>)#s', function ( $m ) use ( $fact ) { return $m[1] . $fact . $m[2]; }, $out, 1 );
+        $out  = null === $new ? $out : $new;
+    }
+
+    // A link under the directory's own name search (the /members/ directory links to the expertise
+    // search /find/, card #6393): after the plugin's search form, only when it is there exactly once.
+    $search_links = (array) apply_filters( 'prospergenics_2026_listings_search_links', array() );
+    if ( isset( $search_links[ $key ] ) && 1 === substr_count( $out, '<div class="search-wrap">' ) ) {
+        $l    = $search_links[ $key ];
+        $note = '<p class="pg-find-link" style="margin:12px 0 0;font-size:15px">' . esc_html( $l['text'] ) . ' <a href="' . esc_url( home_url( $l['path'] ) ) . '" style="color:#1a7a46;font-weight:600">' . esc_html( $l['label'] ) . ' →</a></p>';
+        $new  = preg_replace_callback( '#(<div class="search-wrap">.*?</form>)#s', function ( $m ) use ( $note ) { return $m[1] . $note; }, $out, 1 );
+        $out  = null === $new ? $out : $new;
+    }
+
+    // Page content the theme owns: the /members/ cards come from PROFILES (inc/members-directory.php,
+    // cards #6516, #6517). Before the badges, so they go on those cards.
+    $new = apply_filters( 'prospergenics_2026_listings_page_html', $out, $key );
+    $out = is_string( $new ) && '' !== $new ? $new : $out;
+
+    // Member badges on the /members/ directory: whoever answers the filter (the profiles track)
+    // maps the cards' listing slugs to badge markup, which goes next to the name.
+    $slugs = 0 === strpos( $key, '/members/' ) ? prospergenics_2026_listings_member_slugs( $out ) : array();
+    if ( $slugs ) {
+        $out = prospergenics_2026_listings_add_member_badges( $out, (array) apply_filters( 'prospergenics_2026_listings_member_badges', array(), $slugs ) );
+    }
+
+    // Course lesson pages: the lesson column stays on screen, one session at a time (#7143, #7144).
+    $lesson_js = '';
+    if ( ! empty( $chrome['learn_css'] ) && prospergenics_2026_listings_is_lesson_page( $out ) ) {
+        $out       = prospergenics_2026_listings_add_lesson_css( $out, $chrome['learn_css'] );
+        // examples that hold a <textarea> of their own back in their editor (#7146, inc/lesson-editors.php)
+        $out       = function_exists( 'prospergenics_2026_lesson_mend_editors' ) ? prospergenics_2026_lesson_mend_editors( $out ) : $out;
+        $lesson_js = isset( $chrome['learn_script'] ) ? (string) $chrome['learn_script'] : '';
+    }
+
+    // Tool pages (/tools/<slug>/, card #7218): "See it work" from the tool's demo folder and, for a
+    // tool that runs on this site (CoachOS), "Try it live"; before "← All tools" (inc/tool-demos.php).
+    $demo_js = '';
+    if ( ( ! empty( $chrome['tool_demo'] ) || ! empty( $chrome['tool_try_live'] ) ) && function_exists( 'prospergenics_2026_listings_add_tool_demo' ) ) {
+        list( $out, $demo_js ) = prospergenics_2026_listings_add_tool_demo( $out, $key, $chrome );
+    }
+
+    // Pages without a <main> of the plugin's: the skip link still needs its target (#7227).
+    $out = prospergenics_2026_listings_skip_target( $out, $header );
+
+    return rtrim( $out ) . "\n\n" . $chrome['footer'] . "\n" . $chrome['script'] . "\n" . ( '' !== $lesson_js ? $lesson_js . "\n" : '' ) . ( '' !== $demo_js ? $demo_js . "\n" : '' );
+}
+
+/**
+ * The skip link's target on a jengo-listings page without a <main> (card #7227). The plugin's
+ * detail pages have one, which gets id="main" in the takeover; its list pages (/tools/, /members/,
+ * ...), course pages and lesson pages have none, so "Skip to content" pointed at nothing. There the
+ * first element after the site header (the breadcrumb on a list page, the green banner on a course
+ * page) becomes #main, with tabindex="-1" so it takes the focus. Pure; a page that already has an
+ * id="main", or where the header isn't found, is left as it was.
+ */
+function prospergenics_2026_listings_skip_target( $html, $header ) {
+    $html = (string) $html;
+    $at   = '' !== (string) $header ? strpos( $html, (string) $header ) : false;
+    if ( false === $at || preg_match( '#\sid=["\']main["\']#', $html ) ) {
+        return $html;
+    }
+    // skip whitespace, comments (<!-- HERO BAND -->) and style/script blocks
+    $skip = '(?:\s+|<!--(?:(?!-->).)*-->|<(style|script)\b[^>]*>.*?</\1>)*';
+    if ( ! preg_match( '#\G' . $skip . '<([a-z][a-z0-9-]*)\b([^>]*)>#si', $html, $m, PREG_OFFSET_CAPTURE, $at + strlen( $header ) ) ) {
+        return $html;
+    }
+    // a breadcrumb is navigation too: skip past it to the page itself (the list pages' header)
+    if ( 'nav' === strtolower( $m[2][0] ) && false !== strpos( $m[3][0], 'pg-breadcrumb' ) ) {
+        $end = stripos( $html, '</nav>', $m[0][1] );
+        if ( false === $end || ! preg_match( '#\G' . $skip . '<([a-z][a-z0-9-]*)\b([^>]*)>#si', $html, $m, PREG_OFFSET_CAPTURE, $end + 6 ) ) {
+            return $html;
+        }
+    }
+    $tag = $m[2][1] - 1;
+    if ( preg_match( '#\sid=#i', $m[3][0] ) ) {
+        return substr_replace( $html, '<div id="main" tabindex="-1"></div>', $tag, 0 );
+    }
+    return substr_replace( $html, ' id="main" tabindex="-1"', $m[3][1], 0 );
+}
+
+/**
+ * The plugin's breadcrumb (<div class="pg-breadcrumb">Home › Tools › Jengo Meet</div>) sits in a
+ * pale strip of its own between the site header and the page, and on detail pages it doesn't line
+ * up with the title (Lessy, 8 Nov). Pure; the page is left as it was unless the breadcrumb is there
+ * exactly once.
+ *   - It becomes <nav aria-label="Breadcrumb">, the current page gets aria-current="page" and the
+ *     separators are hidden from screen readers.
+ *   - Directly before a green banner (tool, service, partner, member and course pages, lesson
+ *     pages) it moves into the banner, above the title and aligned with it, in light text
+ *     (class pg-crumbs--on-hero; the banner gets pg-hero--crumbs for a shorter top padding). The
+ *     banner's eyebrow is dropped when it only repeats the section the breadcrumb already names
+ *     ("TOOLS" under "Home › Tools › …").
+ *   - Before a light page header (the /tools/, /members/ lists) it stays where it is, lined up with
+ *     that header (pg-crumbs--light). Styles: site-chrome.css.
+ */
+function prospergenics_2026_listings_breadcrumb( $html ) {
+    $re = '#<div class="pg-breadcrumb">(.*?)</div>\s*#s';
+    if ( 1 !== preg_match_all( $re, (string) $html, $all ) || false !== strpos( $all[1][0], '<div' ) ) {
+        return $html;
+    }
+    $inner = $all[1][0];
+    $inner = str_replace( '<span class="sep">', '<span class="sep" aria-hidden="true">', $inner );
+    $inner = preg_replace( '#<span>((?:(?!</span>).)*)</span>(\s*)$#s', '<span aria-current="page">$1</span>$2', $inner, 1 );
+    $at    = strpos( $html, $all[0][0] );
+    $after = substr( $html, $at + strlen( $all[0][0] ) );
+
+    // (the plugin may put a comment such as <!-- HERO BAND --> in between)
+    if ( preg_match( '#^((?:<!--(?:(?!-->).)*-->\s*)*<(header|div) class="(dir|course|learn)-hero)(">\s*<div class="\3-hero-inner">)(\s*)#s', $after, $h ) ) {
+        $nav  = '<nav class="pg-breadcrumb pg-crumbs pg-crumbs--on-hero" aria-label="Breadcrumb">' . ( 'learn' === $h[3] ? prospergenics_2026_listings_lesson_crumb( $inner ) : $inner ) . '</nav>' . $h[5];
+        $rest = substr( $after, strlen( $h[0] ) );
+        // The eyebrow right under it, when it only repeats the section ("Tools" in Home › Tools › …).
+        $crumbs = preg_match_all( '#<a [^>]*>(.*?)</a>#s', $inner, $links ) ? $links[1] : array();
+        $parent = $crumbs ? strtolower( trim( wp_strip_all_tags( end( $crumbs ) ) ) ) : '';
+        if ( '' !== $parent && preg_match( '#^((?:<div class="dh-copy">\s*)?)<div class="' . $h[3][0] . 'h-eyebrow"><span class="dot"></span>([^<]*)</div>\s*#', $rest, $e ) && strtolower( trim( $e[2] ) ) === $parent ) {
+            $rest = $e[1] . substr( $rest, strlen( $e[0] ) );
+        }
+        return substr( $html, 0, $at ) . $h[1] . ' pg-hero--crumbs' . $h[4] . $h[5] . $nav . $rest;
+    }
+
+    $nav = '<nav class="pg-breadcrumb pg-crumbs' . ( 0 === strpos( $after, '<header class="pg-header">' ) ? ' pg-crumbs--light' : '' ) . '" aria-label="Breadcrumb">' . $inner . '</nav>' . "\n\n";
+    return substr( $html, 0, $at ) . $nav . $after;
+}
+
+/**
+ * The last breadcrumb item on a course's lesson pages (/courses/<slug>/learn/, card #7236): the
+ * plugin calls it "Course", which is the page before; these are the lessons (pure).
+ */
+function prospergenics_2026_listings_lesson_crumb( $inner ) {
+    $out = preg_replace( '#(<span aria-current="page">)\s*Course\s*(</span>\s*)$#', '$1Lessons$2', (string) $inner, 1 );
+    return null === $out ? $inner : $out;
+}
+
+/**
+ * The card pattern of the /members/ directory: <a class="dir-card" href=".../members/<listing slug>/">
+ * as the plugin makes it, or ".../people/<slug>/" as the theme rebuilds it from PROFILES.
+ */
+function prospergenics_2026_listings_member_card_re() {
+    return '#<a class="dir-card" href="' . preg_quote( untrailingslashit( home_url() ), '#' ) . '/(?:members|people)/([a-z0-9-]+)/">(.*?)</a>#s';
+}
+
+/** The listing slugs of the member cards on a jengo-listings page, in page order (pure). */
+function prospergenics_2026_listings_member_slugs( $html ) {
+    return preg_match_all( prospergenics_2026_listings_member_card_re(), (string) $html, $m ) ? array_values( array_unique( $m[1] ) ) : array();
+}
+
+/**
+ * Put each member's badge right after their name on the /members/ cards (pure).
+ *
+ * The card is itself a link, so the badge must be the link-free 'inline' markup. A card is only
+ * touched when it has exactly one name (<div class="dc-title">); a card without a badge, or a page
+ * of another shape, stays exactly as the plugin made it.
+ *
+ * @param array<string,string> $badges listing slug => badge markup (already escaped)
+ */
+function prospergenics_2026_listings_add_member_badges( $html, array $badges ) {
+    $badges = array_filter( $badges, function ( $b ) { return is_string( $b ) && '' !== $b && false === stripos( $b, '<a' ); } );
+    if ( ! $badges ) {
+        return $html;
+    }
+    $out = preg_replace_callback(
+        prospergenics_2026_listings_member_card_re(),
+        function ( $m ) use ( $badges ) {
+            if ( ! isset( $badges[ $m[1] ] ) || 1 !== substr_count( $m[2], '<div class="dc-title">' ) ) {
+                return $m[0];
+            }
+            $badge = $badges[ $m[1] ];
+            $body  = preg_replace_callback( '#(<div class="dc-title">)(.*?)(</div>)#s', function ( $t ) use ( $badge ) { return $t[1] . $t[2] . ' ' . $badge . $t[3]; }, $m[2], 1 );
+            $open  = substr( $m[0], 0, strlen( $m[0] ) - strlen( $m[2] ) - strlen( '</a>' ) );
+            return null === $body ? $m[0] : $open . $body . '</a>';
+        },
+        $html
+    );
+    return null === $out ? $html : $out;
+}
+
+add_action( 'wp_head', function () {
+    global $prospergenics_2026_takeover_level;
+    if ( is_admin() || is_feed() || did_action( 'get_header' ) || ! prospergenics_2026_is_listings_page() ) {
+        return; // theme templates print the site header themselves
+    }
+    ob_start();
+    $prospergenics_2026_takeover_level = ob_get_level();
+}, PHP_INT_MAX );
+
+add_action( 'wp_footer', function () {
+    global $prospergenics_2026_takeover_level;
+    if ( empty( $prospergenics_2026_takeover_level ) || ob_get_level() !== $prospergenics_2026_takeover_level ) {
+        return; // not buffering, or someone else's buffer is open on top: leave the page as it is
+    }
+    $prospergenics_2026_takeover_level = 0;
+    $html = ob_get_clean();
+    echo prospergenics_2026_listings_takeover( $html, prospergenics_2026_request_path(), array( // phpcs:ignore WordPress.Security.EscapeOutput -- page markup, built from escaped parts.
+        'header' => prospergenics_2026_site_header(),
+        'footer' => prospergenics_2026_site_footer(),
+        'css'    => prospergenics_2026_site_chrome_css(),
+        'script' => prospergenics_2026_site_chrome_script(),
+        'learn_css'    => prospergenics_2026_learn_css(),
+        'learn_script' => prospergenics_2026_learn_script(),
+    ) + ( function_exists( 'prospergenics_2026_tool_demo_chrome' ) ? prospergenics_2026_tool_demo_chrome( prospergenics_2026_request_path() ) : array() ) );
+}, PHP_INT_MIN );

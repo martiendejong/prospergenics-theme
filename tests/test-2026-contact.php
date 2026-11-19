@@ -165,5 +165,38 @@ ok( 1 === preg_match( "/'exclude_from_search'\s*=>\s*true/", $store ), 'it is ex
 ok( 1 === preg_match( "/'show_in_rest'\s*=>\s*false/", $store ), 'it is not exposed over the REST API' );
 ok( 1 === preg_match( "/'show_ui'\s*=>\s*true/", $store ), 'but it IS visible in wp-admin, which is the whole point' );
 
+echo "\n[Test 9] only administrators and editors can read contact messages, not contributors or authors\n";
+$GLOBALS['__cpt']   = array();
+$GLOBALS['__hooks'] = array();
+function add_action( $hook, $cb ) { $GLOBALS['__hooks'][ $hook ][] = $cb; }
+function add_filter( $hook, $cb ) { $GLOBALS['__hooks'][ $hook ][] = $cb; }
+function register_post_type( $type, $args ) { $GLOBALS['__cpt'][ $type ] = $args; }
+if ( ! function_exists( '__' ) ) { function __( $t, $d = null ) { return $t; } }
+require $theme . '/inc/contact-messages-store.php';
+prospergenics_register_contact_message_post_type();
+$cpt = $GLOBALS['__cpt']['pg_contact_msg'];
+ok( array( 'pg_contact_msg', 'pg_contact_msgs' ) === $cpt['capability_type'] && true === $cpt['map_meta_cap'], 'messages have their own capability type, not "post"' );
+ok( 'do_not_allow' === $cpt['capabilities']['create_posts'], 'nobody creates messages in wp-admin' );
+ok( in_array( 'prospergenics_contact_message_grant_caps', $GLOBALS['__hooks']['user_has_cap'], true ), 'the capabilities are granted through user_has_cap' );
+$roles = array(
+	'administrator' => array( 'read' => true, 'edit_posts' => true, 'edit_others_posts' => true, 'manage_options' => true ),
+	'editor'        => array( 'read' => true, 'edit_posts' => true, 'edit_others_posts' => true, 'publish_posts' => true ),
+	'author'        => array( 'read' => true, 'edit_posts' => true, 'publish_posts' => true, 'edit_published_posts' => true ),
+	'contributor'   => array( 'read' => true, 'edit_posts' => true ),
+	'subscriber'    => array( 'read' => true ),
+);
+foreach ( $roles as $role => $caps ) {
+	$got   = prospergenics_contact_message_grant_caps( $caps );
+	$staff = in_array( $role, array( 'administrator', 'editor' ), true );
+	$all   = true;
+	foreach ( prospergenics_contact_message_caps() as $c ) {
+		$all = $all && ! empty( $got[ $c ] );
+	}
+	$none = ! array_intersect_key( $got, array_flip( prospergenics_contact_message_caps() ) );
+	ok( $staff ? $all : $none, $staff ? "$role can read and manage contact messages" : "$role gets no contact message capability" );
+}
+$admin = file_get_contents( $theme . '/inc/contact-messages-admin.php' );
+ok( false !== strpos( $admin, "current_user_can( 'edit_pg_contact_msgs' )" ) && false === strpos( $admin, "current_user_can( 'edit_posts' )" ), 'the failed-mail notice is only shown to people who can read messages' );
+
 echo "\n" . ( $failures === 0 ? "All assertions passed.\n" : "$failures assertion(s) FAILED.\n" );
 exit( $failures === 0 ? 0 : 1 );

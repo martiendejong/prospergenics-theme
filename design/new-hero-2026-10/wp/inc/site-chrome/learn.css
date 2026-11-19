@@ -1,0 +1,148 @@
+/* Course lesson pages of the jengo-listings plugin (/courses/<slug>/learn/), cards #7143 and #7144.
+   Printed by the theme's takeover (inc/site-chrome.php) right before the plugin's <div class="learn-wrap">,
+   so it comes after the plugin's own styles; selectors start at .learn-wrap to win on specificity too. */
+
+/* #7143: a 1fr column grows to its widest child, and the course screenshots come at full size, so the
+   lesson column was 1336px wide and ran off the screen. minmax(0,1fr) keeps it inside the grid. */
+.learn-wrap .learn-grid { grid-template-columns: 270px minmax(0, 1fr); }
+@media (max-width: 900px) { .learn-wrap .learn-grid { grid-template-columns: minmax(0, 1fr); } }
+.learn-wrap .learn-body { min-width: 0; max-width: 780px; }
+.learn-wrap .learn-body img,
+.learn-wrap .learn-body video,
+.learn-wrap .learn-body svg { max-width: 100%; height: auto; }
+.learn-wrap .learn-body iframe,
+.learn-wrap .learn-body .course-screenshot { max-width: 100%; }
+.learn-wrap .learn-body pre { max-width: 100%; overflow-x: auto; }
+.learn-wrap .learn-body table { display: block; max-width: 100%; overflow-x: auto; }
+.learn-wrap .learn-body :not(pre) > code { overflow-wrap: anywhere; }
+.learn-wrap .learn-body [hidden] { display: none !important; }
+
+/* #7144: one session at a time (learn.js; without JavaScript none of this shows). */
+.learn-wrap .pg-learn-pick {
+  display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 20px;
+  margin: 0 0 32px; padding: 16px 18px;
+  background: #f1f8f3; border: 1px solid var(--line, #d7e6dc); border-radius: 14px;
+}
+.learn-wrap .pg-learn-pick p { flex-basis: 100%; margin: 0; font-size: 14.5px; line-height: 1.5; color: #2a3d30; }
+.learn-wrap .pg-learn-pick label {
+  display: flex; flex-direction: column; gap: 6px; min-width: 180px;
+  font: 600 12px/1.2 'Inter', system-ui, sans-serif; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--muted, #5b6f62);
+}
+.learn-wrap .pg-learn-pick select {
+  min-height: 44px; padding: 8px 12px; border: 1.5px solid var(--line, #d7e6dc); border-radius: 10px;
+  background: #fff; color: var(--ink, #0f2a1c);
+  font: 500 15px/1.2 'Inter', system-ui, sans-serif; letter-spacing: 0; text-transform: none;
+}
+.learn-wrap .pg-learn-pick select:focus-visible { outline: 3px solid var(--green-600, #1f8a50); outline-offset: 2px; }
+
+.learn-wrap .pg-session:focus { outline: none; }
+.learn-wrap .pg-session-head {
+  margin: 0 0 10px; font: 700 12.5px/1.3 'Sora', system-ui, sans-serif; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--green-700, #1a7a46);
+}
+.learn-wrap .pg-session-head span { color: var(--muted, #5b6f62); font-weight: 600; }
+
+.learn-wrap .pg-session-pager {
+  display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between;
+  margin: 44px 0 8px; padding-top: 24px; border-top: 1px solid var(--line, #d7e6dc);
+}
+.learn-wrap .learn-body .pg-session-pager a {
+  display: flex; flex-direction: column; gap: 4px; flex: 0 1 48%; min-height: 44px;
+  padding: 12px 16px; border: 1.5px solid var(--line, #d7e6dc); border-radius: 12px;
+  background: #fff; color: var(--ink, #0f2a1c); text-decoration: none;
+  transition: border-color .15s, transform .15s;
+}
+.learn-wrap .learn-body .pg-session-pager a:hover { border-color: var(--green-600, #1f8a50); transform: translateY(-1px); }
+.learn-wrap .learn-body .pg-session-pager a:focus-visible { outline: 3px solid var(--green-600, #1f8a50); outline-offset: 2px; }
+.learn-wrap .pg-session-pager small {
+  font: 600 12px/1.2 'Inter', system-ui, sans-serif; letter-spacing: .05em; text-transform: uppercase;
+  color: var(--muted, #5b6f62);
+}
+.learn-wrap .pg-session-pager b { font: 700 15.5px/1.35 'Sora', system-ui, sans-serif; color: var(--green-900, #0f3d28); }
+.learn-wrap .learn-body .pg-session-pager a.pg-next {
+  margin-left: auto; text-align: right; background: var(--green-700, #1a7a46); border-color: var(--green-700, #1a7a46);
+}
+/* #7236: "Next: lesson N" is 12px, so it needs 4.5:1; #e6f3ec on #1a7a46 is 4.7:1 (the 80% white was 4.03:1) */
+.learn-wrap .pg-session-pager a.pg-next small { color: #e6f3ec; }
+.learn-wrap .pg-session-pager a.pg-next b { color: #fff; }
+.learn-wrap .learn-body .pg-session-pager a.pg-next:hover { background: var(--green-900, #0f3d28); border-color: var(--green-900, #0f3d28); }
+
+.learn-wrap .learn-toc a.pg-toc-session { display: flex; flex-direction: column; gap: 2px; }
+.learn-wrap .learn-toc a.pg-toc-session small {
+  font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted, #5b6f62);
+}
+.learn-wrap .learn-toc a[aria-current="true"] {
+  color: var(--green-900, #0f3d28); font-weight: 600; border-left-color: var(--green-600, #1f8a50); background: var(--green-100, #e3f3e8);
+}
+.learn-wrap .learn-toc .pg-toc-sub a { padding: 5px 12px 5px 26px; font-size: 13px; }
+.learn-wrap .learn-toc .pg-toc-sub a.pg-here { color: var(--green-800, #155f37); font-weight: 600; }
+
+/* The course's ClickUp / Jira switch: its own styles reach the page as text, so they are restated here. */
+.learn-wrap .tm-sel { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 24px; }
+.learn-wrap .tm-btn {
+  min-height: 40px; padding: 8px 18px; border: 1.5px solid var(--line, #d7e6dc); border-radius: 999px;
+  background: #fff; color: var(--muted, #5b6f62); cursor: pointer;
+  font: 600 13px/1.2 'Sora', system-ui, sans-serif; transition: all .15s;
+}
+.learn-wrap .tm-btn.active { background: var(--green-700, #1a7a46); border-color: var(--green-700, #1a7a46); color: #fff; }
+.learn-wrap .tm-btn:focus-visible { outline: 3px solid var(--green-600, #1f8a50); outline-offset: 2px; }
+
+.learn-wrap .pg-toc-more { display: none; }
+
+@media (max-width: 900px) {
+  .learn-wrap .learn-toc .pg-toc-sub { display: none; }
+  .learn-wrap .learn-toc:not(.pg-toc-open) a.pg-toc-session:not([aria-current="true"]) { display: none; }
+  .learn-wrap .pg-toc-more {
+    display: inline-flex; align-items: center; min-height: 44px; margin: 8px 0 0; padding: 8px 14px;
+    border: 1.5px solid var(--line, #d7e6dc); border-radius: 999px; background: #fff; cursor: pointer;
+    font: 600 13.5px/1.2 'Inter', system-ui, sans-serif; color: var(--green-800, #155f37);
+  }
+  .learn-wrap .pg-toc-more:focus-visible { outline: 3px solid var(--green-600, #1f8a50); outline-offset: 2px; }
+  .learn-wrap .learn-body .pg-session-pager a { flex-basis: 100%; }
+  .learn-wrap .learn-body .pg-session-pager a.pg-next { order: -1; }
+}
+
+/* #7146: the lessons' Try-it editors and callouts. These are the styles of the [5818] playground, which reach
+   the page only as text (their <style> tag is stripped before the plugin prints the lesson); restated here as they were. */
+.learn-body .editor-container, .editor-container {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; margin: 20px 0; align-items: stretch;
+}
+/* code above its result on phones (with .learn-body in the selector too, or the two-column rule above wins and
+   both panels were 168px wide at 390) */
+@media (max-width: 760px) { .learn-body .editor-container, .editor-container { grid-template-columns: minmax(0, 1fr); } }
+.editor-container .editor-panel, .editor-container .preview-panel {
+  display: flex; flex-direction: column; min-width: 0; overflow: hidden;
+  border: 1px solid var(--line, rgba(15, 61, 40, .18)); border-radius: 10px; background: #fff;
+}
+.editor-container .panel-header {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 12px;
+  background: var(--green-900, #0f3d28); color: #fff;
+  font: 600 12px/1.2 'Sora', system-ui, sans-serif; letter-spacing: .05em; text-transform: uppercase;
+}
+.editor-container .editor-buttons { display: flex; gap: 6px; }
+.editor-container .editor-buttons button {
+  font: 600 12px/1 'Sora', system-ui, sans-serif; padding: 6px 12px; border-radius: 6px; cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, .35); background: rgba(255, 255, 255, .12); color: #fff;
+}
+.editor-container .editor-buttons .btn-run { background: var(--green-500, #34c759); border-color: var(--green-500, #34c759); color: #0b2016; }
+.editor-container .editor-buttons button:hover { filter: brightness(1.12); }
+.editor-container .editor-buttons button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.editor-container textarea {
+  flex: 1; width: 100%; min-height: 220px; resize: vertical; border: 0; outline: 0; margin: 0; padding: 12px 14px;
+  background: #1a1a1a; color: #e6e6e6; tab-size: 2; white-space: pre; overflow: auto;
+  font: 13.5px/1.55 ui-monospace, 'Cascadia Code', 'Fira Code', monospace;
+}
+.editor-container textarea:focus-visible { box-shadow: inset 0 0 0 2px var(--green-500, #34c759); }
+.editor-container iframe { flex: 1; width: 100%; min-height: 220px; border: 0; background: #fff; }
+.editor-container[data-pg-lang="javascript"] iframe, .editor-container[data-pg-lang="python"] iframe { background: #1a1a1a; }
+
+/* CodeHub lesson callouts and sections, unstyled in the plain learn template */
+.learn-body .analogy, .learn-body .info-box {
+  margin: 16px 0; padding: 14px 18px; border-radius: 10px; border-left: 4px solid var(--green-600, #22a65a);
+  background: var(--green-100, #d9f5e3); color: var(--green-900, #0f3d28); font-size: 15.5px; line-height: 1.65;
+}
+.learn-body .info-box { border-left-color: #2f7fd3; background: #e8f1fb; color: #123a63; }
+.learn-body .lesson-header h1 { font-family: 'Sora', system-ui, sans-serif; font-size: clamp(26px, 3vw, 36px); margin: 0 0 8px; }
+.learn-body .try-it, .learn-body .challenge { margin-top: 28px; }
+.learn-body .challenge { padding: 6px 18px 12px; border: 1px dashed var(--green-600, #22a65a); border-radius: 12px; }
