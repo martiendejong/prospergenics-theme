@@ -1167,9 +1167,9 @@
           </a>
           <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/diko/">
             <span class="fc-ring" aria-hidden="true"></span>
-            <span class="fc-portrait"><img loading="lazy" decoding="async" width="300" height="300" src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/diko_profile-300x300.webp" alt="Diko Mohamed" style="object-position: center 30%" /></span>
-            <div class="fc-name">Diko Mohamed</div>
-            <div class="fc-role">Founding team, Software Developer, Entrepreneur</div>
+            <span class="fc-portrait"><img loading="lazy" decoding="async" width="300" height="300" src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/diko_profile-300x300.webp" alt="Diko Mohammed" style="object-position: center 30%" /></span>
+            <div class="fc-name">Diko Mohammed</div>
+            <div class="fc-role">Founding team, Software Developer, Co-Founder of Afrigentic</div>
             <p class="fc-quote">"I turn opportunities into products. Right now that means integrations and new partnerships."</p>
           </a>
           <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/sjoerd/">
@@ -1195,15 +1195,15 @@
           </a>
           <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/lessy/">
             <span class="fc-ring" aria-hidden="true"></span>
-            <span class="fc-portrait"><img loading="lazy" decoding="async" width="300" height="300" src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/lessy_profile-300x300.webp" alt="Lesiamon Mpoe" style="object-position: center 25%" /></span>
-            <div class="fc-name">Lesiamon Mpoe</div>
+            <span class="fc-portrait"><img loading="lazy" decoding="async" width="300" height="300" src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/lessy_profile-300x300.webp" alt="Finehas Lesiamon" style="object-position: center 25%" /></span>
+            <div class="fc-name">Finehas Lesiamon</div>
             <div class="fc-role">Founding team, Trainer, Software Developer</div>
             <p class="fc-quote">"I develop software and train new developers. Good software starts with understanding people."</p>
           </a>
           <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/frank/">
             <span class="fc-ring" aria-hidden="true"></span>
-            <span class="fc-portrait"><img loading="lazy" decoding="async" width="300" height="300" src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/frank_profile-300x300.webp" alt="Frank" style="object-position: center 25%" /></span>
-            <div class="fc-name">Frank</div>
+            <span class="fc-portrait"><img loading="lazy" decoding="async" width="300" height="300" src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/frank_profile-300x300.webp" alt="Frank Kobaai" style="object-position: center 25%" /></span>
+            <div class="fc-name">Frank Kobaai</div>
             <div class="fc-role">Founding team, Trainer, Software Developer</div>
             <p class="fc-quote">"I build and ship features for our web platforms, with real responsibility from day one."</p>
           </a>
@@ -1254,8 +1254,8 @@
           <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/diko/" tabindex="-1">
             <span class="fc-ring"></span>
             <span class="fc-portrait"><img loading="lazy" decoding="async" width="300" height="300" src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/diko_profile-300x300.webp" alt="" style="object-position: center 30%" /></span>
-            <div class="fc-name">Diko Mohamed</div>
-            <div class="fc-role">Founding team, Software Developer, Entrepreneur</div>
+            <div class="fc-name">Diko Mohammed</div>
+            <div class="fc-role">Founding team, Software Developer, Co-Founder of Afrigentic</div>
             <p class="fc-quote">"I turn opportunities into products. Right now that means integrations and new partnerships."</p>
           </a>
           <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/sjoerd/" tabindex="-1">
@@ -1282,14 +1282,14 @@
           <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/lessy/" tabindex="-1">
             <span class="fc-ring"></span>
             <span class="fc-portrait"><img loading="lazy" decoding="async" width="300" height="300" src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/lessy_profile-300x300.webp" alt="" style="object-position: center 25%" /></span>
-            <div class="fc-name">Lesiamon Mpoe</div>
+            <div class="fc-name">Finehas Lesiamon</div>
             <div class="fc-role">Founding team, Trainer, Software Developer</div>
             <p class="fc-quote">"I develop software and train new developers. Good software starts with understanding people."</p>
           </a>
           <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/frank/" tabindex="-1">
             <span class="fc-ring"></span>
             <span class="fc-portrait"><img loading="lazy" decoding="async" width="300" height="300" src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/frank_profile-300x300.webp" alt="" style="object-position: center 25%" /></span>
-            <div class="fc-name">Frank</div>
+            <div class="fc-name">Frank Kobaai</div>
             <div class="fc-role">Founding team, Trainer, Software Developer</div>
             <p class="fc-quote">"I build and ship features for our web platforms, with real responsibility from day one."</p>
           </a>

@@ -7,7 +7,7 @@
       "title": "Martien de Jong",
       "company": "ProsperGenics",
       "primary_skills": "AI agents & LLM systems",
-      "description_seo": "<p>Martien has been building software professionally since 2006: hospital systems, government platforms, rail apps, SEO automation. Somewhere along the way the question shifted from \"what can I build\" to \"how is value actually created\". ProsperGenics is his answer in progress: a community spanning the Netherlands and Kenya where people create value for themselves and each other, with software as the lever. Today he builds Jengo, the AI agent platform that runs most of what the community ships.</p>",
+      "description_seo": "<p>Martien has been building software professionally since 2006: hospital systems, government platforms, rail apps, SEO automation. He started as a software developer and IT trainer, and years of work for businesses and non-profits, at home and abroad, taught him that technology only matters when it empowers people. Somewhere along the way the question shifted from \"what can I build\" to \"how is value actually created\". ProsperGenics is his answer in progress: a community spanning the Netherlands and Kenya where people create value for themselves and each other, with software as the lever. Every project is a co-creation across borders and cultures: he brings technical expertise and an honest perspective, communities bring local knowledge, creativity and drive. People come first: clear communication, transparency, the courage to learn from failure and the ability to simplify the complex. Today he builds Jengo, the AI agent platform that runs most of what the community ships, and he is open to new connections, whether you are an entrepreneur, investor, changemaker or student.</p>",
       "fields": {
         "role": "Software Developer, Founder",
         "quote": "I'm building Jengo, our AI agent platform. It runs most of what we ship.",
@@ -18,7 +18,9 @@
           "AI agents & LLM systems",
           ".NET & web platforms",
           "Software architecture",
-          "SEO automation"
+          "SEO automation",
+          "IT training",
+          "Claude Code & Cursor coaching"
         ],
         "profile_url": "/people/martien/"
       }
@@ -28,7 +30,7 @@
       "title": "Simitia Mpoe",
       "company": "ProsperGenics",
       "primary_skills": "Web design",
-      "description_seo": "<p>Simitia came to the community to build, and that is exactly what she does: web products, design work, her own ventures. Every project adds a skill, and every skill flows back into her own business. She is one of the clearest examples of the ProsperGenics loop: learn by building, build to create value, reinvest the value in yourself.</p>",
+      "description_seo": "<p>Simitia came to the community to build, and that is exactly what she does: web products, design work, her own ventures. As part of the ProsperGenics founding team she leads the team in Kenya, and she is the personal assistant to Martien de Jong. She organises fundraisers for the sick and the elderly. Her newest venture is Maa-Link Ride, a ride-hailing app like Uber or Bolt that she is building. Every project adds a skill, and every skill flows back into her own business. She is one of the clearest examples of the ProsperGenics loop: learn by building, build to create value, reinvest the value in yourself.</p>",
       "fields": {
         "role": "Founding team, Software Developer, Entrepreneur",
         "quote": "I design and build web products, and I'm growing my own business with everything I learn.",
@@ -38,27 +40,31 @@
         "topics": [
           "Web design",
           "Front-end development",
-          "Entrepreneurship"
+          "Entrepreneurship",
+          "Team leadership",
+          "Fundraising"
         ],
         "profile_url": "/people/simitia/"
       }
     },
     {
       "slug": "diko",
-      "title": "Diko Mohamed",
+      "title": "Diko Mohammed",
       "company": "ProsperGenics",
-      "primary_skills": "Software development",
-      "description_seo": "<p>Diko's talent is seeing the opportunity before anyone else does, and then actually building it. Inside the community he develops software; outside it he opens doors: integrations, partnerships, contacts that connect ProsperGenics products to the wider tech world.</p>",
+      "primary_skills": "Project management",
+      "description_seo": "<p>Diko's talent is seeing the opportunity before anyone else does, and then actually building it. She is a project manager, software developer and tech problem-solver in one: a hybrid of project leadership and hands-on development who turns ideas into scalable digital solutions. With a strong eye for detail and a passion for clean, efficient code, she thrives in fast-paced environments, leading teams and shipping features. She is part of the ProsperGenics founding team and co-founded her own AI company, Afrigentic. Inside the community she develops software; outside it she opens doors: integrations, partnerships, contacts that connect ProsperGenics products to the wider tech world.</p>",
       "fields": {
-        "role": "Founding team, Software Developer, Entrepreneur",
+        "role": "Founding team, Software Developer, Co-Founder of Afrigentic",
         "quote": "I turn opportunities into products. Right now that means integrations and new partnerships.",
         "photo": "diko_profile-300x300.webp",
         "photo_pos": "center 30%",
         "initial": "D",
         "topics": [
+          "Project management",
           "Software development",
           "Integrations",
-          "Business development"
+          "Business development",
+          "Tech problem-solving"
         ],
         "profile_url": "/people/diko/"
       }
@@ -122,30 +128,40 @@
     },
     {
       "slug": "lessy",
-      "title": "Lesiamon Mpoe",
+      "title": "Finehas Lesiamon",
       "company": "ProsperGenics",
       "primary_skills": "Software development",
-      "description_seo": "<p>Lesiamon is part of the ProsperGenics founding team and carries two of its pillars: he builds software, and he builds the people who build software. New developers in the community learn the craft from him, task by task. His conviction: good software starts with understanding people.</p>",
+      "description_seo": "<p>Lesiamon was the very first participant in ProsperGenics and is part of its founding team. He carries two of its pillars: he builds software, and he builds the people who build software. New developers in the community learn the craft from him, task by task. His own work blends front-end creativity with back-end logic: WordPress sites and Angular web apps, Node.js back ends, Python with Flask, pages styled with SCSS, intuitive UI/UX and responsive design, GitHub workflows and, more recently, Java and XAMPP environments. His conviction: good software starts with understanding people.</p>",
       "fields": {
         "role": "Founding team, Trainer, Software Developer",
         "quote": "I develop software and train new developers. Good software starts with understanding people.",
         "photo": "lessy_profile-300x300.webp",
         "photo_pos": "center 25%",
-        "initial": "L",
+        "initial": "F",
         "topics": [
           "Software development",
           "Training & teaching",
-          "WordPress & websites"
+          "WordPress & websites",
+          "Angular",
+          "Node.js",
+          "SCSS",
+          "Python",
+          "Flask",
+          "Java",
+          "XAMPP",
+          "GitHub workflows",
+          "UI/UX design",
+          "Responsive design"
         ],
         "profile_url": "/people/lessy/"
       }
     },
     {
       "slug": "frank",
-      "title": "Frank",
+      "title": "Frank Kobaai",
       "company": "ProsperGenics",
       "primary_skills": "Web development",
-      "description_seo": "<p>Frank is a Kenyan software developer who got real responsibility from day one, and took it. He builds and ships features for the community's web platforms: from first commit to live deployment, including this website.</p>",
+      "description_seo": "<p>Frank is a Nairobi-based web developer on the ProsperGenics founding team who got real responsibility from day one, and took it. Frank builds and ships features for the community's web platforms: from first commit to live deployment, including this website. Web design and user experience are at the heart of the work: from the first idea to wireframes, from wireframes to Webflow builds, and from there to finished websites, merging design precision with technical expertise. Frank also knows AI well and is keen to share that knowledge, demystifying AI for others.</p>",
       "fields": {
         "role": "Founding team, Trainer, Software Developer",
         "quote": "I build and ship features for our web platforms, with real responsibility from day one.",
@@ -154,7 +170,12 @@
         "initial": "F",
         "topics": [
           "Web development",
-          "Shipping & deployment"
+          "Web design",
+          "User experience",
+          "Wireframing",
+          "Webflow",
+          "Shipping & deployment",
+          "AI"
         ],
         "profile_url": "/people/frank/"
       }

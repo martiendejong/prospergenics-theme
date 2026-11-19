@@ -173,6 +173,7 @@ ok( array( 'Organization', 'WebSite' ) === $types, 'Organization and WebSite nod
 ok( false !== strpos( $schema['@graph'][1]['potentialAction']['target'], '?s={search_term_string}' ), 'SearchAction points at WordPress search' );
 ok( '+254741619743' === $schema['@graph'][0]['contactPoint']['telephone'], 'contact point uses the WhatsApp number' );
 ok( false !== json_encode( $schema ), 'schema encodes as JSON' );
+ok( 'Martien de Jong' === $schema['@graph'][0]['founder']['name'] && 'Founder' === $schema['@graph'][0]['founder']['jobTitle'] && 'https://prospergenics.com/people/martien/' === $schema['@graph'][0]['founder']['url'], 'Organization founder: Martien de Jong only, the Founder (#6529, kept on 19 Nov)' );
 
 echo "One organisation description (CON-13)\n";
 $org = json_decode( file_get_contents( $theme . '/inc/site-chrome/organisation.json' ), true );

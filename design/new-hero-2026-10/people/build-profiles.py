@@ -78,26 +78,33 @@ FALLBACK = "This part of the story is still being written."
 # ONLY real ones (an endorsement someone actually gave), never placeholder names.
 PROFILES = [
     {
+        # Lesiamon, 19 Nov: legal names and the facts from the old team pages (/martien-2/ etc.);
+        # the titles stay as they were: Martien "Founder", the four others "Founding team" (#6529).
         "slug": "martien", "name": "Martien de Jong", "role": "Software Developer, Founder",
+        "pronouns": "he/him",
         "tags": ["expert", "member"], "slider": True,
         "img": "martien.webp", "pos": "45% 25%",
         "quote": "I'm building Jengo, our AI agent platform. It runs most of what we ship.",
-        "story": "Martien has been building software professionally since 2006: hospital systems, government platforms, rail apps, SEO automation. Somewhere along the way the question shifted from \"what can I build\" to \"how is value actually created\". ProsperGenics is his answer in progress: a community spanning the Netherlands and Kenya where people create value for themselves and each other, with software as the lever. Today he builds Jengo, the AI agent platform that runs most of what the community ships.",
+        "story": "Martien has been building software professionally since 2006: hospital systems, government platforms, rail apps, SEO automation. He started as a software developer and IT trainer, and years of work for businesses and non-profits, at home and abroad, taught him that technology only matters when it empowers people. Somewhere along the way the question shifted from \"what can I build\" to \"how is value actually created\". ProsperGenics is his answer in progress: a community spanning the Netherlands and Kenya where people create value for themselves and each other, with software as the lever. Every project is a co-creation across borders and cultures: he brings technical expertise and an honest perspective, communities bring local knowledge, creativity and drive. People come first: clear communication, transparency, the courage to learn from failure and the ability to simplify the complex. Today he builds Jengo, the AI agent platform that runs most of what the community ships, and he is open to new connections, whether you are an entrepreneur, investor, changemaker or student.",
         "contributions": [
             ("Jengo, the AI agent platform", "The system behind most of the community's products: autonomous agents that build, deploy and maintain real software."),
             ("The ProsperGenics community", "Founded the community and connects its Dutch and Kenyan sides: investment, training and real projects."),
+            ("Empowerment across borders", "Helps Dutch coaches build their online presence, empowers Kenyan youth in AI and works with Maasai communities on cultural preservation."),
             ("Developer training", "Brings new developers from first steps to shipping production work."),
+            ("Claude Code & Cursor coaching", "Direct, hands-on coaching for Dutch development teams. More on his website, <a href=\"https://martiendejong.nl\">martiendejong.nl</a>."),
         ],
         "expertises": [
             {"name": "AI agents & LLM systems"},
             {"name": ".NET & web platforms"},
             {"name": "Software architecture"},
             {"name": "SEO automation"},
+            {"name": "IT training"},
+            {"name": "Claude Code & Cursor coaching"},
         ],
         "expert_categories": ["ai-agents", "software-dev"],
         "work": [
             ("Founder & lead developer", "ProsperGenics", "Builds Jengo, the AI agent platform, and leads development across the community's products."),
-            ("Independent software developer", "Netherlands", "Two decades of web platforms and automation for Dutch organisations, including healthcare, government and rail."),
+            ("Independent software developer & IT trainer", "Netherlands and abroad", "Two decades of web platforms and automation for businesses and non-profits, including Dutch healthcare, government and rail."),
         ],
         "education": [
             ("Hogere Informatica", "Hogeschool Windesheim, Zwolle", "2002 - 2006"),
@@ -106,23 +113,30 @@ PROFILES = [
     },
     {
         "slug": "simitia", "name": "Simitia Mpoe", "role": "Founding team, Software Developer, Entrepreneur",
-        "aka": "Sandra",
+        "aka": "Sandra", "pronouns": "she/her",
         "tags": ["expert", "member"], "slider": True,
         "img": "sandra_profile-300x300.webp", "pos": "center 25%",
         "quote": "I design and build web products, and I'm growing my own business with everything I learn.",
-        "story": "Simitia came to the community to build, and that is exactly what she does: web products, design work, her own ventures. Every project adds a skill, and every skill flows back into her own business. She is one of the clearest examples of the ProsperGenics loop: learn by building, build to create value, reinvest the value in yourself.",
+        "story": "Simitia came to the community to build, and that is exactly what she does: web products, design work, her own ventures. As part of the ProsperGenics founding team she leads the team in Kenya, and she is the personal assistant to Martien de Jong. She organises fundraisers for the sick and the elderly. Her newest venture is Maa-Link Ride, a ride-hailing app like Uber or Bolt that she is building. Every project adds a skill, and every skill flows back into her own business. She is one of the clearest examples of the ProsperGenics loop: learn by building, build to create value, reinvest the value in yourself.",
         "contributions": [
+            ("Team lead in Kenya", "Leads the ProsperGenics team in Kenya."),
             ("Design & front-end work", "Designs and builds interfaces across the community's websites and products."),
+            ("Fundraisers", "Organises fundraisers for the sick and the elderly."),
+            ("Maa-Link Ride", "Founder of Maa-Link Ride, a ride-hailing app like Uber or Bolt that she is building."),
             ("Her own ventures", "Growing her own business with the skills she picks up in the community."),
         ],
         "expertises": [
             {"name": "Web design"},
             {"name": "Front-end development"},
             {"name": "Entrepreneurship"},
+            {"name": "Team leadership"},
+            {"name": "Fundraising"},
         ],
         "expert_categories": ["web-design", "business"],
         "work": [
-            ("Founding team & software developer", "ProsperGenics", "Design and front-end work on the community's websites and products."),
+            ("Founding team, team lead in Kenya & software developer", "ProsperGenics", "Leads the team in Kenya, with design and front-end work on the community's websites and products."),
+            ("Personal assistant to Martien de Jong", "", ""),
+            ("Founder", "Maa-Link Ride", "Building a ride-hailing app like Uber or Bolt."),
             ("Entrepreneur", "", "Building her own business alongside her development work."),
         ],
         "education": [
@@ -130,23 +144,29 @@ PROFILES = [
         ],
     },
     {
-        "slug": "diko", "name": "Diko Mohamed", "role": "Founding team, Software Developer, Entrepreneur",
+        "slug": "diko", "name": "Diko Mohammed", "role": "Founding team, Software Developer, Co-Founder of Afrigentic",
+        "pronouns": "she/her",
         "tags": ["expert", "member"], "slider": True,
         "img": "diko_profile-300x300.webp", "pos": "center 30%",
         "quote": "I turn opportunities into products. Right now that means integrations and new partnerships.",
-        "story": "Diko's talent is seeing the opportunity before anyone else does, and then actually building it. Inside the community he develops software; outside it he opens doors: integrations, partnerships, contacts that connect ProsperGenics products to the wider tech world.",
+        "story": "Diko's talent is seeing the opportunity before anyone else does, and then actually building it. She is a project manager, software developer and tech problem-solver in one: a hybrid of project leadership and hands-on development who turns ideas into scalable digital solutions. With a strong eye for detail and a passion for clean, efficient code, she thrives in fast-paced environments, leading teams and shipping features. She is part of the ProsperGenics founding team and co-founded her own AI company, Afrigentic. Inside the community she develops software; outside it she opens doors: integrations, partnerships, contacts that connect ProsperGenics products to the wider tech world.",
         "contributions": [
+            ("Project leadership", "Leads teams and ships features, turning ideas into scalable digital solutions."),
             ("Partnerships & integrations", "Connects the community's products to outside platforms and partners."),
-            ("Product development", "Builds and ships software across community projects."),
+            ("Product development", "Builds and ships software across community projects, with clean, efficient code."),
+            ("Afrigentic", "Co-founded Afrigentic, her own AI company."),
         ],
         "expertises": [
+            {"name": "Project management"},
             {"name": "Software development"},
             {"name": "Integrations"},
             {"name": "Business development"},
+            {"name": "Tech problem-solving"},
         ],
         "expert_categories": ["software-dev", "business"],
         "work": [
-            ("Founding team & software developer", "ProsperGenics", "Product development, integrations and partner contacts."),
+            ("Founding team, project manager & software developer", "ProsperGenics", "Project leadership and hands-on development: products, integrations and partner contacts."),
+            ("Co-Founder of Afrigentic", "", "Her own AI company."),
         ],
         "education": [
             ("Hands-on developer training", "ProsperGenics", "Learning by building, on real projects with real users."),
@@ -215,22 +235,34 @@ PROFILES = [
         ],
     },
     {
-        "slug": "lessy", "name": "Lesiamon Mpoe", "role": "Founding team, Trainer, Software Developer",
+        # his legal name (19 Nov, was "Lesiamon Mpoe"); "Lessy" stays as aka so the chat knows the name
+        "slug": "lessy", "name": "Finehas Lesiamon", "role": "Founding team, Trainer, Software Developer",
         "aka": "Lessy", "pronouns": "he/him",  # confirmed by Lesiamon (8 Nov); also branch fix/lessy-profile-pronouns
         "tags": ["expert", "member"], "slider": True,
         "img": "lessy_profile-300x300.webp", "pos": "center 25%",
         "quote": "I develop software and train new developers. Good software starts with understanding people.",
-        "story": "Lesiamon is part of the ProsperGenics founding team and carries two of its pillars: he builds software, and he builds the people who build software. New developers in the community learn the craft from him, task by task. His conviction: good software starts with understanding people.",
+        "story": "Lesiamon was the very first participant in ProsperGenics and is part of its founding team. He carries two of its pillars: he builds software, and he builds the people who build software. New developers in the community learn the craft from him, task by task. His own work blends front-end creativity with back-end logic: WordPress sites and Angular web apps, Node.js back ends, Python with Flask, pages styled with SCSS, intuitive UI/UX and responsive design, GitHub workflows and, more recently, Java and XAMPP environments. His conviction: good software starts with understanding people.",
         "contributions": [
+            ("The first participant", "The first person to take part in ProsperGenics, and part of its founding team."),
             ("Developer training", "Trains the community's new developers, from first task to production work."),
-            ("Websites & web applications", "Builds and maintains software across the community's projects."),
+            ("Websites & web applications", "Builds and maintains software across the community's projects, from WordPress sites to Angular web apps with Node.js or Flask back ends."),
         ],
         "expertises": [
             {"name": "Software development"},
             {"name": "Training & teaching"},
             {"name": "WordPress & websites"},
+            {"name": "Angular"},
+            {"name": "Node.js"},
+            {"name": "SCSS"},
+            {"name": "Python"},
+            {"name": "Flask"},
+            {"name": "Java"},
+            {"name": "XAMPP"},
+            {"name": "GitHub workflows"},
+            {"name": "UI/UX design"},
+            {"name": "Responsive design"},
         ],
-        "expert_categories": ["software-dev", "training", "wordpress"],
+        "expert_categories": ["software-dev", "training", "wordpress", "web-design"],
         "work": [
             ("Founding team, trainer & software developer", "ProsperGenics", "Websites and web applications across the community's projects, and training for new developers."),
         ],
@@ -239,21 +271,30 @@ PROFILES = [
         ],
     },
     {
-        "slug": "frank", "name": "Frank", "role": "Founding team, Trainer, Software Developer",
+        # no pronouns stated: the text uses the name only
+        "slug": "frank", "name": "Frank Kobaai", "role": "Founding team, Trainer, Software Developer",
         "tags": ["expert", "member"], "slider": True,
         "img": "frank_profile-300x300.webp", "pos": "center 25%",
         "quote": "I build and ship features for our web platforms, with real responsibility from day one.",
-        "story": "Frank is a Kenyan software developer who got real responsibility from day one, and took it. He builds and ships features for the community's web platforms: from first commit to live deployment, including this website.",
+        "story": "Frank is a Nairobi-based web developer on the ProsperGenics founding team who got real responsibility from day one, and took it. Frank builds and ships features for the community's web platforms: from first commit to live deployment, including this website. Web design and user experience are at the heart of the work: from the first idea to wireframes, from wireframes to Webflow builds, and from there to finished websites, merging design precision with technical expertise. Frank also knows AI well and is keen to share that knowledge, demystifying AI for others.",
         "contributions": [
             ("Platform features", "Builds and ships features for the community's web platforms, end to end."),
+            ("Websites from idea to launch", "Web design and user experience: from idea to wireframes to Webflow builds to finished websites."),
+            ("Demystifying AI", "Shares knowledge of AI and demystifies it, so others can grasp what it can do."),
         ],
         "expertises": [
             {"name": "Web development"},
+            {"name": "Web design"},
+            {"name": "User experience"},
+            {"name": "Wireframing"},
+            {"name": "Webflow"},
             {"name": "Shipping & deployment"},
+            {"name": "AI"},
         ],
         "expert_categories": ["web-design", "software-dev"],
         "work": [
             ("Founding team, trainer & software developer", "ProsperGenics", "Feature development on the community's web platforms, and training for new developers."),
+            ("Web developer", "Nairobi", "Web design and user experience, from wireframes to Webflow builds to finished websites."),
         ],
         "education": [
             ("Hands-on developer training", "ProsperGenics", "Learning by building, on real projects with real users."),
@@ -488,6 +529,7 @@ PROFILE_PAGE = """<!DOCTYPE html>
   .card h3 {{ font-weight:700; font-size:17px; color:var(--green-900); }}
   .card .org {{ font-size:13.5px; color:var(--muted); margin-top:2px; }}
   .card p {{ font-size:15px; line-height:1.6; color:var(--body); margin-top:8px; }}
+  .card p a {{ color:var(--green-700); font-weight:600; text-underline-offset:3px; }}
   .bg-grid {{ display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:clamp(20px,3vw,40px); max-width:900px; }}
   .bg-grid h3 {{ font-weight:800; font-size:17px; color:var(--ink); margin-bottom:12px; }}
   .bg-grid .cards {{ gap:10px; }}

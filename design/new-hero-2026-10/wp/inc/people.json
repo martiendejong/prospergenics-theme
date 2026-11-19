@@ -12,9 +12,12 @@
         "AI agents & LLM systems",
         ".NET & web platforms",
         "Software architecture",
-        "SEO automation"
+        "SEO automation",
+        "IT training",
+        "Claude Code & Cursor coaching"
       ],
       "members": true,
+      "pronouns": "he/him",
       "expert_categories": [
         "ai-agents",
         "software-dev"
@@ -30,28 +33,34 @@
       "expertises": [
         "Web design",
         "Front-end development",
-        "Entrepreneurship"
+        "Entrepreneurship",
+        "Team leadership",
+        "Fundraising"
       ],
       "members": true,
       "aka": "Sandra",
+      "pronouns": "she/her",
       "expert_categories": [
         "web-design",
         "business"
       ]
     },
     "diko": {
-      "name": "Diko Mohamed",
-      "role": "Founding team, Software Developer, Entrepreneur",
+      "name": "Diko Mohammed",
+      "role": "Founding team, Software Developer, Co-Founder of Afrigentic",
       "img": "diko_profile-300x300.webp",
       "pos": "center 30%",
       "initial": "D",
       "quote": "I turn opportunities into products. Right now that means integrations and new partnerships.",
       "expertises": [
+        "Project management",
         "Software development",
         "Integrations",
-        "Business development"
+        "Business development",
+        "Tech problem-solving"
       ],
       "members": true,
+      "pronouns": "she/her",
       "expert_categories": [
         "software-dev",
         "business"
@@ -100,16 +109,26 @@
       "members": true
     },
     "lessy": {
-      "name": "Lesiamon Mpoe",
+      "name": "Finehas Lesiamon",
       "role": "Founding team, Trainer, Software Developer",
       "img": "lessy_profile-300x300.webp",
       "pos": "center 25%",
-      "initial": "L",
+      "initial": "F",
       "quote": "I develop software and train new developers. Good software starts with understanding people.",
       "expertises": [
         "Software development",
         "Training & teaching",
-        "WordPress & websites"
+        "WordPress & websites",
+        "Angular",
+        "Node.js",
+        "SCSS",
+        "Python",
+        "Flask",
+        "Java",
+        "XAMPP",
+        "GitHub workflows",
+        "UI/UX design",
+        "Responsive design"
       ],
       "members": true,
       "aka": "Lessy",
@@ -117,11 +136,12 @@
       "expert_categories": [
         "software-dev",
         "training",
-        "wordpress"
+        "wordpress",
+        "web-design"
       ]
     },
     "frank": {
-      "name": "Frank",
+      "name": "Frank Kobaai",
       "role": "Founding team, Trainer, Software Developer",
       "img": "frank_profile-300x300.webp",
       "pos": "center 25%",
@@ -129,7 +149,12 @@
       "quote": "I build and ship features for our web platforms, with real responsibility from day one.",
       "expertises": [
         "Web development",
-        "Shipping & deployment"
+        "Web design",
+        "User experience",
+        "Wireframing",
+        "Webflow",
+        "Shipping & deployment",
+        "AI"
       ],
       "members": true,
       "expert_categories": [

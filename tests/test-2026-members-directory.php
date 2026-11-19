@@ -99,7 +99,9 @@ ok( false !== strpos( $out, '<p class="pg-count">' . count( $listed ) . ' member
 
 echo "Nothing stale left (#6516, #6523)\n";
 ok( false === strpos( $out, 'Every task I pick up teaches me something' ) && false === strpos( $out, 'I started by asking questions. Now people come to ask me.' ), 'no placeholder quotes' );
-ok( false === strpos( $out, '<div class="dc-title">Lessy</div>' ) && false === strpos( $out, 'Co-Founder' ), 'no "Lessy" card name, no "Co-Founder"' );
+ok( false === strpos( $out, '<div class="dc-title">Lessy</div>' ) && false === strpos( $out, 'Lesiamon Mpoe' ), 'no "Lessy" or "Lesiamon Mpoe" card name' );
+ok( ! preg_match( '/Co-Founder(?! of Afrigentic)/', $out ), 'no "Co-Founder" title (only Diko\'s own company, Afrigentic)' );
+ok( false !== strpos( $out, '<div class="dc-title">Finehas Lesiamon</div>' ) && false !== strpos( $out, '<div class="dc-title">Diko Mohammed</div>' ) && false !== strpos( $out, '<div class="dc-title">Frank Kobaai</div>' ), 'the legal names (19 Nov) come from PROFILES' );
 // The whole page as a visitor gets it: the takeover buffer plus the ItemList the plugin prints before it.
 $full = prospergenics_2026_members_itemlist( $out, prospergenics_2026_members_people(), TEST_HOME );
 ok( ! preg_match( '#/members/[a-z0-9-]+/#', $full ), 'no link to a /members/<slug>/ page, in the cards or the JSON-LD' );
@@ -127,7 +129,7 @@ $GLOBALS['__filters']['prospergenics_2026_listings_member_badges'] = function ( 
 $with = prospergenics_2026_listings_takeover( $page, '/members/', $chrome );
 unset( $GLOBALS['__filters'] );
 ok( is_array( $seen ) && array_column( $listed, 'slug' ) === $seen, 'the badge filter gets the /people/ slugs of the new cards' );
-ok( false !== strpos( $with, '<div class="dc-title">Lesiamon Mpoe ' . $badge . '</div>' ), 'the badge sits after the name on the rebuilt card' );
+ok( false !== strpos( $with, '<div class="dc-title">Finehas Lesiamon ' . $badge . '</div>' ), 'the badge sits after the name on the rebuilt card' );
 $rules = prospergenics_2026_parse_redirects_for_test( file_get_contents( $theme . '/inc/person-redirects.txt' ) );
 $unmapped = array();
 foreach ( $listed as $m ) {
@@ -168,7 +170,7 @@ $ld  = prospergenics_2026_members_itemlist( $fixture, $people, TEST_HOME );
 preg_match( '#<script type="application/ld\+json">(\{"@context":"https://schema\.org","@type":"ItemList".*?)</script>#s', $ld, $m );
 $data = $m ? json_decode( $m[1], true ) : null;
 ok( $data && count( $listed ) === $data['numberOfItems'] && count( $listed ) === count( $data['itemListElement'] ), 'the plugin\'s ItemList now has ' . count( $listed ) . ' people' );
-ok( $data && TEST_HOME . '/people/lessy/' === $data['itemListElement'][6]['url'] && 'Lesiamon Mpoe' === $data['itemListElement'][6]['name'], 'with /people/ URLs and PROFILES names' );
+ok( $data && TEST_HOME . '/people/lessy/' === $data['itemListElement'][6]['url'] && 'Finehas Lesiamon' === $data['itemListElement'][6]['name'], 'with /people/ URLs and PROFILES names' );
 ok( false === strpos( $ld, '"name":"Lessy"' ) && 1 === substr_count( $ld, '"@type":"ItemList"' ), 'the stale list is gone, not duplicated' );
 ok( $fixture === prospergenics_2026_members_itemlist( $fixture, $people, 'https://elsewhere.example' ), 'an ItemList for another URL is left alone' );
 $src = file_get_contents( $theme . '/inc/members-directory.php' );
