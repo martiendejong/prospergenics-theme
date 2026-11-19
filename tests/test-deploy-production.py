@@ -2,7 +2,8 @@
 """
 Tests for the production deploy path (card #7232): the production gate (prod_gate.py), the production
 target of deploy-wp-theme-vimexx.py, the database/uploads backup (backup-site.py), the smoke check's
-results file and smoke-compare.sh, and the shape of .github/workflows/deploy-production.yml.
+results file and smoke-compare.sh, and the shape of .github/workflows/deploy-production.yml and
+(card #6473) .github/workflows/backup-production.yml.
 No server, no secrets: FTP, HTTP and the GitHub API are fakes. Exits non-zero on failure.
 
     python3 tests/test-deploy-production.py
@@ -335,6 +336,20 @@ try:
     ok(d["jobs"]["deploy"]["environment"]["name"] == "production" and d["jobs"]["deploy"]["needs"] == "gate", "valid YAML with the same structure")
 except ImportError:
     print("skip (no PyYAML)")
+
+print("backup-production.yml (card #6473)")
+bk = open(os.path.join(ROOT, ".github", "workflows", "backup-production.yml"), encoding="utf-8").read()
+ok(re.search(r"schedule:\n\s+- cron: '17 2 \* \* \*'", bk) and "workflow_dispatch:" in bk, "every night (02:17 UTC), and by hand")
+ok("environment: production-backup" in bk and "environment: production\n" not in bk, "its own environment, so the nightly run needs no approval and the deploy's approval stays")
+ok(bk.count("--encrypt-to \"$RUNNER_TEMP/backup-key.asc\"") == 2 and "--db" in bk and "--uploads" in bk, "database and uploads, both encrypted")
+ok(bk.count("retention-days: 30") == 2 and "production-daily-db-" in bk and "production-daily-uploads-" in bk, "kept 30 days as artifacts, off the host")
+ok('alert-issue.sh open "Daily backup failing"' in bk and 'alert-issue.sh close "Daily backup failing"' in bk, "a failed night opens the alert issue, the next good one closes it")
+for name in ("Back up the database", "Back up the uploads"):
+    step = bk[bk.index("- name: " + name):]
+    step = step[:step.index("\n      - ")] if "\n      - " in step else step
+    ok("shell: bash" in step and "| tee" in step, f"{name}: shell: bash, so tee does not hide a failure (pipefail)")
+ok("--target production" not in bk and "deploy-wp-theme-vimexx.py" not in bk, "it only reads: no upload")
+ok("ready=false" in bk and "::notice::No backup" in bk, "without the secrets it ends with a notice")
 
 print(f"\n{'all passed' if not fails else str(fails) + ' failed'}")
 sys.exit(1 if fails else 0)

@@ -11,7 +11,8 @@ and the owner still have to provide. Card 6473, audit ARC-17 / ARC-18.
 | Lint, unit tests, generated-files check | `.github/workflows/ci.yml`, job `test` | every PR, pushes to `master` and `design/new-hero-2026-10` |
 | Role/permission matrix against a real WordPress | `ci.yml`, job `wordpress-roles` (`tests/e2e/`) | same |
 | Deploy to test (backup, upload, prune, smoke check) | `.github/workflows/deploy-test.yml` | every push to `design/new-hero-2026-10` |
-| Uptime check of test | `.github/workflows/uptime.yml` (`tests/smoke/uptime-check.sh`) | every 30 minutes |
+| Uptime check of test **and production** | `.github/workflows/uptime.yml` (`tests/smoke/uptime-check.sh`) | every 30 minutes |
+| Daily backup of production's database and uploads, off the host | `.github/workflows/backup-production.yml` (`backup-site.py`) | every night, 02:17 UTC |
 | Production deploy (gate, approval, database + uploads + theme backup, upload, smoke check) | `.github/workflows/deploy-production.yml` | by hand: *Run workflow*, then a reviewer approves |
 
 ### How a deploy reaches each site (card #7232)
@@ -127,8 +128,8 @@ artifacts are visible to anyone with a GitHub account).
 
 | Item | Where it lives | Covered by |
 |---|---|---|
-| Database (posts, courses, articles, users, profiles, contact messages, settings) | MySQL on the host | before every production deploy (artifact `production-db-<sha>`, encrypted, 30 days, once `PROSPERGENICS_BACKUP_KEY` is set); host backup for the daily copy (see below) |
-| `wp-content/uploads/` (profile photos, featured media, course thumbnails) | host disk | before every production deploy (artifact `production-uploads-<sha>`, encrypted, 30 days); host backup for the daily copy |
+| Database (posts, courses, articles, users, profiles, contact messages, settings) | MySQL on the host | **every night** (`backup-production.yml`, artifact `production-daily-db-<date>`) and before every production deploy (`production-db-<sha>`): encrypted, off the host, 30 days, once the setup below is done; the host backup as a second layer |
+| `wp-content/uploads/` (profile photos, featured media, course thumbnails) | host disk | **every night** (`production-daily-uploads-<date>`; variable `BACKUP_UPLOADS` = `weekly` or `off` to do less) and before every production deploy (`production-uploads-<sha>`); the host backup as a second layer |
 | `wp-config.php` (DB login, salts, SMTP settings) | host disk | host backup; keep a copy in the vault |
 | Theme `prospergenics-2026` | git + host | git, plus a download of the live theme before every deploy (artifact `theme-backup-<sha>`, 30 days) |
 | Static pages `people/`, `experts/`, `community/`, `team/` | git + host | git (rebuilt and re-uploaded on every deploy) |
@@ -137,11 +138,23 @@ artifacts are visible to anyone with a GitHub account).
 The database and uploads change every day once members sign up; the theme only changes with a
 deploy. Losing the database loses every account, profile, enrolment and certificate.
 
-### How (database and uploads: set up by a person at the host, card #6473)
+### How (card #6473)
 
-The repository cannot do this part: the Vimexx/DirectAdmin account and Cloudflare are not
-reachable from GitHub or from the agents, and there are no host credentials in the repository.
 The target is **daily, 30 days kept, a copy off the host, a failure noticed, a restore tested**.
+
+**In the repository (since 19 Nov):** `.github/workflows/backup-production.yml` backs up production's
+database and `wp-content/uploads/` every night with `backup-site.py` (the same as before a deploy),
+encrypted for `BACKUP_GPG_PUBLIC_KEY`, as GitHub Actions artifacts kept **30 days**: off the host, on
+GitHub. A failed run opens the issue *Daily backup failing* (label `alert`); the next good run closes it.
+It needs, once: the Environment `production-backup` (no reviewers, deployment branches `develop` and
+`design/new-hero-2026-10`) with the secrets `PROD_FTP_USERNAME`, `PROD_FTP_PASSWORD`, `PROD_BACKUP_KEY`;
+the variable `BACKUP_GPG_PUBLIC_KEY`; `PROSPERGENICS_BACKUP_KEY` in production's `wp-config.php`; and a
+production theme that has `inc/ops-backup.php` (the first deploy through `deploy-production.yml`). Until
+then each run ends with a notice. Check once a month: *Actions → Daily backup of prospergenics.com*
+shows a green run for each of the last 30 days; download one and decrypt it (`gpg -d`).
+
+**At the host (a second layer, set up by a person):** the Vimexx/DirectAdmin account is not reachable
+from GitHub or the agents. A host backup also covers `wp-config.php`, the plugins and more than 30 days.
 
 1. **Daily backups at the host.** DirectAdmin → *Create/Restore Backups* (or *Backup settings* in
    the Vimexx panel): check that the package makes an automatic backup **every day** that includes
@@ -201,9 +214,12 @@ example `restore.prospergenics.com`) rather than over the test site, so a bad re
 ## Monitoring and alerts
 
 - **Uptime** (`uptime.yml`, every 30 minutes): `/`, `/courses/`, `/articles/` and `/wp-login.php` on
-  test.prospergenics.com must answer 200 or 302 and show no PHP fatal error, critical-error page
-  or database-connection error. Each URL gets three tries 20 s apart. Any failure fails the run
-  and opens the alert issue (see "Where alerts go").
+  test.prospergenics.com **and prospergenics.com** must answer 200 or 302 and show no PHP fatal error,
+  critical-error page or database-connection error. Each URL gets three tries 20 s apart. Any failure
+  fails that site's row and opens its alert issue (see "Where alerts go"). Production is checked unless
+  the repository variable `UPTIME_PRODUCTION` is `off`; `PRODUCTION_URL` changes its address. (19 Nov,
+  by hand: all four pages answer 200 on production.)
+- **Daily backup** (`backup-production.yml`): a failed night opens the issue *Daily backup failing*.
 - **After every deploy** (`deploy-test.yml`): `tests/smoke/smoke-check.sh` checks the static pages,
   the platform routes (`/courses/`, `/articles/`, `/profile/` → 302 to login, the
   `prospergenics/v1/courses` JSON), a public member profile (`/in/martien-de-jong/`,
@@ -227,8 +243,10 @@ example `restore.prospergenics.com`) rather than over the test site, so a bad re
 
 ### Where alerts go
 
-- **The alert issue.** A failing uptime check opens the GitHub issue *Uptime check failing*, a
-  failed upload or post-deploy smoke check the issue *Deploy to test failing* (label `alert`,
+- **The alert issue.** A failing uptime check opens the GitHub issue *Uptime check failing* (test) or
+  *Uptime check failing: prospergenics.com* (production), a failed upload or post-deploy smoke check
+  *Deploy to test failing* or *Deploy to production failing*, a failed nightly backup *Daily backup
+  failing* (label `alert`,
   `tests/smoke/alert-issue.sh`, with the workflow's own token: no extra secret). Later failures
   comment on the open issue instead of opening another; the next passing run closes it. GitHub
   notifies everyone who **watches** the repository (*Watch → All activity*, or *Custom → Issues*),
@@ -245,9 +263,9 @@ example `restore.prospergenics.com`) rather than over the test site, so a bad re
   UptimeRobot or Better Stack on the same four URLs, free tier, which also checks independently of
   GitHub; or Twilio/CallMeBot called from the workflow with its token as a repository secret).
 
-Test the alert once: *Actions → Uptime test.prospergenics.com → Run workflow*, `base_url`
-`https://test.prospergenics.com/no-such-site` → the run fails and the issue opens; run it again
-with the default URL → the issue closes.
+Test the alert once: *Actions → Uptime test.prospergenics.com and prospergenics.com → Run workflow*,
+`base_url` `https://test.prospergenics.com/no-such-site` (only the test row runs) → the run fails and the
+issue opens; run it again with `base_url` empty → the issue closes (done on 8 Nov: issue #84).
 
 Limits of the GitHub schedule: it only runs from the repository's **default branch (`develop`)**,
 so `uptime.yml` has to be merged there before it fires; runs can start several minutes late when
@@ -282,19 +300,27 @@ GitHub is busy; and GitHub disables schedules in a public repository after 60 da
 
 ## Still needs the owner
 
-Card #6473 cannot be closed from the repository alone. In this order:
+Card #6473 cannot be closed from the repository alone. What it waits for (its "execution input"
+since 8 Nov): the choice of an off-host backup target, the DirectAdmin backup schedule (Vimexx SSO,
+not reachable by an agent), confirmation that the test fatal-error email reached info@martiendejong.nl,
+and then the restore test. Since 19 Nov the repository offers the off-host target itself (the nightly
+encrypted GitHub artifacts above), so the list is, in this order:
 
-- [ ] Choose the off-host backup target (storage box, Jengo dev server, or cloud storage via
-      UpdraftPlus) and the team alert address.
-- [ ] Vimexx/DirectAdmin: daily backups of the database **and** the files, kept 30 days, copied
-      off the host, with a failure email to the team address (steps 1-3 under "Backups → How").
+- [ ] Accept GitHub Actions artifacts (encrypted, 30 days) as the off-host target, or choose another
+      (storage box, Jengo dev server, UpdraftPlus to cloud storage); and the team alert address.
+- [ ] For the nightly backup: a GnuPG key pair for backups (the public half as `BACKUP_GPG_PUBLIC_KEY`,
+      the private half only in the vault), `PROSPERGENICS_BACKUP_KEY` in production's `wp-config.php`,
+      the Environment `production-backup` with its three secrets; deploy production once through
+      `deploy-production.yml` so it has the backup endpoint; merge `backup-production.yml` to `develop`.
+- [ ] Vimexx/DirectAdmin (second layer): daily backups of the database **and** the files, kept 30 days,
+      with a failure email to the team address (steps 1-3 under "Backups → How").
 - [ ] `wp-config.php` on test and production: `define( 'PROSPERGENICS_ALERT_EMAIL', '<team address>' );`
       (and `RECOVERY_MODE_EMAIL` to the same address); check that outgoing mail works (SMTP).
       Then trigger a test fatal on the test site (a temporary file `wp-content/mu-plugins/pg-fatal-test.php`
       with `<?php add_action( 'wp', function () { if ( isset( $_GET['pg_fatal_test'] ) ) { pg_no_such_function(); } } );`,
       open `/?pg_fatal_test=1`, delete the file) and confirm the email and the `/manage/` entry.
-- [ ] Merge `uptime.yml` to `develop` (the default branch) so the schedule runs; watch the
-      repository or set `ALERT_ASSIGNEES`; run the alert test under "Where alerts go".
+- [ ] Merge `uptime.yml` (now with production) to `develop` (the default branch) so the schedule runs;
+      watch the repository or set `ALERT_ASSIGNEES`.
 - [ ] Do the first restore test and record it below.
 - [ ] WhatsApp/SMS alerts, if wanted: choose a provider (external monitor, or Twilio/CallMeBot from the workflow) and add its key as a secret.
 - [ ] Production deploys (card #7232): create the Environment `production` with required reviewers and
