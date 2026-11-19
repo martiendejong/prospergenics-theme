@@ -126,6 +126,12 @@ $person_cases = array(
 	'/our-team/'                => '/members/',
 	'/people/'                  => '/members/',       // the bare /people/ path, when it reaches WordPress (card #7226)
 	'/people'                   => '/members/',
+	// the legal names (19 Nov) as listing slugs; the old name slugs keep working
+	'/members/finehas-lesiamon/' => '/people/lessy/',
+	'/members/lesiamon-mpoe/'   => '/people/lessy/',
+	'/members/frank-kobaai/'    => '/people/frank/',
+	'/members/diko-mohammed/'   => '/people/diko/',
+	'/members/diko-mohamed/'    => '/people/diko/',
 );
 foreach ( $person_cases as $from => $to ) {
 	$r = person_route( $from );

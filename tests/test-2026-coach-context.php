@@ -39,8 +39,12 @@ ok( isset( $people['lessy'] ) && 'he/him' === $people['lessy']['pronouns'] && 'L
 ok( isset( $people['simitia'] ) && 'Sandra' === $people['simitia']['aka'], 'Simitia is also called Sandra' );
 
 $visitor = prospergenics_2026_coach_context( 0 );
-ok( false !== strpos( $visitor, '- Lesiamon Mpoe (also called Lessy), pronouns he/him: Founding team, Trainer, Software Developer. Profile: https://test.example/people/lessy/' ), 'the chat is told who Lessy is, with he/him' );
-ok( (bool) preg_match( '/Founder: Martien de Jong\. Founding team: [^.]*Lesiamon Mpoe[^.]*\. Nobody is called a co-founder\./', $visitor ), 'founder and founding team come from the people data, in Martien\'s wording' );
+ok( false !== strpos( $visitor, '- Finehas Lesiamon (also called Lessy), pronouns he/him: Founding team, Trainer, Software Developer. Profile: https://test.example/people/lessy/' ), 'the chat is told who Lessy is: his legal name, still known as Lessy, he/him' );
+ok( false !== strpos( $visitor, "\nFounder: Martien de Jong. Founding team: Simitia Mpoe, Diko Mohammed, Finehas Lesiamon, Frank Kobaai. Nobody is called a co-founder of ProsperGenics.\n" ), 'founder and founding team come from the people data, in Martien\'s wording (#6529, kept on 19 Nov)' );
+ok( false === strpos( $visitor, 'Co-Founder at' ), 'no "Co-Founder at ProsperGenics" title' );
+ok( false !== strpos( $visitor, '- Diko Mohammed, pronouns she/her: Founding team, Software Developer, Co-Founder of Afrigentic.' ) && false !== strpos( $visitor, '- Simitia Mpoe (also called Sandra), pronouns she/her: Founding team, Software Developer, Founder of Maa-Link Ride.' ) && false !== strpos( $visitor, '- Martien de Jong, pronouns he/him: Software Developer, Founder.' ), 'Diko, Simitia and Martien: names, pronouns and titles (Diko co-founded her own company, Afrigentic: not counted as a Founder)' );
+ok( false !== strpos( $visitor, '- Frank Kobaai: Founding team, Trainer, Software Developer.' ), 'Frank: no pronouns stated, none given' );
+ok( false === strpos( $visitor, 'Lesiamon Mpoe' ) && false === strpos( $visitor, 'Diko Mohamed,' ), 'the old names are gone' );
 ok( false !== strpos( $visitor, 'When none are listed, use their name or they/them; never guess.' ), 'no guessing pronouns that are not listed' );
 ok( false !== strpos( $visitor, 'is a visitor who is not logged in' ), 'a visitor is not given anyone\'s identity' );
 ok( mb_strlen( $visitor ) <= PROSPERGENICS_2026_COACH_CONTEXT_MAX, 'the context fits in what embed.js sends (8000 characters)' );
@@ -49,14 +53,14 @@ $GLOBALS['users'][7] = (object) array( 'ID' => 7, 'display_name' => 'Lesiamon Mp
 $GLOBALS['meta'][7]  = array( '_pg_people_slug' => 'lessy' );
 $member = prospergenics_2026_coach_context( 7 );
 ok( false !== strpos( $member, 'The person chatting is logged in as Lesiamon Mpoe (member and course instructor, writes articles); their member profile is https://test.example/in/lesiamon-mpoe/.' ), 'a member is told who they are: name, role, profile' );
-ok( false !== strpos( $member, 'They are this person from the ProsperGenics team list: Lesiamon Mpoe (also called Lessy), pronouns he/him' ), 'a member linked to a /people/ page gets their team entry' );
+ok( false !== strpos( $member, 'They are this person from the ProsperGenics team list: Finehas Lesiamon (also called Lessy), pronouns he/him' ), 'a member linked to a /people/ page gets their team entry' );
 ok( false === strpos( $member, 'secret@example.test' ), 'the email address is never sent' );
 
 $GLOBALS['me'] = 7;
 $tag = prospergenics_2026_coach_embed();
 ok( 0 === strpos( $tag, '<script src="https://coaching.martiendejong.nl/coaching/embed.js?v=2" data-tenant="prospergenics"' ) && false !== strpos( $tag, 'data-trigger=".launcher-orb"' ) && false !== strpos( $tag, ' async></script>' ), 'the script tag keeps every CoachOS setting the homepage had' );
 ok( false !== strpos( $tag, 'postMessage({type:"co-pagina-context",content:c},O)' ) && false !== strpos( $tag, '[400,1200,3000,6000]' ), 'the context is posted again after the chat iframe loads (embed.js sends it before the chat listens)' );
-ok( (bool) preg_match( '/data-page-content="[^"]*Lesiamon Mpoe \(also called Lessy\), pronouns he\/him/', $tag ), 'the context goes in data-page-content' );
+ok( (bool) preg_match( '/data-page-content="[^"]*Finehas Lesiamon \(also called Lessy\), pronouns he\/him/', $tag ), 'the context goes in data-page-content' );
 $GLOBALS['users'][8] = (object) array( 'ID' => 8, 'display_name' => '"><script>alert(1)</script>', 'roles' => array(), 'user_email' => 'x@example.test' );
 $GLOBALS['me'] = 8;
 ok( false === strpos( prospergenics_2026_coach_embed(), '<script>alert(1)' ), 'a display name cannot break out of the attribute' );
