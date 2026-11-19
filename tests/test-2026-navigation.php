@@ -492,6 +492,14 @@ ok( false !== strpos( prospergenics_2026_listings_skip_target( $skip_html, $skip
 ok( false !== strpos( prospergenics_2026_listings_skip_target( $skip_header . '<div id="hero">y</div>', $skip_header ), '<div id="main" tabindex="-1"></div><div id="hero">' ), 'an element that has an id of its own keeps it; an empty target goes before it' );
 ok( 'x' === prospergenics_2026_listings_skip_target( 'x', $skip_header ) && $skip_header . '<p id="main">' === prospergenics_2026_listings_skip_target( $skip_header . '<p id="main">', $skip_header ), 'no header found, or a #main already there: the page is left as it was' );
 ok( false !== strpos( $css, '#main[tabindex="-1"]:focus { outline: none; }' ), 'the focused skip target (a whole banner or breadcrumb) gets no focus ring of its own' );
+// #7761: the skip scrolled #main under the sticky header, hiding the breadcrumb that takes the next Tab.
+$hh_wide   = preg_match( '#  :root \{ --header-h: (\d+)px; \}#', $css, $hw ) ? (int) $hw[1] : 0;
+$hh_narrow = preg_match( '#@media \(max-width: 880px\) \{ :root \{ --header-h: (\d+)px; \} \}#', $css, $hn ) ? (int) $hn[1] : 0;
+$hmin_wide   = preg_match( '#\n  \.site-header \{[^}]*min-height: (\d+)px#', $css, $mw ) ? (int) $mw[1] : -1;
+$hmin_narrow = preg_match( '#@media \(max-width: 880px\) \{\s*\.site-header \{ min-height: (\d+)px#', $css, $mn ) ? (int) $mn[1] : -1;
+ok( $hh_wide >= $hmin_wide && $hh_narrow >= $hmin_narrow && $hh_narrow <= $hh_wide && $hmin_wide > 0 && $hmin_narrow > 0, "--header-h ({$hh_wide}px, {$hh_narrow}px from 880px down) is at least the sticky header's height ({$hmin_wide}px, {$hmin_narrow}px + its 1px border)" );
+ok( false !== strpos( $css, '#main { scroll-margin-top: calc(var(--header-h) + var(--wp-admin--admin-bar--height, 0px)); }' ), 'the skip target stops below the sticky header (and the admin bar)' );
+ok( false !== strpos( $css, '.pg-breadcrumb.pg-crumbs a { scroll-margin-top: calc(var(--header-h) + 12px + var(--wp-admin--admin-bar--height, 0px)); }' ), 'a breadcrumb link the browser scrolls to on focus stops below it too' );
 ok( (bool) preg_match( '~target\.scrollIntoView\(\);\s*return;\s*\}\s*//[^\n]*#main[^\n]*\n[^\n]*\n\s*if \(target && !first\) return;~', $ljs ), 'on a lesson page the skip link moves to #main and leaves the open session alone (it used to reopen session 1)' );
 
 echo $failures ? "\n$failures FAILED\n" : "\nAll assertions passed.\n";
