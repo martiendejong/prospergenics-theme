@@ -13,6 +13,11 @@
         ".NET & web platforms",
         "Software architecture",
         "SEO automation",
+        "Most programming languages",
+        "C#",
+        "JavaScript & TypeScript",
+        "PHP",
+        "Python",
         "IT training",
         "Claude Code & Cursor coaching"
       ],
@@ -25,7 +30,7 @@
     },
     "simitia": {
       "name": "Simitia Mpoe",
-      "role": "Founding team, Software Developer, Entrepreneur",
+      "role": "Founding team, Software Developer, Founder of Maa-Link Ride",
       "img": "sandra_profile-300x300.webp",
       "pos": "center 25%",
       "initial": "S",
@@ -57,12 +62,15 @@
         "Software development",
         "Integrations",
         "Business development",
-        "Tech problem-solving"
+        "Tech problem-solving",
+        "AI agents",
+        "LLMs"
       ],
       "members": true,
       "pronouns": "she/her",
       "expert_categories": [
         "software-dev",
+        "ai-agents",
         "business"
       ]
     },

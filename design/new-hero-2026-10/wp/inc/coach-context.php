@@ -96,7 +96,7 @@ function prospergenics_2026_coach_context( $user_id = null ) {
     foreach ( prospergenics_2026_coach_people() as $p ) {
         $role = isset( $p['role'] ) ? (string) $p['role'] : '';
         // "Founding team" first: a founding-team member can be a co-founder of their own company
-        // (Diko, "Co-Founder of Afrigentic", 19 Nov), which is not the ProsperGenics "Founder"
+        // (Diko, "Co-Founder of Afrigentic"; Simitia, "Founder of Maa-Link Ride", 19 Nov), which is not the ProsperGenics "Founder"
         if ( false !== stripos( $role, 'Founding team' ) ) {
             $team[] = $p['name'];
         } elseif ( preg_match( '/(?<!Co-)\bFounder\b/i', $role ) ) {

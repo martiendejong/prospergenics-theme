@@ -175,7 +175,7 @@ echo "Legal names and details from the old team pages, titles unchanged (Lesiamo
 $by    = array_column( $profiles, null, 'slug' );
 $want  = array(
 	'martien' => array( 'Martien de Jong', 'Software Developer, Founder' ),
-	'simitia' => array( 'Simitia Mpoe', 'Founding team, Software Developer, Entrepreneur' ),
+	'simitia' => array( 'Simitia Mpoe', 'Founding team, Software Developer, Founder of Maa-Link Ride' ),
 	'diko'    => array( 'Diko Mohammed', 'Founding team, Software Developer, Co-Founder of Afrigentic' ),
 	'lessy'   => array( 'Finehas Lesiamon', 'Founding team, Trainer, Software Developer' ),
 	'frank'   => array( 'Frank Kobaai', 'Founding team, Trainer, Software Developer' ),

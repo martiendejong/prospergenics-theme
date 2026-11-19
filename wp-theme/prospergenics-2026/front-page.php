@@ -1162,7 +1162,7 @@
             <span class="fc-ring" aria-hidden="true"></span>
             <span class="fc-portrait"><img loading="lazy" decoding="async" width="300" height="300" src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/sandra_profile-300x300.webp" alt="Simitia Mpoe" style="object-position: center 25%" /></span>
             <div class="fc-name">Simitia Mpoe</div>
-            <div class="fc-role">Founding team, Software Developer, Entrepreneur</div>
+            <div class="fc-role">Founding team, Software Developer, Founder of Maa-Link Ride</div>
             <p class="fc-quote">"I design and build web products, and I'm growing my own business with everything I learn."</p>
           </a>
           <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/diko/">
@@ -1248,7 +1248,7 @@
             <span class="fc-ring"></span>
             <span class="fc-portrait"><img loading="lazy" decoding="async" width="300" height="300" src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/sandra_profile-300x300.webp" alt="" style="object-position: center 25%" /></span>
             <div class="fc-name">Simitia Mpoe</div>
-            <div class="fc-role">Founding team, Software Developer, Entrepreneur</div>
+            <div class="fc-role">Founding team, Software Developer, Founder of Maa-Link Ride</div>
             <p class="fc-quote">"I design and build web products, and I'm growing my own business with everything I learn."</p>
           </a>
           <a class="flow-card" href="<?php echo esc_url( home_url( '/' ) ); ?>people/diko/" tabindex="-1">
