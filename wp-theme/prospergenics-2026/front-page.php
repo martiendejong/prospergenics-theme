@@ -817,7 +817,8 @@
     transition: transform .25s cubic-bezier(.22,.61,.36,1), box-shadow .25s cubic-bezier(.22,.61,.36,1);
   }
   .svc-card:hover { transform: translateY(-3px); box-shadow: 0 18px 40px -24px rgba(11,32,22,.45); }
-  /* the brand's slanted bottom cut; a real example carries a visible label, CoachOS a branded panel */
+  /* the brand's slanted bottom cut; a real example carries a visible label (a service without one
+     would get the branded panel, .svc-media--brand) */
   .svc-media {
     position: relative; margin: 0; aspect-ratio: 16 / 9; overflow: hidden;
     background: linear-gradient(140deg, #0f3d28, #1a7a46 60%, #1d8e4f);
@@ -1491,7 +1492,7 @@
     <!-- services:cards -->
     <div class="svc-grid">
       <article class="svc-card">
-        <div class="svc-media svc-media--brand" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8 12h32v20H22l-8 7v-7H8z"/><path d="M16 20h16M16 26h10"/></svg></div>
+        <figure class="svc-media"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/coachos-chat.webp" width="1120" height="630" alt="" loading="lazy" decoding="async" style="object-position:50% 50%" /><figcaption class="svc-ex">Example: the chat on this site</figcaption></figure>
         <div class="svc-body">
           <h3 class="svc-name">CoachOS</h3>
           <p class="svc-promise">AI chat, courses and avatar videos for your organisation, on your own platform.</p>

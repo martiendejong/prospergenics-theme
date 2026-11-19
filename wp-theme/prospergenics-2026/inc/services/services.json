@@ -16,7 +16,13 @@
         "Avatar videos, under your own brand"
       ],
       "link": "See CoachOS",
-      "panel_svg": "<svg viewBox=\"0 0 48 48\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M8 12h32v20H22l-8 7v-7H8z\"/><path d=\"M16 20h16M16 26h10\"/></svg>"
+      "image": {
+        "src": "coachos-chat.webp",
+        "width": 1120,
+        "height": 630,
+        "position": "50% 50%",
+        "label": "Example: the chat on this site"
+      }
     },
     {
       "slug": "research",
