@@ -182,7 +182,10 @@ ok( false !== strpos( file_get_contents( $design . '/deploy-wp-theme-vimexx.py' 
 // A real 301 (card #7226): Apache serves the people/ folder before WordPress, so the redirect is in
 // people/.htaccess; index.html above stays as the fallback where .htaccess is ignored.
 $hta = (string) @file_get_contents( $design . '/people/.htaccess' );
-ok( 1 === preg_match( '#^<IfModule mod_alias\.c>\nRedirectMatch 301 (\S+) /members/\n</IfModule>$#m', $hta, $hm ), 'people/.htaccess answers with a 301 to /members/ (mod_alias, the FileInfo override WordPress itself needs)' );
+// The target is absolute https:// on the asked host (card #7757): behind Cloudflare Apache sees http,
+// and a relative /members/ came back as Location: http://<host>/members/.
+ok( 1 === preg_match( '#^<IfModule mod_alias\.c>\n<If "%\{REQUEST_URI\} =~ m\#(\S+)\#">\nRedirect 301 "https://%\{HTTP_HOST\}/members/"\n</If>\n</IfModule>$#m', $hta, $hm ), 'people/.htaccess answers with a 301 to https://<host>/members/ (mod_alias, the FileInfo override WordPress itself needs)' );
+ok( false === strpos( $hta, 'RedirectMatch' ) && false === strpos( $hta, 'RewriteEngine' ), 'no relative RedirectMatch left (http:// Location behind Cloudflare), and no RewriteEngine, which would switch off WordPress\' rules for /people/<old slug>/' );
 $hre = isset( $hm[1] ) ? '#' . str_replace( '#', '\#', $hm[1] ) . '#' : '#^$#';
 foreach ( array( '/people/', '/people', '/people/index.html' ) as $p ) {
 	ok( 1 === preg_match( $hre, $p ), "$p is redirected" );

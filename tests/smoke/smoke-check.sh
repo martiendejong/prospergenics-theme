@@ -93,6 +93,9 @@ if grep -qF 'Every task I pick up teaches me something' "$BODY"; then fail "/mem
 expect_redirect /profile/ 302 'wp-login\.php'
 # Old member URLs go to the curated profile
 expect_redirect /members/lessy/ 301 '/people/lessy/$'
+# /people/ itself: one 301 to the members list over https (people/.htaccess, cards #7226, #7757;
+# Apache behind Cloudflare sees http, so a relative target came back as http://)
+expect_redirect /people/ 301 '^https://[^/]+/members/$'
 
 # Platform REST API answers with JSON
 fetch /wp-json/prospergenics/v1/courses

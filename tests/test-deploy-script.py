@@ -122,7 +122,7 @@ try:
     deploy.deploy_static(rec, False)
     root = deploy.REMOTE_ROOT + "/people/"
     hta = rec.stored.get(root + ".htaccess", b"").decode()
-    ok("RedirectMatch 301 ^/people(/|/index\\.html)?$ /members/" in hta, "the static deploy uploads people/.htaccess with the 301 to /members/")
+    ok('<If "%{REQUEST_URI} =~ m#^/people(/|/index\\.html)?$#">\nRedirect 301 "https://%{HTTP_HOST}/members/"\n</If>' in hta, "the static deploy uploads people/.htaccess with the 301 to https://<host>/members/ (#7226, #7757)")
     ok(root + "index.html" in rec.stored and b'http-equiv="refresh"' in rec.stored[root + "index.html"], "and people/index.html, the meta refresh fallback")
     ok(all(root + s + "/index.html" in rec.stored for s in ("martien", "lessy")) and not any(k.startswith(root + ".htaccess/") for k in rec.stored), "the profiles under /people/<slug>/ are uploaded as before")
     # card #6449: Apache serves these folders as files, so each gets the security headers
@@ -138,7 +138,7 @@ try:
     for folder in ("experts", "community"):
         local = open(os.path.join(deploy.HERE, folder, ".htaccess"), encoding="utf-8").read()
         ok(rec.stored[f"{deploy.REMOTE_ROOT}/{folder}/.htaccess"].decode() == local, f"{folder}/.htaccess goes up as committed")
-    ok("RedirectMatch" not in rec.stored[deploy.REMOTE_ROOT + "/team/.htaccess"].decode() and "RedirectMatch" not in rec.stored[deploy.REMOTE_ROOT + "/experts/.htaccess"].decode(), "only people/ has a redirect")
+    ok("Redirect" not in rec.stored[deploy.REMOTE_ROOT + "/team/.htaccess"].decode() and "Redirect" not in rec.stored[deploy.REMOTE_ROOT + "/experts/.htaccess"].decode(), "only people/ has a redirect")
     ok(not any(k.endswith(".htaccess") and k.split("/")[-2] not in ("people", "experts", "community", "team") for k in rec.stored), "no .htaccess anywhere else (the site root's stays WordPress')")
 except Exception as e:  # noqa: BLE001
     ok(False, f"deploy_static raised {e!r}")
