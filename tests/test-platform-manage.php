@@ -4,7 +4,8 @@
  *   - the pg_manage capability: editors and administrators only, granted at runtime,
  *   - who may change which member: administrators as in wp-admin, editors only non-staff members,
  *     nobody their own account; role changes (editors: subscriber <-> writer only; administrators
- *     up to editor; never administrator),
+ *     also the platform roles company and instructor (card #6341), contributor and author; never
+ *     administrator or editor, and never for an administrator's or editor's account),
  *   - the members list query (search on name, username or email; filters; sort; 25/50/100 per page;
  *     paging; the summary chips and their count-only queries; shareable links), the contact inbox
  *     (state, views, reply link),
@@ -63,7 +64,17 @@ function user_can( $id, $cap, ...$args ) {
 function current_user_can( $cap, ...$args ) { return user_can( $GLOBALS['_me'], $cap, ...$args ); }
 function get_current_user_id() { return $GLOBALS['_me']; }
 function is_user_logged_in() { return $GLOBALS['_me'] > 0; }
-function get_userdata( $id ) { return isset( $GLOBALS['_users'][ $id ] ) ? (object) array( 'ID' => $id, 'roles' => array( $GLOBALS['_users'][ $id ] ) ) : false; }
+class _Member {
+	public $ID, $roles;
+	function __construct( $id ) { $this->ID = $id; $this->roles = array( $GLOBALS['_users'][ $id ] ); }
+	function set_role( $role ) { $GLOBALS['_log'][] = "set_role $this->ID $role"; $GLOBALS['_users'][ $this->ID ] = $role; }
+}
+function get_userdata( $id ) { return isset( $GLOBALS['_users'][ $id ] ) ? new _Member( $id ) : false; }
+// the platform roles module (inc/platform-roles.php, tested in test-platform-roles.php): record the calls
+function prospergenics_roles_wp_role_map() { return array( 'member' => 'subscriber', 'company' => 'pg_company', 'instructor' => 'pg_instructor' ); }
+function prospergenics_roles_assign( $id, $role ) { $GLOBALS['_log'][] = "assign $id $role"; return $GLOBALS['_assign_result'] ?? true; }
+if ( ! function_exists( 'is_wp_error' ) ) { function is_wp_error( $x ) { return $x instanceof WP_Error; } }
+class WP_Error {}
 
 require $theme . '/inc/profiles/users-admin.php'; // prospergenics_profiles_can_manage_member(), reused
 require $theme . '/inc/manage/helpers.php';
@@ -113,15 +124,35 @@ ok( prospergenics_manage_is_staff( 1 ) && prospergenics_manage_is_staff( 3 ) && 
 echo "role changes\n";
 $r = 'prospergenics_manage_role_change_allowed';
 ok( array( 'subscriber', 'pg_writer' ) === array_keys( prospergenics_manage_role_choices( false ) ), 'editors choose between subscriber and writer' );
-ok( array( 'subscriber', 'pg_writer', 'contributor', 'author', 'editor' ) === array_keys( prospergenics_manage_role_choices( true ) ), 'administrators also contributor, author, editor' );
-ok( ! isset( prospergenics_manage_role_choices( true )['administrator'] ), 'nobody grants administrator here' );
+ok( array( 'subscriber', 'pg_company', 'pg_instructor', 'pg_writer', 'contributor', 'author' ) === array_keys( prospergenics_manage_role_choices( true ) ), 'administrators also Company, Instructor (card #6341), contributor, author' );
+ok( 'Member (subscriber)' === prospergenics_manage_role_choices( true )['subscriber'] && 'Company' === prospergenics_manage_role_choices( true )['pg_company'] && 'Instructor' === prospergenics_manage_role_choices( true )['pg_instructor'], 'labelled Member, Company, Instructor' );
+ok( ! array_intersect( array( 'administrator', 'editor' ), array_keys( prospergenics_manage_role_choices( true ) + prospergenics_manage_role_choices( false ) ) ), 'nobody is offered administrator or editor here' );
 ok( $r( array( 'subscriber' ), 'pg_writer', false ) && $r( array( 'pg_writer' ), 'subscriber', false ), 'editor: subscriber <-> writer' );
 ok( ! $r( array( 'subscriber' ), 'editor', false ) && ! $r( array( 'subscriber' ), 'author', false ) && ! $r( array( 'subscriber' ), 'administrator', false ), 'editor: nothing above writer' );
 ok( ! $r( array( 'author' ), 'subscriber', false ) && ! $r( array( 'contributor' ), 'pg_writer', false ), 'editor: cannot demote an author or contributor' );
 ok( ! $r( array( 'subscriber', 'author' ), 'pg_writer', false ), 'editor: not for a member with another role besides' );
-ok( $r( array( 'subscriber' ), 'editor', true ) && $r( array( 'author' ), 'subscriber', true ), 'administrator: up to editor, and down again' );
-ok( ! $r( array( 'subscriber' ), 'administrator', true ), 'administrator: never administrator' );
-ok( ! $r( array( 'administrator' ), 'subscriber', true ), 'an administrator\'s role is changed in wp-admin only' );
+ok( $r( array( 'subscriber' ), 'pg_company', true ) && $r( array( 'subscriber' ), 'pg_instructor', true ) && $r( array( 'pg_company' ), 'pg_instructor', true ) && $r( array( 'pg_instructor' ), 'subscriber', true ), 'administrator: member, company and instructor, either way' );
+ok( $r( array( 'subscriber' ), 'author', true ) && $r( array( 'author' ), 'subscriber', true ), 'administrator: up to author, and down again' );
+ok( ! $r( array( 'subscriber' ), 'administrator', true ) && ! $r( array( 'subscriber' ), 'editor', true ) && ! $r( array( 'pg_instructor' ), 'editor', true ), 'administrator: never administrator or editor (refused even when sent)' );
+ok( ! $r( array( 'administrator' ), 'subscriber', true ) && ! $r( array( 'editor' ), 'subscriber', true ) && ! $r( array( 'editor' ), 'pg_company', true ), 'an administrator\'s or editor\'s role is changed in wp-admin only' );
+ok( ! $r( array( 'subscriber' ), 'pg_company', false ) && ! $r( array( 'subscriber' ), 'pg_instructor', false ), 'editor: cannot give company or instructor (that needs promote_users, as on Users → Edit)' );
+ok( ! $r( array( 'pg_company' ), 'subscriber', false ) && ! $r( array( 'pg_instructor' ), 'pg_writer', false ), 'editor: cannot take a company or instructor role away' );
+
+echo "role changes: applied\n";
+$set = function ( $actor, $id, $role, $assign = true ) {
+	$GLOBALS['_me'] = $actor; $GLOBALS['_log'] = array(); $GLOBALS['_assign_result'] = $assign;
+	$before = $GLOBALS['_users'];
+	$done   = prospergenics_manage_set_role( $id, $role );
+	$log    = $GLOBALS['_log'];
+	$GLOBALS['_users'] = $before;
+	return array( $done, $log );
+};
+ok( array( true, array( 'assign 7 company', 'set_role 7 pg_company' ) ) === $set( 1, 7, 'pg_company' ), 'administrator, Company: the platform role through prospergenics_roles_assign() (meta, IAM hook), then that one WordPress role' );
+ok( array( true, array( 'assign 7 instructor', 'set_role 7 pg_instructor' ) ) === $set( 1, 7, 'pg_instructor' ), 'administrator, Instructor: the same, as instructor' );
+ok( array( true, array( 'assign 7 member', 'set_role 7 subscriber' ) ) === $set( 1, 7, 'subscriber' ) && array( true, array( 'assign 6 member', 'set_role 6 author' ) ) === $set( 1, 6, 'author' ), 'administrator, any other role: platform role back to member (no company or instructor rights left behind)' );
+ok( array( true, array( 'set_role 7 pg_writer' ) ) === $set( 2, 7, 'pg_writer' ), 'editor: member <-> writer only, the platform role untouched' );
+ok( array( false, array() ) === $set( 1, 1, 'subscriber' ) && array( false, array() ) === $set( 2, 2, 'pg_writer' ), 'nobody changes their own role, not even through this function' );
+ok( array( false, array( 'assign 7 company' ) ) === $set( 1, 7, 'pg_company', new WP_Error() ), 'a refused platform role changes nothing else' );
 ok( ! $r( array( 'subscriber' ), 'shop_manager', true ) && ! $r( array( 'subscriber' ), '', true ), 'unknown roles refused' );
 
 // ───────────────────────────── members list ─────────────────────────────
@@ -203,6 +234,7 @@ foreach ( array( 'pg_manage_member' => 'prospergenics_manage_member_nonce( $do, 
 }
 ok( false !== strpos( $actions, '! prospergenics_manage_can_access() || ! prospergenics_manage_can_manage_member( $user_id )' ), 'member actions: pg_manage and that member' );
 ok( false !== strpos( $actions, "prospergenics_manage_role_change_allowed( (array) \$user->roles, \$role, current_user_can( 'promote_user', \$user_id ) )" ), 'role changes: checked against what the actor may give' );
+ok( false !== strpos( $actions, "return prospergenics_manage_set_role( \$user_id, \$role ) ? 'role' : 'failed';" ) && false === strpos( $actions, '$user->set_role(' ), 'role changes: applied by prospergenics_manage_set_role() (platform role included), "failed" when refused' );
 ok( false !== strpos( $actions, 'current_user_can( PROSPERGENICS_MODERATION_CAP )' ), 'suspend / unsuspend: also pg_moderate' );
 foreach ( array( 'prospergenics_profiles_mark_verified(', 'prospergenics_profiles_send_verification(', 'prospergenics_profiles_set_hidden(', 'prospergenics_profiles_suspend(', 'prospergenics_profiles_unsuspend(' ) as $helper ) {
 	ok( false !== strpos( $actions, $helper ), "reuses $helper)" );
@@ -327,6 +359,15 @@ foreach ( array( 'pgm-sort' => 'value="name" selected="selected"', 'pgm-per' => 
 ok( false !== strpos( $html, 'id="pgm-s" name="s" value="sam"' ) && false !== strpos( $html, 'Name, username or email' ), 'the search box: name, username or email, keeps what was searched' );
 ok( false !== strpos( $html, 'Sam &lt;Sub&gt;' ) && false === strpos( $html, 'Sam <Sub>' ), 'names are escaped' );
 ok( array( 2, 3, 7 ) === $GLOBALS['_primed'], 'the page\'s members are primed in one read' );
+$GLOBALS['_me'] = 1; // administrator (promote_users)
+$html = _render( array() );
+preg_match( '#<select class="pgm-select" id="pgm-role-7" name="role">(.*?)</select>#s', $html, $sel );
+preg_match_all( '#<option value="([^"]+)"#', $sel[1] ?? '', $opts );
+ok( array( 'subscriber', 'pg_company', 'pg_instructor', 'pg_writer', 'contributor', 'author' ) === $opts[1] && false !== strpos( $sel[1], '<option value="subscriber" selected="selected">Member (subscriber)</option>' ), 'administrator: the role select offers Member (current), Company, Instructor, Writer, Contributor, Author' );
+ok( false === strpos( $html, 'id="pgm-role-2"' ) && false === strpos( $html, 'id="pgm-role-3"' ) && false !== strpos( $html, 'pg_manage_member_hide_3' ), "administrator: editors' rows have no role select (staff roles stay in wp-admin), their other actions stay" );
+preg_match_all( '#<select class="pgm-select" id="pgm-role-\d+" name="role">.*?</select>#s', $html, $role_selects );
+ok( 1 === count( $role_selects[0] ) && false === strpos( implode( '', $role_selects[0] ), 'value="editor"' ) && false === strpos( implode( '', $role_selects[0] ), 'value="administrator"' ), 'administrator: no role select offers editor or administrator' );
+$GLOBALS['_me'] = 2;
 $html = _render( array( 'per' => '5000', 'sort' => 'user_pass', 'filter' => 'nope' ) );
 $main = $GLOBALS['_uq'][0];
 ok( 25 === $main['number'] && 'registered' === $main['orderby'] && ! isset( $main['role__in'] ) && 1 === preg_match( '#href="http://pg\.test/manage/members/" aria-current="page">All#', $html ), 'unknown values fall back: 25 a page, newest first, everyone' );
