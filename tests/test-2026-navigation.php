@@ -14,6 +14,7 @@
  *     at load and hides only while scrolling down,
  *   - the mobile menu button and panel are wired accessibly, on every page type,
  *   - Log in + Join for visitors; My profile, My courses, Settings, Log out for members; Manage for staff,
+ *     "Your company profile" for company accounts,
  *   - the full footer (with Vacancies and Articles) everywhere,
  *   - jengo-listings pages (saved fixtures) get the site header, footer and menu script, their
  *     "→" buttons go to the contact form with a subject, and anything unexpected is left untouched,
@@ -71,6 +72,8 @@ function prospergenics_profiles_url( $uid ) { return TEST_HOME . '/in/amina-otie
 function prospergenics_profiles_photo_url( $uid, $size ) { return ''; }
 function prospergenics_courses_is_instructor() { return 2 === $GLOBALS['__user']; } // user 2 teaches
 function prospergenics_manage_can_access() { return 2 === $GLOBALS['__user']; } // user 2 is staff (card #6457)
+// user 9 is a company account with one company profile (card #6341, inc/platform-roles.php)
+function prospergenics_roles_company_profile_link( $uid ) { return 9 === (int) $uid ? array( 'label' => 'Your company profile', 'url' => TEST_HOME . '/wp-admin/post.php?post=97&action=edit' ) : null; }
 $_SERVER['REQUEST_URI'] = '/courses/';
 
 require $theme . '/inc/site-chrome.php';
@@ -140,6 +143,10 @@ $teacher = prospergenics_2026_site_header();
 ok( false !== strpos( $teacher, 'class="site-header site-header--adminbar"' ), 'with the admin bar showing, the header sits below it' );
 ok( (bool) preg_match( '#id="account-menu" hidden>\s*<a [^>]*>My profile</a>\s*<a [^>]*>My courses</a>\s*<a [^>]*>My articles</a>\s*<a [^>]*>Instructor dashboard</a>\s*(<a [^>]*>Manage</a>\s*)?<a [^>]*>Settings</a>#', $teacher ) && 2 === substr_count( $teacher, '/instructor/dashboard/">Instructor dashboard' ), 'instructors also get Instructor dashboard, in the menu and the mobile panel (NAV-16)' );
 ok( (bool) preg_match( '#id="account-menu" hidden>\s*<a [^>]*>My profile</a>\s*<a [^>]*>My courses</a>\s*<a [^>]*>My articles</a>\s*<a [^>]*>Instructor dashboard</a>\s*<a [^>]*>Manage</a>\s*<a [^>]*>Settings</a>\s*<a [^>]*>Log out</a>#', $teacher ) && 2 === substr_count( $teacher, '/manage/">Manage</a>' ), 'staff also get Manage (/manage/), before Settings, in the menu and the mobile panel (card #6457)' );
+ok( false === strpos( $member . $teacher, 'company profile' ), 'no company profile link for members or staff' );
+$GLOBALS['__user'] = 9;
+$company = prospergenics_2026_site_header();
+ok( (bool) preg_match( '#id="account-menu" hidden>\s*<a [^>]*>My profile</a>\s*<a [^>]*>My courses</a>\s*<a [^>]*>My articles</a>\s*<a [^>]*>Your company profile</a>\s*<a [^>]*>Settings</a>\s*<a [^>]*>Log out</a>#', $company ) && 2 === substr_count( $company, '/wp-admin/post.php?post=97&amp;action=edit">Your company profile</a>' ), 'company accounts also get "Your company profile", before Settings, in the menu and the mobile panel (card #6341)' );
 $GLOBALS['__user'] = 0;
 
 echo "every WordPress page type uses it\n";
