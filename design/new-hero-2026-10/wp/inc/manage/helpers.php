@@ -76,20 +76,28 @@ function prospergenics_manage_can_manage_member( $user_id ) {
 }
 
 /**
- * The roles the actor may give, role => label: subscriber and writer for every manager; contributor,
- * author and editor too for administrators (promote_user). Never administrator.
+ * The roles the actor may give, role => label: member (subscriber) and writer for every manager;
+ * administrators (promote_user, the right Users → Edit → "Platform role" needs) also the platform
+ * roles company and instructor (card #6341), contributor and author. Never administrator or editor:
+ * staff roles are given in wp-admin → Users only.
  */
 function prospergenics_manage_role_choices( $can_promote ) {
-    $roles = array( 'subscriber' => 'Member (subscriber)', 'pg_writer' => 'Writer' );
-    if ( $can_promote ) {
-        $roles += array( 'contributor' => 'Contributor', 'author' => 'Author', 'editor' => 'Editor' );
+    if ( ! $can_promote ) {
+        return array( 'subscriber' => 'Member (subscriber)', 'pg_writer' => 'Writer' );
     }
-    return $roles;
+    return array(
+        'subscriber'    => 'Member (subscriber)',
+        'pg_company'    => 'Company',
+        'pg_instructor' => 'Instructor',
+        'pg_writer'     => 'Writer',
+        'contributor'   => 'Contributor',
+        'author'        => 'Author',
+    );
 }
 
 /**
  * Whether a role change is allowed (pure). The caller has already checked that the actor may
- * manage this member at all.
+ * manage this member at all (never their own account: prospergenics_manage_member_decision()).
  *
  * @param string[] $target_roles The member's current roles.
  * @param string   $new_role     The role asked for.
@@ -99,13 +107,44 @@ function prospergenics_manage_role_change_allowed( array $target_roles, $new_rol
     if ( ! isset( prospergenics_manage_role_choices( $can_promote )[ (string) $new_role ] ) ) {
         return false;
     }
-    if ( in_array( 'administrator', $target_roles, true ) ) {
-        return false; // administrators are changed in wp-admin → Users only
+    if ( array_intersect( array( 'administrator', 'editor' ), $target_roles ) ) {
+        return false; // administrators and editors are changed in wp-admin → Users only
     }
     if ( ! $can_promote ) {
-        // editors: only between subscriber and writer, so they cannot demote an author or contributor
+        // editors: only between subscriber and writer, so they cannot demote an author, contributor,
+        // company or instructor
         return ! array_diff( $target_roles, array( 'subscriber', 'pg_writer' ) );
     }
+    return true;
+}
+
+/**
+ * Give a member the role chosen on /manage/members/; the caller checked the nonce,
+ * prospergenics_manage_can_manage_member() and prospergenics_manage_role_change_allowed(). The
+ * chosen role replaces the member's WordPress roles. For administrators (promote_user) the platform
+ * role follows through prospergenics_roles_assign() (inc/platform-roles.php), the one place that
+ * changes it: Company and Instructor are that role, any other choice makes the member a plain
+ * member again (no company or instructor rights left behind, the IAM sync hook fired). Editors only
+ * switch between member and writer and leave the platform role as it is.
+ *
+ * @return bool false when nothing was changed (your own account, or the platform role refused)
+ */
+function prospergenics_manage_set_role( $user_id, $role ) {
+    $user_id = (int) $user_id;
+    if ( $user_id === (int) get_current_user_id() ) {
+        return false; // never your own role
+    }
+    if ( current_user_can( 'promote_user', $user_id ) && function_exists( 'prospergenics_roles_assign' ) ) {
+        $platform = array_search( $role, prospergenics_roles_wp_role_map(), true );
+        if ( is_wp_error( prospergenics_roles_assign( $user_id, false === $platform ? 'member' : $platform ) ) ) {
+            return false;
+        }
+    }
+    $user = get_userdata( $user_id ); // read again: prospergenics_roles_assign() may have changed the roles
+    if ( ! $user ) {
+        return false;
+    }
+    $user->set_role( $role );
     return true;
 }
 
@@ -139,6 +178,7 @@ function prospergenics_manage_member_filters() {
         'verified'   => 'Verified',
         'unverified' => 'Not verified',
         'instructor' => 'Instructors',
+        'company'    => 'Companies',
         'suspended'  => 'Suspended',
         'hidden'     => 'Hidden profiles',
     );
@@ -146,7 +186,7 @@ function prospergenics_manage_member_filters() {
 
 /** The filters that are a role, filter key => role. */
 function prospergenics_manage_member_role_filters() {
-    return array( 'admin' => 'administrator', 'editor' => 'editor', 'author' => 'author', 'writer' => 'pg_writer', 'member' => 'subscriber' );
+    return array( 'admin' => 'administrator', 'editor' => 'editor', 'author' => 'author', 'writer' => 'pg_writer', 'member' => 'subscriber', 'company' => 'pg_company' );
 }
 
 /**

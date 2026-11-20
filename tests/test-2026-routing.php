@@ -45,9 +45,11 @@ define( 'ABSPATH', sys_get_temp_dir() . '/pg-routing-test-' . getmypid() . '/' )
 @mkdir( ABSPATH . 'people/martien', 0777, true );
 @mkdir( ABSPATH . 'people/diko', 0777, true );
 @mkdir( ABSPATH . 'people/frank', 0777, true );
+@mkdir( ABSPATH . 'people/lessy', 0777, true );
 touch( ABSPATH . 'people/martien/index.html' );
 touch( ABSPATH . 'people/diko/index.html' );
 touch( ABSPATH . 'people/frank/index.html' );
+touch( ABSPATH . 'people/lessy/index.html' );
 
 function home_url( $path = '/' ) { return 'https://prospergenics.com' . $path; }
 function add_action( ...$args ) {}
@@ -132,6 +134,49 @@ foreach ( $person_cases as $from => $to ) {
 	ok( $r && 'https://prospergenics.com' . $to === $r[0] && 301 === $r[1], "$from -> 301 $to" );
 }
 ok( null === person_route( '/members/' ), 'the members list itself is not redirected' );
+
+echo "Person URLs WordPress sent to a photo (card #7756)\n";
+// On test WordPress read /team_member/lessy/ as the attachment "lessy" and /martien/feed/ was
+// guessed to the attachment "martien", both ending on the photo in /wp-content/uploads/.
+$photo_cases = array(
+	'/team_member/lessy/'          => '/people/lessy/',   // as production does
+	'/team_member/martien/'        => '/people/martien/',
+	'/team_member/diko/'           => '/people/diko/',
+	'/team_member/frank/'          => '/people/frank/',
+	'/team_member/frank-kobaai/'   => '/people/frank/',   // the old slugs that differ, as before
+	'/team_member/Lessy'           => '/people/lessy/',
+	'/people/lessy/feed/'          => '/people/lessy/',
+	'/martien/feed/'               => '/people/martien/',
+	'/martien/feed/rss2/'          => '/people/martien/',
+	'/lessy/embed/'                => '/people/lessy/',
+	'/team_member/lessy/feed/'     => '/people/lessy/',
+	'/members/lessy/feed/'         => '/people/lessy/',
+	'/author/sandra/feed/'         => '/people/simitia/',
+	'/people/martien-de-jong/feed/' => '/people/martien/',
+);
+foreach ( $photo_cases as $from => $to ) {
+	$r = person_route( $from );
+	ok( $r && 'https://prospergenics.com' . $to === $r[0] && 301 === $r[1], "$from -> 301 $to, in one hop, before WordPress reads it" );
+}
+foreach ( array( '/team_member/nobody/', '/team_member/', '/people/nobody/feed/', '/feed/', '/blog/feed/', '/articles/feed/', '/people/lessy/', '/people/lessy/photo/', '/martien-feed/' ) as $not ) {
+	ok( null === person_route( $not ), "$not is left to WordPress" );
+}
+ok( false !== strpos( $module, 'prospergenics_2026_person_url_target( $request_path, prospergenics_2026_person_redirect_rules(), ABSPATH . \'people\' );' ), 'the init redirect uses it, after the exact rules' );
+
+// What is left (a person URL no rule knows): WordPress' redirect to an uploaded file is dropped.
+$prules = prospergenics_2026_person_redirect_rules();
+$up     = '/wp-content/uploads';
+$photo  = 'https://prospergenics.com/wp-content/uploads/2026/10/Lessy.jpeg';
+foreach ( array( '/team_member/lessy-photo/', '/people/les/', '/members/x/feed/', '/author/nobody/', '/martien/photo/', '/lessy-2/feed/atom/' ) as $asked ) {
+	ok( prospergenics_2026_person_upload_redirect( $photo, 'https://prospergenics.com' . $asked, $prules, $up ), "$asked -> an uploaded photo: dropped" );
+}
+ok( ! prospergenics_2026_person_upload_redirect( $photo, 'https://prospergenics.com/2026/10/team-day/lessy-photo/', $prules, $up ), 'a media URL under a post (not a person URL) still goes to its file' );
+ok( ! prospergenics_2026_person_upload_redirect( $photo, 'https://prospergenics.com/?attachment_id=12', $prules, $up ), '?attachment_id= still goes to its file' );
+ok( ! prospergenics_2026_person_upload_redirect( 'https://prospergenics.com/people/lessy/', 'https://prospergenics.com/team_member/lessy/', $prules, $up ), 'a person URL going to a page is not touched' );
+ok( ! prospergenics_2026_person_upload_redirect( false, 'https://prospergenics.com/team_member/lessy/', $prules, $up ), 'no redirect stays no redirect' );
+ok( ! prospergenics_2026_person_upload_redirect( $photo, 'https://prospergenics.com/team_member/lessy/', $prules, '' ), 'no uploads folder known: nothing is dropped' );
+ok( prospergenics_2026_is_person_path( '/Martien/feed', $prules ) && prospergenics_2026_is_person_path( '/people/', $prules ) && ! prospergenics_2026_is_person_path( '/peoplex/', $prules ) && ! prospergenics_2026_is_person_path( '/', $prules ) && ! prospergenics_2026_is_person_path( '/blog/martien/', $prules ), 'person paths: the person sections and the one-part person rules, by their first part only' );
+ok( (bool) preg_match( "#add_filter\\( 'redirect_canonical', function \\( \\\$redirect_url, \\\$requested_url \\) \\{\\s*\\\$uploads = wp_get_upload_dir\\(\\);.*?\\\$wp_query->set_404\\(\\);\\s*status_header\\( 404 \\);\\s*nocache_headers\\(\\);\\s*return false;\\s*\\}, 10, 2 \\);#s", $module ), 'hooked into redirect_canonical before the hop-saving filter (20); the request gets the 404 page instead' );
 ok( null === person_route( '/people/lessy/' ), 'the approved profile is not redirected' );
 ok( null === person_route( '/members/lessy/', 'POST' ), 'only GET and HEAD requests are redirected' );
 

@@ -10,7 +10,10 @@
  *               inc/courses/data-model.php)
  *   admin       WordPress administrator (and editor): everything, assigns the roles
  *
- * An administrator assigns the role on the user's profile screen (Users > Edit, "Platform role").
+ * An administrator assigns the role on the user's profile screen (Users > Edit, "Platform role") or
+ * on /manage/members/ ("Change role", inc/manage/helpers.php). A company account writes its own
+ * company profile in wp-admin, on the company profile screens only (inc/account.php), and finds it
+ * under "Your company profile" in the account menu.
  * The choice is stored as the WordPress role and mirrored in user meta _pg_platform_role, which is
  * the value the IAM profile sync reads (hook: prospergenics_platform_role_changed). Members whose
  * "Apply to teach" request was approved (inc/profiles/applications.php) become instructors through
@@ -126,6 +129,84 @@ add_action( 'init', function () {
 function prospergenics_roles_can_create_company_profile( $user_id = 0 ) {
 	return $user_id ? user_can( $user_id, 'edit_pg_company_profiles' ) : current_user_can( 'edit_pg_company_profiles' );
 }
+
+/*
+ * Company accounts write their company profile in wp-admin (the classic editor: the type is not in
+ * REST), on the only screens inc/account.php lets them open: the list, "Add company profile" and
+ * their own profiles. Until company profiles move to the jengo-listings plugin (cards #6371/#6372).
+ */
+
+/**
+ * The account menu link for a company profile (pure): "Create your company profile" while the
+ * account has none, "Your company profile" (its edit screen) with one, "Your company profiles" (the
+ * list) with more.
+ *
+ * @param int[] $ids The account's own company profiles, newest first (two are enough).
+ * @return array{label:string,url:string}
+ */
+function prospergenics_roles_company_link_for( array $ids ) {
+	if ( ! $ids ) {
+		return array( 'label' => 'Create your company profile', 'url' => admin_url( 'post-new.php?post_type=pg_company_profile' ) );
+	}
+	if ( 1 === count( $ids ) ) {
+		return array( 'label' => 'Your company profile', 'url' => admin_url( 'post.php?post=' . (int) reset( $ids ) . '&action=edit' ) );
+	}
+	return array( 'label' => 'Your company profiles', 'url' => admin_url( 'edit.php?post_type=pg_company_profile' ) );
+}
+
+/**
+ * The account menu link of a company account, or null for everyone else. Staff (they edit every
+ * company profile) get none: they have wp-admin.
+ */
+function prospergenics_roles_company_profile_link( $user_id ) {
+	$user_id = (int) $user_id;
+	if ( ! $user_id || ! user_can( $user_id, 'edit_pg_company_profiles' ) || user_can( $user_id, 'edit_others_pg_company_profiles' ) ) {
+		return null;
+	}
+	$ids = get_posts( array(
+		'post_type'      => 'pg_company_profile',
+		'author'         => $user_id,
+		'post_status'    => array( 'publish', 'future', 'draft', 'pending', 'private' ),
+		'fields'         => 'ids',
+		'posts_per_page' => 2,
+		'orderby'        => 'date',
+		'order'          => 'DESC',
+		'no_found_rows'  => true,
+	) );
+	return prospergenics_roles_company_link_for( array_map( 'intval', (array) $ids ) );
+}
+
+// A company account's list shows its own profiles only (WordPress would also list other
+// companies' drafts, read-only), without the status counts, which count everyone's.
+add_action( 'pre_get_posts', function ( $query ) {
+	global $pagenow;
+	if ( is_admin() && 'edit.php' === $pagenow && $query->is_main_query() && 'pg_company_profile' === $query->get( 'post_type' )
+		&& ! current_user_can( 'edit_others_pg_company_profiles' ) ) {
+		$query->set( 'author', get_current_user_id() );
+	}
+} );
+add_filter( 'views_edit-pg_company_profile', function ( $views ) {
+	return current_user_can( 'edit_others_pg_company_profiles' ) ? $views : array();
+} );
+
+// "Company profile published. View company profile" instead of WordPress' "Post published. View post".
+add_filter( 'post_updated_messages', function ( $messages ) {
+	$post = get_post();
+	if ( ! $post || 'pg_company_profile' !== $post->post_type ) {
+		return $messages;
+	}
+	$view = ' <a href="' . esc_url( get_permalink( $post ) ) . '">View company profile</a>';
+	$messages['pg_company_profile'] = array(
+		1  => 'Company profile updated.' . $view,
+		4  => 'Company profile updated.',
+		6  => 'Company profile published.' . $view,
+		7  => 'Company profile saved.',
+		8  => 'Company profile submitted.',
+		9  => 'Company profile scheduled.',
+		10 => 'Company profile draft updated.',
+	);
+	return $messages;
+} );
 
 /** Whether the user may create courses (same test as the course wizard). */
 function prospergenics_roles_can_create_course( $user_id = 0 ) {

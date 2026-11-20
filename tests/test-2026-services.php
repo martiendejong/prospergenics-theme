@@ -8,7 +8,7 @@
  *     four white cards, no expanding strip (.pstrips/.pcard) and no data-scroll-scale; each card has
  *     its name, promise, three points and one link "See … →" to /services/<slug>/; the three real
  *     examples carry a visible "Example: …" label (the <img> has alt="" and loading="lazy"), CoachOS
- *     a branded panel and no picture; "Discuss your project →" goes to the contact form on
+ *     too since #7219's rework: a screenshot of this site's own chat; "Discuss your project →" goes to the contact form on
  *     "Services for my organisation" (front-page.php: through prospergenics_2026_contact_url());
  *   - one source: the homepage block is exactly what inc/services.php renders from
  *     inc/services/services.json for the homepage's URLs, and its styles are services.css;
@@ -18,7 +18,7 @@
  *     the page's h1), with the button; header, breadcrumb, count and search box stay; a search result
  *     keeps its subset; an unknown service, a "no results" page or another shape is left alone;
  *   - /services/<slug>/: "What you get" with the three points and the labelled example after the
- *     description, before the FAQ and "← All services"; CoachOS gets no picture; once only; other
+ *     description, before the FAQ and "← All services"; CoachOS its chat screenshot; once only; other
  *     shapes, unknown slugs and other sections untouched.
  *
  * Run with: php tests/test-2026-services.php
@@ -107,9 +107,17 @@ foreach ( $services as $i => $s ) {
 		ok( false !== strpos( $c, '<figcaption class="svc-ex">' . esc_html( $im['label'] ) . '</figcaption>' ), "{$s['name']}: labelled \"{$im['label']}\"" );
 	}
 }
-foreach ( array( 'Example: Art Revisionist', 'Example: Bugatti Insights', 'Example: our SEO tool' ) as $label ) {
+foreach ( array( 'Example: the chat on this site', 'Example: Art Revisionist', 'Example: Bugatti Insights', 'Example: our SEO tool' ) as $label ) {
 	ok( 1 === substr_count( $sec, '>' . $label . '</figcaption>' ), "the label \"$label\" is shown" );
 }
+// #7219 (rework, 16 Nov): CoachOS needs a real labelled example like the other three: a screenshot of
+// the open ProsperGenics chat on the homepage, 16:9 like the card's image area, so object-fit crops no text.
+$coach_img = $services[0]['image'];
+$coach_sz  = @getimagesize( $design . '/assets/coachos-chat.webp' );
+ok( 'coachos' === $services[0]['slug'] && 'coachos-chat.webp' === $coach_img['src'] && 'Example: the chat on this site' === $coach_img['label'] && empty( $services[0]['panel_svg'] ), 'CoachOS: "Example: the chat on this site" (coachos-chat.webp), no branded panel any more' );
+ok( $coach_sz && 'image/webp' === $coach_sz['mime'] && array( $coach_img['width'], $coach_img['height'] ) === array( $coach_sz[0], $coach_sz[1] ) && abs( $coach_sz[0] / $coach_sz[1] - 16 / 9 ) < 0.01, 'coachos-chat.webp is a WebP of the size services.json gives (' . ( $coach_sz ? $coach_sz[0] . 'x' . $coach_sz[1] : '?' ) . '), 16:9 like the image area' );
+ok( filesize( $design . '/assets/coachos-chat.webp' ) <= 60 * 1024, 'and optimised (' . round( filesize( $design . '/assets/coachos-chat.webp' ) / 1024 ) . ' KB, the other examples are 17-46 KB)' );
+ok( false === strpos( $sec, 'svc-media--brand' ), 'no card is left with only an icon panel' );
 ok( false === strpos( $sec, 'jengo-telefoon-chat' ) && false === strpos( $sec, 'seomagic.webp' ), 'no Jengo screenshot for CoachOS, no SEO screenshot with text cut mid-word (the cropped seomagic-hero.webp instead)' );
 preg_match_all( '#href="/services/([a-z0-9-]+)/"#', $sec, $links );
 ok( $slugs === $links[1], 'four links to /services/<slug>/, in order' );
@@ -126,7 +134,8 @@ ok( 1 === substr_count( $home, '.svc-card {' ), 'no second copy of the card styl
 echo "Generated front page\n";
 $fsec = services_section( $front );
 ok( false !== strpos( $fsec, 'href="<?php echo esc_url( prospergenics_2026_contact_url( \'Services for my organisation\' ) ); ?>">Discuss your project' ), 'front-page.php builds the button URL with prospergenics_2026_contact_url()' );
-ok( 3 === substr_count( $fsec, 'src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/' ) && 4 === substr_count( $fsec, '<article class="svc-card">' ), 'front-page.php: the four cards, images from the theme directory' );
+ok( 4 === substr_count( $fsec, 'src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/' ) && 4 === substr_count( $fsec, '<article class="svc-card">' ), 'front-page.php: the four cards, images from the theme directory' );
+ok( is_file( $theme . '/assets/coachos-chat.webp' ) && md5_file( $theme . '/assets/coachos-chat.webp' ) === md5_file( $design . '/assets/coachos-chat.webp' ), 'the theme ships coachos-chat.webp' );
 ok( false !== strpos( file_get_contents( $theme . '/functions.php' ), "require get_template_directory() . '/inc/services.php';" ), 'functions.php loads inc/services.php' );
 
 echo "Styles\n";
@@ -151,7 +160,7 @@ ok( 4 === substr_count( $out, '<h2 class="svc-name">' ) && false === strpos( $ou
 foreach ( $services as $s ) {
 	ok( false !== strpos( $out, '<a class="svc-more" href="' . TEST_HOME . '/services/' . $s['slug'] . '/">' ), "links /services/{$s['slug']}/" );
 }
-ok( 3 === substr_count( $out, 'src="' . $assets . '/' ) && 3 === substr_count( $out, '<figcaption class="svc-ex">Example: ' ), 'the three labelled examples, from the theme assets' );
+ok( 4 === substr_count( $out, 'src="' . $assets . '/' ) && 4 === substr_count( $out, '<figcaption class="svc-ex">Example: ' ), 'the four labelled examples, from the theme assets' );
 ok( 1 === substr_count( $out, '<style id="prospergenics-services-css">' ) && (bool) preg_match( '#<style id="prospergenics-services-css">\s*' . preg_quote( substr( trim( $css_src ), 0, 60 ), '#' ) . '.*?</style>\s*</head>#s', $out ), 'services.css printed once, before </head>' );
 ok( false !== strpos( $out, '<h1>Services <span class="accent">that create value</span></h1>' ) && false !== strpos( $out, '<p class="pg-count">4 services</p>' ) && false !== strpos( $out, '<form class="search-box" method="get" action="' . TEST_HOME . '/services/">' ), "the plugin's heading, count and search box stay" );
 ok( (bool) preg_match( '#<nav class="pg-breadcrumb pg-crumbs pg-crumbs--light" aria-label="Breadcrumb">.*?<span aria-current="page">Services</span>\s*</nav>\s*<header [^>]*class="pg-header">#s', $out ), 'the breadcrumb stays (PR #73)' );
@@ -180,7 +189,7 @@ $coach  = prospergenics_2026_listings_takeover( $dpage, '/services/coachos/', $c
 $get    = preg_match( '#<section class="svc-get" aria-labelledby="svc-get-h">.*?</section>#s', $coach, $g ) ? $g[0] : '';
 ok( '' !== $get && false !== strpos( $get, '<h2 id="svc-get-h">What you get</h2>' ), 'CoachOS: a "What you get" section' );
 ok( false !== strpos( $get, '<ul class="svc-points"><li>A chat assistant trained on your knowledge</li><li>Courses with progress tracking</li><li>Avatar videos, under your own brand</li></ul>' ), 'with the same three points as its card' );
-ok( false === strpos( $get, '<img' ) && false === strpos( $get, 'svc-media' ), 'CoachOS has no example picture, so none is shown' );
+ok( false !== strpos( $get, '<figure class="svc-media"><img src="' . $assets . '/coachos-chat.webp" width="1120" height="630" alt="" loading="lazy" decoding="async" style="object-position:50% 50%" /><figcaption class="svc-ex">Example: the chat on this site</figcaption></figure>' ), 'CoachOS: the same labelled example (its chat) as its card' );
 $p_desc = strpos( $coach, '<div class="dir-desc">' );
 $p_get  = strpos( $coach, '<section class="svc-get"' );
 ok( $p_desc < $p_get && $p_get < strpos( $coach, '<section class="dir-faq">' ) && $p_get < strpos( $coach, '<div class="dir-back">' ) && $p_get > strpos( $coach, '</p></div>', $p_desc ), 'after the description, before the FAQ and "← All services"' );

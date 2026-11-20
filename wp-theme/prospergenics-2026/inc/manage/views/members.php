@@ -144,7 +144,8 @@ prospergenics_manage_open( 'members', 'Find a member and change their role, conf
           $pgm_verified  = prospergenics_profiles_is_verified( $pgm_uid );
           $pgm_hidden    = prospergenics_profiles_is_hidden( $pgm_uid );
           $pgm_suspended = prospergenics_profiles_is_suspended( $pgm_uid );
-          $pgm_teaches   = (bool) get_user_meta( $pgm_uid, PROSPERGENICS_COURSES_INSTRUCTOR_META, true );
+          // the "Instructor" pill: approved instructors whose role does not already say so (pg_instructor, card #6341)
+          $pgm_teaches   = (bool) get_user_meta( $pgm_uid, PROSPERGENICS_COURSES_INSTRUCTOR_META, true ) && ! in_array( 'pg_instructor', (array) $pgm_u->roles, true );
           $pgm_roles     = array_map( function ( $r ) use ( $pgm_names ) { return isset( $pgm_names[ $r ] ) ? translate_user_role( $pgm_names[ $r ] ) : $r; }, (array) $pgm_u->roles );
           $pgm_role_text = $pgm_roles ? implode( ', ', $pgm_roles ) : 'No role';
           $pgm_mail      = $pgm_verified ? null : prospergenics_profiles_mail_status( $pgm_uid, 'verify' );

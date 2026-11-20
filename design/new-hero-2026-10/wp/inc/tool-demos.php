@@ -430,7 +430,31 @@ function prospergenics_2026_tool_try_live_html( $slug, array $attrs, $embed ) {
     return '<div class="pg-try-live">'
         . '<p class="pg-try-text">' . esc_html( $t['text'] ) . '</p>'
         . '<a class="pg-try-btn pg-coach-try" href="' . esc_url( $href ) . '">' . esc_html( $t['button'] ) . '</a>'
-        . '</div>' . "\n" . $embed;
+        . '</div>' . "\n" . $embed . "\n" . prospergenics_2026_tool_try_live_script();
+}
+
+/**
+ * Phones: keep the chat panel above the on-screen keyboard (#8078, as the homepage's launcher script
+ * does). The keyboard shrinks the visual viewport, not the layout viewport the fixed panel is placed
+ * in; the .co-embed-panel phone rule in tool-demo.css reads these two values. Ignored while
+ * pinch-zoomed.
+ */
+function prospergenics_2026_tool_try_live_script() {
+    return '<script id="prospergenics-try-live-js">' . "\n"
+        . "(function () {\n"
+        . "  var vv = window.visualViewport;\n"
+        . "  if (!vv) return;\n"
+        . "  var root = document.documentElement.style;\n"
+        . "  function fit() {\n"
+        . "    var zoomed = vv.scale > 1.05;\n"
+        . "    root.setProperty('--co-kb', (zoomed ? 0 : Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop))) + 'px');\n"
+        . "    root.setProperty('--co-vv-top', (zoomed ? 0 : Math.max(0, Math.round(vv.offsetTop))) + 'px');\n"
+        . "  }\n"
+        . "  vv.addEventListener('resize', fit);\n"
+        . "  vv.addEventListener('scroll', fit);\n"
+        . "  fit();\n"
+        . "})();\n"
+        . "</script>\n";
 }
 
 /**

@@ -61,7 +61,10 @@ $pgc_none = ! $pgc_active && ! have_posts() && ! $pgc_listings;
 
   <p class="pgc-count" role="status"><?php
     $pgc_n = (int) $wp_query->found_posts + count($pgc_listings);
-    echo esc_html(sprintf(_n('%d course', '%d courses', $pgc_n, 'prospergenics-2026'), $pgc_n) . ($pgc_filters['category'] || $pgc_filters['level'] ? ' match your filters' : ''));
+    // "1 course matches your filters", "3 courses match your filters" (card #7760)
+    echo esc_html($pgc_filters['category'] || $pgc_filters['level']
+      ? sprintf(_n('%d course matches your filters', '%d courses match your filters', $pgc_n, 'prospergenics-2026'), $pgc_n)
+      : sprintf(_n('%d course', '%d courses', $pgc_n, 'prospergenics-2026'), $pgc_n));
   ?></p>
   <?php endif; ?>
 

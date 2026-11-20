@@ -43,7 +43,7 @@ def card(s, home, assets, heading="h3"):
                  '<figcaption class="svc-ex">%s</figcaption></figure>\n') % (
             _esc(assets), _esc(img["src"]), int(img["width"]), int(img["height"]), _esc(img["position"]), _esc(img["label"]))
     else:
-        media = '        <div class="svc-media svc-media--brand" aria-hidden="true">%s</div>\n' % s["panel_svg"]
+        media = '        <div class="svc-media svc-media--brand" aria-hidden="true">%s</div>\n' % s.get("panel_svg", "")
     points = "".join("<li>%s</li>" % _esc(p) for p in s["points"])
     return ('      <article class="svc-card">\n' + media
             + '        <div class="svc-body">\n'

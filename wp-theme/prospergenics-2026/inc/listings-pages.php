@@ -8,6 +8,10 @@
  *   - Card pictures (card #6538): a card without a photo or logo gets the branded pattern of the
  *     /courses/ cards instead of one big letter (J, C, R, ...). Through the takeover's
  *     'prospergenics_2026_listings_page_html' filter.
+ *   - Instructors (card #6524): on the plugin's course pages the instructor's name (the "Course
+ *     details" row and the 👤 badge) links to the person's /people/ page when inc/people.json
+ *     knows the name; the same helper links the byline of the listings course cards on /courses/
+ *     (inc/courses/listings.php). Through the same filter.
  *   - The page's <head>, which the plugin prints before wp_head() and so before the takeover's
  *     buffer starts: a buffer around the whole page (started on init, used only once wp_head has
  *     shown it is a listings page) runs prospergenics_2026_listings_document() on it:
@@ -58,6 +62,94 @@ function prospergenics_2026_listings_card_patterns( $html ) {
 add_filter( 'prospergenics_2026_listings_page_html', function ( $html ) {
     return prospergenics_2026_listings_card_patterns( $html );
 }, 20 );
+
+/* ───────────────────── instructor names to /people/ (card #6524) ───────────────────── */
+
+/** A name as it is compared: entities decoded, runs of spaces as one, lower case (pure). */
+function prospergenics_2026_person_name_key( $name ) {
+    $name = trim( (string) preg_replace( '/\s+/u', ' ', html_entity_decode( (string) $name, ENT_QUOTES | ENT_HTML5, 'UTF-8' ) ) );
+    return function_exists( 'mb_strtolower' ) ? mb_strtolower( $name, 'UTF-8' ) : strtolower( $name );
+}
+
+/**
+ * The /people/ slug of the one person in inc/people.json called exactly $name: the full name it
+ * lists ("Martien de Jong") or the short name it lists for them ('aka': "Lessy", "Sandra"), in any
+ * case and spacing. '' for any other name, for part of a name ("Martien", "de Jong") and for a
+ * name that fits two people (pure).
+ *
+ * @param array<string,array> $people slug => person, as prospergenics_2026_people().
+ */
+function prospergenics_2026_person_slug_for_name( $name, array $people ) {
+    $key = prospergenics_2026_person_name_key( $name );
+    if ( '' === $key ) {
+        return '';
+    }
+    $found = array();
+    foreach ( $people as $slug => $p ) {
+        $names = is_array( $p ) ? array_merge( array( isset( $p['name'] ) ? $p['name'] : '' ), (array) ( isset( $p['aka'] ) ? $p['aka'] : array() ) ) : array();
+        foreach ( $names as $n ) {
+            if ( is_scalar( $n ) && '' !== trim( (string) $n ) && prospergenics_2026_person_name_key( $n ) === $key ) {
+                $found[ (string) $slug ] = true;
+            }
+        }
+    }
+    $slug = 1 === count( $found ) ? (string) key( $found ) : '';
+    return preg_match( '/^[a-z0-9-]+$/', $slug ) ? $slug : '';
+}
+
+/**
+ * A name as HTML: a link to the person's /people/<slug>/ page when inc/people.json knows the name
+ * (prospergenics_2026_person_slug_for_name()), the plain name otherwise. Escaped; $name is text,
+ * so markup in it shows as text (pure).
+ *
+ * @param string $home The site's URL (home_url( '/' )).
+ */
+function prospergenics_2026_person_name_html( $name, array $people, $home ) {
+    $name = trim( (string) $name );
+    $slug = prospergenics_2026_person_slug_for_name( $name, $people );
+    $text = esc_html( $name );
+    return '' === $slug ? $text : '<a href="' . esc_url( untrailingslashit( (string) $home ) . '/people/' . $slug . '/' ) . '">' . $text . '</a>';
+}
+
+/** prospergenics_2026_person_name_html() for this site: its people (inc/people.json) and URL. */
+function prospergenics_2026_person_link( $name ) {
+    return prospergenics_2026_person_name_html( $name, function_exists( 'prospergenics_2026_people' ) ? prospergenics_2026_people() : array(), home_url( '/' ) );
+}
+
+/**
+ * The instructor on a jengo-listings course page. The plugin prints the name as plain text twice:
+ *   <div class="sc-row"><span class="lbl">Instructor</span><span class="val">Martien de Jong</span></div>
+ *   <span class="ch-badge">👤 Martien de Jong</span>   (lh-badge on the course's lessons page)
+ * Each becomes a link to the person's /people/ page (prospergenics_2026_person_name_html()) when
+ * inc/people.json knows the name. A name it doesn't know, a value with markup in it and the rest
+ * of the page stay exactly as the plugin made them (pure).
+ *
+ * @param array<string,array> $people slug => person, as prospergenics_2026_people().
+ * @param string              $home   The site's URL.
+ */
+function prospergenics_2026_listings_instructor_links( $html, array $people, $home ) {
+    $link = function ( $m ) use ( $people, $home ) {
+        $name = html_entity_decode( $m[2], ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+        return '' === prospergenics_2026_person_slug_for_name( $name, $people ) ? $m[0] : $m[1] . prospergenics_2026_person_name_html( $name, $people, $home ) . $m[3];
+    };
+    $out = (string) $html;
+    foreach ( array(
+        '#(<span class="lbl">\s*Instructor\s*</span>\s*<span class="val">\s*)([^<]*?)(\s*</span>)#u',
+        '#(<span class="(?:ch|lh)-badge">\s*👤\s*)([^<]*?)(\s*</span>)#u',
+    ) as $re ) {
+        $new = preg_replace_callback( $re, $link, $out );
+        $out = null === $new ? $out : $new;
+    }
+    return $out;
+}
+
+// Course pages and their lessons pages (/courses/<slug>/, /courses/<slug>/learn/).
+add_filter( 'prospergenics_2026_listings_page_html', function ( $html, $key = '' ) {
+    if ( 0 !== strpos( (string) $key, '/courses/' ) ) {
+        return $html;
+    }
+    return prospergenics_2026_listings_instructor_links( $html, function_exists( 'prospergenics_2026_people' ) ? prospergenics_2026_people() : array(), home_url( '/' ) );
+}, 20, 2 );
 
 /* ───────────────────── the whole page, <head> included ───────────────────── */
 

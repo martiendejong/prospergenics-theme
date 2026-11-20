@@ -2,8 +2,9 @@
 /**
  * View: /manage/articles/ (card #6457), the articles waiting for review: the same queue as "Waiting
  * for review" on /articles/mine/ (prospergenics_articles_review_queue_args(), inc/articles/mine.php)
- * with its "Publish now" action (pg_articles_publish, which returns here), and links to the other
- * queues: Reports, Users → Requests, the instructor dashboard.
+ * with its "Publish now" and "Send back" actions (pg_articles_publish, pg_articles_send_back with a
+ * required note for the author; both return here), and links to the other queues: Reports,
+ * Users → Requests, the instructor dashboard.
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -11,8 +12,10 @@ defined( 'ABSPATH' ) || exit;
 $pgm_paged  = isset( $_GET['pg'] ) ? max( 1, absint( $_GET['pg'] ) ) : 1; // phpcs:ignore WordPress.Security.NonceVerification -- paging
 $pgm_query  = new WP_Query( prospergenics_articles_review_queue_args( $pgm_paged, PROSPERGENICS_MANAGE_PER_PAGE ) );
 $pgm_queues = prospergenics_manage_queues();
+// phpcs:ignore WordPress.Security.NonceVerification -- display only: which article's note was refused as empty
+$pgm_noted  = isset( $_GET['done'], $_GET['article'] ) && 'note_missing' === $_GET['done'] ? absint( $_GET['article'] ) : 0;
 
-prospergenics_manage_open( 'articles', 'Articles members sent for review, the one waiting longest first. Read, edit and publish them, or send them back from the editor.' );
+prospergenics_manage_open( 'articles', 'Articles members sent for review, the one waiting longest first. Read, edit and publish them, or send them back to the author with a note.' );
 ?>
   <p class="pgm-count" role="status"><?php echo esc_html( sprintf( _n( '%s article waiting for review', '%s articles waiting for review', (int) $pgm_query->found_posts ), number_format_i18n( (int) $pgm_query->found_posts ) ) ); ?></p>
 
@@ -23,7 +26,7 @@ prospergenics_manage_open( 'articles', 'Articles members sent for review, the on
           $pgm_title  = '' === $pgm_title ? '(untitled)' : $pgm_title;
           $pgm_author = get_userdata( (int) $pgm_post->post_author );
           ?>
-        <li class="pgm-item">
+        <li class="pgm-item" id="pg-review-<?php echo (int) $pgm_post->ID; ?>">
           <div class="pgm-item-main">
             <h2 class="pgm-item-title"><?php echo esc_html( $pgm_title ); ?></h2>
             <p class="pgm-facts">
@@ -46,6 +49,9 @@ prospergenics_manage_open( 'articles', 'Articles members sent for review, the on
                 <button class="pgm-btn" type="submit">Publish now<span class="screen-reader-text"> “<?php echo esc_html( $pgm_title ); ?>”</span></button>
               </form>
             <?php endif; ?>
+            <?php if ( prospergenics_articles_can_send_back( $pgm_post ) ) {
+                echo prospergenics_articles_send_back_form( $pgm_post, 'pgm', 'manage', (int) $pgm_post->ID === $pgm_noted ); // escaped inside
+            } ?>
           </div>
         </li>
       <?php endforeach; ?>

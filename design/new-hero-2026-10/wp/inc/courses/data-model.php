@@ -307,9 +307,15 @@ function prospergenics_courses_categories( $course_id ) {
 
 /* ------------------------------------------------------------------ slugs, cascade, save hooks */
 
-add_filter( 'wp_unique_post_slug', function ( $slug, $post_id, $status, $type ) {
-	return 'pg_course' === $type ? prospergenics_courses_safe_slug( $slug ) : $slug;
-}, 10, 4 );
+// A course never takes a fixed word under /courses/ or the slug of a jengo-listings course, whose
+// /courses/<slug>/ stays the plugin's (card #6524); the new slug is made unique again.
+add_filter( 'wp_unique_post_slug', function ( $slug, $post_id, $status, $type, $parent = 0 ) {
+	if ( 'pg_course' !== $type ) {
+		return $slug;
+	}
+	$safe = prospergenics_courses_safe_slug( $slug, function_exists( 'prospergenics_courses_listing_slugs' ) ? prospergenics_courses_listing_slugs() : array() );
+	return $safe === $slug ? $slug : wp_unique_post_slug( $safe, $post_id, $status, $type, $parent );
+}, 10, 5 );
 
 // Deleting a course (not trashing) removes its modules, lessons and enrolments; issued
 // certificates stay valid (they keep a snapshot of the course title).
