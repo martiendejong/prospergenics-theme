@@ -18,6 +18,12 @@
  *     the bare <title>ProsperGenics</title>; list and item pages get og:title, og:description,
  *     twitter:title and twitter:description from their own <title> and description, after og:url,
  *     never twice, escaped; unclear shapes get nothing; /about/ has og:url.
+ *   - instructors (#6524): a name inc/people.json knows (full name or the short name it lists, any
+ *     case, the whole name only, one person only) becomes a link to /people/<slug>/, escaped; any
+ *     other name stays text. On the plugin's course page (fixture course-detail-instructor.html)
+ *     the "Course details" row and the 👤 badge link, on its lessons page the badge; unknown names,
+ *     markup and other pages stay as they were; through the takeover on /courses/ pages only; the
+ *     listings course cards on /courses/ link their byline the same way; the styles.
  *
  * Run with: php tests/test-2026-listings-pages.php
  */
@@ -321,6 +327,72 @@ ok( 1 === substr_count( $about_src, '<meta property="og:url" content="https://te
 ok( 1 === substr_count( $about_php, '<meta property="og:url" content="<?php echo esc_url( home_url( \'/about/\' ) ); ?>" />' ) && false === strpos( $about_php, 'content="https://test.prospergenics.com/about/"' ), 'page-about.php: og:url from home_url(), so it is right on any site' );
 preg_match_all( '#<meta property="(og:[a-z_]+)"#', $about_php, $og );
 ok( array( 'og:description', 'og:image', 'og:title', 'og:type', 'og:url' ) === array_values( array_unique( ( function ( $a ) { sort( $a ); return $a; } )( $og[1] ) ) ) && count( $og[1] ) === count( array_unique( $og[1] ) ), 'About: og:type, og:url, og:title, og:description and og:image, each once' );
+
+echo "Instructor names link to their /people/ page (#6524)\n";
+$people_json = json_decode( file_get_contents( $theme . '/inc/people.json' ), true );
+$people      = $people_json['people'];
+function prospergenics_2026_people() { return $GLOBALS['people']; } // inc/platform-profiles.php reads the same file
+$home = TEST_HOME . '/';
+$martien = '<a href="' . TEST_HOME . '/people/martien/">Martien de Jong</a>';
+ok( 'martien' === prospergenics_2026_person_slug_for_name( 'Martien de Jong', $people ), 'a full name from people.json: its slug' );
+ok( 'martien' === prospergenics_2026_person_slug_for_name( "  martien  DE\tjong ", $people ) && 'martien' === prospergenics_2026_person_slug_for_name( 'MARTIEN DE JONG', $people ), 'any case and spacing' );
+ok( 'lessy' === prospergenics_2026_person_slug_for_name( 'Lessy', $people ) && 'lessy' === prospergenics_2026_person_slug_for_name( 'Lesiamon Mpoe', $people ) && 'simitia' === prospergenics_2026_person_slug_for_name( 'sandra', $people ), 'the short name people.json lists (aka: Lessy, Sandra) and the full name both' );
+$parts = array( 'Martien', 'de Jong', 'Martien de Jong (founder)', 'Dr. Martien de Jong', 'Lessy Mpoe', 'Mpoe', 'ProsperGenics', 'Jane Doe', '', '   ' );
+ok( array() === array_filter( array_map( function ( $n ) use ( $people ) { return prospergenics_2026_person_slug_for_name( $n, $people ); }, $parts ) ), 'part of a name, a name with more around it, the provider, an unknown or empty name: no slug' );
+$twice = array( 'a' => array( 'name' => 'Ann One', 'aka' => 'Annie' ), 'b' => array( 'name' => 'Ann Two', 'aka' => 'Annie' ), 'c' => array( 'name' => 'Bad Slug' ) );
+ok( '' === prospergenics_2026_person_slug_for_name( 'Annie', $twice ) && 'a' === prospergenics_2026_person_slug_for_name( 'Ann One', $twice ), 'a name two people share links to neither' );
+ok( '' === prospergenics_2026_person_slug_for_name( 'Bad Slug', array( 'x/../y' => array( 'name' => 'Bad Slug' ) ) ), 'a slug that is not a plain slug is never put in a URL' );
+ok( $martien === prospergenics_2026_person_name_html( 'Martien de Jong', $people, $home ) && $martien === prospergenics_2026_person_name_html( 'Martien de Jong', $people, TEST_HOME ), 'a known name: a link to /people/<slug>/ with the name as its text' );
+ok( 'ProsperGenics' === prospergenics_2026_person_name_html( 'ProsperGenics', $people, $home ) && 'Jane Doe' === prospergenics_2026_person_name_html( ' Jane Doe ', $people, $home ), 'an unknown name: plain text, no link' );
+$evil = prospergenics_2026_person_name_html( '<img src=x onerror=alert(1)>Martien de Jong', $people, $home );
+ok( false === strpos( $evil, '<img' ) && false === strpos( $evil, '<a ' ) && false !== strpos( $evil, '&lt;img' ), 'HTML in a name: escaped, shown as text, no link' );
+ok( false === strpos( prospergenics_2026_person_name_html( 'Tom & "Jerry"', $people, $home ), '"Jerry"' ), 'quotes and ampersands are escaped' );
+
+$aisl = file_get_contents( $fixture . '/course-detail-instructor.html' );
+ok( 1 === substr_count( $aisl, '<span class="ch-badge">👤 Martien de Jong</span>' ) && 1 === substr_count( $aisl, '<span class="lbl">Instructor</span><span class="val">Martien de Jong</span>' ), 'fixture: the AI Software Lifecycle course page names Martien de Jong as plain text twice' );
+$o = prospergenics_2026_listings_instructor_links( $aisl, $people, $home );
+ok( 1 === substr_count( $o, '<span class="ch-badge">👤 ' . $martien . '</span>' ), 'the 👤 badge in the hero: the name links to /people/martien/ (the emoji stays outside the link)' );
+ok( 1 === substr_count( $o, '<span class="lbl">Instructor</span><span class="val">' . $martien . '</span>' ), '"Course details": the instructor links to /people/martien/' );
+ok( 2 === substr_count( $o, '<a href="' . TEST_HOME . '/people/' ) && str_replace( array( '<a href="' . TEST_HOME . '/people/martien/">', '</a>' ), '', $o ) === str_replace( '</a>', '', $aisl ), 'nothing else on the page changes' );
+ok( prospergenics_2026_listings_instructor_links( $o, $people, $home ) === $o, 'running it twice changes nothing' );
+$learn = file_get_contents( $fixture . '/course-learn.html' );
+$lo    = prospergenics_2026_listings_instructor_links( $learn, $people, $home );
+ok( 1 === substr_count( $lo, '<span class="lh-badge">👤 ' . $martien . '</span>' ) && 1 === substr_count( $lo, '/people/' ) - substr_count( $learn, '/people/' ), 'the course\'s lessons page: its 👤 badge links too, nothing else' );
+$html_course = file_get_contents( $fixture . '/course-detail.html' );
+ok( $html_course === prospergenics_2026_listings_instructor_links( $html_course, $people, $home ), 'a course without an instructor (HTML): untouched' );
+$unknown = str_replace( 'Martien de Jong', 'Jane Doe', $aisl );
+ok( $unknown === prospergenics_2026_listings_instructor_links( $unknown, $people, $home ), 'an instructor people.json does not know: plain text, untouched' );
+$lessy = str_replace( '<span class="val">Martien de Jong</span>', '<span class="val"> Lessy </span>', $aisl );
+ok( false !== strpos( prospergenics_2026_listings_instructor_links( $lessy, $people, $home ), '<span class="val"> <a href="' . TEST_HOME . '/people/lessy/">Lessy</a> </span>' ), 'a short name (Lessy) links too, the spacing around it stays' );
+$marked = str_replace( '<span class="val">Martien de Jong</span>', '<span class="val"><b>Martien de Jong</b></span>', $aisl );
+ok( false !== strpos( prospergenics_2026_listings_instructor_links( $marked, $people, $home ), '<span class="val"><b>Martien de Jong</b></span>' ), 'a value with markup in it: left as the plugin made it' );
+$ent = str_replace( '<span class="val">Martien de Jong</span>', '<span class="val">Martien de&#32;Jong</span>', $aisl );
+ok( false !== strpos( prospergenics_2026_listings_instructor_links( $ent, $people, $home ), '<span class="val">' . $martien . '</span>' ), 'an entity in the plugin\'s text is read as the character it stands for' );
+$changed = array();
+foreach ( array( 'tool-detail', 'service-detail', 'member-detail', 'members', 'services' ) as $f ) {
+	$h = file_get_contents( "$fixture/$f.html" );
+	if ( prospergenics_2026_listings_instructor_links( $h, $people, $home ) !== $h ) {
+		$changed[] = $f;
+	}
+}
+ok( ! $changed, 'tool, service and member pages: untouched' . ( $changed ? ': ' . implode( ', ', $changed ) : '' ) );
+$taken = prospergenics_2026_listings_takeover( $aisl, '/courses/ai-software-lifecycle/', $chrome );
+ok( 2 === substr_count( $taken, $martien ) && false !== strpos( $taken, 'HEADER' ), 'in the takeover (page filter) on /courses/ai-software-lifecycle/: both links' );
+ok( 0 === substr_count( prospergenics_2026_listings_takeover( $aisl, '/tools/jengo-meet/', $chrome ), '/people/martien/' ), 'on a page outside /courses/: not applied' );
+
+// The listings course cards on /courses/ (inc/courses/listings.php, card #7760).
+function prospergenics_courses_lesson_count_label( $n ) { return $n . ' lessons'; }
+require $theme . '/inc/courses/listings.php';
+$card_item = array( 'slug' => 'ai-software-lifecycle', 'title' => 'AI Software Lifecycle', 'summary' => '', 'skills' => array(), 'provider' => 'ProsperGenics', 'instructor' => 'Martien de Jong', 'lessons' => 0, 'duration' => '' );
+ok( false !== strpos( prospergenics_courses_listing_card( $card_item ), '<p class="pgc-card-by">By ' . $martien . '</p>' ), 'a listings course card: "By Martien de Jong" links to /people/martien/' );
+ok( false !== strpos( prospergenics_courses_listing_card( array( 'instructor' => '' ) + $card_item ), '<p class="pgc-card-by">By ProsperGenics</p>' ), 'no instructor: "By ProsperGenics", no link' );
+ok( false !== strpos( prospergenics_courses_listing_card( array( 'instructor' => 'Jane Doe' ) + $card_item ), '<p class="pgc-card-by">By Jane Doe</p>' ), 'an instructor people.json does not know: text' );
+$evil_card = prospergenics_courses_listing_card( array( 'instructor' => '"><script>alert(1)</script>' ) + $card_item );
+ok( false === strpos( $evil_card, '<script>' ) && false !== strpos( $evil_card, '&lt;script&gt;' ), 'an instructor with markup: escaped' );
+$courses_css = file_get_contents( $theme . '/assets/platform/courses.css' );
+ok( (bool) preg_match( '#\.pgc-card-by a\{position:relative;z-index:1;#', $courses_css ), 'courses.css: the byline link sits above the card\'s stretched title link, so it can be clicked' );
+$chrome_css = file_get_contents( $theme . '/inc/site-chrome/site-chrome.css' );
+ok( false !== strpos( $chrome_css, '.ch-badge a, .lh-badge a { color: inherit; text-decoration: underline;' ) && false !== strpos( $chrome_css, '.sc-row .val a { color: #1a7a46; text-decoration: underline;' ), 'site-chrome.css: the links are underlined, white in the badge, green in "Course details"' );
 
 echo $failures ? "\n$failures FAILED\n" : "\nAll assertions passed.\n";
 exit( $failures ? 1 : 0 );
