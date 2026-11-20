@@ -97,6 +97,8 @@
 .pgc-card-title a:focus-visible{outline:none;}
 .pgc-card-title a:focus-visible::after{outline:3px solid var(--focus-ring,#1a7a46);outline-offset:-3px;}
 .pgc-card-by{font-size:14.5px;color:var(--muted);}
+/* the instructor's page (#6524), above the title link's stretched ::after like "Start learning" */
+.pgc-card-by a{position:relative;z-index:1;color:var(--ink);text-decoration:underline;text-underline-offset:2px;}
 .pgc-card-meta{display:flex;flex-wrap:wrap;gap:6px 16px;list-style:none;font-size:14px;color:#2a3d30;margin-top:auto;}
 .pgc-card-meta li+li::before{content:"·";margin-right:16px;color:var(--muted);margin-left:-6px;}
 .pgc-card .pgc-progress{margin-top:4px;}

@@ -193,9 +193,12 @@ function prospergenics_courses_reserved_slugs() {
 	return array( 'my', 'verify', 'instructor', 'page', 'feed', 'embed', 'category', 'new', 'certificate', 'lessons', 'reminders' );
 }
 
-/** Make a course slug safe: a reserved word gets "-course" appended. */
-function prospergenics_courses_safe_slug( $slug ) {
-	return in_array( $slug, prospergenics_courses_reserved_slugs(), true ) ? $slug . '-course' : $slug;
+/**
+ * Make a course slug safe: a reserved word, or a slug in $taken (the jengo-listings courses, which
+ * keep their /courses/<slug>/, card #6524), gets "-course" appended.
+ */
+function prospergenics_courses_safe_slug( $slug, array $taken = array() ) {
+	return in_array( $slug, prospergenics_courses_reserved_slugs(), true ) || in_array( $slug, $taken, true ) ? $slug . '-course' : $slug;
 }
 
 /** Normalise a certificate code typed by a visitor: upper case, only A-Z, 0-9 and dashes. */

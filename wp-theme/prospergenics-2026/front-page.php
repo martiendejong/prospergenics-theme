@@ -204,6 +204,14 @@
   .pg-breadcrumb.pg-crumbs--on-hero .sep { opacity: .6; }
   .pg-breadcrumb.pg-crumbs--on-hero [aria-current="page"] { color: #fff; }
 
+  /* the instructor on a jengo-listings course page, linked to their /people/ page (inc/listings-pages.php,
+     card #6524): underlined in the badge's own white on the green banner, in green in "Course details" */
+  .ch-badge a, .lh-badge a { color: inherit; text-decoration: underline; text-underline-offset: 3px; border-radius: 4px; }
+  .ch-badge a:focus-visible, .lh-badge a:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+  .sc-row .val a { color: #1a7a46; text-decoration: underline; text-underline-offset: 3px; border-radius: 4px; }
+  .sc-row .val a:hover { color: #0f3d28; }
+  .sc-row .val a:focus-visible { outline: 3px solid #1a7a46; outline-offset: 2px; }
+
   /* no photo or logo: the branded pattern of the /courses/ cards (assets/platform/courses.css, audit
      UX-8, card #6538) instead of a big single letter: the ProsperGenics sprout on the brand green,
      with one of three textures (pg-pattern--1..3, picked by slug). Here for every page type: the

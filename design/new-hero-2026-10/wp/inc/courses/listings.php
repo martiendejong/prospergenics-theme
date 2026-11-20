@@ -115,6 +115,24 @@ function prospergenics_courses_listings() {
 	return $last;
 }
 
+/**
+ * The slugs of the listings courses this site knows: the cached list, else the last good one. Never
+ * asks the listings service (it is read when a course is saved, see data-model.php; card #6524).
+ *
+ * @return string[]
+ */
+function prospergenics_courses_listing_slugs() {
+	$items = get_transient( 'pg_courses_listings' );
+	$items = is_array( $items ) && $items ? $items : get_option( 'pg_courses_listings_last', array() );
+	$slugs = array();
+	foreach ( is_array( $items ) ? $items : array() as $item ) {
+		if ( is_array( $item ) && isset( $item['slug'] ) && '' !== (string) $item['slug'] ) {
+			$slugs[] = (string) $item['slug'];
+		}
+	}
+	return $slugs;
+}
+
 /** A catalogue card for one listings course, in the same style as the theme's course cards. */
 function prospergenics_courses_listing_card( array $item ) {
 	$url   = home_url( '/courses/' . $item['slug'] . '/' );
@@ -123,10 +141,11 @@ function prospergenics_courses_listing_card( array $item ) {
 	$html .= '<div class="pgc-card-body">';
 	$html .= '<div class="pgc-chips"><span class="pgc-chip">Course</span></div>';
 	$html .= '<h2 class="pgc-card-title"><a href="' . esc_url( $url ) . '">' . esc_html( $item['title'] ) . '</a></h2>';
-	// the course's own instructor, as on its course page (Martien de Jong); else who offers it (card #7760)
+	// the course's own instructor, as on its course page (Martien de Jong); else who offers it (card #7760);
+	// a person in inc/people.json links to their /people/ page, anyone else stays text (card #6524)
 	$by = ! empty( $item['instructor'] ) ? $item['instructor'] : $item['provider'];
 	if ( '' !== $by ) {
-		$html .= '<p class="pgc-card-by">By ' . esc_html( $by ) . '</p>';
+		$html .= '<p class="pgc-card-by">By ' . ( function_exists( 'prospergenics_2026_person_link' ) ? prospergenics_2026_person_link( $by ) : esc_html( $by ) ) . '</p>';
 	}
 	if ( '' !== $item['summary'] ) {
 		$html .= '<p class="pgc-card-summary">' . esc_html( $item['summary'] ) . '</p>';
