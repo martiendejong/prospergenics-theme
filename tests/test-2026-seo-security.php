@@ -221,14 +221,13 @@ ok( 1 === preg_match( "#remove_action\\( 'wp_head', 'rel_canonical' \\)#", $seo_
 ok( 2 === substr_count( $seo_src, 'prospergenics_2026_is_homepage_request() )' ), 'sharing tags and Organization schema both use the homepage check' );
 
 echo "Section pages: description and sharing tags (card #7224)\n";
-// /contact/, /register/ and /blog/ had no description; /courses/ and /projects/ no og/twitter tags.
+// /contact/ and /register/ had no description; /courses/ and /projects/ no og/twitter tags.
+// /blog/ is now a 301 redirect to /articles/ (card #6537) so it no longer needs section-page SEO.
 $want = array( 'description', 'og:title', 'og:description', 'og:url', 'og:image', 'twitter:card', 'twitter:title', 'twitter:description', 'twitter:image' );
 $cases = array(
 	'/contact/ (template page)'           => array( array( '_page' => 'contact', '_singular' => true ), '/contact/', 'contact', 'Contact — ProsperGenics', 'https://prospergenics.com/contact/' ),
 	'/contact/ (no WordPress page)'       => array( array(), '/contact/', 'contact', 'Contact — ProsperGenics', 'https://prospergenics.com/contact/' ),
 	'/register/'                          => array( array( '_route' => 'register' ), '/register/', 'register', 'Create your member account — ProsperGenics', 'https://prospergenics.com/register/' ),
-	'/blog/ (page with page-blog.php)'    => array( array( '_page' => 'blog', '_singular' => true ), '/blog/', 'blog', 'Blog — ProsperGenics', 'https://prospergenics.com/blog/' ),
-	'/blog/ (the posts page)'             => array( array( '_home' => true ), '/blog/', 'blog', 'Blog — ProsperGenics', 'https://prospergenics.com/blog/' ),
 	'/courses/'                           => array( array( '_archive' => 'pg_course' ), '/courses/?level=beginner', 'courses', 'Courses — ProsperGenics', 'https://prospergenics.com/courses/' ),
 	'/projects/'                          => array( array( '_archive' => 'pg_project' ), '/projects/page/2/', 'projects', 'Projects — ProsperGenics', 'https://prospergenics.com/projects/' ),
 );

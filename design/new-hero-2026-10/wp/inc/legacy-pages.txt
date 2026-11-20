@@ -29,3 +29,6 @@ kennisbank           /articles/   # page 188 "Kennisbank", only a shortcode of a
 # Old contact page with the community sign-up form (#6488 step 2). /join/ is the theme's join
 # route: the registration form while it is open, else the contact form ("Joining the community").
 join-our-community   /join/       # page 180 "Contact", 30 words (a form that needs a missing plugin)
+
+# /blog/ was an empty WP page (hero only, no content); articles are the platform's written content (#6537)
+blog                 /articles/   # page 178 "blog", hero only
