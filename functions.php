@@ -1349,6 +1349,11 @@ require get_template_directory() . '/inc/contact-form-handler.php';
 require get_template_directory() . '/inc/security-txt.php';
 
 /**
+ * Include IndexNow key-file serving and auto-submit hook (2026-11-16, JengoWork task 3371)
+ */
+require get_template_directory() . '/inc/indexnow.php';
+
+/**
  * Include baseline security response headers: HSTS/CSP/X-Frame-Options/
  * X-Content-Type-Options (2026-09-06, JengoWork task 1669)
  */
