@@ -24,6 +24,7 @@ add_action( 'wp_head', function () {
 
 // First, so a fatal error in anything loaded after it is logged and emailed to staff (#6473).
 require get_template_directory() . '/inc/ops-alerts.php';
+require get_template_directory() . '/inc/page-cache.php';  // #7223 anonymous homepage page cache
 require get_template_directory() . '/inc/security.php';
 require get_template_directory() . '/inc/seo.php';
 // The one site header + footer (menu in inc/site-chrome/nav.json), also put on jengo-listings

@@ -1482,7 +1482,7 @@
     <button class="launcher-orb" type="button" aria-haspopup="dialog" aria-label="Open ProsperGenics chat">
       <span class="l-ring"></span><span class="l-ring l-ring2"></span>
       <span class="l-blob"></span>
-      <span class="l-photo"><img loading="lazy" decoding="async" width="480" height="640" src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/contact-bg.webp" alt="Lessy &amp; Diko — chat with ProsperGenics" /></span>
+      <span class="l-photo"><img loading="lazy" decoding="async" width="600" height="800" src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/contact-bg.webp" alt="Lessy &amp; Diko — chat with ProsperGenics" /></span>
       <span class="l-pulse"></span>
     </button>
     <a class="wa-btn" href="https://wa.me/254741619743" target="_blank" rel="noopener" aria-label="Chat with ProsperGenics on WhatsApp" title="Chat with ProsperGenics on WhatsApp">
