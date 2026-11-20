@@ -110,6 +110,20 @@ td.pgm-num{font-family:'Gabarito',sans-serif;font-weight:800;font-size:20px;colo
 .pgm-suspend .pgm-inline{align-items:flex-end;}
 .pgm-suspend .field{flex:1 1 240px;}
 .pgm-suspend textarea{min-height:0;}
+/* "Send back" with a note on /manage/articles/ (card #6457, prospergenics_articles_send_back_form()):
+   closed it is one more button in the row; open, the actions take the whole width of the article. */
+.pgm-sendback>summary{list-style:none;}
+.pgm-sendback>summary::-webkit-details-marker{display:none;}
+.pgm-sendback>summary:focus-visible{outline:3px solid var(--focus-ring,#1a7a46);outline-offset:2px;}
+.pgm-item-actions:has(>.pgm-sendback[open]){flex-basis:100%;}
+.pgm-sendback[open]{flex-basis:100%;display:grid;gap:12px;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:14px;}
+.pgm-sendback[open]>summary{justify-self:start;}
+.pgm-sendback form{display:grid;gap:12px;justify-items:start;}
+.pgm-sendback .field{width:100%;max-width:640px;}
+.pgm-sendback textarea{min-height:110px;}
+.pgm-hint{font-size:14px;color:var(--muted);}
+.pgm-field-error{font-size:14px;font-weight:600;color:#a3271d;}
+.pgm-sendback textarea[aria-invalid="true"]{border-color:#a3271d;}
 
 /* Members: summary line, the compact table, the Manage panel (views/members.php, manage.js) */
 .pgm-summary,.pgm-pager{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 16px;}
@@ -184,6 +198,8 @@ ul.links-404 a{display:inline-flex;align-items:center;min-height:44px;}
   .pgm-item-actions{width:100%;}
   .pgm-item-actions>.pgm-btn,.pgm-item-actions>.pgm-inline{flex:1 1 auto;}
   .pgm-item-actions .pgm-inline .pgm-btn,.pgm-item-actions .pgm-select{flex:1 1 auto;}
+  .pgm-item-actions>.pgm-sendback{flex:1 1 auto;}
+  .pgm-sendback>summary,.pgm-sendback button{width:100%;}
   .pgm-search .field,.pgm-search .pgm-search-q,.pgm-search-go,.pgm-search-go .pgm-btn{flex:1 1 100%;width:100%;}
   .pgm-search .pgm-f-filter,.pgm-search .pgm-f-tier,.pgm-search .pgm-f-sort,.pgm-search .pgm-f-per{flex:1 1 calc(50% - 8px);width:auto;min-width:0;}
   .pgm-dl{grid-template-columns:minmax(0,1fr);gap:2px;}

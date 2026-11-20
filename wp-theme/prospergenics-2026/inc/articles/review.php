@@ -4,7 +4,10 @@
  *
  *   draft → pending            the editors get an email with a link to review it
  *   pending → publish/future   the author gets "your article is published" (or scheduled)
- *   pending → draft            the author gets "your article is back in your drafts"
+ *   pending → draft            the author gets "your article is back in your drafts", with the
+ *                              reviewer's note when it was sent back with "Send back" (card #6457,
+ *                              pg_articles_send_back in mine.php); the note stays on the draft until
+ *                              the article is submitted again or published
  *
  * Nobody is told about their own action (an author publishing their own pending article gets no
  * mail). The editors are every editor and administrator who may edit the article; the list is
@@ -50,8 +53,27 @@ function prospergenics_articles_review_recipients( WP_Post $post, $actor_id = 0 
     return $out;
 }
 
-/** The plain-text mail for an event: array{subject:string,body:string}. */
-function prospergenics_articles_review_mail( $event, $title, $name, $links ) {
+/**
+ * A reviewer's note for the plain-text mail (card #6457): line endings normalised, markup and control
+ * characters removed, every line quoted with "> " so the note stands apart from the mail's own text.
+ * '' for an empty note.
+ */
+function prospergenics_articles_review_mail_note( $note ) {
+    if ( '' === trim( (string) $note ) ) {
+        return '';
+    }
+    $note = wp_strip_all_tags( str_replace( array( "\r\n", "\r" ), "\n", (string) $note ) );
+    $note = trim( preg_replace( "/\n{3,}/", "\n\n", preg_replace( '/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $note ) ) );
+    return '' === $note ? '' : '> ' . str_replace( "\n", "\n> ", $note );
+}
+
+/**
+ * The plain-text mail for an event: array{subject:string,body:string}.
+ *
+ * @param string $note     "returned" only: the reviewer's note (Send back), '' when there is none.
+ * @param string $reviewer "returned" only: the name of who sent it back, '' for "An editor".
+ */
+function prospergenics_articles_review_mail( $event, $title, $name, $links, $note = '', $reviewer = '' ) {
     $title = '' !== trim( (string) $title ) ? (string) $title : '(untitled)';
     switch ( $event ) {
         case 'submitted':
@@ -70,9 +92,15 @@ function prospergenics_articles_review_mail( $event, $title, $name, $links ) {
                 'body'    => sprintf( "Hi %s,\n\n\"%s\" was approved and will be published on %s.\n\nYour articles: %s\n", $name, $title, $links['date'], $links['mine'] ),
             );
         case 'returned':
+            $note = prospergenics_articles_review_mail_note( $note );
+            if ( '' !== $note ) {
+                $body = sprintf( "Hi %s,\n\n%s sent \"%s\" back to your drafts, so it is not published yet. What to change:\n\n%s\n\nMake the changes and submit it for review again when it is ready.\n\n", $name, '' !== trim( (string) $reviewer ) ? $reviewer : 'An editor', $title, $note );
+            } else {
+                $body = sprintf( "Hi %s,\n\nAn editor moved \"%s\" back to your drafts, so it is not published yet. Have a look, make changes and submit it for review again when it is ready.\n\n", $name, $title );
+            }
             return array(
                 'subject' => sprintf( 'Your article is back in your drafts: %s', $title ),
-                'body'    => sprintf( "Hi %s,\n\nAn editor moved \"%s\" back to your drafts, so it is not published yet. Have a look, make changes and submit it for review again when it is ready.\n\nEdit it: %s\nYour articles: %s\n", $name, $title, $links['edit'], $links['mine'] ),
+                'body'    => $body . sprintf( "Edit it: %s\nYour articles: %s\n", $links['edit'], $links['mine'] ),
             );
     }
     return array( 'subject' => '', 'body' => '' );
@@ -81,6 +109,11 @@ function prospergenics_articles_review_mail( $event, $title, $name, $links ) {
 function prospergenics_articles_review_transition( $new, $old, $post ) {
     if ( ! $post instanceof WP_Post || 'pg_article' !== $post->post_type || wp_is_post_revision( $post ) ) {
         return;
+    }
+    // a "Send back" note belongs to that draft: once the article is submitted again or published,
+    // it is done (not shown on /articles/mine/, not mailed with a later return from wp-admin)
+    if ( $old !== $new && in_array( $new, array( 'pending', 'publish', 'future' ), true ) && function_exists( 'prospergenics_articles_clear_note' ) ) {
+        prospergenics_articles_clear_note( $post->ID );
     }
     $event = prospergenics_articles_review_event( $old, $new );
     if ( '' === $event ) {
@@ -109,7 +142,9 @@ function prospergenics_articles_review_transition( $new, $old, $post ) {
     if ( ! $author || (int) $author->ID === (int) $actor ) {
         return;
     }
-    $mail = prospergenics_articles_review_mail( $event, $post->post_title, $author->display_name, $links );
+    $note     = 'returned' === $event && function_exists( 'prospergenics_articles_note' ) ? prospergenics_articles_note( $post->ID ) : null;
+    $reviewer = $note && $note['by'] ? get_userdata( $note['by'] ) : false;
+    $mail     = prospergenics_articles_review_mail( $event, $post->post_title, $author->display_name, $links, $note ? $note['note'] : '', $reviewer ? $reviewer->display_name : '' );
     prospergenics_profiles_send_mail( $author->user_email, wp_specialchars_decode( $mail['subject'] ), $mail['body'], 'article_' . $event, $author->ID );
 }
 add_action( 'transition_post_status', 'prospergenics_articles_review_transition', 10, 3 );

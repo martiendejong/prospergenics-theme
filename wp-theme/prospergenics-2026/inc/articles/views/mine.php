@@ -47,13 +47,17 @@ if ( $pga_can ) {
     $pga_query = new WP_Query( $pga_args );
 }
 $pga_notices = array(
-    'unpublished' => array( 'ok', 'The article is a draft again and no longer visible to readers.' ),
-    'published'   => array( 'ok', 'The article is published.' ),
-    'submitted'   => array( 'ok', 'Your article was sent for review. You will get an email when it is published or sent back.' ),
-    'scheduled'   => array( 'ok', 'The article is scheduled and will be published at the chosen time.' ),
-    'failed'      => array( 'error', 'That did not work. The article may already have changed; please try again.' ),
+    'unpublished'  => array( 'ok', 'The article is a draft again and no longer visible to readers.' ),
+    'published'    => array( 'ok', 'The article is published.' ),
+    'submitted'    => array( 'ok', 'Your article was sent for review. You will get an email when it is published or sent back.' ),
+    'scheduled'    => array( 'ok', 'The article is scheduled and will be published at the chosen time.' ),
+    'sent_back'    => array( 'ok', 'The article is back in its author’s drafts, and your note is emailed to them.' ),
+    'note_missing' => array( 'error', 'The article was not sent back: write a note for the author first.' ),
+    'not_pending'  => array( 'error', 'That article is no longer waiting for review, so it was not sent back.' ),
+    'failed'       => array( 'error', 'That did not work. The article may already have changed; please try again.' ),
 );
-$pga_done = isset( $_GET['done'] ) ? sanitize_key( wp_unslash( $_GET['done'] ) ) : '';
+$pga_done  = isset( $_GET['done'] ) ? sanitize_key( wp_unslash( $_GET['done'] ) ) : '';
+$pga_noted = 'note_missing' === $pga_done && isset( $_GET['article'] ) ? absint( $_GET['article'] ) : 0; // whose "Send back" note was refused as empty
 
 get_header();
 ?>
@@ -70,7 +74,7 @@ get_header();
 
 <div class="pga-mine">
   <?php if ( isset( $pga_notices[ $pga_done ] ) ) : ?>
-    <p class="form-notice form-notice-<?php echo esc_attr( $pga_notices[ $pga_done ][0] ); ?>" role="status"><?php echo esc_html( $pga_notices[ $pga_done ][1] ); ?></p>
+    <p class="form-notice form-notice-<?php echo esc_attr( $pga_notices[ $pga_done ][0] ); ?>" role="<?php echo 'error' === $pga_notices[ $pga_done ][0] ? 'alert' : 'status'; ?>"><?php echo esc_html( $pga_notices[ $pga_done ][1] ); ?></p>
   <?php endif; ?>
 
   <?php if ( ! $pga_can ) : ?>
@@ -98,7 +102,7 @@ get_header();
             $pga_title  = wp_strip_all_tags( get_the_title( $pga_post ) );
             $pga_title  = '' === $pga_title ? '(untitled)' : $pga_title;
             ?>
-          <li class="pga-mine-item">
+          <li class="pga-mine-item" id="pg-review-<?php echo (int) $pga_post->ID; ?>">
             <div class="pga-mine-main">
               <span class="pga-status pga-status-<?php echo esc_attr( $pga_status ); ?>"><?php echo esc_html( prospergenics_articles_status_label( $pga_status ) ); ?></span>
               <h2 class="pga-mine-title"><?php echo esc_html( $pga_title ); ?></h2>
@@ -116,6 +120,16 @@ get_header();
                 <span aria-hidden="true">·</span> <?php echo esc_html( prospergenics_articles_reading_label( $pga_post ) ); ?>
                 <span aria-hidden="true">·</span> <?php echo prospergenics_articles_claps_badge( $pga_post->ID ); ?>
               </p>
+              <?php
+              // a draft sent back with "Send back" (card #6457): what the reviewer asked to change
+              $pga_note = 'draft' === $pga_status ? prospergenics_articles_note( $pga_post->ID ) : null;
+              if ( $pga_note ) :
+                  $pga_by = $pga_note['by'] ? get_userdata( $pga_note['by'] ) : false; ?>
+                <div class="pga-mine-note">
+                  <p class="pga-mine-note-h">Sent back<?php echo $pga_by ? ' by ' . esc_html( $pga_by->display_name ) : ''; ?><?php if ( $pga_note['at'] ) : ?> on <time datetime="<?php echo esc_attr( wp_date( 'c', $pga_note['at'] ) ); ?>"><?php echo esc_html( wp_date( 'j M Y', $pga_note['at'] ) ); ?></time><?php endif; ?>. What to change:</p>
+                  <p class="pga-mine-note-text"><?php echo nl2br( esc_html( $pga_note['note'] ) ); ?></p>
+                </div>
+              <?php endif; ?>
             </div>
             <div class="pga-mine-actions">
               <?php if ( current_user_can( 'edit_post', $pga_post->ID ) ) : ?>
@@ -142,6 +156,9 @@ get_header();
                   <button class="pga-btn pga-btn-ghost" type="submit">Publish now<span class="screen-reader-text"> “<?php echo esc_html( $pga_title ); ?>”</span></button>
                 </form>
               <?php endif; ?>
+              <?php if ( $pga_queue && prospergenics_articles_can_send_back( $pga_post ) ) {
+                  echo prospergenics_articles_send_back_form( $pga_post, 'pga', '', (int) $pga_post->ID === $pga_noted ); // escaped inside
+              } ?>
             </div>
           </li>
         <?php endforeach; ?>
