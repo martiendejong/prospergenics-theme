@@ -96,6 +96,11 @@ $pending = pg_e2e_post( 'pg_article', 'E2E pending article 5b2e', array( 'post_s
 if ( 'pending' !== get_post_status( $pending ) ) {
     wp_update_post( array( 'ID' => $pending, 'post_status' => 'pending' ) ); // a second run starts from "pending" again
 }
+// A second one, also by the contributor, that staff send back with a note (card #6457).
+$sendback = pg_e2e_post( 'pg_article', 'E2E send back article 3e9a', array( 'post_status' => 'pending', 'post_author' => $pg_e2e_out['users']['contributor']['id'], 'post_content' => '<p>Waiting for a note.</p>' ) );
+if ( 'pending' !== get_post_status( $sendback ) ) {
+    wp_update_post( array( 'ID' => $sendback, 'post_status' => 'pending' ) ); // again pending, and its old note cleared (review.php)
+}
 
 // A contact message whose subject must never reach anyone but editors and administrators.
 $contact = pg_e2e_post( 'pg_contact_msg', 'E2E private enquiry 7f3a', array( 'post_content' => 'Phone +31 6 0000 0000' ) );
@@ -233,6 +238,7 @@ $pg_e2e_out['lesson_url']    = get_permalink( $lesson );
 $pg_e2e_out['article']       = $article;
 $pg_e2e_out['pending']       = $pending;
 $pg_e2e_out['pending_title'] = 'E2E pending article 5b2e';
+$pg_e2e_out['sendback']      = $sendback;
 $pg_e2e_out['contact_title'] = 'E2E private enquiry 7f3a';
 $pg_e2e_out['contact_id']    = $contact;
 $pg_e2e_out['entry']         = (int) $entry;

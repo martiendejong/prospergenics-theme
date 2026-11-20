@@ -22,7 +22,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'PROSPERGENICS_ARTICLES_VERSION', '1.1.0' );
+define( 'PROSPERGENICS_ARTICLES_VERSION', '1.1.1' ); // also the version of articles.css|js: bump it when they change
 
 require __DIR__ . '/articles/roles.php';
 require __DIR__ . '/articles/content.php';

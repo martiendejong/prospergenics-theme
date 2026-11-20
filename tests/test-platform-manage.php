@@ -55,6 +55,9 @@ function _caps( $id ) {
 }
 function user_can( $id, $cap, ...$args ) {
 	$caps = _caps( (int) $id );
+	if ( in_array( $cap, array( 'edit_others_pg_articles', 'edit_post', 'publish_post' ), true ) ) { // the article review caps: what edit_others_posts gives
+		return ! empty( $caps['edit_others_posts'] );
+	}
 	if ( 'edit_user' === $cap || 'promote_user' === $cap ) {
 		return ! empty( $caps[ 'edit_user' === $cap ? 'edit_users' : 'promote_users' ] );
 	}
@@ -63,7 +66,7 @@ function user_can( $id, $cap, ...$args ) {
 function current_user_can( $cap, ...$args ) { return user_can( $GLOBALS['_me'], $cap, ...$args ); }
 function get_current_user_id() { return $GLOBALS['_me']; }
 function is_user_logged_in() { return $GLOBALS['_me'] > 0; }
-function get_userdata( $id ) { return isset( $GLOBALS['_users'][ $id ] ) ? (object) array( 'ID' => $id, 'roles' => array( $GLOBALS['_users'][ $id ] ) ) : false; }
+function get_userdata( $id ) { return isset( $GLOBALS['_users'][ $id ] ) ? (object) array( 'ID' => $id, 'roles' => array( $GLOBALS['_users'][ $id ] ), 'display_name' => 7 === $id ? 'Sam <Sub>' : 'User ' . $id ) : false; }
 
 require $theme . '/inc/profiles/users-admin.php'; // prospergenics_profiles_can_manage_member(), reused
 require $theme . '/inc/manage/helpers.php';
@@ -217,7 +220,7 @@ ok( false !== strpos( $chrome, "prospergenics_manage_can_access() ) {" ) && fals
 $mine = $src( 'inc/articles/mine.php' );
 ok( false !== strpos( $src( 'inc/manage/views/articles.php' ), 'prospergenics_articles_review_queue_args(' ) && false !== strpos( $src( 'inc/articles/views/mine.php' ), 'prospergenics_articles_review_queue_args(' ), 'one review queue for /articles/mine/ and /manage/articles/' );
 ok( false !== strpos( $src( 'inc/manage/views/articles.php' ), 'value="pg_articles_publish"' ) && false !== strpos( $src( 'inc/manage/views/articles.php' ), "wp_nonce_field( 'pg_articles_publish_' . \$pgm_post->ID )" ), '/manage/articles/ uses the existing publish action and nonce' );
-ok( false !== strpos( $mine, "'manage' === \$from && function_exists( 'prospergenics_manage_url' )" ) && false !== strpos( $mine, "prospergenics_manage_url( 'articles', array( 'done' => \$args['done'] ) )" ), 'the publish action returns to the queue it came from (a fixed URL, no open redirect)' );
+ok( false !== strpos( $mine, "'manage' === \$from && function_exists( 'prospergenics_manage_url' )" ) && false !== strpos( $mine, "prospergenics_manage_url( 'articles', array_intersect_key( \$args, array( 'done' => 1, 'article' => 1 ) ) )" ), 'publish and send back return to the queue they came from (a fixed URL with only the notice and the article, no open redirect)' );
 ok( false !== strpos( $src( 'inc/manage/views/members.php' ), 'prospergenics_manage_can_manage_member( $pgm_uid )' ), 'the list only offers actions for members this user may change' );
 $js = $src( 'assets/platform/manage.js' );
 ok( false !== strpos( $routes, "if ( 'members' === prospergenics_manage_view() ) {" ) && false !== strpos( $routes, "wp_enqueue_script( 'pg-manage'" ), 'manage.js only on /manage/members/' );
@@ -332,6 +335,54 @@ $main = $GLOBALS['_uq'][0];
 ok( 25 === $main['number'] && 'registered' === $main['orderby'] && ! isset( $main['role__in'] ) && 1 === preg_match( '#href="http://pg\.test/manage/members/" aria-current="page">All#', $html ), 'unknown values fall back: 25 a page, newest first, everyone' );
 $html = _render( array( 'pg' => '99' ) );
 ok( 13 === $GLOBALS['_uq'][1]['paged'] && false !== strpos( $html, 'Showing 301–312 of 312' ), 'a page past the end shows the last page' );
+
+// ───────────────────────────── the articles screen, rendered (Send back, #6457) ─────────────────────────────
+echo "articles screen (rendered with stubs): Send back with a note\n";
+class WP_Post {
+	public $ID, $post_type = 'pg_article', $post_status = 'pending', $post_author, $post_title;
+	function __construct( $id, $author, $title ) { $this->ID = $id; $this->post_author = $author; $this->post_title = $title; }
+}
+class WP_Query {
+	public $posts, $found_posts, $max_num_pages = 1;
+	function __construct( $args ) { $GLOBALS['_aq'] = $args; $this->posts = $GLOBALS['_queue']; $this->found_posts = count( $this->posts ); }
+	function have_posts() { return (bool) $this->posts; }
+}
+function get_the_title( $p ) { return $p->post_title; }
+function wp_strip_all_tags( $s ) { return trim( strip_tags( (string) $s ) ); }
+function get_post_modified_time( $f, $gmt = false, $p = null ) { return 'c' === $f ? '2026-11-19T10:00:00+00:00' : '19 Nov 2026, 10:00'; }
+function get_edit_post_link( $id, $ctx = 'display' ) { return admin_url( 'post.php?post=' . $id . '&action=edit' ); }
+function get_preview_post_link( $p ) { return home_url( '/?p=' . $p->ID . '&preview=true' ); }
+function prospergenics_manage_queues() { return array( 'reports' => 0, 'requests' => 0 ); }
+require $theme . '/inc/articles/mine.php';
+function _render_articles( $get ) {
+	global $theme;
+	$_GET = $get;
+	ob_start();
+	include $theme . '/inc/manage/views/articles.php';
+	return ob_get_clean();
+}
+$GLOBALS['_me']    = 2; // editor
+$GLOBALS['_queue'] = array( new WP_Post( 96, 6, 'How we price a first prototype' ), new WP_Post( 97, 7, 'A week & a test' ) );
+$html = _render_articles( array() );
+ok( 'pending' === $GLOBALS['_aq']['post_status'] && 'ASC' === $GLOBALS['_aq']['order'], 'the queue: pending articles, the one waiting longest first' );
+ok( false !== strpos( $html, 'or send them back to the author with a note.' ) && false === strpos( $html, 'send them back from the editor' ), 'the intro no longer sends staff to the editor to send an article back' );
+ok( 1 === substr_count( $html, '<li class="pgm-item" id="pg-review-96">' ) && 1 === substr_count( $html, '<li class="pgm-item" id="pg-review-97">' ), 'every article has an anchor (pg-review-<id>)' );
+ok( 2 === substr_count( $html, '<details class="pgm-sendback"><summary class="pgm-btn pgm-btn-ghost">Send back…' ) && false === strpos( $html, '<details class="pgm-sendback" open>' ), 'one closed "Send back…" per article, next to Edit, Preview and Publish now' );
+foreach ( array( 96, 97 ) as $id ) {
+	ok( 1 === preg_match( '#<input type="hidden" name="post_id" value="' . $id . '" /><input type="hidden" name="pg_from" value="manage" /><input type="hidden" id="_wpnonce" name="_wpnonce" value="nonce:pg_articles_send_back_' . $id . '" />#', $html ), "article $id: its own send-back nonce, and the way back to /manage/articles/" );
+	ok( false !== strpos( $html, '<label for="pgm-note-' . $id . '">What should the author change?</label>' ) && false !== strpos( $html, '<textarea id="pgm-note-' . $id . '" name="note" rows="4" maxlength="2000" required aria-describedby="pgm-note-' . $id . '-hint">' ), "article $id: a labelled, required note" );
+}
+ok( false !== strpos( $html, 'Required. Sam &lt;Sub&gt; gets this note by email' ) && false !== strpos( $html, 'Send back to Sam &lt;Sub&gt;<span class="screen-reader-text"> “A week &amp; a test”</span>' ), 'the author\'s name and the title are escaped' );
+ok( 2 === substr_count( $html, 'value="pg_articles_publish"' ), 'Publish now stays' );
+$html = _render_articles( array( 'done' => 'note_missing', 'article' => '97' ) );
+ok( false !== strpos( $html, '<p class="form-notice form-notice-error" role="alert">The article was not sent back: write a note for the author first.</p>' ), 'a refused empty note: an alert at the top' );
+ok( 1 === substr_count( $html, '<details class="pgm-sendback" open>' ) && false !== strpos( $html, 'aria-describedby="pgm-note-97-hint pgm-note-97-err" aria-invalid="true" autofocus' ) && false !== strpos( $html, 'id="pgm-note-97-err">Write what the author should change' ), 'and that article\'s form open, its field invalid, tied to the error and focused' );
+ok( false === strpos( $html, 'pgm-note-96-err' ) && false !== strpos( $html, 'aria-describedby="pgm-note-96-hint">' ), 'the other article\'s form is untouched' );
+$html = _render_articles( array( 'done' => 'sent_back' ) );
+ok( false !== strpos( $html, 'role="status">The article is back in its author’s drafts, and your note is emailed to them.</p>' ), 'sent back: a status notice' );
+$GLOBALS['_queue'] = array();
+ok( false !== strpos( _render_articles( array() ), 'No articles are waiting for review.' ), 'an empty queue says so' );
+$_GET = array();
 
 echo $failures ? "\n$failures FAILED\n" : "\nAll passed\n";
 exit( $failures ? 1 : 0 );

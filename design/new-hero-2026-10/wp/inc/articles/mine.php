@@ -16,10 +16,22 @@
  * Actions (POST to admin-post.php, each with its own nonce and capability check):
  *   pg_articles_unpublish  published or scheduled -> draft     needs edit_post
  *   pg_articles_publish    draft/pending/scheduled -> live now  needs edit_post and publish_post
- *   Both return to /articles/mine/, or to /manage/articles/ when sent from the staff review queue.
+ *   pg_articles_send_back  pending -> draft with a required note for the author (card #6457)
+ *                          needs edit_post and edit_others_pg_articles (the staff who review);
+ *                          the note is kept on the article and goes into the author's "back in
+ *                          your drafts" email (review.php); the author sees it here on that draft
+ *   All return to /articles/mine/, or to /manage/articles/ when sent from the staff review queue.
  */
 
 defined( 'ABSPATH' ) || exit;
+
+/** Post meta of the last "Send back" (card #6457): the note, who wrote it (user ID), when (timestamp). */
+const PROSPERGENICS_ARTICLES_NOTE_META    = '_pg_articles_review_note';
+const PROSPERGENICS_ARTICLES_NOTE_BY_META = '_pg_articles_review_note_by';
+const PROSPERGENICS_ARTICLES_NOTE_AT_META = '_pg_articles_review_note_at';
+
+/** The longest note kept, in characters (the textarea's maxlength too). */
+const PROSPERGENICS_ARTICLES_NOTE_MAX = 2000;
 
 add_action( 'init', function () {
     add_rewrite_tag( '%pg_articles_mine%', '1' );
@@ -120,7 +132,8 @@ add_action( 'template_redirect', function () {
 function prospergenics_articles_action_redirect( array $args ) {
     $from = isset( $_POST['pg_from'] ) ? sanitize_key( wp_unslash( $_POST['pg_from'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification -- checked before
     if ( 'manage' === $from && function_exists( 'prospergenics_manage_url' ) ) {
-        return prospergenics_manage_url( 'articles', array( 'done' => $args['done'] ) );
+        // the notice, and which article it is about (a refused note), never the /articles/mine/ filter
+        return prospergenics_manage_url( 'articles', array_intersect_key( $args, array( 'done' => 1, 'article' => 1 ) ) );
     }
     return prospergenics_articles_mine_url( $args );
 }
@@ -172,3 +185,117 @@ add_action( 'admin_post_pg_articles_publish', function () {
     wp_safe_redirect( prospergenics_articles_action_redirect( array( 'status' => 'publish', 'done' => $done ? 'published' : 'failed' ) ) );
     exit;
 } );
+
+/* ───────────────────── Send back with a note (card #6457) ───────────────────── */
+
+/**
+ * A reviewer's note from the form: plain text (markup and control characters removed, line breaks
+ * kept as \n), at most PROSPERGENICS_ARTICLES_NOTE_MAX characters. '' when nothing is left: such a
+ * note is refused.
+ */
+function prospergenics_articles_clean_note( $raw ) {
+    $note = str_replace( array( "\r\n", "\r" ), "\n", sanitize_textarea_field( (string) $raw ) );
+    $note = trim( preg_replace( "/\n{3,}/", "\n\n", preg_replace( '/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $note ) ) );
+    return function_exists( 'mb_substr' ) ? mb_substr( $note, 0, PROSPERGENICS_ARTICLES_NOTE_MAX ) : substr( $note, 0, PROSPERGENICS_ARTICLES_NOTE_MAX );
+}
+
+/** The last "Send back" note on an article: array{note:string,by:int,at:int}, or null. */
+function prospergenics_articles_note( $post_id ) {
+    $note = (string) get_post_meta( (int) $post_id, PROSPERGENICS_ARTICLES_NOTE_META, true );
+    if ( '' === $note ) {
+        return null;
+    }
+    return array(
+        'note' => $note,
+        'by'   => (int) get_post_meta( (int) $post_id, PROSPERGENICS_ARTICLES_NOTE_BY_META, true ),
+        'at'   => (int) get_post_meta( (int) $post_id, PROSPERGENICS_ARTICLES_NOTE_AT_META, true ),
+    );
+}
+
+/** Forget the note (the article was submitted again or published: review.php). */
+function prospergenics_articles_clear_note( $post_id ) {
+    foreach ( array( PROSPERGENICS_ARTICLES_NOTE_META, PROSPERGENICS_ARTICLES_NOTE_BY_META, PROSPERGENICS_ARTICLES_NOTE_AT_META ) as $key ) {
+        delete_post_meta( (int) $post_id, $key );
+    }
+}
+
+/** Whether the current user may send this article back: it waits for review, they review (staff) and may edit it. */
+function prospergenics_articles_can_send_back( WP_Post $post ) {
+    return 'pg_article' === $post->post_type && 'pending' === $post->post_status
+        && current_user_can( 'edit_others_pg_articles' ) && current_user_can( 'edit_post', $post->ID );
+}
+
+/**
+ * Move a pending article back to its author's drafts with the reviewer's note. The note is stored
+ * first, so the "returned" email that the status change sends (review.php) carries it.
+ *
+ * @return bool Whether the article is a draft now.
+ */
+function prospergenics_articles_send_back( WP_Post $post, $note, $by ) {
+    update_post_meta( $post->ID, PROSPERGENICS_ARTICLES_NOTE_META, wp_slash( (string) $note ) ); // update_post_meta() unslashes
+    update_post_meta( $post->ID, PROSPERGENICS_ARTICLES_NOTE_BY_META, (int) $by );
+    update_post_meta( $post->ID, PROSPERGENICS_ARTICLES_NOTE_AT_META, time() );
+    $result = wp_update_post( array( 'ID' => $post->ID, 'post_status' => 'draft' ), true );
+    if ( is_wp_error( $result ) || ! $result ) {
+        prospergenics_articles_clear_note( $post->ID );
+        return false;
+    }
+    return true;
+}
+
+add_action( 'admin_post_pg_articles_send_back', function () {
+    // edit_post alone would let an author send back any article they may edit: reviewing is for the
+    // staff who edit others' articles (editors and administrators, the /manage/articles/ queue)
+    $post = prospergenics_articles_action_post( 'pg_articles_send_back', array( 'edit_post', 'edit_others_pg_articles' ) );
+    if ( 'pending' !== $post->post_status ) {
+        wp_safe_redirect( prospergenics_articles_action_redirect( array( 'status' => 'review', 'done' => 'not_pending' ) ) );
+        exit;
+    }
+    $note = prospergenics_articles_clean_note( isset( $_POST['note'] ) ? wp_unslash( $_POST['note'] ) : '' ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- sanitize_textarea_field() inside
+    if ( '' === $note ) {
+        // refused: back to the form, open, the error on the field, which gets the focus (autofocus
+        // scrolls it into view; no #fragment, browsers skip autofocus when the URL has one)
+        wp_safe_redirect( prospergenics_articles_action_redirect( array( 'status' => 'review', 'done' => 'note_missing', 'article' => $post->ID ) ) );
+        exit;
+    }
+    $done = prospergenics_articles_send_back( $post, $note, get_current_user_id() ) ? 'sent_back' : 'failed';
+    wp_safe_redirect( prospergenics_articles_action_redirect( array( 'status' => 'review', 'done' => $done ) ) );
+    exit;
+} );
+
+/**
+ * The "Send back" disclosure of the review queue, on /articles/mine/ (Waiting for review) and
+ * /manage/articles/: a button that opens a form with a required note for the author (a real label,
+ * a hint, 44 px targets). After an empty note was refused ($error) it is open, and the textarea is
+ * marked invalid, tied to the error text (aria-describedby) and focused.
+ *
+ * @param string $prefix 'pga' (My articles) or 'pgm' (the staff area): the class and id prefix.
+ * @param string $from   'manage' to come back to /manage/articles/ after the action.
+ * @param bool   $error  Whether an empty note for this article was just refused.
+ */
+function prospergenics_articles_send_back_form( WP_Post $post, $prefix, $from = '', $error = false ) {
+    $id     = (int) $post->ID;
+    $p      = sanitize_key( $prefix );
+    $title  = wp_strip_all_tags( get_the_title( $post ) );
+    $title  = '' === $title ? '(untitled)' : $title;
+    $author = get_userdata( (int) $post->post_author );
+    $who    = $author ? $author->display_name : 'the author';
+    $field  = $p . '-note-' . $id;
+    $sr     = '<span class="screen-reader-text"> “' . esc_html( $title ) . '”</span>';
+    $html   = '<details class="' . $p . '-sendback"' . ( $error ? ' open' : '' ) . '>'
+        . '<summary class="' . $p . '-btn ' . $p . '-btn-ghost">Send back…' . $sr . '</summary>'
+        . '<form method="post" action="' . esc_url( admin_url( 'admin-post.php' ) ) . '">'
+        . '<input type="hidden" name="action" value="pg_articles_send_back" />'
+        . '<input type="hidden" name="post_id" value="' . esc_attr( $id ) . '" />'
+        . ( 'manage' === $from ? '<input type="hidden" name="pg_from" value="manage" />' : '' )
+        . wp_nonce_field( 'pg_articles_send_back_' . $id, '_wpnonce', true, false )
+        . '<p class="field">'
+        . '<label for="' . esc_attr( $field ) . '">What should the author change?</label>'
+        . '<span class="' . $p . '-hint" id="' . esc_attr( $field . '-hint' ) . '">Required. ' . esc_html( $who ) . ' gets this note by email and finds the article back in their drafts.</span>'
+        . '<textarea id="' . esc_attr( $field ) . '" name="note" rows="4" maxlength="' . (int) PROSPERGENICS_ARTICLES_NOTE_MAX . '" required aria-describedby="' . esc_attr( $field . '-hint' . ( $error ? ' ' . $field . '-err' : '' ) ) . '"' . ( $error ? ' aria-invalid="true" autofocus' : '' ) . '></textarea>'
+        . ( $error ? '<span class="' . $p . '-field-error" id="' . esc_attr( $field . '-err' ) . '">Write what the author should change: an article is only sent back with a note.</span>' : '' )
+        . '</p>'
+        . '<button type="submit" class="' . $p . '-btn">Send back to ' . esc_html( $who ) . $sr . '</button>'
+        . '</form></details>';
+    return $html;
+}
