@@ -223,8 +223,8 @@ def _update(rel, header_html, footer_html, js):
     html = _replace_block(html, "header", header_html)
     html = _replace_block(html, "footer", footer_html)
     html = _replace_block(html, "js", "  " + js)
-    with open(path, "w", encoding="utf-8") as f:
-        f.write(html)
+    with open(path, "w", encoding="utf-8", newline="\n") as f:
+        f.write(html.replace("\r\n", "\n"))
     print(f"updated {rel}")
 
 
@@ -240,8 +240,8 @@ def update_about():
     with open(path, encoding="utf-8") as f:
         html = f.read()
     html = _replace_block(html, "meta", about_meta())
-    with open(path, "w", encoding="utf-8") as f:
-        f.write(html)
+    with open(path, "w", encoding="utf-8", newline="\n") as f:
+        f.write(html.replace("\r\n", "\n"))
 
 
 def update_index():
@@ -249,9 +249,9 @@ def update_index():
     # the "Our services" cards and their styles, from wp/inc/services/ (services_section.py)
     path = os.path.join(HERE, "index.html")
     with open(path, encoding="utf-8") as f:
-        html = services_section.update(f.read())
-    with open(path, "w", encoding="utf-8") as f:
-        f.write(html)
+        html = f.read()
+    with open(path, "w", encoding="utf-8", newline="\n") as f:
+        f.write(services_section.update(html).replace("\r\n", "\n"))
 
 
 if __name__ == "__main__":

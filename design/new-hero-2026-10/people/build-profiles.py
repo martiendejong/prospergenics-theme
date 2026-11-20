@@ -693,8 +693,8 @@ def build_profiles():
         )
         out_dir = os.path.join(HERE, m["slug"])
         os.makedirs(out_dir, exist_ok=True)
-        with open(os.path.join(out_dir, "index.html"), "w", encoding="utf-8") as f:
-            f.write(html)
+        with open(os.path.join(out_dir, "index.html"), "w", encoding="utf-8", newline="\n") as f:
+            f.write(html.replace("\r\n", "\n"))
 
 
 def list_card(m):
@@ -740,8 +740,8 @@ def build_list(folder, tag, title, eyebrow, heading, lede, meta_desc, all_text):
     )
     out_dir = os.path.normpath(os.path.join(HERE, "..", folder))
     os.makedirs(out_dir, exist_ok=True)
-    with open(os.path.join(out_dir, "index.html"), "w", encoding="utf-8") as f:
-        f.write(html)
+    with open(os.path.join(out_dir, "index.html"), "w", encoding="utf-8", newline="\n") as f:
+        f.write(html.replace("\r\n", "\n"))
     # Apache serves this folder itself: the security headers WordPress would send (card #6449)
     with open(os.path.join(out_dir, ".htaccess"), "w", encoding="utf-8", newline="\n") as f:
         f.write(static_headers.htaccess(folder))
@@ -827,8 +827,8 @@ def write_slider():
     if a < 0 or b < a:
         sys.exit(f"{SLIDER_START} ... {SLIDER_END} not found in index.html")
     html = html[:a + len(SLIDER_START)] + "\n" + slider_html() + "\n        " + html[b:]
-    with open(INDEX, "w", encoding="utf-8") as f:
-        f.write(html)
+    with open(INDEX, "w", encoding="utf-8", newline="\n") as f:
+        f.write(html.replace("\r\n", "\n"))
     return len(slider_people())
 
 
@@ -895,7 +895,7 @@ def write_members_collection():
         "collection": "members",
         "items": members_collection(),
     }
-    with open(MEMBERS_COLLECTION, "w", encoding="utf-8") as f:
+    with open(MEMBERS_COLLECTION, "w", encoding="utf-8", newline="\n") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
         f.write("\n")
     return len(data["items"])
@@ -915,7 +915,7 @@ def write_people_json():
             **({"expert_categories": m["expert_categories"]} if m.get("expert_categories") else {}),
         } for m in PROFILES},
     }
-    with open(PEOPLE_JSON, "w", encoding="utf-8") as f:
+    with open(PEOPLE_JSON, "w", encoding="utf-8", newline="\n") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
         f.write("\n")
 
@@ -949,8 +949,8 @@ def write_people_index():
     """/people/ itself (the folder had no index, so the server answered 403): send it to the list,
     with a 301 from .htaccess and a meta refresh in index.html as the fallback."""
     html = PEOPLE_INDEX.format(target=PEOPLE_LIST, canonical=SITE + PEOPLE_LIST, target_js=json.dumps(PEOPLE_LIST))
-    with open(os.path.join(HERE, "index.html"), "w", encoding="utf-8") as f:
-        f.write(html)
+    with open(os.path.join(HERE, "index.html"), "w", encoding="utf-8", newline="\n") as f:
+        f.write(html.replace("\r\n", "\n"))
     # the security headers for every page under /people/ (card #6449), then the 301
     with open(os.path.join(HERE, ".htaccess"), "w", encoding="utf-8", newline="\n") as f:
         f.write(static_headers.htaccess("people", PEOPLE_HTACCESS.format(target=PEOPLE_LIST)))
