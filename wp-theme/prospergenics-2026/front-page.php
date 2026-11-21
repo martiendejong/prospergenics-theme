@@ -256,8 +256,10 @@
       order: 2; position: relative; left: auto; right: auto; top: 0; margin: 0; transform: none;
       width: 100vw; height: 232px; border-radius: 0; opacity: 1;
       background-position: center 16%;
-      -webkit-mask-image: linear-gradient(to bottom, #000 84%, transparent 100%);
-              mask-image: linear-gradient(to bottom, #000 84%, transparent 100%);
+      /* soft paper fade at the top too, like desktop (Martien, 18 Nov): 7.5% of the 232px photo is ~17px,
+         clear of the heads (~28px down at 360-430px) */
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.35) 2.5%, rgba(0, 0, 0, 0.75) 5%, #000 7.5%, #000 84%, transparent 100%);
+              mask-image: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.35) 2.5%, rgba(0, 0, 0, 0.75) 5%, #000 7.5%, #000 84%, transparent 100%);
     }
     .hero-bottom { padding: 20px; }
   }
@@ -993,7 +995,7 @@
   }
   /* the CoachOS panel defaults to bottom:88px (embed.js inline CSS) which half-covers the orb;
      lift it above the launcher (30px bottom + 186px orb + 20px gap) and shorten it to fit.
-     On small screens the orb is smaller and space is scarce, so keep the widget's own layout. */
+     Phones (<= 560px) get their own rule below body.launcher-compact .co-embed-panel (#8078). */
   @media (min-width: 561px){
     .co-embed-panel { bottom: 236px !important; height: min(560px, calc(100vh - 268px)) !important; }
   }
@@ -1026,12 +1028,58 @@
   .launcher.is-compact .wa-btn { left: -22px; bottom: -2px; width: 44px; height: 44px; }
   .launcher.is-compact .wa-btn svg { width: 24px; height: 24px; }
   body.launcher-compact .co-embed-panel { bottom: 120px !important; height: min(560px, calc(100vh - 152px)) !important; }
+  /* phones (#8078): embed.js makes the panel full screen below 481px and edge to edge up to 560px; keep it
+     a card instead: 12px from both edges, rounded, a soft shadow, above the compact launcher (18px + 96px
+     orb + 6px). With the on-screen keyboard open it sits 12px above the keyboard and shrinks to the visible
+     area, so the input stays in view: --co-kb (keyboard height) and --co-vv-top come from visualViewport
+     (launcher script); without them 100dvh and the 120px clearance apply. */
+  @media (max-width: 560px){
+    body.launcher-compact .co-embed-panel {
+      left: 12px !important; right: 12px !important; width: auto !important;
+      bottom: max(120px, calc(var(--co-kb, 0px) + 12px)) !important;
+      height: min(560px, calc(100dvh - var(--co-vv-top, 0px) - max(120px, calc(var(--co-kb, 0px) + 12px)) - 12px)) !important;
+      border-radius: 18px !important;
+      box-shadow: 0 22px 48px -12px rgba(11,32,22,.5), 0 4px 14px rgba(11,32,22,.16) !important;
+    }
+    /* the close button: a 40px tap target; the header padding is trimmed so it grows by only ~6px */
+    body.launcher-compact .co-embed-header { padding-top: 4px; padding-bottom: 4px; }
+    body.launcher-compact .co-embed-close { min-width: 40px; min-height: 40px; }
+  }
   @media (max-width: 560px){
     .launcher { right: 18px; bottom: 18px; gap: 8px; }
     .launcher-bubble { display: none; }
     .launcher-orb .l-photo img { width: 84px; height: 100%; object-fit: cover; transform: scale(3.5); transform-origin: 39% 54%; object-position: -2px 22%; }
   }
-  @media (prefers-reduced-motion: reduce){ .launcher-orb, .launcher .wa-btn, .launcher-bubble { transition: none; } }
+  /* minimise (#7759, Lesiamon 18 Nov): a small "-" badge on the orb's top-left edge tucks the whole launcher
+     (orb, hint bubble, WhatsApp) away into a "Chat" tab at the right screen edge, so it never hides the page.
+     Both are siblings of the orb, not inside it: embed.js opens the chat on any click inside .launcher-orb. */
+  .launcher-min {
+    position: absolute; z-index: 6; left: 20px; top: 12px; width: 30px; height: 30px; padding: 0;
+    display: grid; place-items: center; border-radius: 50%; cursor: pointer;
+    background: #fff; color: var(--green-900); border: 1.5px solid var(--green-700);
+    box-shadow: 0 6px 14px -6px rgba(11,32,22,.55); transition: transform .2s var(--ease), background-color .2s;
+  }
+  /* a larger tap area than the badge itself */
+  .launcher-min::before { content: ""; position: absolute; inset: -7px; border-radius: 50%; }
+  .launcher-min:hover { background: var(--green-100); transform: scale(1.08); }
+  .launcher-min svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; }
+  .launcher.is-compact .launcher-min { left: 0; top: 0; width: 26px; height: 26px; }
+  .launcher.is-compact .launcher-min svg { width: 14px; height: 14px; }
+  .launcher.is-minimised .launcher-orb, .launcher.is-minimised .launcher-bubble,
+  .launcher.is-minimised .wa-btn, .launcher.is-minimised .launcher-min { display: none; }
+  .launcher-tab {
+    position: fixed; right: 0; bottom: 30px; z-index: 60; display: flex; align-items: center; gap: 7px;
+    padding: 10px 14px 10px 13px; border: none; border-radius: 999px 0 0 999px; cursor: pointer;
+    background: var(--green-700); color: #fff; font-family: 'Sora', sans-serif; font-weight: 700; font-size: 13.5px; line-height: 1;
+    box-shadow: 0 10px 24px -10px rgba(11,32,22,.6); animation: tab-in .3s var(--ease);
+    transition: padding .2s var(--ease), background-color .2s;
+  }
+  .launcher-tab[hidden] { display: none; }
+  .launcher-tab:hover { background: var(--green-900); padding-right: 18px; }
+  .launcher-tab svg { width: 20px; height: 20px; fill: currentColor; flex: none; }
+  @keyframes tab-in { from { transform: translateX(100%); } }
+  @media (max-width: 560px){ .launcher-tab { bottom: 18px; } }
+  @media (prefers-reduced-motion: reduce){ .launcher-orb, .launcher .wa-btn, .launcher-bubble, .launcher-min, .launcher-tab { transition: none; } .launcher-tab { animation: none; } }
 
   /* subtle double text-shadow on all headings and body text */
   h1, h2, h3, h4, h5, h6, p {
@@ -1500,7 +1548,8 @@
   <!-- site-chrome:footer (inc/site-chrome.php) -->
   <?php echo prospergenics_2026_site_footer(); // phpcs:ignore WordPress.Security.EscapeOutput ?>
 
-  <!-- Floating chat launcher: ProsperGenics coach (CoachOS tenant) + WhatsApp.
+  <!-- Floating chat launcher: ProsperGenics coach (CoachOS tenant) + WhatsApp; the "-" badge minimises it
+       to the "Chat" tab (#7759).
        Compact round button by default; full size (orb + bubble) only while the "Not sure where
        to start?" block is on screen on desktop, where space is reserved for it. -->
   <div class="launcher">
@@ -1514,6 +1563,13 @@
     <a class="wa-btn" href="https://wa.me/254741619743" target="_blank" rel="noopener" aria-label="Chat with ProsperGenics on WhatsApp" title="Chat with ProsperGenics on WhatsApp">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.2 4.79 1.2h.01c5.46 0 9.9-4.45 9.9-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2m0 1.67c2.2 0 4.27.86 5.82 2.42a8.2 8.2 0 0 1 2.42 5.82c0 4.54-3.7 8.24-8.25 8.24-1.52 0-3.01-.41-4.3-1.19l-.31-.18-3.12.82.83-3.04-.2-.32a8.17 8.17 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24M8.53 7.33c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.43 1.03 2.6.13.17 1.76 2.68 4.25 3.76.59.26 1.06.41 1.42.52.6.19 1.14.16 1.57.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.08.15-1.18-.06-.1-.23-.16-.48-.29-.25-.12-1.47-.72-1.7-.81-.23-.08-.39-.12-.56.13-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.12-1.05-.39-2-1.23-.74-.66-1.24-1.47-1.38-1.72-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.43.12-.14.16-.25.25-.42.08-.16.04-.3-.02-.42-.06-.12-.56-1.35-.77-1.85-.2-.48-.41-.42-.56-.42-.14-.01-.31-.01-.48-.01"/></svg>
     </a>
+    <button class="launcher-min" type="button" aria-expanded="true" aria-label="Minimise the chat button" title="Minimise the chat button">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12"/></svg>
+    </button>
+    <button class="launcher-tab" type="button" aria-expanded="false" aria-label="Show the chat button" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3C6.48 3 2 6.92 2 11.75c0 2.47 1.18 4.7 3.07 6.29-.2 1.32-.83 2.55-1.9 3.53a.5.5 0 0 0 .37.86c2.07-.06 3.8-.78 5.03-1.66.99.25 2.14.48 3.43.48 5.52 0 10-3.92 10-8.75S17.52 3 12 3"/></svg>
+      <span>Chat</span>
+    </button>
   </div>
 
   <!-- ProsperGenics coach chat (CoachOS tenant 'prospergenics'): takeover mode, the launcher
@@ -1941,6 +1997,43 @@
       mobile.addEventListener('change', update);
       update();
       if (cta && orb) cta.addEventListener('click', () => orb.click());
+
+      // Minimise (#7759): the badge tucks the launcher away into the "Chat" tab, the tab brings it back
+      // (focus follows, so a keyboard user stays on the control); remembered for the browsing session.
+      const minBtn = launcher.querySelector('.launcher-min');
+      const tab = launcher.querySelector('.launcher-tab');
+      const KEY = 'pg-launcher-minimised';
+      function setMinimised(min, focus) {
+        launcher.classList.toggle('is-minimised', min);
+        if (tab) tab.hidden = !min;
+        if (focus) (min ? tab : orb).focus();
+      }
+      function remember(min) {
+        try { if (min) sessionStorage.setItem(KEY, '1'); else sessionStorage.removeItem(KEY); } catch (e) { /* storage blocked: this page only */ }
+      }
+      let stored = false;
+      try { stored = sessionStorage.getItem(KEY) === '1'; } catch (e) { /* storage blocked */ }
+      if (minBtn && tab) {
+        setMinimised(stored, false);
+        minBtn.addEventListener('click', () => { setMinimised(true, true); remember(true); });
+        tab.addEventListener('click', () => { setMinimised(false, true); remember(false); });
+      }
+
+      // Phones: keep the chat panel above the on-screen keyboard (#8078). The keyboard shrinks the visual
+      // viewport, not the layout viewport the fixed panel is placed in; the .co-embed-panel phone rule
+      // reads these two values. Ignored while pinch-zoomed.
+      const vv = window.visualViewport;
+      if (vv) {
+        const rootStyle = document.documentElement.style;
+        const fit = () => {
+          const zoomed = vv.scale > 1.05;
+          rootStyle.setProperty('--co-kb', (zoomed ? 0 : Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop))) + 'px');
+          rootStyle.setProperty('--co-vv-top', (zoomed ? 0 : Math.max(0, Math.round(vv.offsetTop))) + 'px');
+        };
+        vv.addEventListener('resize', fit);
+        vv.addEventListener('scroll', fit);
+        fit();
+      }
     })();
 
   </script>
