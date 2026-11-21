@@ -84,6 +84,16 @@
   .skip-link:focus { transform: none; }
   /* where the target is a whole banner or breadcrumb given tabindex="-1" (jengo-listings, #7227) */
   #main[tabindex="-1"]:focus { outline: none; }
+  /* the skip link scrolls #main to the top of the window, which is under the sticky header (76px,
+     69px from 880px down, plus the admin bar): on the jengo-listings course and lesson pages the
+     breadcrumb at the top of the banner, the next Tab stop, was hidden there (#7761). Elsewhere
+     #main starts below the header anyway, so the skip no longer scrolls at all. */
+  :root { --header-h: 76px; }
+  @media (max-width: 880px) { :root { --header-h: 69px; } }
+  #main { scroll-margin-top: calc(var(--header-h) + var(--wp-admin--admin-bar--height, 0px)); }
+  /* and when the browser scrolls a breadcrumb link into view itself (Tab pressed while the plugin's
+     smooth skip scroll still runs, Shift+Tab back up), it stops below the header as well */
+  .pg-breadcrumb.pg-crumbs a { scroll-margin-top: calc(var(--header-h) + 12px + var(--wp-admin--admin-bar--height, 0px)); }
   .site-header { position: sticky; top: 0; z-index: 50; box-sizing: border-box; width: 100%; max-width: none; margin: 0; display: flex; align-items: center; gap: 28px; min-height: 76px; padding: 14px clamp(20px, 5vw, 72px); background: rgba(244,250,246,.94); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border: 0; border-bottom: 1px solid rgba(15,61,40,.12); font-family: 'Inter', system-ui, sans-serif; transition: transform .3s cubic-bezier(.22,.61,.36,1); }
   .site-header *, .site-header *::before, .site-header *::after { box-sizing: border-box; }
   .site-header .brand { display: flex; align-items: center; gap: 10px; flex-shrink: 0; margin: 0 auto 0 0; padding: 0; text-decoration: none; }
@@ -807,7 +817,8 @@
     transition: transform .25s cubic-bezier(.22,.61,.36,1), box-shadow .25s cubic-bezier(.22,.61,.36,1);
   }
   .svc-card:hover { transform: translateY(-3px); box-shadow: 0 18px 40px -24px rgba(11,32,22,.45); }
-  /* the brand's slanted bottom cut; a real example carries a visible label, CoachOS a branded panel */
+  /* the brand's slanted bottom cut; a real example carries a visible label (a service without one
+     would get the branded panel, .svc-media--brand) */
   .svc-media {
     position: relative; margin: 0; aspect-ratio: 16 / 9; overflow: hidden;
     background: linear-gradient(140deg, #0f3d28, #1a7a46 60%, #1d8e4f);
@@ -1481,7 +1492,7 @@
     <!-- services:cards -->
     <div class="svc-grid">
       <article class="svc-card">
-        <div class="svc-media svc-media--brand" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8 12h32v20H22l-8 7v-7H8z"/><path d="M16 20h16M16 26h10"/></svg></div>
+        <figure class="svc-media"><img src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/coachos-chat.webp" width="1120" height="630" alt="" loading="lazy" decoding="async" style="object-position:50% 50%" /><figcaption class="svc-ex">Example: the chat on this site</figcaption></figure>
         <div class="svc-body">
           <h3 class="svc-name">CoachOS</h3>
           <p class="svc-promise">AI chat, courses and avatar videos for your organisation, on your own platform.</p>

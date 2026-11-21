@@ -288,6 +288,17 @@ ok( 1 === substr_count( $try['tool_try_live'], 'co-pagina-context' ), 'with the 
 ok( array() === prospergenics_2026_tool_demo_chrome( '/tools/jengo-meet/' ) && '' === prospergenics_2026_tool_try_live_html( 'jengo-meet', $attrs, 'x' ), 'other tools get no Try it live' );
 $cout = prospergenics_2026_listings_takeover( $buffer, '/tools/coachos/', $chrome + $try );
 ok( 1 === substr_count( $cout, 'class="pg-try-btn pg-coach-try"' ) && (bool) preg_match( '#<div class="pg-try-live">.*?</script>\s*<div class="dir-back">#s', $cout ) && false === strpos( $cout, '<section class="pg-demo"' ) && false === strpos( $cout, 'prospergenics-tool-demo-js' ), 'on the CoachOS page it goes before "← All tools", without a demo section or its script' );
+// The panel it opens, on phones (#8078, as on the homepage): a card, not embed.js' full screen.
+$tcss  = prospergenics_2026_tool_demo_css();
+$tphone = preg_match( '#@media \(max-width: 560px\) \{\s*\.co-embed-panel \{([^}]*)\}#', $tcss, $tp ) ? $tp[1] : '';
+ok( false !== strpos( $tphone, 'left: 12px !important; right: 12px !important; width: auto !important;' ), 'Try it live on phones: the panel is 12px from both screen edges (embed.js makes it 100vw)' );
+ok( (bool) preg_match( '#border-radius: (\d+)px !important;#', $tphone, $tr ) && (int) $tr[1] >= 12 && false !== strpos( $tphone, 'box-shadow: 0 22px 48px -12px rgba(11,32,22,.5)' ), 'rounded, with the homepage panel\'s soft shadow' );
+ok( false !== strpos( $tphone, 'bottom: calc(var(--co-kb, 0px) + 12px) !important;' ) && false !== strpos( $tphone, 'height: min(560px, calc(100dvh - var(--co-vv-top, 0px) - var(--co-kb, 0px) - 24px)) !important;' ), 'no launcher on this page: 12px from the bottom, or above the on-screen keyboard, and never taller than the visible area' );
+ok( (bool) preg_match( '#\.co-embed-panel \.co-embed-close \{ min-width: (\d+)px; min-height: (\d+)px; \}#', $tcss, $tc ) && (int) $tc[1] >= 40 && (int) $tc[2] >= 40, 'the close button is a 40px tap target' );
+ok( 1 === substr_count( $try['tool_try_live'], '<script id="prospergenics-try-live-js">' ) && strpos( $try['tool_try_live'], 'prospergenics-try-live-js' ) > strpos( $try['tool_try_live'], 'embed.js?v=2' ), 'the keyboard script comes with the embed' );
+$tjs = prospergenics_2026_tool_try_live_script();
+ok( false !== strpos( $tjs, "root.setProperty('--co-kb', (zoomed ? 0 : Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop))) + 'px');" ) && false !== strpos( $tjs, "root.setProperty('--co-vv-top'," ) && false !== strpos( $tjs, "vv.addEventListener('resize', fit);" ) && false !== strpos( $tjs, "vv.addEventListener('scroll', fit);" ), 'it sets --co-kb and --co-vv-top from visualViewport, as the homepage does (0 while pinch-zoomed)' );
+ok( false === strpos( $tcss, '@media (min-width' ) || false === strpos( $tcss, '.co-embed-panel {', strpos( $tcss, '@media (min-width' ) ), 'wider screens keep embed.js\' own panel (no rule for them here)' );
 
 echo "the Jengo demo folder\n";
 foreach ( array( 'design' => $design, 'built theme' => $theme ) as $where => $tpl ) {

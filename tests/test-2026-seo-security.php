@@ -136,11 +136,11 @@ foreach ( array( 'people', 'experts', 'community' ) as $folder ) {
 	ok( 1 === substr_count( $hta, '<IfModule mod_headers.c>' ) && (bool) preg_match( '#<IfModule mod_headers\.c>\n(Header always set [^\n]+\n){7}</IfModule>#', $hta ), "$folder/.htaccess: inside <IfModule mod_headers.c>, so a server without the module still serves the page" );
 }
 $people_hta = file_get_contents( "$design/people/.htaccess" );
-ok( 1 === substr_count( $people_hta, 'RedirectMatch 301 ^/people(/|/index\.html)?$ /members/' ) && strpos( $people_hta, 'RedirectMatch' ) > strpos( $people_hta, '</IfModule>' ), 'people/.htaccess keeps the /people/ 301 to /members/ (#7226)' );
+ok( 1 === substr_count( $people_hta, '<If "%{REQUEST_URI} =~ m#^/people(/|/index\.html)?$#">' . "\n" . 'Redirect 301 "https://%{HTTP_HOST}/members/"' ) && strpos( $people_hta, 'Redirect 301' ) > strpos( $people_hta, '</IfModule>' ), 'people/.htaccess keeps the /people/ 301 to /members/ (#7226), to https:// on the same host (#7757)' );
 $py = shell_exec( 'python3 -c ' . escapeshellarg( 'import sys; sys.path.insert(0, ' . var_export( $design, true ) . '); import static_headers, json; print(json.dumps([static_headers.headers(True), static_headers.headers(False), static_headers.htaccess("team")]))' ) );
 $py = json_decode( (string) $py, true );
 ok( is_array( $py ) && $py[0] === $h && $py[1] === prospergenics_2026_security_headers( false ), 'static_headers.py builds the same header set as prospergenics_2026_security_headers() (with and without HTTPS)' );
-ok( is_array( $py ) && htaccess_headers( $py[2] ) == htaccess_headers( $people_hta ) && false === strpos( $py[2], 'RedirectMatch' ), 'the team/ stubs get the same block, and no redirect' );
+ok( is_array( $py ) && htaccess_headers( $py[2] ) == htaccess_headers( $people_hta ) && false === strpos( $py[2], 'Redirect' ), 'the team/ stubs get the same block, and no redirect' );
 
 echo "security.txt\n";
 $now = 1793000000;
