@@ -42,6 +42,8 @@ jobs:
         run: python3 tests/test-deploy-script.py
       - name: Deploy guard tests
         run: python3 tests/test-deploy-guard.py
+      - name: Production deploy tests (gate, backups, smoke compare, workflow)
+        run: python3 tests/test-deploy-production.py
 
       - name: Generated theme matches its design source
         if: hashFiles('design/new-hero-2026-10/build-wp-theme.py') != ''

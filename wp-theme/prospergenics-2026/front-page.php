@@ -22,10 +22,25 @@
 <link rel="icon" type="image/png" sizes="16x16" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/favicon-16x16.png" />
 <link rel="apple-touch-icon" sizes="180x180" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/apple-touch-icon.png" />
 <link rel="shortcut icon" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/favicon.ico" />
-<link rel="preload" as="image" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/hero-top.webp" fetchpriority="high" />
+<!-- the LCP image (card #7223): phones up to 480px get a centre crop of the hero photo, 1200x580 (118 KB instead of
+     220 KB, the same framing); each preload only for the width its CSS uses, so no phone fetches both -->
+<link rel="preload" as="image" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/hero-top-mobile.webp" fetchpriority="high" media="(max-width: 480px)" />
+<link rel="preload" as="image" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/hero-top.webp" fetchpriority="high" media="(min-width: 480.02px)" />
 <link rel="preload" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/fonts/gabarito-latin-800-normal.woff2" as="font" type="font/woff2" crossorigin />
 <link rel="preload" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/fonts/inter-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
-<link rel="stylesheet" href="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/fonts/fonts.css" />
+<style id="pg-fonts">/* assets/fonts/fonts.css, inlined by build-wp-theme.py (#7223) */
+@font-face { font-family: 'Gabarito'; font-style: normal; font-display: swap; font-weight: 700; src: url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/fonts/gabarito-latin-700-normal.woff2') format('woff2'); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: 'Gabarito'; font-style: normal; font-display: swap; font-weight: 800; src: url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/fonts/gabarito-latin-800-normal.woff2') format('woff2'); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: 'Gabarito'; font-style: normal; font-display: swap; font-weight: 900; src: url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/fonts/gabarito-latin-900-normal.woff2') format('woff2'); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: 'Sora'; font-style: normal; font-display: swap; font-weight: 400; src: url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/fonts/sora-latin-400-normal.woff2') format('woff2'); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: 'Sora'; font-style: normal; font-display: swap; font-weight: 500; src: url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/fonts/sora-latin-500-normal.woff2') format('woff2'); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: 'Sora'; font-style: normal; font-display: swap; font-weight: 600; src: url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/fonts/sora-latin-600-normal.woff2') format('woff2'); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: 'Sora'; font-style: normal; font-display: swap; font-weight: 700; src: url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/fonts/sora-latin-700-normal.woff2') format('woff2'); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: 'Sora'; font-style: normal; font-display: swap; font-weight: 800; src: url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/fonts/sora-latin-800-normal.woff2') format('woff2'); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: 'Inter'; font-style: normal; font-display: swap; font-weight: 400; src: url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/fonts/inter-latin-400-normal.woff2') format('woff2'); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: 'Inter'; font-style: normal; font-display: swap; font-weight: 500; src: url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/fonts/inter-latin-500-normal.woff2') format('woff2'); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: 'Inter'; font-style: normal; font-display: swap; font-weight: 600; src: url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/fonts/inter-latin-600-normal.woff2') format('woff2'); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+</style>
 <style>
   h1, h2, h3 { font-family: 'Gabarito', sans-serif !important; }
   :root {
@@ -263,6 +278,8 @@
     }
     .hero-bottom { padding: 20px; }
   }
+  /* phones: the centre crop of the photo (same framing, as cover crops the sides anyway; #7223) */
+  @media (max-width: 480px){ .hero-top-photo { background-image: url('<?php echo esc_url( get_template_directory_uri() ); ?>/assets/hero-top-mobile.webp'); } }
 
   /* ---- LEFT: the message ---- */
   .copy { position: relative; z-index: 5; max-width: 620px; }
@@ -1557,7 +1574,7 @@
     <button class="launcher-orb" type="button" aria-haspopup="dialog" aria-label="Open ProsperGenics chat">
       <span class="l-ring"></span><span class="l-ring l-ring2"></span>
       <span class="l-blob"></span>
-      <span class="l-photo"><img loading="lazy" decoding="async" width="480" height="640" src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/contact-bg.webp" alt="Lessy &amp; Diko — chat with ProsperGenics" /></span>
+      <span class="l-photo"><img loading="lazy" decoding="async" fetchpriority="low" width="480" height="640" src="<?php echo esc_url( get_template_directory_uri() ); ?>/assets/contact-bg.webp" alt="Lessy &amp; Diko — chat with ProsperGenics" /></span>
       <span class="l-pulse"></span>
     </button>
     <a class="wa-btn" href="https://wa.me/254741619743" target="_blank" rel="noopener" aria-label="Chat with ProsperGenics on WhatsApp" title="Chat with ProsperGenics on WhatsApp">

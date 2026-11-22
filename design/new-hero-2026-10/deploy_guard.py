@@ -46,8 +46,16 @@ def problems(repo, remote_commit=None, branch=BRANCH, fetch=True):
                 f"from {branch}: merge it into your branch first (git merge {ref}), or open a PR against it.")
     else:
         found.append(f"{ref} is unknown here (git fetch origin {branch} failed?); cannot tell whether this checkout is current.")
+    return found + older_than_server(repo, remote_commit)
+
+
+def older_than_server(repo, remote_commit):
+    """Check 2 alone: the reasons deploying this checkout would replace what the server runs with older
+    (or unrelated) work. Production uses only this one (deploy-wp-theme-vimexx.py --target production):
+    it deploys the commit that passed on test, which need not be the newest commit of the branch."""
+    found = []
     remote_commit = (remote_commit or "").strip()
-    if remote_commit and remote_commit not in ("unknown", "?"):
+    if remote_commit and remote_commit not in ("unknown", "?", "restored-backup"):
         known = _git(repo, "cat-file", "-e", remote_commit + "^{commit}").returncode == 0
         if not known:
             found.append(f"the server runs commit {remote_commit[:12]}, which this checkout does not have: it is newer "
@@ -56,6 +64,22 @@ def problems(repo, remote_commit=None, branch=BRANCH, fetch=True):
             found.append(f"the server runs commit {remote_commit[:12]}, which is not part of this checkout "
                          f"({head(repo)[:12]}): deploying would replace newer work with older work.")
     return found
+
+
+def require_not_older(repo, remote_commit, allow_older=False):
+    """Production: stop (exit 2) when the server runs work this checkout does not contain, unless
+    allow_older (a deliberate rollback). Runs in GitHub Actions too: the production workflow checks
+    out the full history, so there is no shallow-clone exception here."""
+    found = older_than_server(repo, remote_commit)
+    if not found:
+        return
+    for p in found:
+        print("STOP: " + p, file=sys.stderr)
+    if allow_older:
+        print("--allow-older given: deploying anyway (deliberate rollback).", file=sys.stderr)
+        return
+    print("Nothing was uploaded. To roll back on purpose, run again with --allow-older.", file=sys.stderr)
+    sys.exit(2)
 
 
 def require_current(repo, remote_commit=None, allow_older=False, branch=BRANCH):

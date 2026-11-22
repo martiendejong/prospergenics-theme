@@ -259,7 +259,12 @@ $deploy = file_get_contents( $root . '/.github/workflows/deploy-test.yml' );
 foreach ( array( '/', '/courses/', '/articles/', '/wp-login.php' ) as $p ) {
 	ok( false !== strpos( file_get_contents( $root . '/tests/smoke/uptime-check.sh' ), " $p" ), "uptime check covers $p" );
 }
-ok( false !== strpos( $uptime, 'issues: write' ) && false !== strpos( $uptime, 'alert-issue.sh open "Uptime check failing"' ) && false !== strpos( $uptime, 'alert-issue.sh close "Uptime check failing"' ), 'uptime.yml opens and closes the alert issue' );
+ok( false !== strpos( $uptime, 'issues: write' ) && false !== strpos( $uptime, 'alert-issue.sh open "$TITLE"' ) && false !== strpos( $uptime, 'alert-issue.sh close "$TITLE"' ), 'uptime.yml opens and closes the alert issue' );
+// #6473 for launch: production too, with an alert issue of its own, unless UPTIME_PRODUCTION is "off"
+ok( false !== strpos( $uptime, 'site: [test, production]' ) && false !== strpos( $uptime, 'fail-fast: false' ), 'uptime.yml checks test and production, each on its own' );
+ok( false !== strpos( $uptime, 'echo "title=Uptime check failing" >> "$GITHUB_OUTPUT"' ) && false !== strpos( $uptime, 'echo "title=Uptime check failing: prospergenics.com" >> "$GITHUB_OUTPUT"' ), 'test keeps its alert issue title; production gets its own' );
+ok( false !== strpos( $uptime, '${PRODUCTION_URL:-https://prospergenics.com}' ) && false !== strpos( $uptime, '"$UPTIME_PRODUCTION" = "off"' ), 'production: https://prospergenics.com (variable PRODUCTION_URL), off with UPTIME_PRODUCTION=off' );
+ok( false !== strpos( $uptime, "cron: '*/30 * * * *'" ), 'every 30 minutes' );
 ok( false !== strpos( $uptime, "if: failure()" ) && false !== strpos( $uptime, 'shell: bash' ), 'the alert runs on failure, and the check keeps its exit code through tee' );
 ok( false !== strpos( $deploy, 'issues: write' ) && false !== strpos( $deploy, "steps.smoke.outcome == 'failure'" ) && false !== strpos( $deploy, 'alert-issue.sh close "Deploy to test failing"' ), 'deploy-test.yml opens the alert issue on a failed upload or smoke check and closes it after a good one' );
 ok( false === strpos( $uptime . $deploy, 'secrets.ALERT' ), 'the alerts need no new secret' );
