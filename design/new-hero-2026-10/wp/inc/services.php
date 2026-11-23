@@ -49,7 +49,7 @@ function prospergenics_2026_services_css() {
 /** The example image with its visible label (the <img> has an empty alt: the label says what it is), or the branded panel (pure). */
 function prospergenics_2026_services_media( array $s, $assets ) {
     if ( empty( $s['image'] ) ) {
-        return '<div class="svc-media svc-media--brand" aria-hidden="true">' . $s['panel_svg'] . '</div>';
+        return '<div class="svc-media svc-media--brand" aria-hidden="true">' . ( isset( $s['panel_svg'] ) ? $s['panel_svg'] : '' ) . '</div>';
     }
     $img = $s['image'];
     return '<figure class="svc-media"><img src="' . esc_url( $assets . '/' . $img['src'] ) . '" width="' . (int) $img['width'] . '" height="' . (int) $img['height'] . '" alt="" loading="lazy" decoding="async" style="object-position:' . esc_attr( $img['position'] ) . '" />'

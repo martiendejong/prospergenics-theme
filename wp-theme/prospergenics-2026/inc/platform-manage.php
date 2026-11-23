@@ -8,13 +8,15 @@
  *                       review, unread contact messages, open reports, writer/instructor requests)
  *   /manage/members/    a compact table (cards on phones): summary chips with counts, search (name,
  *                       username or email), filters, sort, 25/50/100 per page, and per member a
- *                       "Manage" panel: role (subscriber or writer), mark verified, resend the
+ *                       "Manage" panel: role (member, writer; administrators also company,
+ *                       instructor, contributor, author), mark verified, resend the
  *                       confirmation link, hide or show the profile, suspend or unsuspend
  *   /manage/messages/   the contact messages (pg_contact_msg): unread, open, handled, spam; reply by
  *                       email; mark read, unread, handled
  *   /manage/articles/   articles waiting for review (the "Waiting for review" queue of
- *                       /articles/mine/ and its "Publish now" action), plus links to the Reports
- *                       queue, Users → Requests and the instructor dashboard
+ *                       /articles/mine/ with its "Publish now" and "Send back" actions; sending
+ *                       back needs a note, which the author gets by email), plus links to the
+ *                       Reports queue, Users → Requests and the instructor dashboard
  *
  * Who gets in (checked on the server: visitors get a 302 to the login page, everyone else without
  * the capability a 403): the capability pg_manage, mapped at runtime (user_has_cap, nothing written
@@ -34,13 +36,14 @@
  *     yourself): that is /profile/settings/ and wp-admin.
  * Role changes: editors only switch a member between subscriber and pg_writer, and only when the
  * member has no other role (an editor cannot demote an author). Administrators (promote_user for
- * that member) can also make a member a contributor, author or editor. Nobody grants or takes away
- * the administrator role here: that stays in wp-admin → Users.
+ * that member) can also give the platform roles Company and Instructor (card #6341, through
+ * prospergenics_roles_assign()) and make a member a contributor or author. Nobody grants or takes
+ * away the administrator or editor role here: that stays in wp-admin → Users.
  *
  * Every action is a POST to admin-post.php with its own nonce (per action and member/message) and
  * a capability check for that member/message; the actions reuse the platform's helpers
  * (prospergenics_profiles_mark_verified(), _send_verification(), _set_hidden(), _suspend(),
- * _unsuspend(), and pg_articles_publish of inc/articles/mine.php).
+ * _unsuspend(), and pg_articles_publish and pg_articles_send_back of inc/articles/mine.php).
  *
  * Styles: assets/platform/manage.css, only on these pages.
  */

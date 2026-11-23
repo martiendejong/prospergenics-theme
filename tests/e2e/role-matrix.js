@@ -673,6 +673,33 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
       const st = await s.admin.get(`/wp-json/wp/v2/pg_article/${FX.pending}?context=edit`);
       check('editor publishes from the review queue and returns to it (control)', 'editor', r.status === 302 && pathOf(r.location) === '/manage/articles/' && /done=published/.test(r.location || '') && st.data && st.data.status === 'publish', `POST ${r.status} -> ${r.location || ''}, status ${st.data && st.data.status}`);
     }
+
+    // "Send back" with a note (#6457): staff only (edit_others_pg_articles), never without the nonce,
+    // never without a note; the article goes back to draft and its author sees the note
+    {
+      const SB = FX.sendback, NOTE = 'E2E note 4f6b: please shorten the intro.';
+      const sendBack = (who, n, note) => s[who].request('POST', '/wp-admin/admin-post.php', { body: Object.assign({ action: 'pg_articles_send_back', post_id: String(SB), pg_from: 'manage', note }, n ? { _wpnonce: n } : {}) });
+      const statusOf = async () => { const r = await s.admin.get(`/wp-json/wp/v2/pg_article/${SB}?context=edit`); return r.data && r.data.status; };
+      for (const who of ['contributor', 'author', 'writer', 'subscriber']) { // the contributor wrote it and may edit it
+        const n = await mint(s[who], `pg_articles_send_back_${SB}`);
+        const r = await sendBack(who, n, NOTE);
+        check('sending an article back is refused without the staff capability, even with a valid nonce', who, n && r.status === 403, `POST ${r.status}`);
+      }
+      const plain = await sendBack('editor', '', NOTE);
+      check('sending an article back without the nonce is refused', 'editor', plain.status === 403 && (await statusOf()) === 'pending', `POST ${plain.status}`);
+      const q = await s.editor.get('/manage/articles/');
+      const m = new RegExp(`name="action" value="pg_articles_send_back" /><input type="hidden" name="post_id" value="${SB}" /><input type="hidden" name="pg_from" value="manage" /><input type="hidden" id="_wpnonce" name="_wpnonce" value="([0-9a-f]+)"`).exec(q.text);
+      const empty = m ? await sendBack('editor', m[1], '  \n  ') : { status: 0 };
+      const st0 = await statusOf();
+      check('an empty note is refused; the article keeps waiting', 'editor', !!m && empty.status === 302 && pathOf(empty.location) === '/manage/articles/' && /done=note_missing/.test(empty.location || '') && new RegExp(`article=${SB}`).test(empty.location || '') && st0 === 'pending', `POST ${empty.status} -> ${empty.location || ''}, status ${st0}`);
+      const form = empty.status === 302 ? await s.editor.get(new URL(empty.location, BASE).pathname + new URL(empty.location, BASE).search) : { text: '' };
+      check('the refused note: the form is back open, its field marked invalid and tied to the error', 'editor', /<details class="pgm-sendback" open>/.test(form.text) && new RegExp(`aria-describedby="pgm-note-${SB}-hint pgm-note-${SB}-err" aria-invalid="true"`).test(form.text), '');
+      const ok = m ? await sendBack('editor', m[1], NOTE) : { status: 0 };
+      const st = await statusOf();
+      check('editor sends it back with a note from the review queue; it is a draft (control)', 'editor', ok.status === 302 && pathOf(ok.location) === '/manage/articles/' && /done=sent_back/.test(ok.location || '') && st === 'draft', `POST ${ok.status} -> ${ok.location || ''}, status ${st}`);
+      const mine = await s.contributor.get('/articles/mine/?status=draft');
+      check('the author sees the note on their draft (control)', 'contributor', mine.status === 200 && mine.text.includes(NOTE), `status ${mine.status}`);
+    }
   }
 
   /* 16. Member badges (inc/profiles/rank.php, badges.php): only public evidence counts, only the owner

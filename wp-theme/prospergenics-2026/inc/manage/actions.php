@@ -41,8 +41,7 @@ function prospergenics_manage_member_apply( $do, $user_id, $role = '', $note = '
             if ( ! prospergenics_manage_role_change_allowed( (array) $user->roles, $role, current_user_can( 'promote_user', $user_id ) ) ) {
                 wp_die( 'Sorry, you are not allowed to give this member that role.', 403 );
             }
-            $user->set_role( $role );
-            return 'role';
+            return prospergenics_manage_set_role( $user_id, $role ) ? 'role' : 'failed'; // helpers.php (card #6341)
         case 'verify':
             if ( prospergenics_profiles_is_verified( $user_id ) ) {
                 return 'already';

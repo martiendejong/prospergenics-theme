@@ -14,6 +14,7 @@
  *     at load and hides only while scrolling down,
  *   - the mobile menu button and panel are wired accessibly, on every page type,
  *   - Log in + Join for visitors; My profile, My courses, Settings, Log out for members; Manage for staff,
+ *     "Your company profile" for company accounts,
  *   - the full footer (with Vacancies and Articles) everywhere,
  *   - jengo-listings pages (saved fixtures) get the site header, footer and menu script, their
  *     "→" buttons go to the contact form with a subject, and anything unexpected is left untouched,
@@ -71,6 +72,8 @@ function prospergenics_profiles_url( $uid ) { return TEST_HOME . '/in/amina-otie
 function prospergenics_profiles_photo_url( $uid, $size ) { return ''; }
 function prospergenics_courses_is_instructor() { return 2 === $GLOBALS['__user']; } // user 2 teaches
 function prospergenics_manage_can_access() { return 2 === $GLOBALS['__user']; } // user 2 is staff (card #6457)
+// user 9 is a company account with one company profile (card #6341, inc/platform-roles.php)
+function prospergenics_roles_company_profile_link( $uid ) { return 9 === (int) $uid ? array( 'label' => 'Your company profile', 'url' => TEST_HOME . '/wp-admin/post.php?post=97&action=edit' ) : null; }
 $_SERVER['REQUEST_URI'] = '/courses/';
 
 require $theme . '/inc/site-chrome.php';
@@ -140,6 +143,10 @@ $teacher = prospergenics_2026_site_header();
 ok( false !== strpos( $teacher, 'class="site-header site-header--adminbar"' ), 'with the admin bar showing, the header sits below it' );
 ok( (bool) preg_match( '#id="account-menu" hidden>\s*<a [^>]*>My profile</a>\s*<a [^>]*>My courses</a>\s*<a [^>]*>My articles</a>\s*<a [^>]*>Instructor dashboard</a>\s*(<a [^>]*>Manage</a>\s*)?<a [^>]*>Settings</a>#', $teacher ) && 2 === substr_count( $teacher, '/instructor/dashboard/">Instructor dashboard' ), 'instructors also get Instructor dashboard, in the menu and the mobile panel (NAV-16)' );
 ok( (bool) preg_match( '#id="account-menu" hidden>\s*<a [^>]*>My profile</a>\s*<a [^>]*>My courses</a>\s*<a [^>]*>My articles</a>\s*<a [^>]*>Instructor dashboard</a>\s*<a [^>]*>Manage</a>\s*<a [^>]*>Settings</a>\s*<a [^>]*>Log out</a>#', $teacher ) && 2 === substr_count( $teacher, '/manage/">Manage</a>' ), 'staff also get Manage (/manage/), before Settings, in the menu and the mobile panel (card #6457)' );
+ok( false === strpos( $member . $teacher, 'company profile' ), 'no company profile link for members or staff' );
+$GLOBALS['__user'] = 9;
+$company = prospergenics_2026_site_header();
+ok( (bool) preg_match( '#id="account-menu" hidden>\s*<a [^>]*>My profile</a>\s*<a [^>]*>My courses</a>\s*<a [^>]*>My articles</a>\s*<a [^>]*>Your company profile</a>\s*<a [^>]*>Settings</a>\s*<a [^>]*>Log out</a>#', $company ) && 2 === substr_count( $company, '/wp-admin/post.php?post=97&amp;action=edit">Your company profile</a>' ), 'company accounts also get "Your company profile", before Settings, in the menu and the mobile panel (card #6341)' );
 $GLOBALS['__user'] = 0;
 
 echo "every WordPress page type uses it\n";
@@ -492,6 +499,14 @@ ok( false !== strpos( prospergenics_2026_listings_skip_target( $skip_html, $skip
 ok( false !== strpos( prospergenics_2026_listings_skip_target( $skip_header . '<div id="hero">y</div>', $skip_header ), '<div id="main" tabindex="-1"></div><div id="hero">' ), 'an element that has an id of its own keeps it; an empty target goes before it' );
 ok( 'x' === prospergenics_2026_listings_skip_target( 'x', $skip_header ) && $skip_header . '<p id="main">' === prospergenics_2026_listings_skip_target( $skip_header . '<p id="main">', $skip_header ), 'no header found, or a #main already there: the page is left as it was' );
 ok( false !== strpos( $css, '#main[tabindex="-1"]:focus { outline: none; }' ), 'the focused skip target (a whole banner or breadcrumb) gets no focus ring of its own' );
+// #7761: the skip scrolled #main under the sticky header, hiding the breadcrumb that takes the next Tab.
+$hh_wide   = preg_match( '#  :root \{ --header-h: (\d+)px; \}#', $css, $hw ) ? (int) $hw[1] : 0;
+$hh_narrow = preg_match( '#@media \(max-width: 880px\) \{ :root \{ --header-h: (\d+)px; \} \}#', $css, $hn ) ? (int) $hn[1] : 0;
+$hmin_wide   = preg_match( '#\n  \.site-header \{[^}]*min-height: (\d+)px#', $css, $mw ) ? (int) $mw[1] : -1;
+$hmin_narrow = preg_match( '#@media \(max-width: 880px\) \{\s*\.site-header \{ min-height: (\d+)px#', $css, $mn ) ? (int) $mn[1] : -1;
+ok( $hh_wide >= $hmin_wide && $hh_narrow >= $hmin_narrow && $hh_narrow <= $hh_wide && $hmin_wide > 0 && $hmin_narrow > 0, "--header-h ({$hh_wide}px, {$hh_narrow}px from 880px down) is at least the sticky header's height ({$hmin_wide}px, {$hmin_narrow}px + its 1px border)" );
+ok( false !== strpos( $css, '#main { scroll-margin-top: calc(var(--header-h) + var(--wp-admin--admin-bar--height, 0px)); }' ), 'the skip target stops below the sticky header (and the admin bar)' );
+ok( false !== strpos( $css, '.pg-breadcrumb.pg-crumbs a { scroll-margin-top: calc(var(--header-h) + 12px + var(--wp-admin--admin-bar--height, 0px)); }' ), 'a breadcrumb link the browser scrolls to on focus stops below it too' );
 ok( (bool) preg_match( '~target\.scrollIntoView\(\);\s*return;\s*\}\s*//[^\n]*#main[^\n]*\n[^\n]*\n\s*if \(target && !first\) return;~', $ljs ), 'on a lesson page the skip link moves to #main and leaves the open session alone (it used to reopen session 1)' );
 
 echo $failures ? "\n$failures FAILED\n" : "\nAll assertions passed.\n";

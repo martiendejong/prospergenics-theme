@@ -150,6 +150,23 @@ a.pga-author-name:hover{text-decoration-color:#fff;}
 .pga-status-publish{background:var(--green-100);color:var(--green-900);}
 .pga-status-future{background:#fff1d6;color:#6b4300;}
 .pga-status-pending{background:#e7ecff;color:#26357a;}
+/* "Send back" with a note in "Waiting for review" (card #6457, prospergenics_articles_send_back_form()),
+   and the note on the draft it sent back */
+.pga-sendback>summary{list-style:none;}
+.pga-sendback>summary::-webkit-details-marker{display:none;}
+.pga-sendback>summary:focus-visible{outline:3px solid var(--focus-ring,#1a7a46);outline-offset:2px;}
+.pga-mine-actions:has(>.pga-sendback[open]){flex-basis:100%;}
+.pga-sendback[open]{flex-basis:100%;display:grid;gap:12px;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:14px;}
+.pga-sendback[open]>summary{justify-self:start;}
+.pga-mine-actions .pga-sendback form{display:grid;gap:12px;justify-items:start;}
+.pga-sendback .field{width:100%;}
+.pga-sendback textarea{min-height:110px;}
+.pga-hint{font-size:13.5px;color:var(--muted);}
+.pga-field-error{font-size:14px;font-weight:600;color:#a3271d;}
+.pga-sendback textarea[aria-invalid="true"]{border-color:#a3271d;}
+.pga-mine-note{display:grid;gap:4px;width:100%;margin-top:4px;padding:10px 14px;border-radius:12px;background:#fff7e6;border-left:4px solid #b26a00;}
+.pga-mine-note-h{font-size:13.5px;font-weight:600;color:#6b4300;}
+.pga-mine-note-text{font-size:15px;line-height:1.55;color:#2a3d30;overflow-wrap:anywhere;}
 
 @media(max-width:600px){
   .pga-filters{flex-direction:column;align-items:flex-start;}
@@ -157,6 +174,8 @@ a.pga-author-name:hover{text-decoration-color:#fff;}
   .pga-series-next{grid-column:auto;}
   .pga-actions{flex-direction:column;align-items:flex-start;}
   .pga-mine-actions .pga-btn{flex:1 1 auto;}
+  .pga-mine-actions>.pga-sendback{flex:1 1 auto;}
+  .pga-sendback>summary,.pga-sendback button{width:100%;}
 }
 @media(prefers-reduced-motion:reduce){
   .pga-card,.pga-clap-btn{transition:none;}

@@ -119,7 +119,8 @@ function prospergenics_2026_request_path() {
 
 /**
  * Account links for the header: Log in + Join for visitors; My profile, My courses, My articles,
- * Instructor dashboard (instructors only), Manage (staff only, card #6457), Settings and Log out for
+ * Instructor dashboard (instructors only), your company profile (company accounts only, card #6341),
+ * Manage (staff only, card #6457), Settings and Log out for
  * members (audit NAV-16: My articles also offers members who cannot write yet the "Apply to write" form).
  * Join opens /register/ while registration is on (Settings, General, "Anyone can register"), else the contact form on "Joining the community".
  *
@@ -140,6 +141,11 @@ function prospergenics_2026_account_links() {
     $links[] = array( 'key' => 'articles', 'label' => 'My articles', 'url' => home_url( '/articles/mine/' ) );
     if ( function_exists( 'prospergenics_courses_is_instructor' ) && prospergenics_courses_is_instructor() ) {
         $links[] = array( 'key' => 'teach', 'label' => 'Instructor dashboard', 'url' => home_url( '/instructor/dashboard/' ) );
+    }
+    // company accounts (card #6341): create, or edit, their own company profile (inc/platform-roles.php)
+    $company = function_exists( 'prospergenics_roles_company_profile_link' ) ? prospergenics_roles_company_profile_link( get_current_user_id() ) : null;
+    if ( $company ) {
+        $links[] = array( 'key' => 'company', 'label' => $company['label'], 'url' => $company['url'] );
     }
     if ( function_exists( 'prospergenics_manage_can_access' ) && prospergenics_manage_can_access() ) {
         // the staff area (card #6457): editors and administrators only (inc/platform-manage.php)

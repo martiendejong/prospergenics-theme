@@ -110,6 +110,24 @@
 .pg-demo + .pg-try-live { margin-top: 18px; }
 .pg-try-text { margin: 0; flex: 1 1 260px; font-size: 15.5px; line-height: 1.55; color: var(--ink, #0b2016); }
 .pg-try-btn { display: inline-flex; align-items: center; text-decoration: none; }
+/* The chat panel "Try it live" opens (CoachOS' embed.js) on phones, as on the homepage (#8078): embed.js
+   makes it full screen below 481px and edge to edge up to 560px; here it is a card instead, 12px from
+   the edges, rounded, with a soft shadow. This page has no launcher to clear, so it sits 12px from the
+   bottom; with the on-screen keyboard open 12px above it, shrunk to the visible area, so the input,
+   mic and Send stay in view: --co-kb (keyboard height) and --co-vv-top come from visualViewport (the
+   script after the "Try it live" embed); without them 100dvh applies. */
+@media (max-width: 560px) {
+  .co-embed-panel {
+    left: 12px !important; right: 12px !important; width: auto !important;
+    bottom: calc(var(--co-kb, 0px) + 12px) !important;
+    height: min(560px, calc(100dvh - var(--co-vv-top, 0px) - var(--co-kb, 0px) - 24px)) !important;
+    border-radius: 18px !important;
+    box-shadow: 0 22px 48px -12px rgba(11,32,22,.5), 0 4px 14px rgba(11,32,22,.16) !important;
+  }
+  /* the close button: a 40px tap target; the header padding is trimmed so it grows by only ~6px */
+  .co-embed-panel .co-embed-header { padding-top: 4px; padding-bottom: 4px; }
+  .co-embed-panel .co-embed-close { min-width: 40px; min-height: 40px; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .pg-demo-guide, .pg-demo--js .pg-demo-step, .pg-demo--js .pg-demo-step.is-current { transition: none; }

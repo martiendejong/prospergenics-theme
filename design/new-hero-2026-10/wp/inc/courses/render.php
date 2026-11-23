@@ -64,7 +64,8 @@ function prospergenics_courses_card( $course, $user_id = 0, $heading = 'h2' ) {
 	}
 	$html .= sprintf( '<%1$s class="pgc-card-title"><a href="%2$s">%3$s</a></%1$s>', $heading, esc_url( get_permalink( $course ) ), esc_html( get_the_title( $course ) ) );
 	if ( $instructor ) {
-		$html .= '<p class="pgc-card-by">By ' . esc_html( $instructor->display_name ) . '</p>';
+		// to the instructor's page, as on the course page (card #6524)
+		$html .= '<p class="pgc-card-by">By <a href="' . esc_url( prospergenics_courses_instructor_url( $instructor->ID ) ) . '">' . esc_html( $instructor->display_name ) . '</a></p>';
 	}
 	$html .= '<ul class="pgc-card-meta"><li>' . esc_html( prospergenics_courses_lesson_count_label( $lessons ) ) . '</li><li>' . esc_html( prospergenics_courses_format_price( prospergenics_courses_price( $course->ID ) ) ) . '</li></ul>';
 	if ( $user_id && prospergenics_courses_is_enrolled( $user_id, $course->ID ) ) {
