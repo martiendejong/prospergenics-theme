@@ -18,6 +18,11 @@
  * The /courses/ archive and single course URLs come from the pg_course post type itself. The
  * extra rules are added at the top so they win over the post type's own generic rules and over
  * a WordPress page that happens to have the slug "courses".
+ *
+ * /courses/<slug>/ is shared with the jengo-listings plugin (the curated catalogue): the theme
+ * answers it only for a published pg_course with that slug, the plugin every other one (card
+ * #6524, prospergenics_courses_theme_route()). A new course never takes a listings course's slug
+ * (data-model.php).
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -67,16 +72,85 @@ add_action( 'after_switch_theme', function () {
  * init with exit) still win; see the report for jengo-listings.
  */
 add_filter( 'request', function ( $vars ) {
-	$path = isset( $_SERVER['REQUEST_URI'] ) ? (string) parse_url( wp_unslash( $_SERVER['REQUEST_URI'] ), PHP_URL_PATH ) : '';
-	$home = (string) parse_url( home_url( '/' ), PHP_URL_PATH );
-	$rel  = trim( substr( $path, strlen( rtrim( $home, '/' ) ) ), '/' );
-	if ( preg_match( '#^courses(?:/page/([0-9]+))?$#', $rel, $m ) ) {
+	if ( preg_match( '#^courses(?:/page/([0-9]+))?$#', prospergenics_courses_request_path(), $m ) ) {
 		$vars = array( 'post_type' => 'pg_course' );
 		if ( ! empty( $m[1] ) ) {
 			$vars['paged'] = (int) $m[1];
 		}
 	}
 	return $vars;
+} );
+
+/** The request's path below the site's root, without slashes at the ends ('courses/html'). */
+function prospergenics_courses_request_path() {
+	$path = isset( $_SERVER['REQUEST_URI'] ) ? (string) parse_url( wp_unslash( $_SERVER['REQUEST_URI'] ), PHP_URL_PATH ) : '';
+	$home = (string) parse_url( home_url( '/' ), PHP_URL_PATH );
+	return trim( substr( $path, strlen( rtrim( $home, '/' ) ) ), '/' );
+}
+
+/**
+ * Who answers /courses/<slug>/ (card #6524). The jengo-listings plugin holds the curated course
+ * catalogue and claims every /courses/<slug>/ with a rewrite rule of its own, ahead of this post
+ * type's; courses made with this theme's wizard (pg_course) live at the same kind of URL. As the
+ * team agreed on 19 Nov, the theme answers /courses/<slug>/, and its own pages under it (lessons,
+ * lesson notes, certificate), only when a PUBLISHED pg_course has that slug; any other
+ * /courses/<slug>/ (the plugin's courses, drafts, unknown slugs) is left to the plugin. Fixed words
+ * (/courses/my/, /courses/verify/, ...) keep their own rules. Pure.
+ *
+ * @param string   $rel       Request path as prospergenics_courses_request_path() gives it.
+ * @param callable $published function ( string $segment ): string, the post_name of the published
+ *                            pg_course the URL segment names, or ''.
+ * @return array|null The query vars of the theme's own rule for that URL, or null: leave the request alone.
+ */
+function prospergenics_courses_theme_route( $rel, $published ) {
+	if ( ! preg_match( '#^courses/([^/]+)(?:/(certificate|lessons/([^/]+)(/notes)?))?$#', (string) $rel, $m )
+		|| in_array( strtolower( $m[1] ), prospergenics_courses_reserved_slugs(), true ) ) {
+		return null;
+	}
+	$slug = (string) call_user_func( $published, $m[1] );
+	if ( '' === $slug ) {
+		return null;
+	}
+	if ( empty( $m[2] ) ) {
+		return array( 'pg_course' => $slug, 'post_type' => 'pg_course', 'name' => $slug );
+	}
+	if ( 'certificate' === $m[2] ) {
+		return array( 'pg_courses_view' => 'certificate', 'pg_courses_course' => $slug );
+	}
+	$vars = array( 'pg_lesson' => $m[3], 'post_type' => 'pg_lesson', 'name' => $m[3], 'pg_courses_course' => $slug );
+	if ( ! empty( $m[4] ) ) {
+		$vars['pg_courses_notes'] = '1';
+	}
+	return $vars;
+}
+
+/**
+ * The post_name of the published pg_course a /courses/<segment>/ URL names, or ''. One query on
+ * the posts table's post_name index, remembered for the rest of the request.
+ */
+function prospergenics_courses_published_slug( $segment ) {
+	static $seen = array();
+	$slug = sanitize_title_for_query( (string) $segment );
+	if ( '' === $slug ) {
+		return '';
+	}
+	if ( ! array_key_exists( $slug, $seen ) ) {
+		global $wpdb;
+		$name          = $wpdb->get_var( $wpdb->prepare( "SELECT post_name FROM {$wpdb->posts} WHERE post_name = %s AND post_type = 'pg_course' AND post_status = 'publish' LIMIT 1", $slug ) );
+		$seen[ $slug ] = is_string( $name ) ? $name : '';
+	}
+	return $seen[ $slug ];
+}
+
+// The theme takes its own course's URL: the query vars WordPress matched (the plugin's) make way for
+// those of the theme's rule; vars the visitor put in the query string (?preview=, ?replytocom=) stay.
+add_filter( 'request', function ( $vars ) {
+	$route = prospergenics_courses_theme_route( prospergenics_courses_request_path(), 'prospergenics_courses_published_slug' );
+	if ( null === $route ) {
+		return $vars;
+	}
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- only which keys were asked for
+	return array_merge( array_intersect_key( (array) $vars, $_GET ), $route );
 } );
 
 /** Lessons live under their course: /courses/<course>/lessons/<lesson>/. */
