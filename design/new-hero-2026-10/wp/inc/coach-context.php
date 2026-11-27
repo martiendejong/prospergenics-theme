@@ -95,14 +95,16 @@ function prospergenics_2026_coach_context( $user_id = null ) {
     $team     = array();
     foreach ( prospergenics_2026_coach_people() as $p ) {
         $role = isset( $p['role'] ) ? (string) $p['role'] : '';
-        if ( preg_match( '/\bFounder\b/', $role ) ) {
-            $founders[] = $p['name'];
-        } elseif ( false !== stripos( $role, 'Founding team' ) ) {
+        // "Founding team" first: a founding-team member can be a co-founder of their own company
+        // (Diko, "Co-Founder of Afrigentic"; Simitia, "Founder of Maa-Link Ride", 19 Nov), which is not the ProsperGenics "Founder"
+        if ( false !== stripos( $role, 'Founding team' ) ) {
             $team[] = $p['name'];
+        } elseif ( preg_match( '/(?<!Co-)\bFounder\b/i', $role ) ) {
+            $founders[] = $p['name'];
         }
     }
     if ( $founders ) {
-        $lines[] = 'Founder: ' . implode( ', ', $founders ) . '. Founding team: ' . ( $team ? implode( ', ', $team ) : 'none listed' ) . '. Nobody is called a co-founder.';
+        $lines[] = 'Founder: ' . implode( ', ', $founders ) . '. Founding team: ' . ( $team ? implode( ', ', $team ) : 'none listed' ) . '. Nobody is called a co-founder of ProsperGenics.';
     }
     $lines[] = 'Refer to each person with the pronouns listed for them. When none are listed, use their name or they/them; never guess.';
     $lines   = array_merge( $lines, prospergenics_2026_coach_member_lines( $user_id ) );

@@ -171,6 +171,33 @@ ok( $same, 'inc/people.json has every PROFILES person with the same name, role, 
 ok( array_keys( $pj['people'] ) === array_column( $profiles, 'slug' ), 'inc/people.json keeps the PROFILES order (the /members/ card order)' );
 ok( file_get_contents( $design . '/wp/inc/people.json' ) === file_get_contents( $theme . '/inc/people.json' ), 'the theme ships the same people.json' );
 
+echo "Legal names and details from the old team pages, titles unchanged (Lesiamon, 19 Nov)\n";
+$by    = array_column( $profiles, null, 'slug' );
+$want  = array(
+	'martien' => array( 'Martien de Jong', 'Software Developer, Founder' ),
+	'simitia' => array( 'Simitia Mpoe', 'Founding team, Software Developer, Founder of Maa-Link Ride' ),
+	'diko'    => array( 'Diko Mohammed', 'Founding team, Software Developer, Co-Founder of Afrigentic' ),
+	'lessy'   => array( 'Finehas Lesiamon', 'Founding team, Trainer, Software Developer' ),
+	'frank'   => array( 'Frank Kobaai', 'Founding team, Trainer, Software Developer' ),
+);
+$pages = array();
+foreach ( $want as $slug => $nr ) {
+	$pages[ $slug ] = (string) @file_get_contents( $design . '/people/' . $slug . '/index.html' );
+	ok( isset( $by[ $slug ] ) && $nr === array( $by[ $slug ]['name'], $by[ $slug ]['role'] ) && false !== strpos( $pages[ $slug ], '<h1 style="margin-top:20px">' . $nr[0] . '</h1>' ) && false !== strpos( $pages[ $slug ], '<p class="p-role">' . $nr[1] . '</p>' ) && false !== strpos( $pages[ $slug ], '"name": "' . $nr[0] . '"' ), "/people/$slug/: $nr[0], $nr[1] (page, JSON-LD), slug unchanged" );
+}
+$static = $index . file_get_contents( $design . '/experts/index.html' ) . file_get_contents( $design . '/community/index.html' ) . file_get_contents( $design . '/people/members-collection.json' ) . file_get_contents( $design . '/wp/inc/people.json' ) . implode( '', $pages );
+ok( false === strpos( $static, 'Lesiamon Mpoe' ) && false === strpos( $static, 'Diko Mohamed' ) && ! preg_match( '/Co-Founder(?! of Afrigentic)/i', $static ) && ! preg_match( '/>Frank</', $static ), 'no old name and no "Co-Founder" title (only Diko\'s Afrigentic) left on the slider, /experts/, /community/, the /people/ pages, people.json or the members collection' );
+$story = function ( $html ) { return preg_match( '#<div class="prose"><p>(.*?)</p></div>#s', $html, $m ) ? $m[1] : ''; };
+ok( ! preg_match( '/\b(he|him|his)\b/i', $story( $pages['diko'] ) ) && false !== strpos( $story( $pages['diko'] ), 'Afrigentic' ) && 'she/her' === $pj['people']['diko']['pronouns'], 'Diko: she/her throughout, co-founder of Afrigentic' );
+ok( ! preg_match( '/\b(he|him|his|she|her|hers)\b/i', strip_tags( preg_replace( '#^.*?<main id="main">(.*?)</main>.*$#s', '$1', $pages['frank'] ) ) ) && ! isset( $pj['people']['frank']['pronouns'] ), 'Frank: no pronouns on the page or in the chat facts (none stated)' );
+ok( false !== strpos( $pages['frank'], 'Nairobi-based web developer' ) && false !== strpos( $pages['frank'], 'Webflow' ), 'Frank: Nairobi, web design and Webflow from the old page' );
+ok( false !== strpos( $pages['martien'], '<a href="https://martiendejong.nl">martiendejong.nl</a>' ) && false !== strpos( $pages['martien'], 'Claude Code & Cursor coaching' ) && false !== strpos( $pages['martien'], 'since 2006' ) && false !== strpos( $pages['martien'], 'Jengo' ), 'Martien: his website and the coaching added, Jengo and since 2006 kept' );
+$tech = array( 'WordPress', 'Angular', 'Node.js', 'SCSS', 'Python', 'Flask', 'Java', 'XAMPP', 'GitHub workflows', 'UI/UX', 'Responsive design' );
+ok( count( $tech ) === count( array_filter( $tech, function ( $t ) use ( $pages ) { return (bool) preg_match( '#<span class="chip">[^<]*' . preg_quote( $t, '#' ) . '#', $pages['lessy'] ); } ) ) && false !== strpos( $pages['lessy'], 'very first participant' ), 'Lessy: the whole stack of the old page as expertise chips, and the first participant' );
+ok( 'Lessy' === $pj['people']['lessy']['aka'] && 'he/him' === $pj['people']['lessy']['pronouns'], 'Lessy: still known as Lessy, he/him' );
+ok( false !== strpos( $pages['simitia'], 'Maa-Link Ride' ) && false !== strpos( $pages['simitia'], 'team in Kenya' ) && false !== strpos( $pages['simitia'], 'personal assistant to Martien de Jong' ) && false !== strpos( $pages['simitia'], 'the sick and the elderly' ), 'Simitia: team lead in Kenya, fundraisers, assistant to Martien, Maa-Link Ride' );
+ok( ! preg_match( '/Narok|Nanare|nyama|shoe|school supplies/i', $pages['simitia'] ), 'Simitia: nothing else from her old page' );
+
 echo "/people/ itself (CON-15)\n";
 $pi = file_get_contents( $design . '/people/index.html' );
 ok( false !== strpos( $pi, '<meta http-equiv="refresh" content="0; url=/members/" />' ), 'meta refresh to /members/ (card #6517)' );

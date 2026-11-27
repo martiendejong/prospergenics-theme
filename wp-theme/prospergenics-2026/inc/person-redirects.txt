@@ -34,7 +34,8 @@ sandra                       /people/simitia/
 sandra-2                     /people/simitia/
 author/sandra                /people/simitia/
 
-# Diko Mohamed
+# Diko Mohammed (was "Diko Mohamed" here until 19 Nov)
+members/diko-mohammed        /people/diko/
 members/diko-mohamed         /people/diko/
 members/diko                 /people/diko/
 diko                         /people/diko/
@@ -54,15 +55,17 @@ team_member/faith-nkumun     /people/faith/
 # Maxwell
 members/maxwell              /people/maxwell/
 
-# Lesiamon Mpoe (Lessy)
+# Finehas Lesiamon (Lessy; "Lesiamon Mpoe" here until 19 Nov)
 members/lessy                /people/lessy/
+members/finehas-lesiamon     /people/lessy/
 members/lesiamon-mpoe        /people/lessy/
 lessy                        /people/lessy/
 lessy-2                      /people/lessy/
 author/lessy                 /people/lessy/
 
-# Frank
+# Frank Kobaai
 members/frank                /people/frank/
+members/frank-kobaai         /people/frank/
 team_member/frank-kobaai     /people/frank/
 frank                        /people/frank/
 frank-2                      /people/frank/
