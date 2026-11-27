@@ -2,7 +2,9 @@
 /**
  * Standalone test for the Try-it editors whose example holds a <textarea> of its own (card #7146):
  * inc/lesson-editors.php, on the saved live HTML lessons 36 and 45, and the Python note in
- * inc/site-chrome/playground.js. The takeover wiring is in test-2026-navigation.php.
+ * inc/site-chrome/playground.js. Card #6469 (slow connections): the stranded playground code dropped
+ * before the page is sent, and the playground's own rules for what may load by itself (run in node
+ * when it is installed). The takeover wiring is in test-2026-navigation.php.
  *
  * Run with: php tests/test-2026-lesson-editors.php
  */
@@ -61,6 +63,7 @@ ok( array() === live_elements( substr( $e[1], 0, strpos( $e[1], '</section>' ) )
 ok( 0 === substr_count( $m36, '<button class="btn btn-primary"' ) && 1 === substr_count( $l36, '<button class="btn btn-primary"' ), 'the live "Submit" button is gone from the page' );
 ok( 2 === count( $after ) && $before[1] === $after[1], 'the sample box in the stranded playground text (removed by learn.js) is untouched' );
 ok( $m36 === prospergenics_2026_lesson_mend_editors( $m36 ), 'mending twice changes nothing' );
+$after36 = $e;
 
 echo "HTML lesson 45 \"Build a Complete Website\" (the editor's end was lost)\n";
 $l45    = file_get_contents( __DIR__ . '/fixtures/jengo-listings/html-learn-lesson45.html' );
@@ -97,6 +100,80 @@ $pjs = file_get_contents( $theme . '/inc/site-chrome/playground.js' );
 ok( false !== strpos( $pjs, "/^NotImplementedError: ([\\w.]+) is not yet implemented in Skulpt/" ) && false !== strpos( $pjs, "/^ImportError: No module named ['\"]?([\\w.]+)/" ) && false !== strpos( $pjs, "/^NameError: name '(\\w+(?:Error|Exception|Warning))' is not defined/" ), 'a missing module (io, json) or a missing built-in exception (FileNotFoundError) is recognised; other errors are not' );
 ok( false !== strpos( $pjs, "'This example uses a Python feature the in-browser runner doesn\\'t have ('" ) && false !== strpos( $pjs, "'). Copy it and run it on your computer.'" ), 'it becomes a short note that says what is missing and to run it on your own computer' );
 ok( false !== strpos( $pjs, 'if(f){line(note[0]+f+note[1],"info")}else{line(t,"error")}' ), 'only those errors: every other error still shows as it is' );
+
+echo "The playground code stranded as text, not sent (card #6469)\n";
+$stranded = function ( $html ) { return substr_count( $html, '/* Lesson playground' ); };
+$d36 = prospergenics_2026_lesson_drop_stranded( $m36 );
+ok( 2 === $stranded( $m36 ) && 0 === $stranded( $d36 ), 'lesson 36: the stranded playground code (its header comment twice) is gone' );
+ok( strlen( $d36 ) < strlen( $m36 ) - 11000 && 1 === count( editors( $d36 ) ) && $after36[0] === editors( $d36 )[0][0], 'about 11 KB less; the sample editor made from its strings went with it, the lesson\'s own (mended) editor is untouched' );
+ok( false === strpos( $d36, 'else { scan(document); } })();' ) && (bool) preg_match( '#<span>Result</span>\s*</div>\s*</div>\s*</section>\s*<div class="learn-foot">#', $d36 ), 'down to its last line: the lesson\'s Result panel and section end, and the lesson foot follows right after' );
+ok( $d36 === prospergenics_2026_lesson_drop_stranded( $d36 ), 'dropping twice changes nothing' );
+$d45 = prospergenics_2026_lesson_drop_stranded( $m45 );
+ok( 0 === $stranded( $d45 ) && editors( $m45 )[0][0] === editors( $d45 )[0][0] && (bool) preg_match( '#&lt;/html&gt;</textarea>\s*</div></div></section>\s*<div class="learn-foot">#', $d45 ), 'lesson 45: gone too; the mended editor and the lesson\'s end stay as they were' );
+ok( $learn === prospergenics_2026_lesson_drop_stranded( $learn ), 'a lesson page without it (AI Software Lifecycle) is byte for byte the same' );
+$code = "/* Lesson playground (5818) */ .editor-container { display: grid; } <div class=\"editor-container\"><textarea>x</textarea></div> (function () { if (document.readyState === 'loading') {} else { scan(document); } })();";
+$page = "<article class=\"learn-body\" id=\"learnBody\"><h1>A</h1><p>Text</p>\n" . $code . "\n<hr />\n<h1>B</h1>" . $code . "\n<div class=\"learn-foot\">f</div>\n</article>";
+ok( "<article class=\"learn-body\" id=\"learnBody\"><h1>A</h1><p>Text</p>\n\n<hr />\n<h1>B</h1>\n<div class=\"learn-foot\">f</div>\n</article>" === prospergenics_2026_lesson_drop_stranded( $page ), 'right in the lesson, once per lesson: each run goes, everything else stays' );
+$inside = array(
+	'inside an editor'             => "<article id=\"learnBody\"><div class=\"editor-container\"><textarea>" . $code . "</textarea></div></article>",
+	'inside a code block'          => "<article id=\"learnBody\"><pre><code>" . $code . "</code></pre></article>",
+	'with a heading in between'    => "<article id=\"learnBody\">" . str_replace( '(function', '<h2>Next</h2>(function', $code ) . "</article>",
+	'with a session break between' => "<article id=\"learnBody\">" . str_replace( '(function', '<hr />(function', $code ) . "</article>",
+	'with an element left open'    => "<article id=\"learnBody\">" . str_replace( '<textarea>x</textarea></div>', '<textarea>x</textarea>', $code ) . "</article>",
+	'without its last line'        => "<article id=\"learnBody\">" . str_replace( 'scan(document);', 'scan(root);', $code ) . "</article>",
+	'outside the lesson'           => "<article id=\"learnBody\"><p>x</p></article>\n" . $code,
+	'on a page without a lesson'   => '<main>' . $code . '</main>',
+);
+foreach ( $inside as $label => $html ) {
+	ok( $html === prospergenics_2026_lesson_drop_stranded( $html ), "kept for learn.js: $label" );
+}
+
+echo "What an example may load by itself (playground.js, card #6469)\n";
+$node = trim( (string) shell_exec( 'command -v node 2>/dev/null' ) );
+if ( '' === $node ) {
+	echo "  SKIP  node is not installed; the source checks in test-2026-navigation.php still run\n";
+} else {
+	$cases = array(
+		'plain'      => '<h1>Habari</h1><p style="color:red">Hi</p><img src="photo.jpg"><a href="https://en.wikipedia.org/wiki/Kenya">Kenya</a><form action="https://example.com/send"></form><p>Visit https://example.com</p>',
+		'youtube'    => '<iframe width="560" src="https://www.youtube.com/embed/abc" allowfullscreen></iframe>',
+		'bare'       => "<img src='//picsum.photos/200/300' alt=''>",
+		'fonts'      => '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter"><style>@import "https://fonts.example.org/a.css"; body { background: url(https://img.example.net/bg.png) }</style>',
+		'media'      => '<video poster="https://p.example.com/p.jpg" controls><source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4"></video><audio src=https://a.example.com/x.mp3></audio>',
+		'srcset'     => '<img src="a.jpg" srcset="https://one.example.com/1.jpg 1x, https://two.example.com/2.jpg 2x">',
+		'refresh'    => '<meta http-equiv="refresh" content="5; url=https://away.example.com/">',
+		'object'     => '<object data="https://o.example.com/file.pdf"></object><svg><image href="https://s.example.com/i.png"/></svg>',
+		'script'     => '<script>// note: e.g. this\nfetch("https://api.example.com/v1/data")</script><script>var a = 1 // 2</script>',
+		'repeat'     => '<img src="https://picsum.photos/1"><img src="https://picsum.photos/2"><img src="https://PICSUM.photos/3">',
+	);
+	$docs = array(
+		'fragment'  => array( 'html', '<p>Hi</p>' ),
+		'page'      => array( 'html', "<!DOCTYPE html>\n<html><head><link rel=\"stylesheet\" href=\"https://x.example.com/a.css\"></head><body>B</body></html>" ),
+		'commented' => array( 'html', "<!-- my page -->\n<!doctype html><html><body>B</body></html>" ),
+		'quirks'    => array( 'html', '<html><body>B</body></html>' ),
+		'js'        => array( 'javascript', 'console.log(1)' ),
+	);
+	$script = 'global.window = {};' . file_get_contents( $theme . '/inc/site-chrome/playground.js' ) . ';var p = window.__pgPlayground, c = ' . json_encode( $cases ) . ', d = ' . json_encode( $docs ) . ', r = { hosts: {}, locked: {}, open: {} };'
+		. 'Object.keys(c).forEach(function (k) { r.hosts[k] = p.externalHosts(c[k]); });'
+		. 'Object.keys(d).forEach(function (k) { r.locked[k] = p.buildDoc(d[k][0], d[k][1], true); r.open[k] = p.buildDoc(d[k][0], d[k][1], false); });'
+		. 'process.stdout.write(JSON.stringify(r));';
+	$r = json_decode( (string) shell_exec( escapeshellarg( $node ) . ' -e ' . escapeshellarg( $script ) . ' 2>&1' ), true );
+	ok( is_array( $r ), 'playground.js loads in node and answers' );
+	$h = is_array( $r ) ? $r['hosts'] : array();
+	ok( array() === $h['plain'], 'a plain example renders by itself: text, inline styles, a local image name, links and forms (they only go out when clicked)' );
+	ok( array( 'www.youtube.com' ) === $h['youtube'] && array( 'picsum.photos' ) === $h['bare'], 'an embedded YouTube video, an image from //picsum.photos: their site is named' );
+	ok( array( 'fonts.googleapis.com', 'fonts.example.org', 'img.example.net' ) === $h['fonts'], 'a stylesheet <link>, a CSS url() and an @import' );
+	ok( array( 'p.example.com', 'www.w3schools.com', 'a.example.com' ) === $h['media'] && array( 'one.example.com', 'two.example.com' ) === $h['srcset'], 'video poster and source, audio (unquoted src), every srcset candidate' );
+	ok( array( 'away.example.com' ) === $h['refresh'] && array( 'o.example.com', 's.example.com' ) === $h['object'], 'a refresh <meta> that leaves for another site, <object data>, SVG <image href>' );
+	ok( array( 'api.example.com' ) === $h['script'], 'a URL a script fetches; "//" comments in scripts are not taken for addresses' );
+	ok( array( 'picsum.photos' ) === $h['repeat'], 'each site once, whatever its case' );
+	$csp = '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; style-src \'unsafe-inline\'; script-src \'unsafe-inline\' \'unsafe-eval\'; img-src data: blob:; media-src data: blob:; font-src data:">';
+	$l   = is_array( $r ) ? $r['locked'] : array();
+	$o   = is_array( $r ) ? $r['open'] : array();
+	ok( false !== strpos( $l['fragment'], '<head><meta charset="utf-8">' . $csp . '<style>' ) && false === strpos( $o['fragment'], 'Content-Security-Policy' ), 'rendered by itself, an example gets a policy that blocks every request (data: images only); after Run or the tap it does not' );
+	ok( 0 === strpos( $l['page'], "<!DOCTYPE html>" . $csp . "\n<html><head><link" ) && $o['page'] === $docs['page'][1], 'a whole page: the policy right after its <!DOCTYPE> (standards mode kept, before its first <link>); unlocked it is the example as written' );
+	ok( 0 === strpos( $l['commented'], "<!-- my page -->\n<!doctype html>" . $csp ) && 0 === strpos( $l['quirks'], $csp . '<html>' ), 'after a comment and a <!doctype>; a page without one gets it first' );
+	ok( $l['js'] === $o['js'] && false === strpos( $l['js'], 'Content-Security-Policy' ), 'JavaScript and Python only run on Run, so they never get it' );
+}
 
 echo $failures ? "\n$failures FAILED\n" : "\nAll passed\n";
 exit( $failures ? 1 : 0 );
